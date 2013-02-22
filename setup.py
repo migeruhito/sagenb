@@ -35,7 +35,8 @@ install_requires = [
     'flask-oldsessions>=0.10',
     'flask-openid',
     'flask-autoindex',
-    'flask-babel'
+    'flask-babel',
+    'flask-themes2'
 ]
 
 

@@ -15,11 +15,14 @@ from sage.env import SAGE_SRC, SAGE_DOC
 SRC = os.path.join(SAGE_SRC, 'sage')
 from flask.ext.openid import OpenID
 from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext, get_locale
-from sagenb.misc.misc import SAGENB_ROOT, DATA, translations_path, N_, nN_, unicode_str
+from flask.ext.themes2 import Themes, theme_paths_loader
+from sagenb.misc.misc import SAGENB_ROOT, DATA, SAGE_DOC, translations_path, N_, nN_, unicode_str, theme_paths, default_theme
 from json import dumps
 from sagenb.notebook.cell import number_of_rows
 from sagenb.notebook.template import (css_escape, clean_name,
                                       prettify_time_ago, TEMPLATE_PATH)
+from themes import render
+
 oid = OpenID()
 
 class SageNBFlask(Flask):
@@ -448,6 +451,16 @@ def create_app(path_to_notebook, *args, **kwds):
     def get_locale():
         return g.notebook.conf()['default_language']
 
+    #################
+    # Set up themes #
+    #################
+    app.config['THEME_PATHS'] = theme_paths() 
+    app.config['DEFAULT_THEME'] = default_theme()
+    Themes(app, loaders=[theme_paths_loader], app_identifier='sagenb')
+    name = notebook.conf()['theme']
+    if name not in app.theme_manager.themes:
+        notebook.conf()['theme'] = app.config['DEFAULT_THEME']
+    app.theme_manager.refresh()
     ########################
     # Register the modules #
     ########################

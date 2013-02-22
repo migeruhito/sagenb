@@ -111,6 +111,15 @@ def notebook_settings():
     if 'form' in request.values:
         updated = g.notebook.conf().update_from_form(request.values)
 
+    #Changes theme
+    if 'theme' in request.values:
+        new_theme = request.values['theme']
+        if new_theme not in current_app.theme_manager.themes:
+            g.notebook.conf()['theme'] = current_app.config['DEFAULT_THEME']
+        else:
+            g.notebook.conf()['theme'] = new_theme
+        current_app.theme_manager.refresh()
+
     template_dict = {}
     template_dict['sage_version'] = SAGE_VERSION
     template_dict['auto_table'] = g.notebook.conf().html_table(updated)

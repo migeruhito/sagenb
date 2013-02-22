@@ -528,3 +528,20 @@ def N_(message):
     return message
 def nN_(message_singular, message_plural):
     return [message_singular, message_plural]
+def theme_paths():
+    paths = [os.path.join(SAGENB_ROOT, 'themes')]
+    user_path = os.path.join(DOT_SAGENB, 'themes')
+    if os.path.isdir(user_path):
+        paths.append(user_path)
+    return paths
+
+def default_theme():
+    return 'Default'
+
+def get_themes():
+    themes = [default_theme()]
+    for path in theme_paths():
+        themes.extend([
+            theme for theme in os.listdir(path) if os.path.isdir(theme)])
+    themes.sort()
+    return themes
