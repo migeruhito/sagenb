@@ -4,7 +4,7 @@ import os
 import time
 import re
 from functools import partial
-from flask import Flask, Module, url_for, request, session, redirect, g, make_response, current_app, render_template
+from flask import Flask, Module, url_for, request, session, redirect, g, make_response, current_app
 from .decorators import login_required, guest_or_login_required, with_lock
 from .decorators import global_lock
 # Make flask use the old session foo from <=flask-0.9
@@ -21,7 +21,7 @@ from json import dumps
 from sagenb.notebook.cell import number_of_rows
 from sagenb.notebook.template import (css_escape, clean_name,
                                       prettify_time_ago, TEMPLATE_PATH)
-from themes import render
+from themes import render_template
 
 oid = OpenID()
 

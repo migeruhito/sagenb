@@ -3,9 +3,11 @@
 from __future__ import absolute_import
 import os
 import urllib, urlparse
-from flask import Module, url_for, render_template, request, session, redirect, g, current_app
+<<<<<<< HEAD
+from flask import Module, url_for, request, session, redirect, g, current_app
 from .decorators import login_required, guest_or_login_required, with_lock
 from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext
+from themes import render_template
 _ = gettext
 
 worksheet_listing = Module('sagenb.flask_version.worksheet_listing')

@@ -539,9 +539,9 @@ def default_theme():
     return 'Default'
 
 def get_themes():
-    themes = [default_theme()]
+    themes = []
     for path in theme_paths():
         themes.extend([
-            theme for theme in os.listdir(path) if os.path.isdir(theme)])
+            theme for theme in os.listdir(path) if os.path.isdir(os.path.join(path, theme))])
     themes.sort()
     return themes
