@@ -21,7 +21,7 @@ from json import dumps
 from sagenb.notebook.cell import number_of_rows
 from sagenb.notebook.template import (css_escape, clean_name,
                                       prettify_time_ago, TEMPLATE_PATH)
-from themes import render_template
+from sagenb.notebook.themes import render_template
 
 oid = OpenID()
 
@@ -191,7 +191,7 @@ def keyboard_js(browser_os):
 # Dynamic CSS #
 ###############
 #DOT_SAGENB/notebook.css mechanism is left for backwards compatibility,
-#but it has no sense with the themes infrasturcture and should
+#but it has no sense with the themes infrastructure and should
 #be deprecated
 @base.route('/css/main.css')
 def main_css():

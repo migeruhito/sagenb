@@ -5,7 +5,7 @@ from .decorators import login_required, with_lock
 from flask.ext.babel import gettext, ngettext, lazy_gettext
 _ = gettext
 
-from themes import render_template
+from sagenb.notebook.themes import render_template
 
 settings = Module('sagenb.flask_version.settings')
 

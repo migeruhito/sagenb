@@ -22,7 +22,6 @@ import os, re, sys
 
 from sagenb.misc.misc import SAGE_VERSION, DATA
 from flask.ext.babel import gettext, ngettext, lazy_gettext
-from flask import current_app as app
 
 if 'SAGENB_TEMPLATE_PATH' in os.environ:
     if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):
@@ -131,7 +130,7 @@ def template(filename, **user_context):
     """
     from sagenb.notebook.notebook import MATHJAX, JEDITABLE_TINYMCE
     from .misc import notebook
-    from flask import current_app
+    from sagenb.notebook.themes import get_template
     #A dictionary containing the default context
     default_context = {'sitename': gettext('Sage Notebook'),
                        'sage_version': SAGE_VERSION,
@@ -140,8 +139,7 @@ def template(filename, **user_context):
                        'JEDITABLE_TINYMCE': JEDITABLE_TINYMCE,
                        'conf': notebook.conf() if notebook else None}
     try:
-        tmpl = app.jinja_env.get_template(filename)
-        tmpl = current_app.jinja_env.get_template(filename)
+        tmpl = get_template(filename)
     except jinja2.exceptions.TemplateNotFound:
         return "Notebook Bug -- missing template %s"%filename
 

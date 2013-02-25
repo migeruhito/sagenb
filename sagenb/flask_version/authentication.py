@@ -3,7 +3,7 @@ import random
 from flask import Module, url_for, request, session, redirect, g, current_app
 from .decorators import with_lock
 from flask.ext.babel import gettext, ngettext, lazy_gettext
-from themes import render_template
+from sagenb.notebook.themes import render_template
 _ = gettext
 
 authentication = Module('sagenb.flask_version.authentication')
