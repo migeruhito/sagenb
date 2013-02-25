@@ -197,7 +197,7 @@ if %(secure)s:
 %(open_page)s
 try:
     flask_app.run(host=%(interface)r, port=%(port)s, threaded=True,
-                  ssl_context=ssl_context, debug=True)
+                  ssl_context=ssl_context, debug=False)
 finally:
     save_notebook(flask_base.notebook)
     os.unlink(%(pidfile)r)

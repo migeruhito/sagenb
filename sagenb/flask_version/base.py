@@ -190,6 +190,9 @@ def keyboard_js(browser_os):
 ###############
 # Dynamic CSS #
 ###############
+#DOT_SAGENB/notebook.css mechanism is left for backwards compatibility,
+#but it has no sense with the themes infrasturcture and should
+#be deprecated
 @base.route('/css/main.css')
 def main_css():
     from sagenb.notebook.css import css
@@ -422,9 +425,30 @@ def create_app(path_to_notebook, *args, **kwds):
     ##############
     # Create app #
     ##############
-    app = SageNBFlask('flask_version', startup_token=startup_token,
-                      template_folder=TEMPLATE_PATH)
+    from sagenb.notebook.template import TEMPLATE_PATH
+    app = SageNBFlask('flask_version',
+                      startup_token=startup_token,
+                      template_folder=TEMPLATE_PATH) #Template path is now
+                                                     #set up here.
     app.secret_key = os.urandom(24)
+    ###########
+    # Filters #
+    ###########
+    #This has been moved from sage.notebook.template because of
+    #the jinja_env setup changes.
+    import json
+    from sagenb.notebook.template import css_escape, number_of_rows,\
+         clean_name, prettify_time_ago 
+    from sagenb.misc.misc import unicode_str
+    app.add_template_filter(css_escape)
+    app.add_template_filter(number_of_rows)
+    app.add_template_filter(clean_name)
+    app.add_template_filter(prettify_time_ago)
+    app.add_template_filter(max)
+    app.add_template_filter(
+            lambda x: repr(unicode_str(x))[1:], name='repr_str')
+    app.add_template_filter(json.dumps, name='tojson')
+    
     oid.init_app(app)
     app.debug = True
 
@@ -454,13 +478,15 @@ def create_app(path_to_notebook, *args, **kwds):
     #################
     # Set up themes #
     #################
+    #A new conf entry, 'themes', was added to notebook
     app.config['THEME_PATHS'] = theme_paths() 
     app.config['DEFAULT_THEME'] = default_theme()
     Themes(app, loaders=[theme_paths_loader], app_identifier='sagenb')
     name = notebook.conf()['theme']
     if name not in app.theme_manager.themes:
         notebook.conf()['theme'] = app.config['DEFAULT_THEME']
-    app.theme_manager.refresh()
+    #app.theme_manager.refresh()
+
     ########################
     # Register the modules #
     ########################

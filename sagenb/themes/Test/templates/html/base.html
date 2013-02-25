@@ -7,7 +7,7 @@
         {% block more_meta %}{% endblock %}
 	{% block published_link_rel %}{% endblock %}
         {% block pre_main_css %}{% endblock %}
-        <link type="text/css" rel="stylesheet" href="/css/{% block css %}main{% endblock %}.css" />
+        <link type="text/css" rel="stylesheet" href={% block css %}{{ theme_static("css/main.css") }}{% endblock %} />
         {% block more_css %}{% endblock %}
         {# jQuery and other universally used libraries #}
         <script type="text/javascript" src="/javascript/jquery/jquery-1.7.1.min.js"></script>
@@ -24,7 +24,6 @@
     </head>
     <body id="{% block page_id %}{% endblock %}"
           class="{% block body_classes %}{% endblock %}">
-Hello world
         {% block body %}
         <div id="header">
             {% block header %}

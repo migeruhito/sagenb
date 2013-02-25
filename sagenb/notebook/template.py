@@ -131,6 +131,7 @@ def template(filename, **user_context):
     """
     from sagenb.notebook.notebook import MATHJAX, JEDITABLE_TINYMCE
     from .misc import notebook
+    from flask import current_app
     #A dictionary containing the default context
     default_context = {'sitename': gettext('Sage Notebook'),
                        'sage_version': SAGE_VERSION,
@@ -140,6 +141,7 @@ def template(filename, **user_context):
                        'conf': notebook.conf() if notebook else None}
     try:
         tmpl = app.jinja_env.get_template(filename)
+        tmpl = current_app.jinja_env.get_template(filename)
     except jinja2.exceptions.TemplateNotFound:
         return "Notebook Bug -- missing template %s"%filename
 
