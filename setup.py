@@ -68,7 +68,9 @@ setup(name='sagenb',
                          ],
           package_data = {'sagenb':
                               all_files('sagenb/data', 'sagenb/') +
-                              all_files('sagenb/translations', 'sagenb/')
+                              all_files('sagenb/translations', 'sagenb/') +
+                              all_files('sagenb/themes', 'sagenb/')
+
                          },
           zip_safe     = False,
           )
