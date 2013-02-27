@@ -1,0 +1,9 @@
+{
+    "application": "sagenb", 
+    "identifier": "Classic_less",
+    "name": "Classic less", 
+    "author": "J. Miguel Farto",
+    "license": "GPL",
+    "description": "Sage Notebook Classic style with less. No templates changed",
+    "version": "0.1"
+}

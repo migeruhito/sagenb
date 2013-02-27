@@ -1,9 +1,0 @@
-{
-    "application": "sagenb", 
-    "identifier": "Test", 
-    "name": "Test", 
-    "author": "J. Miguel farto",
-    "license": "GPL",
-    "description": "Sage Notebook default style",
-    "version": "0.1"
-}
