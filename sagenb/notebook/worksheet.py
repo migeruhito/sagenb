@@ -373,6 +373,18 @@ class Worksheet(object):
              'last_change': self.last_change(),
              }
         return d
+    #New UI
+    def basic_new(self):
+        d=self.basic()
+        del(d['published_id_number'])
+        del(d['auto_publish'])
+        d['attached_data_files'] = self.attached_data_files()
+        d['running'] = self.compute_process_has_been_started()
+        d['last_change_pretty'] =  prettify_time_ago(
+                time.time() -  self.last_change()[1])
+        d['filename'] = self.filename()
+        return d
+    #New UI end
 
     def reconstruct_from_basic(self, obj, notebook_worksheet_directory=None):
         """

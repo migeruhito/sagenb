@@ -477,6 +477,14 @@ class Cell_generic(object):
         """
         return False
 
+    #New UI
+    def basic(self):
+        """
+        Returns the cell as a python object
+        """
+        return {}
+    #New UI
+
 
 #############
 # Text cell #
@@ -558,6 +566,20 @@ class TextCell(Cell_generic):
         """
         input_text = unicode_str(input_text)
         self._text = input_text
+
+    #New UI
+    def basic(self):
+        """
+        Returns the cell as a python object
+        """
+        r = {}
+
+        r['id'] = self.id()
+        r['type'] = 'text'
+        r['input'] = self._text
+
+        return r
+    #New UI end
 
     def html(self, wrap=None, div_wrap=True, do_print=False,
              editing=False, publish=False):
@@ -1708,6 +1730,27 @@ class Cell(Cell_generic):
         except AttributeError:
             return None
 
+    #New UI
+    def basic(self):
+        """
+        Returns the cell as a python object
+        """
+
+        r = {}
+        r['id'] = self.id()
+        r['type'] = 'evaluate'
+        r['input'] = self._in
+        r['output'] = self.output_text()
+        r['output_html'] = self.output_html()
+        r['output_wrapped'] = self.output_text(
+                self.notebook().conf()['word_wrap_cols'])
+        r['percent_directives'] = self.percent_directives()
+        r['system'] = self.system()
+        r['auto'] = self.is_auto_cell()
+        r['introspect_output'] = self.introspect_output()
+        return r
+    #New UI end
+
     def output_html(self):
         """
         Returns this compute cell's HTML output.
@@ -1963,6 +2006,79 @@ class Cell(Cell_generic):
     #################
     # Introspection #
     #################
+    #newUI
+    def set_introspect_output(self, output, completing=False, raw=False):
+        ur"""
+        Sets this compute cell's introspection text.
+
+        INPUT:
+
+        - ``output`` - a string; the updated text
+
+        - ``completing`` - a boolean (default: False); whether the
+          completions menu is open
+
+        - ``raw`` - a boolean (default: False)
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
+            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C.introspect()
+            False
+            sage: C.evaluate(username='sage')
+            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            ('d', Cell 0: in=sage?, out=)
+            sage: C.set_introspect_output('foobar')
+            sage: C.introspect_output()
+            u'foobar'
+            sage: C.set_introspect_output('`foobar`')
+            sage: C.introspect_output()
+            u'`foobar`'
+            sage: C.set_introspect_output('ěščřžýáíéďĎ')
+            sage: C.introspect_output()
+            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+            sage: W.quit()
+            sage: nb.delete()
+        """
+        self._introspect_output = unicode_str(output)
+
+    def introspect_output(self):
+        """
+        Returns this compute cell's introspection text, setting it to
+        '', if none is available.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
+            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C.introspect()
+            False
+            sage: C.evaluate(username='sage')
+            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            ('d', Cell 0: in=sage?, out=)
+            sage: C.introspect_output()     # random output -- depends on computer speed
+            u'...<div class="docstring">...sage...</pre></div>...'
+            sage: W.quit()
+            sage: nb.delete()
+        """
+        if not self.introspect():
+            return ''
+        try:
+            return self._introspect_output
+        except AttributeError:
+            self._introspect_output = u''
+            return u''
+    #newUI end
+
     def set_introspect_html(self, html, completing=False, raw=False):
         r"""
         Sets this compute cell's introspection text.
