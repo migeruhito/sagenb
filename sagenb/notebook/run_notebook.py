@@ -393,7 +393,7 @@ def cmd_exists(cmd):
     return os.system('which %s 2>/dev/null >/dev/null' % cmd) == 0
 
 
-def notebook_setup(self=None):
+def notebook_setup():
     if not os.path.exists(conf_path):
         os.makedirs(conf_path)
 
@@ -475,7 +475,7 @@ command = {'flask': NotebookRunFlask,
            'tornado': NotebookRunTornado}
 
 
-def notebook_run(self,
+def notebook_run(
         directory=None,
         port=8080,
         interface='localhost',

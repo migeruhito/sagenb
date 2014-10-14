@@ -244,8 +244,11 @@ class NotebookObject:
     def __call__(self, *args, **kwds):
         return self.notebook(*args, **kwds)
 
-    notebook = run_notebook.notebook_run
-    setup    = run_notebook.notebook_setup
+    def notebook(self, *args, **kwargs):
+        return run_notebook.notebook_run(*args, **kwargs)
+
+    def setup(self, *args, **kwargs):
+        return run_notebook.notebook_setup(*args, **kwargs)
 
 notebook = NotebookObject()
 
