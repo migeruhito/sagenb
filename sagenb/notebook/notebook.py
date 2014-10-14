@@ -33,7 +33,7 @@ from cgi import escape
 
 # Sage libraries
 from sagenb.misc.misc import (pad_zeros, cputime, tmp_dir, load, save,
-                              ignore_nonexistent_files, unicode_str)
+                              ignore_nonexistent_files, unicode_str, module_exists)
 
 # Sage Notebook
 from . import css          # style
@@ -47,9 +47,8 @@ from . import user         # users
 from   template import template, prettify_time_ago
 from flask.ext.babel import gettext, lazy_gettext
 
-try:
+if module_exists('sage'):
     # sage is installed
-    import sage
     # [(string: name, bool: optional)]
     SYSTEMS = [('sage', False),
                ('gap', False),
@@ -72,9 +71,10 @@ try:
                ('mupad', True),
                ('octave', True),
                ('scilab', True)]
-except ImportError:
+else:
     # sage is not installed
-    SYSTEMS = [('sage', True)]    # but gracefully degenerated version of sage mode, e.g., preparsing is trivial
+    SYSTEMS = [('sage', True)]  # but gracefully degenerated version of
+                                # sage mode, e.g., preparsing is trivial
 
 
 # We also record the system names without (optional) since they are
