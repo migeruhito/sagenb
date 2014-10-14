@@ -20,6 +20,9 @@ Check that github issue #195 is fixed::
 #############################################################################
 
 from pkg_resources import resource_filename
+from babel import Locale
+from babel.core import UnknownLocaleError
+from importlib import import_module
 
 def stub(f):
     def g(*args, **kwds):
@@ -540,3 +543,15 @@ def cmd_exists(cmd):
     Return True if the given cmd exists.
     """
     return os.system('which %s 2>/dev/null >/dev/null' % cmd) == 0
+
+
+def module_exists(module):
+    """
+    Returns the module if the given module exists, else None.
+    The module is not assigned to the caller's namespace
+    """
+    try:
+        import_module(module)
+    except ImportError:
+        return False
+    return True
