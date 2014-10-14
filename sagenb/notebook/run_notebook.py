@@ -388,7 +388,7 @@ class NotebookRunTwisted(NotebookRun):
             else:
                 secure = False
             return interface, port, secure
-        except IOError, AttributeError:
+        except (IOError, AttributeError):
             return None, None, None
 
 
