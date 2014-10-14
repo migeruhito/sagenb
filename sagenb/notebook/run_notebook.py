@@ -21,7 +21,7 @@ from twisted.python.runtime import platformType
 
 import notebook
 from sagenb.misc.misc import (DOT_SAGENB, find_next_available_port,
-                              print_open_msg, cmd_exists)
+                              print_open_msg, cmd_exists, module_exists)
 
 
 conf_path = os.path.join(DOT_SAGENB, 'notebook')
@@ -502,12 +502,9 @@ def notebook_run(
         ):
 
     # Check whether pyOpenSSL is installed or not (see Sage trac #13385)
-    if secure:
-        try:
-            import OpenSSL
-        except ImportError:
-            raise RuntimeError("HTTPS cannot be used without pyOpenSSL"
-                    " installed. See the Sage README for more information.")
+    if secure and not module_exists('OpenSSL'):
+        raise RuntimeError('HTTPS cannot be used without pyOpenSSL installed. '
+                           'See the Sage README for more information.')
 
     # Turn it into a full path for later conversion to a file URL
     if upload:
