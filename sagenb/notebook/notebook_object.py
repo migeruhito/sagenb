@@ -12,10 +12,12 @@ Notebook server.
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-import time, os, shutil, signal, tempfile
+import os
+import shutil
+import tempfile
+import pexpect
 
 import notebook as _notebook
-
 import run_notebook
 
 class NotebookObject:
@@ -274,7 +276,6 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050,
         True
         sage: nb.dispose()
     """
-    import socket, pexpect
 
     if directory is None:
         directory = tmp_dir = tempfile.mkdtemp()

@@ -13,18 +13,16 @@ Serve the Sage Notebook.
 # System libraries
 import getpass
 import os
-import shutil
 import socket
-import sys
-import hashlib
-from exceptions import SystemExit
+import urllib
+import random
 
 from twisted.python.runtime import platformType
 
+import notebook
 from sagenb.misc.misc import (DOT_SAGENB, find_next_available_port,
                               print_open_msg)
 
-import notebook
 
 conf_path = os.path.join(DOT_SAGENB, 'notebook')
 
@@ -64,7 +62,6 @@ class NotebookRun(object):
         ))
 
     def prepare_kwds(self, kw):
-        import os
         kw['absdirectory'] = os.path.abspath(kw['directory'])
         kw['notebook_opts'] = '"%(absdirectory)s",interface="%(interface)s", '\
                               'port=%(port)s,secure=%(secure)s' % kw
@@ -77,7 +74,6 @@ class NotebookRun(object):
                               "%(secure)s, %(start_path)s)" % kw
 
             if kw['upload']:
-                import urllib
                 # If we have to login and upload a file, then we do them
                 # in that order and hope that the login is fast enough.
                 kw['start_path'] = "'/upload_worksheet?url="\
@@ -86,7 +82,6 @@ class NotebookRun(object):
                                    " %(secure)s, %(start_path)s)" % kw
 
         elif kw['upload']:
-            import urllib
             kw['start_path'] = "'/upload_worksheet?url="\
                                "file://%s'" % (urllib.quote(kw['upload']))
             kw['open_page'] = "from sagenb.misc.misc import open_page;"\
@@ -97,7 +92,6 @@ class NotebookRun(object):
             kw['open_page'] = ''
 
     def profile_file(self, profile):
-        import random
         _id = random.random()
         if isinstance(profile, basestring):
             profilefile = profile+'%s.stats' % _id
