@@ -610,7 +610,7 @@ def notebook_run(self,
             and not nb.user_manager().user_exists('admin')):
         # This is here only for backward compatibility with one
         # version of the notebook.
-        s = nb.create_user_with_same_password('admin', 'root')
+        nb.create_user_with_same_password('admin', 'root')
         # It would be a security risk to leave an escalated account around.
 
     if not nb.user_manager().user_exists('admin'):
