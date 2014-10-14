@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*
+# -*- coding: utf-8 -*-
 """nodoctest
 Configure and Start a Notebook Server
 

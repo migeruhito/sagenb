@@ -535,3 +535,8 @@ def N_(message):
     return message
 def nN_(message_singular, message_plural):
     return [message_singular, message_plural]
+def cmd_exists(cmd):
+    """
+    Return True if the given cmd exists.
+    """
+    return os.system('which %s 2>/dev/null >/dev/null' % cmd) == 0

@@ -21,7 +21,7 @@ from twisted.python.runtime import platformType
 
 import notebook
 from sagenb.misc.misc import (DOT_SAGENB, find_next_available_port,
-                              print_open_msg)
+                              print_open_msg, cmd_exists)
 
 
 conf_path = os.path.join(DOT_SAGENB, 'notebook')
@@ -384,13 +384,6 @@ class NotebookRunTwisted(NotebookRun):
             return interface, port, secure
         except (IOError, AttributeError):
             return None, None, None
-
-
-def cmd_exists(cmd):
-    """
-    Return True if the given cmd exists.
-    """
-    return os.system('which %s 2>/dev/null >/dev/null' % cmd) == 0
 
 
 def notebook_setup():
