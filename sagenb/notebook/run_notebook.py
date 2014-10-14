@@ -552,17 +552,16 @@ def notebook_run(self,
     cwd = os.getcwd()
 
     if directory is None:
-        directory = '%s/sage_notebook.sagenb' % DOT_SAGENB
+        directory = os.path.join(DOT_SAGENB, 'sage_notebook.sagenb')
     else:
-        directory = directory.rstrip('/')
+        directory = directory.rstrip(os.path.sep)
         if not directory.endswith('.sagenb'):
             directory += '.sagenb'
 
     # First change to the directory that contains the notebook directory
-    wd = os.path.split(directory)
-    if wd[0]:
-        os.chdir(wd[0])
-    directory = wd[1]
+    wd, directory = os.path.split(directory)
+    if wd:
+        os.chdir(wd)
     pidfile = os.path.join(directory, 'sagenb.pid')
 
     port = int(port)
