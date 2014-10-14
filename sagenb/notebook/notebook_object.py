@@ -72,13 +72,14 @@ class NotebookObject:
               nb = load_notebook("directory_to_run_sage_in")
               user_manager = nb.user_manager()
               user_manager.set_accounts(True)
-              user_manager.add_user("username", "password", "email@place", "user")
+              user_manager.add_user("username", "password", "email@place",
+                                    "user")
               nb.save()
 
         - ``automatic_login`` -- boolean (default: True) whether to pop up
-          a web browser and automatically log into the server as admin.  You can
-          override the default browser by setting the ``SAGE_BROWSER`` environment
-          variable, e.g., by putting
+          a web browser and automatically log into the server as admin.  You
+          can override the default browser by setting the ``SAGE_BROWSER``
+          environment variable, e.g., by putting
 
           ::
 
@@ -96,9 +97,10 @@ class NotebookObject:
 
           .. warning::
 
-              If you are running a server for others to log into, set ``automatic_login=False``.
-              Otherwise, all of the worksheets on the entire server will be loaded when the server
-              automatically logs into the admin account.
+              If you are running a server for others to log into, set
+              ``automatic_login=False``. Otherwise, all of the worksheets on
+              the entire server will be loaded when the server automatically
+              logs into the admin account.
 
 
         - ``timeout`` -- integer (default: 0) seconds until idle
@@ -125,8 +127,9 @@ class NotebookObject:
 
     .. note::
 
-       The ``require_login`` option has been removed.  Use ``automatic_login`` to control
-       automatic logins instead---``automatic_login=False`` corresponds to ``require_login=True``.
+       The ``require_login`` option has been removed.  Use ``automatic_login``
+       to control automatic logins instead---``automatic_login=False``
+       corresponds to ``require_login=True``.
 
     EXAMPLES:
 
@@ -196,10 +199,11 @@ class NotebookObject:
         - ``server`` -- string ("twistd" (default) or "flask").  The server
           to use to server content.
 
-        - ``profile`` -- True, False, or file prefix (default: False - no profiling),
-          If True, profiling is saved to a randomly-named file like `sagenb-*-profile*.stats`
-          in the $DOT_SAGE directory.  If a string, that string is used as a
-          prefix for the pstats data file.
+        - ``profile`` -- True, False, or file prefix (default: False - no
+          profiling),
+          If True, profiling is saved to a randomly-named file like
+          `sagenb-*-profile*.stats` in the $DOT_SAGE directory.  If a string,
+          that string is used as a prefix for the pstats data file.
 
         - ``ulimit`` -- string (initial default: None -- leave as is),
           if given and ``server_pool`` is also given, the worksheet
@@ -287,7 +291,8 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050,
     nb.save()
 
     p = notebook(directory=directory, accounts=True, secure=secure, port=port,
-                 interface=interface, automatic_login=False, fork=True, quiet=True)
+                 interface=interface, automatic_login=False, fork=True,
+                 quiet=True)
     p.expect("Starting factory")
     def dispose():
         try:
