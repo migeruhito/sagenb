@@ -278,9 +278,7 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050,
     """
 
     if directory is None:
-        directory = tmp_dir = tempfile.mkdtemp()
-    else:
-        tmp_dir = None
+        directory = tempfile.mkdtemp()
 
     if not os.path.exists(directory):
         os.makedirs(directory)
