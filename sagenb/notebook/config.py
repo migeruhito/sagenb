@@ -54,60 +54,58 @@ notebook:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-#from js import JSKeyHandler
-import js
 
+KEYS=(
+('request_introspections', {'key': "KEY_SPC", 'ctrl': True}),  # control space
+('request_introspections', {'key': "KEY_TAB", 'shift': False}),  # tab
+('indent', {'key': "KEY_TAB", 'shift': False}),  # tab
+('indent', {'key': "KEY_GT", 'shift': False}),  # tab
+('unindent', {'key': "KEY_TAB", 'shift': True}),  # tab
+('unindent', {'key': "KEY_LT", 'shift': False}), 
+('request_history', {'key': "KEY_Q", 'ctrl': True}),
+('request_history', {'key': "KEY_QQ", 'ctrl': True}),
+('request_log', {'key': "KEY_P", 'ctrl': True}),
+('request_log', {'key': "KEY_PP", 'ctrl': True}),
+('close_helper', {'key': "KEY_ESC"}),
+('interrupt', {'key': "KEY_ESC"}),
+('send_input', {'key': "KEY_RETURN", 'shift': True}),
+('send_input', {'key': "KEY_ENTER", 'shift': True}),
+('send_input_newcell', {'key': "KEY_RETURN", 'alt': True}),
+('send_input_newcell', {'key': "KEY_ENTER", 'alt': True}),
+('prev_cell', {'key': "KEY_UP", 'ctrl' : True}),
+('next_cell', {'key': "KEY_DOWN", 'ctrl' : True}),
+('page_up', {'key': "KEY_PGUP"}),
+('page_down', {'key': "KEY_PGDN"}),
+('delete_cell', {'key': "KEY_BKSPC"}),
+('generic_submit', {'key': "KEY_ENTER"}),
+('up_arrow', {'key': "KEY_UP"}),
+('down_arrow', {'key': "KEY_DOWN"}),
+('comment', {'key': "KEY_DOT", 'ctrl': True}),
+('uncomment', {'key': "KEY_COMMA", 'ctrl': True}),
+('comment', {'key': "KEY_3", 'ctrl': True}),
+('uncomment', {'key': "KEY_4", 'ctrl': True}),
+('fix_paren', {'key': "KEY_0", 'ctrl': True}),
 
-js.keyhandler.add('request_introspections', key = "KEY_SPC",   ctrl=True)  # control space
-js.keyhandler.add('request_introspections', key = "KEY_TAB",   shift=False)  # tab
-js.keyhandler.add('indent',                 key = "KEY_TAB",   shift=False)  # tab
-js.keyhandler.add('indent',                 key = "KEY_GT",    shift=False)  # tab
-js.keyhandler.add('unindent',               key = "KEY_TAB",   shift=True)  # tab
-js.keyhandler.add('unindent',               key = "KEY_LT",    shift=False) 
-js.keyhandler.add('request_history',        key = "KEY_Q",     ctrl=True)
-js.keyhandler.add('request_history',        key = "KEY_QQ",    ctrl=True)
-js.keyhandler.add('request_log',            key = "KEY_P",     ctrl=True)
-js.keyhandler.add('request_log',            key = "KEY_PP",    ctrl=True)
-js.keyhandler.add('close_helper',           key = "KEY_ESC")
-js.keyhandler.add('interrupt',              key = "KEY_ESC")
-js.keyhandler.add('send_input',             key = "KEY_RETURN", shift=True)
-js.keyhandler.add('send_input',             key = "KEY_ENTER", shift=True)
-js.keyhandler.add('send_input_newcell',     key = "KEY_RETURN", alt =True)
-js.keyhandler.add('send_input_newcell',     key = "KEY_ENTER", alt =True)
-js.keyhandler.add('prev_cell',              key = "KEY_UP",    ctrl =True)
-js.keyhandler.add('next_cell',              key = "KEY_DOWN",  ctrl =True)
-js.keyhandler.add('page_up',                key = "KEY_PGUP")
-js.keyhandler.add('page_down',              key = "KEY_PGDN")
-js.keyhandler.add('delete_cell',            key = "KEY_BKSPC")
-js.keyhandler.add('generic_submit',         key = "KEY_ENTER")
-js.keyhandler.add('up_arrow',               key = "KEY_UP")
-js.keyhandler.add('down_arrow',             key = "KEY_DOWN")
-js.keyhandler.add('comment',                key = "KEY_DOT",   ctrl=True)
-js.keyhandler.add('uncomment',              key = "KEY_COMMA", ctrl=True)
-js.keyhandler.add('comment',                key = "KEY_3",     ctrl=True)
-js.keyhandler.add('uncomment',              key = "KEY_4",     ctrl=True)
-js.keyhandler.add('fix_paren',              key = "KEY_0",     ctrl=True)
+('control', {'key': "KEY_CTRL"}),
+('backspace', {'key': "KEY_BKSPC"}),
+('enter', {'key': "KEY_ENTER"}),
+('enter', {'key': "KEY_RETURN"}),
+('enter_shift', {'key': "KEY_ENTER", 'shift': True}),
+('enter_shift', {'key': "KEY_RETURN", 'shift': True}),
+('spliteval_cell', {'key': "KEY_ENTER", 'ctrl': True}),
+('spliteval_cell', {'key': "KEY_RETURN",'ctrl': True}),
+('spliteval_cell', {'key': "KEY_CTRLENTER", 'ctrl': True}),  # needed on OS X Firefox
+('join_cell', {'key': "KEY_BKSPC", 'ctrl': True}),
+('split_cell', {'key': "KEY_SEMI", 'ctrl': True}),
+('split_cell_noctrl', {'key': "KEY_SEMI"}),
 
-js.keyhandler.add('control',                key = "KEY_CTRL")
-js.keyhandler.add('backspace',              key = "KEY_BKSPC")
-js.keyhandler.add('enter',                  key = "KEY_ENTER")
-js.keyhandler.add('enter',                  key = "KEY_RETURN")
-js.keyhandler.add('enter_shift',            key = "KEY_ENTER", shift=True)
-js.keyhandler.add('enter_shift',            key = "KEY_RETURN", shift=True)
-js.keyhandler.add('spliteval_cell',         key = "KEY_ENTER", ctrl=True)
-js.keyhandler.add('spliteval_cell',         key = "KEY_RETURN",ctrl=True)
-js.keyhandler.add('spliteval_cell',         key = "KEY_CTRLENTER", ctrl=True)  # needed on OS X Firefox
-js.keyhandler.add('join_cell',              key = "KEY_BKSPC", ctrl=True)
-js.keyhandler.add('split_cell',             key = "KEY_SEMI", ctrl=True)
-js.keyhandler.add('split_cell_noctrl',      key = "KEY_SEMI")
-
-js.keyhandler.add('menu_left',           key = "KEY_LEFT")
-js.keyhandler.add('menu_up',             key = "KEY_UP")
-js.keyhandler.add('menu_right',          key = "KEY_RIGHT")
-js.keyhandler.add('menu_down',           key = "KEY_DOWN")
-js.keyhandler.add('menu_pick',           key = "KEY_ENTER")
-js.keyhandler.add('menu_pick',           key = "KEY_RETURN")
-
+('menu_left', {'key': "KEY_LEFT"}),
+('menu_up', {'key': "KEY_UP"}),
+('menu_right', {'key': "KEY_RIGHT"}),
+('menu_down', {'key': "KEY_DOWN"}),
+('menu_pick', {'key': "KEY_ENTER"}),
+('menu_pick', {'key': "KEY_RETURN"}),
+)
 
 """
 8  -- backspace

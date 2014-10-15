@@ -32,6 +32,7 @@ from template import template
 from sagenb.misc.misc import SAGE_URL
 from compress.JavaScriptCompressor import JavaScriptCompressor
 from hashlib import sha1
+from config import KEYS
 
 # Debug mode?  If sagenb lives under SAGE_ROOT/, we minify/pack and cache
 # the Notebook JS library.
@@ -74,6 +75,10 @@ def javascript():
     global _cache_javascript, debug_mode
     if _cache_javascript is not None:
         return _cache_javascript
+
+    keyhandler = JSKeyHandler()
+    for k in KEYS:
+        keyhandler.add(k[0], **k[1])
 
     s = template(os.path.join('js', 'notebook_dynamic.js'),
                  SAGE_URL=SAGE_URL,
@@ -142,6 +147,7 @@ class JSKeyHandler:
             tests += " function key_%s(e) {\n  return %s;\n}"%(name, value)
         return tests
 
+
 class JSKeyCode:
     def __init__(self, key, alt, ctrl, shift):
         global key_codes
@@ -165,7 +171,6 @@ class JSKeyCode:
 
 
 
-keyhandler = JSKeyHandler()
 
 
 

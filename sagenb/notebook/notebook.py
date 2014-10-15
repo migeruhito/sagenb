@@ -21,31 +21,23 @@ USE_REFERENCE_WORKSHEET_PROCESSES = False
 
 # System libraries
 import os
-import random
 import re
 import shutil
-import socket
 import time
 import bz2
 import cPickle
 from cgi import escape
 
+from flask.ext.babel import lazy_gettext
 
 # Sage libraries
-from sagenb.misc.misc import (pad_zeros, cputime, tmp_dir, load, save,
-                              ignore_nonexistent_files, unicode_str, module_exists)
+from sagenb.misc.misc import unicode_str, module_exists
 
 # Sage Notebook
-from . import css          # style
-from . import js           # javascript
 from . import worksheet    # individual worksheets (which make up a notebook)
-from . import config       # internal configuration stuff (currently, just keycodes)
-from . import keyboards    # keyboard layouts
 from . import server_conf  # server configuration
-from . import user_conf    # user configuration
 from . import user         # users
 from   template import template, prettify_time_ago
-from flask.ext.babel import gettext, lazy_gettext
 
 if module_exists('sage'):
     # sage is installed
