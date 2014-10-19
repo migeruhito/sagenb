@@ -1,9 +1,15 @@
-#!/usr/bin/env sage -python
-
 # -*- coding: utf-8 -*-
 """
 Script to start the notebook form the command line
 """
+
+#############################################################################
+#       Copyright (C) 2009 William Stein <wstein@gmail.com>
+#                 (C) 2014 J. Miguel Farto <migeruhito@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
 
 from __future__ import print_function
 import os
@@ -28,14 +34,14 @@ class NotebookFrontend(object):
     def __init__(self, **kwargs):
         self.args = self.parser.parse_args()
         self.conf = {
-        'cwd': os.getcwd(),
-        'startup_token': '{0:x}'.format(random.randint(0, 2**128)),
-        'conf_path': os.path.join(DOT_SAGENB, 'notebook'),
-        'subnets': None, #Not supported
-        'require_login': None, #Not supported
-        'open_viewer': None, #Not supported
-        'address': None, #Not supported
-        }
+            'cwd': os.getcwd(),
+            'startup_token': '{0:x}'.format(random.randint(0, 2**128)),
+            'conf_path': os.path.join(DOT_SAGENB, 'notebook'),
+            'subnets': None,  # Not supported
+            'require_login': None,  # Not supported
+            'open_viewer': None,  # Not supported
+            'address': None,  # Not supported
+            }
         self.conf['private_pem'] = os.path.join(self.conf['conf_path'],
                                                 'private.pem')
         self.conf['public_pem'] = os.path.join(self.conf['conf_path'],
@@ -157,7 +163,7 @@ class NotebookFrontend(object):
             dest='server',
             action='store',
             default='twistd',
-            choices=['flask', 'twistd','uwsgi', 'tornado']
+            choices=['flask', 'twistd', 'uwsgi', 'tornado']
             )
         parser.add_argument(
             '--profile',
@@ -203,11 +209,11 @@ class NotebookFrontend(object):
             upload = os.path.abspath(os.path.expanduser(upload))
             if not os.path.exists(upload):
                 raise ValueError('Unable to find the file {} to upload'.format(
-                                    upload))
+                                 upload))
             self.conf['upload'] = upload
 
         self.non_supported()
-        
+
         directory = self.conf['directory']
         if directory is None:
             directory = os.path.join(DOT_SAGENB, 'sage_notebook.sagenb')
@@ -257,8 +263,8 @@ class NotebookFrontend(object):
             nb.conf()['openid'] = self.conf['openid']
         elif not nb.conf()['openid']:
             # What is the purpose behind this elif?  It seems rather pointless.
-            # all it appears to do is set the config to False if bool(config) is
-            # False
+            # all it appears to do is set the config to False if bool(config)
+            # is False
             nb.conf()['openid'] = False
 
         if self.conf['accounts'] is not None:
@@ -277,7 +283,7 @@ class NotebookFrontend(object):
             self.conf['reset'] = True
 
         if self.conf['reset']:
-            passwd = get_admin_passwd()
+            passwd = self.get_admin_passwd()
             if nb.user_manager().user_exists('admin'):
                 admin = nb.user_manager().user('admin')
                 admin.set_password(passwd)
@@ -293,7 +299,7 @@ class NotebookFrontend(object):
                     sep='\n')
                 if self.conf['secure']:
                     print('Login to the Sage notebook as admin with the '
-                            'password you specified above.')
+                          'password you specified above.')
             #nb.del_user('root')
 
         # For old notebooks, make sure that default users are always created.
@@ -360,8 +366,8 @@ class NotebookFrontend(object):
                 sep='\n')
         print('Executing Sage Notebook with {} server'.format('werkzeug'))
 
-        sagenb.notebook.misc.DIR = self.conf['cwd'] # We should really get rid
-                                                    # of this!
+        sagenb.notebook.misc.DIR = self.conf['cwd']  # We should really get rid
+                                                     # of this!
 
         opts = {}
         if self.conf['automatic_login']:
@@ -396,7 +402,7 @@ class NotebookFrontend(object):
         else:
             ssl_context = None
 
-        logger=logging.getLogger('werkzeug')
+        logger = logging.getLogger('werkzeug')
         logger.setLevel(logging.WARNING)
         #logger.setLevel(logging.INFO) # to see page requests
         #logger.setLevel(logging.DEBUG)
@@ -527,7 +533,7 @@ class NotebookFrontend(object):
             subprocess.call(cmd, shell=True)
 
         cmd = ['certtool --generate-self-signed --template {} '
-                '--load-privkey {} --outfile {}'.format(
+               '--load-privkey {} --outfile {}'.format(
                    self.conf['template_file'], self.conf['private_pem'],
                    self.conf['public_pem'])]
         print(cmd[0])
@@ -553,4 +559,3 @@ def monkeypatch_method(cls):
 if __name__ == '__main__':
     nf = NotebookFrontend()
     conf = nf()
-
