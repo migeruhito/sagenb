@@ -19,8 +19,9 @@ import logging
 import urllib
 import subprocess
 import getpass
-
-from werkzeug import serving
+import signal
+from functools import partial
+from collections import OrderedDict
 
 import sagenb.flask_version.base as flask_base
 from sagenb.notebook import notebook
@@ -32,6 +33,10 @@ from sagenb.misc.misc import (DOT_SAGENB, find_next_available_port, open_page,
 
 class NotebookFrontend(object):
     def __init__(self, **kwargs):
+        self.servers = OrderedDict()
+        self.servers['twistd'] = self.twisted
+        self.servers['flask'] = self.werkzeug
+
         self.args = self.parser.parse_args()
         self.conf = {
             'cwd': os.getcwd(),
@@ -158,12 +163,13 @@ class NotebookFrontend(object):
             action='store_true',
             )
 
+        servers = list(self.servers)
         parser.add_argument(
             '--server',
             dest='server',
             action='store',
-            default='twistd',
-            choices=['flask', 'twistd', 'uwsgi', 'tornado']
+            default=servers[0],
+            choices=servers
             )
         parser.add_argument(
             '--profile',
@@ -348,7 +354,7 @@ class NotebookFrontend(object):
                     'first run notebook.setup().',
                     'Now running notebook.setup()',
                     sep='\n')
-                notebook_setup(self.conf)
+                self.notebook_setup(self.conf)
             if (not os.path.exists(self.conf['private_pem']) or
                     not os.path.exists(self.conf['public_pem'])):
                 print('Failed to setup notebook.  Please try notebook.setup() '
@@ -364,7 +370,8 @@ class NotebookFrontend(object):
                 'password,',
                 'quit the notebook and type notebook(reset=True).',
                 sep='\n')
-        print('Executing Sage Notebook with {} server'.format('werkzeug'))
+        print('Executing Sage Notebook with {} server'.format(
+            self.conf['server']))
 
         sagenb.notebook.misc.DIR = self.conf['cwd']  # We should really get rid
                                                      # of this!
@@ -378,14 +385,10 @@ class NotebookFrontend(object):
                                           port=self.conf['port'],
                                           secure=self.conf['secure'],
                                           **opts)
-        try:
-            self.werkzeug(flask_app)
-        finally:
-            self.save_notebook(flask_base.notebook)
-            os.unlink(self.conf['pidfile'])
-            os.chdir(self.conf['cwd'])
+        self.servers[self.conf['server']](flask_app)
 
     def werkzeug(self, flask_app):
+        from werkzeug import serving
         with open(self.conf['pidfile'], "w") as pidfile:
             pidfile.write(str(os.getpid()))
 
@@ -418,6 +421,93 @@ class NotebookFrontend(object):
             def shutdown_request(self, request):
                 request.shutdown()
 
+        self.open_page()
+
+        try:
+            flask_app.run(host=self.conf['interface'], port=self.conf['port'],
+                          threaded=True, ssl_context=ssl_context, debug=False)
+        finally:
+            self.save_notebook(flask_base.notebook)
+            os.unlink(self.conf['pidfile'])
+            os.chdir(self.conf['cwd'])
+
+    def twisted(self, flask_app):
+        from twisted.internet import reactor
+        from twisted.internet.error import ReactorNotRunning
+        from twisted.web import server
+        from twisted.web.wsgi import WSGIResource
+        from twisted.application import service, strports
+        from twisted.scripts._twistd_unix import (ServerOptions,
+                                                 UnixApplicationRunner)
+
+        if self.conf['secure']:
+            self.conf['strport'] = 'ssl:{port}:'\
+                                   'interface={interface}:'\
+                                   'privateKey={private_pem}:'\
+                                   'certKey={public_pem}'.format(**self.conf)
+        else:
+            self.conf['strport'] = 'tcp:{port}:'\
+                                   'interface={interface}'.format(**self.conf)
+        #Options as in twistd command line utility
+        self.conf['twisted_opts'] = '--pidfile={pidfile} -no'.format(
+            **self.conf).split()
+        ####################################################################
+        # See
+        #http://twistedmatrix.com/documents/current/web/howto/
+        #       using-twistedweb.html
+        #  (Serving WSGI Applications) for the basic ideas of the below code
+        ####################################################################
+
+        def my_sigint(x, n):
+            try:
+                reactor.stop()
+            except ReactorNotRunning:
+                pass
+            signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+        signal.signal(signal.SIGINT, my_sigint)
+
+        resource = WSGIResource(reactor, reactor.getThreadPool(), flask_app)
+
+        class QuietSite(server.Site):
+            def log(*args, **kwargs):
+                '''Override the logging so that requests are not logged'''
+                pass
+        # Log only errors, not every page hit
+        site = QuietSite(resource)
+        # To log every single page hit, uncomment the following line
+        #site = server.Site(resource)
+
+        application = service.Application("Sage Notebook")
+        s = strports.service(self.conf['strport'], site)
+        self.open_page()
+        s.setServiceParent(application)
+
+        #This has to be done after flask_base.create_app is run
+        reactor.addSystemEventTrigger(
+            'before', 'shutdown',
+            partial(self.save_notebook, flask_base.notebook))
+
+        # Run the application without .tac file
+        class AppRunner(UnixApplicationRunner):
+            '''
+            twisted application runner. The application is provided on init,
+            not read from file
+            '''
+            def __init__(self, app, conf):
+                super(self.__class__, self).__init__(conf)
+                self.app = app
+
+            def createOrGetApplication(self):
+                '''Overrides the reading of the application from file'''
+                return self.app
+
+        twisted_conf = ServerOptions()
+        twisted_conf.parseOptions(self.conf['twisted_opts'])
+            
+        AppRunner(application, twisted_conf).run()
+
+    def open_page(self):
         # If we have to login and upload a file, then we do them
         # in that order and hope that the login is fast enough.
         if self.conf['automatic_login']:
@@ -429,9 +519,6 @@ class NotebookFrontend(object):
                       self.conf['secure'],
                       '/upload_worksheet?url=file://{}'.format(
                           urllib.quote(self.conf['upload'])))
-
-        flask_app.run(host=self.conf['interface'], port=self.conf['port'],
-                      threaded=True, ssl_context=ssl_context, debug=False)
 
     def save_notebook(self, notebook):
         print('Quitting all running worksheets...')
@@ -545,6 +632,7 @@ class NotebookFrontend(object):
         print('Successfully configured notebook.')
 
 
+
 def monkeypatch_method(cls):
     '''
     Monkey patching idiom:
@@ -558,4 +646,4 @@ def monkeypatch_method(cls):
 
 if __name__ == '__main__':
     nf = NotebookFrontend()
-    conf = nf()
+    nf()
