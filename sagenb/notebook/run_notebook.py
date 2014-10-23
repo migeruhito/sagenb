@@ -366,70 +366,42 @@ def notebook_setup(self=None):
     if not os.path.exists(conf_path):
         os.makedirs(conf_path)
 
-    if not cmd_exists('certtool'):
-        raise RuntimeError("You must install certtool to use the secure notebook server.")
+    if not cmd_exists('openssl'):
+        raise RuntimeError("You must install openssl to use the secure notebook server.")
 
     dn = raw_input("Domain name [localhost]: ").strip()
     if dn == '':
         print("Using default localhost")
         dn = 'localhost'
 
-    import random
-    template_dict = {'organization': 'SAGE (at %s)' % (dn),
-                'unit': '389',
-                'locality': None,
-                'state': 'Washington',
-                'country': 'US',
-                'cn': dn,
-                'uid': 'sage_user',
-                'dn_oid': None,
-                'serial': str(random.randint(1, 2 ** 31)),
-                'dns_name': None,
-                'crl_dist_points': None,
-                'ip_address': None,
-                'expiration_days': 8999,
-                'email': 'sage@sagemath.org',
-                'ca': None,
-                'tls_www_client': None,
-                'tls_www_server': True,
-                'signing_key': True,
-                'encryption_key': True,
-                }
-
-    s = ""
-    for key, val in iteritems(template_dict):
-        if val is None:
-            continue
-        if val is True:
-            w = ''
-        elif isinstance(val, list):
-            w = ' '.join(['"%s"' % x for x in val])
-        else:
-            w = '"%s"' % val
-        s += '%s = %s \n' % (key, w)
-
-    with open(template_file, 'w') as f:
-        f.write(s)
-
     import subprocess
 
-    if cmd_exists('openssl'):
-        # We use openssl by default if it exists, since it is open
-        # *vastly* faster on Linux, for some weird reason.
-        cmd = ['openssl genrsa 1024 > %s' % private_pem]
-        print("Using openssl to generate key")
-        print(cmd[0])
-        subprocess.call(cmd, shell=True)
-    else:
-        # We checked above that certtool is available.
-        cmd = ['certtool --generate-privkey --outfile %s' % private_pem]
-        print("Using certtool to generate key")
-        print(cmd[0])
-        subprocess.call(cmd, shell=True)
+    bits = 2048
+    days = 10000
+    distinguished_name = "'{}'".format('/'.join((
+        '',
+        'CN={}'.format(dn),
+        'C=US',
+        'ST=Washington',
+        'O=SAGE (at localhost)',
+        'OU=389',
+        'emailAddress=sage@sagemath.org',
+        'UID=sage_user',
+        ''
+        )))
 
-    cmd = ['certtool --generate-self-signed --template %s --load-privkey %s '
-           '--outfile %s' % (template_file, private_pem, public_pem)]
-    print(cmd[0])
+    # We use openssl by default if it exists, since it is open
+    # *vastly* faster on Linux, for some weird reason.
+    # We checked above that openssl is available.
+    cmd = ['openssl genrsa -out {} {}'.format(private_pem, bits)]
+    print "Using openssl to generate key"
+    print cmd[0]
+    subprocess.call(cmd, shell=True)
+
+    cmd = ['openssl req  -key {} -out {} -newkey rsa:{} -x509 -days {} '
+           '-subj {}'.format(private_pem, public_pem, bits, days,
+                             distinguished_name)]
+    print cmd[0]
     subprocess.call(cmd, shell=True)
 
     # Set permissions on private cert
