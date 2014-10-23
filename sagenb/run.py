@@ -21,7 +21,6 @@ import subprocess
 import getpass
 import signal
 from functools import partial
-from collections import OrderedDict
 
 import sagenb.flask_version.base as flask_base
 from sagenb.notebook import notebook
@@ -33,26 +32,54 @@ from sagenb.misc.misc import (DOT_SAGENB, find_next_available_port, open_page,
 
 class NotebookFrontend(object):
     def __init__(self, **kwargs):
-        self.servers = OrderedDict()
-        self.servers['twistd'] = self.twisted
-        self.servers['flask'] = self.werkzeug
+        self.servers = {
+            'twistd': self.twisted,
+            'flask': self.werkzeug,
+            'tornado': self.tornado,
+            }
 
-        self.args = self.parser.parse_args()
-        self.conf = {
+        self.defaults = {
+            # Parsed
+            'directory': None,
+            'port': 8080,
+            'interface': 'localhost',
+            'port_tries': 50,
+            'secure': False,
+            'reset': False,
+            'accounts': False,
+            'openid': None,
+
+            'server_pool': None,
+            'ulimit': '',
+
+            'timeout': None,
+            'doc_timeout': None,
+
+            'upload': None,
+            'automatic_login': True,
+
+            'start_path': '',
+            'fork': False,
+            'quiet': False,
+
+            'server': 'twistd',
+            'profile': False,
+
+            # Not parsed
             'cwd': os.getcwd(),
             'startup_token': '{0:x}'.format(random.randint(0, 2**128)),
             'conf_path': os.path.join(DOT_SAGENB, 'notebook'),
-            'subnets': None,  # Not supported
-            'require_login': None,  # Not supported
-            'open_viewer': None,  # Not supported
-            'address': None,  # Not supported
+
+            #Not supported
+            'subnets': None,
+            'require_login': None,
+            'open_viewer': None,
+            'address': None,
             }
-        self.conf['private_pem'] = os.path.join(self.conf['conf_path'],
-                                                'private.pem')
-        self.conf['public_pem'] = os.path.join(self.conf['conf_path'],
-                                               'public.pem')
-        self.conf['template_file'] = os.path.join(self.conf['conf_path'],
-                                                  'cert.cfg')
+
+        self.conf = {}
+        self.conf.update(self.defaults)
+        self.conf.update(self.parser.parse_args().__dict__)
 
     @property
     def parser(self):
@@ -62,27 +89,27 @@ class NotebookFrontend(object):
             '--directory',
             dest='directory',
             action='store',
-            default=None,
+            default=self.defaults['directory'],
             )
         parser.add_argument(
             '--port',
             dest='port',
             action='store',
             type=int,
-            default=8080,
+            default=self.defaults['port'],
             )
         parser.add_argument(
             '--interface',
             dest='interface',
             action='store',
-            default='localhost',
+            default=self.defaults['interface'],
             )
         parser.add_argument(
             '--port_tries',
             dest='port_tries',
             action='store',
             type=int,
-            default=50,
+            default=self.defaults['port_tries'],
             )
         parser.add_argument(
             '--secure',
@@ -103,20 +130,20 @@ class NotebookFrontend(object):
             '--openid',
             dest='openid',
             action='store',
-            default=None,
+            default=self.defaults['openid'],
             )
 
         parser.add_argument(
             '--server_pool',
             dest='server_pool',
             nargs='+',
-            default=None,
+            default=self.defaults['server_pool'],
             )
         parser.add_argument(
             '--ulimit',
             dest='ulimit',
             action='store',
-            default='',
+            default=self.defaults['ulimit'],
             )
 
         parser.add_argument(
@@ -124,21 +151,21 @@ class NotebookFrontend(object):
             dest='timeout',
             action='store',
             type=int,
-            default=None,
+            default=self.defaults['timeout'],
             )
         parser.add_argument(
             '--doc_timeout',
             dest='doc_timeout',
             action='store',
             type=int,
-            default=None,
+            default=self.defaults['doc_timeout'],
             )
 
         parser.add_argument(
             '--upload',
             dest='upload',
             action='store',
-            default=None,
+            default=self.defaults['upload'],
             )
         parser.add_argument(
             '--no_automatic_login',
@@ -150,7 +177,7 @@ class NotebookFrontend(object):
             '--start_path',
             dest='start_path',
             action='store',
-            default='',
+            default=self.defaults['start_path'],
             )
         parser.add_argument(
             '--fork',
@@ -163,24 +190,23 @@ class NotebookFrontend(object):
             action='store_true',
             )
 
-        servers = list(self.servers)
         parser.add_argument(
             '--server',
             dest='server',
             action='store',
-            default=servers[0],
-            choices=servers
+            default=self.defaults['server'],
+            choices=tuple(self.servers),
             )
         parser.add_argument(
             '--profile',
-            dest='',
+            dest='profile',
             action='store_true',
             )
 
         return parser
 
     def __call__(self):
-        self.update_conf(self.args.__dict__)
+        self.update_conf()
         self.run()
 
     def non_supported(self):
@@ -200,8 +226,13 @@ class NotebookFrontend(object):
             raise ValueError('Use "interface" instead of "address" when '
                              'calling notebook(...).')
 
-    def update_conf(self, new_conf):
-        self.conf.update(new_conf)
+    def update_conf(self):
+        self.conf['private_pem'] = os.path.join(self.conf['conf_path'],
+                                                'private.pem')
+        self.conf['public_pem'] = os.path.join(self.conf['conf_path'],
+                                               'public.pem')
+        self.conf['template_file'] = os.path.join(self.conf['conf_path'],
+                                                  'cert.cfg')
 
         # Check whether pyOpenSSL is installed or not (see Sage trac #13385)
         if self.conf['secure'] and not module_exists('OpenSSL'):
@@ -387,6 +418,11 @@ class NotebookFrontend(object):
                                           **opts)
         self.servers[self.conf['server']](flask_app)
 
+    def exit(self):
+        self.save_notebook(flask_base.notebook)
+        os.unlink(self.conf['pidfile'])
+        os.chdir(self.conf['cwd'])
+        
     def werkzeug(self, flask_app):
         from werkzeug import serving
         with open(self.conf['pidfile'], "w") as pidfile:
@@ -427,9 +463,7 @@ class NotebookFrontend(object):
             flask_app.run(host=self.conf['interface'], port=self.conf['port'],
                           threaded=True, ssl_context=ssl_context, debug=False)
         finally:
-            self.save_notebook(flask_base.notebook)
-            os.unlink(self.conf['pidfile'])
-            os.chdir(self.conf['cwd'])
+            self.exit()
 
     def twisted(self, flask_app):
         from twisted.internet import reactor
@@ -507,6 +541,30 @@ class NotebookFrontend(object):
             
         AppRunner(application, twisted_conf).run()
 
+    def tornado(self, flask_app):
+        from tornado.wsgi import WSGIContainer
+        from tornado.httpserver import HTTPServer
+        from tornado.ioloop import IOLoop
+
+        with open(self.conf['pidfile'], "w") as pidfile:
+            pidfile.write(str(os.getpid()))
+        
+        ssl_options = {
+            'certfile': self.conf['public_pem'],
+            'keyfile': self.conf['private_pem']
+            } if self.conf['secure'] else None
+
+        self.open_page()
+        wsgi_app = WSGIContainer(flask_app)
+        http_server = HTTPServer(wsgi_app, ssl_options=ssl_options)
+        http_server.listen(self.conf['port'])
+        try:
+            IOLoop.instance().start()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.exit()
+
     def open_page(self):
         # If we have to login and upload a file, then we do them
         # in that order and hope that the login is fast enough.
@@ -528,7 +586,7 @@ class NotebookFrontend(object):
         print('Notebook cleanly saved.')
 
     def get_admin_passwd(self):
-        print('\n'.join((
+        print(
             '',
             '',
             "Please choose a new password for the Sage Notebook 'admin' user.",
@@ -539,7 +597,7 @@ class NotebookFrontend(object):
             'You can change your password by typing notebook(reset=True).',
             '',
             '',
-            )))
+            sep='\n')
         while True:
             passwd = getpass.getpass("Enter new password: ")
             if len(passwd) < min_password_length:
@@ -630,7 +688,6 @@ class NotebookFrontend(object):
         os.chmod(self.conf['private_pem'], 0600)
 
         print('Successfully configured notebook.')
-
 
 
 def monkeypatch_method(cls):

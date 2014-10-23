@@ -152,7 +152,7 @@ class NotebookRunuWSGI(NotebookRun):
         port = kw['port']
         pidfile = kw['pidfile']
         cmd = 'uwsgi --single-interpreter --socket-timeout 30'\
-              ' --http-timeout 30 --listen 300 --http-socket :%s'\
+              ' --http-timeout 30  --http-socket :%s'\
               ' --file %s --callable flask_app --pidfile %s' % (port,
                                                                 run_file,
                                                                 pidfile)
