@@ -18,6 +18,8 @@ import shutil
 import socket
 import sys
 import hashlib
+import subprocess
+
 from exceptions import SystemExit
 
 from twisted.python.runtime import platformType
@@ -362,24 +364,29 @@ def cmd_exists(cmd):
     return os.system('which %s 2>/dev/null >/dev/null' % cmd) == 0
 
 
+def system_command(cmd, msg=None):
+    msg = cmd if msg is None else '\n'.join((msg, cmd))
+    print(msg)
+    subprocess.call([cmd], shell=True)
+
+
 def notebook_setup(self=None):
     if not os.path.exists(conf_path):
         os.makedirs(conf_path)
 
     if not cmd_exists('openssl'):
-        raise RuntimeError("You must install openssl to use the secure notebook server.")
+        raise RuntimeError('You must install openssl to use the secure'
+                           'notebook server.')
 
-    dn = raw_input("Domain name [localhost]: ").strip()
+    dn = raw_input('Domain name [localhost]: ').strip()
     if dn == '':
-        print("Using default localhost")
+        print('Using default localhost')
         dn = 'localhost'
 
-    import subprocess
-
+    #Key and certificate data
     bits = 2048
     days = 10000
-    distinguished_name = "'{}'".format('/'.join((
-        '',
+    distinguished_name = "'/{}/'".format('/'.join((
         'CN={}'.format(dn),
         'C=US',
         'ST=Washington',
@@ -387,27 +394,20 @@ def notebook_setup(self=None):
         'OU=389',
         'emailAddress=sage@sagemath.org',
         'UID=sage_user',
-        ''
         )))
 
-    # We use openssl by default if it exists, since it is open
+    # We use openssl since it is open
     # *vastly* faster on Linux, for some weird reason.
-    # We checked above that openssl is available.
-    cmd = ['openssl genrsa -out {} {}'.format(private_pem, bits)]
-    print "Using openssl to generate key"
-    print cmd[0]
-    subprocess.call(cmd, shell=True)
-
-    cmd = ['openssl req  -key {} -out {} -newkey rsa:{} -x509 -days {} '
-           '-subj {}'.format(private_pem, public_pem, bits, days,
-                             distinguished_name)]
-    print cmd[0]
-    subprocess.call(cmd, shell=True)
+    system_command('openssl genrsa -out {} {}'.format(private_pem, bits),
+                   'Using openssl to generate key')
+    system_command('openssl req  -key {} -out {} -newkey rsa:{} -x509 '
+                   '-days {} -subj {}'.format(private_pem, public_pem, bits,
+                                              days, distinguished_name))
 
     # Set permissions on private cert
     os.chmod(private_pem, 0o600)
 
-    print("Successfully configured notebook.")
+    print('Successfully configured notebook.')
 
 command={'flask': NotebookRunFlask, 'twistd': NotebookRunTwisted, 'uwsgi': NotebookRunuWSGI, 'tornado': NotebookRunTornado}
 def notebook_run(self,
