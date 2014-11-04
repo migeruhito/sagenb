@@ -11,7 +11,7 @@ Script to start the notebook form the command line
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-from __future__ import print_function
+from __future__ import division, absolute_import, print_function
 import os
 import random
 import argparse
@@ -23,8 +23,8 @@ import signal
 from functools import partial
 
 import sagenb.flask_version.base as flask_base
-from sagenb.notebook import notebook
 import sagenb.notebook.misc
+from sagenb.notebook import notebook
 from sagenb.misc.misc import (DOT_SAGENB, find_next_available_port, open_page,
                               print_open_msg, module_exists, cmd_exists,
                               min_password_length)
