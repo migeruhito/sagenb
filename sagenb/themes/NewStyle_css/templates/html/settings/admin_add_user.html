@@ -9,15 +9,15 @@
     <li><h2>{{ gettext('Pick a username') }}</h2>
       <p>{{ gettext('The username must start with a letter and be between 4 and 32 characters long. It can only consist of letters, numbers, underscores, and one dot (.).') }}</p>
       <input type="text" name="username" value="{{ username_input if username_input else '' }}" />
-        {% if error %}
-        {% if error == 'username_invalid' %}
-        <p><span class="error">{{ gettext('Error') }}:</span> {{ gettext('Invalid username') }}</p>
-        {% elif error == 'username_taken' %}
-        <p><span class="error">{{ gettext('Error') }}:</span> {{ gettext('Username taken') }}</p>
-        {% else %}
-        <p><span class="error">{{ gettext('Error') }}:</span> {{ gettext('Username Error') }}</p>
-        {% endif %}
-        {% endif %}
+      {% if error %}
+      {% if error == 'username_invalid' %}
+      <p><span class="error">{{ gettext('Error') }}:</span> {{ gettext('Invalid username') }}</p>
+      {% elif error == 'username_taken' %}
+      <p><span class="error">{{ gettext('Error') }}:</span> {{ gettext('Username taken') }}</p>
+      {% else %}
+      <p><span class="error">{{ gettext('Error') }}:</span> {{ gettext('Username Error') }}</p>
+      {% endif %}
+      {% endif %}
     </li>
   </ol>
   <div id="buttons">
