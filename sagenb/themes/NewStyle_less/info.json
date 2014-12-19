@@ -1,9 +1,0 @@
-{
-    "application": "sagenb", 
-    "identifier": "NewStyle_less", 
-    "name": "New Style less", 
-    "author": "J. Miguel Farto",
-    "license": "GPL",
-    "description": "Sage Notebook New Style. Uses less. No templates modified",
-    "version": "0.1"
-}

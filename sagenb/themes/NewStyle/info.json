@@ -1,7 +1,7 @@
 {
     "application": "sagenb", 
-    "identifier": "NewStyle_other", 
-    "name": "New Style with other colors", 
+    "identifier": "NewStyle", 
+    "name": "New Style", 
     "author": "J. Miguel Farto",
     "license": "GPL",
     "description": "Sage Notebook New Style. Uses less. There are templates modified",
