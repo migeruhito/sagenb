@@ -1,17 +1,17 @@
 /*Mixins*/
 /*Colors*/
-@fg: #3d002b;
-@bg: #d2faff;
+@fg: black;
+@bg: white;
 @printfg: black;
 @printbg: white;
-@links:  #b06060;
-@linksh: #e06060;
-@strong1: #076d4c;
+@links:  darken(@strong1, 20%);
+@linksh: @strong1;
+@strong1: #7f7ffe;
 @light1: @bg;
-@strong2: #074c6d;
-@light2: #d2fffa;
+@strong2: desaturate(darken(@strong1, 20%), 30%);
+@light2: lighten(@strong1, 50%);
 @alert: #b22222;
-@aux1: #f0f080;
+@aux1: saturate(#f0f080, 30%);
 .sans-serif-stack() {
   font-family: 'Arial', 'Helvetica', sans-serif;
 }
