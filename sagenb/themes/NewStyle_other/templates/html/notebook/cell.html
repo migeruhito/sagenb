@@ -29,15 +29,19 @@ INPUT:
         {% if 'hideall' not in cell.percent_directives() %}
         {# input #}
         {% if not do_print and not publish %}
-            <div class="insert_new_cell" id="insert_new_cell_before{{ cell.id() }}">
+            <div class="wksht_buttons">
               <div class="ui-icon ui-icon-circle-plus wksht-icon_button" 
                 id="insert_new_compute_cell_before{{ cell.id() }}" 
-                title="{{ gettext('Click to insert new compute cell.') }}"></div>
-                {% if not cell.worksheet().docbrowser() %}
-                  <div class="ui-icon ui-icon-comment wksht-icon_button" 
-                  id="insert_new_text_cell_before{{ cell.id() }}"
-                  title="{{ gettext('Click to insert new rich-text cell.') }}"></div>
-                {% endif %}
+                title="{{ gettext('Click to insert new compute cell.') }}">
+              </div>
+              {% if not cell.worksheet().docbrowser() %}
+              <div class="ui-icon ui-icon-comment wksht-icon_button" 
+                id="insert_new_text_cell_before{{ cell.id() }}"
+                title="{{ gettext('Click to insert new rich-text cell.') }}">
+              </div>
+            </div>
+              {% endif %}
+            <div class="insert_new_cell" id="insert_new_cell_before{{ cell.id() }}">
             </div>
             <script type="text/javascript">
                 $("#insert_new_compute_cell_before{{ cell.id() }}").bind("click",function (e) {

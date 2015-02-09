@@ -1399,16 +1399,30 @@ a.file_link {
   text-decoration: underline;
 }
 
+div.text_cell {
+  clear: both;
+}
 div.insert_new_cell {
   height: 16px;
   display: block;
-  margin: 3px;
+  overflow-x:hidden;
 }
 div.insert_new_cell:hover {
   .strong_colors2;
 }
+div.wksht_buttons {
+  margin-left: 3px;
+  float: left;
+  display: inline-block;
+}
+div.wksht_buttons:hover {
+}
 div.wksht-icon_button {
   display: inline-block;
+}
+div.wksht-icon_button:hover {
+  border: 1px solid @strong2;
+  margin: -1px;
 }
 
 a.worksheetname {
