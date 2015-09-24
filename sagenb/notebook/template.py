@@ -22,6 +22,7 @@ import os, re, sys
 
 from sagenb.misc.misc import SAGE_VERSION, DATA
 from flask.ext.babel import gettext, ngettext, lazy_gettext
+from sagenb.notebook.themes import get_template
 
 if 'SAGENB_TEMPLATE_PATH' in os.environ:
     if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):
@@ -95,6 +96,7 @@ def clean_name(name):
     """
     return ''.join([x if x.isalnum() else '_' for x in name])
 
+
 def template(filename, **user_context):
     """
     Returns HTML, CSS, etc., for a template file rendered in the given
@@ -130,7 +132,6 @@ def template(filename, **user_context):
     """
     from sagenb.notebook.notebook import MATHJAX, JEDITABLE_TINYMCE
     from .misc import notebook
-    from sagenb.notebook.themes import get_template
     #A dictionary containing the default context
     default_context = {'sitename': gettext('Sage Notebook'),
                        'sage_version': SAGE_VERSION,

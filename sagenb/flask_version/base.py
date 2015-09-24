@@ -15,6 +15,12 @@ from sage.env import SAGE_SRC, SAGE_DOC
 SRC = os.path.join(SAGE_SRC, 'sage')
 from flask.ext.openid import OpenID
 from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext, get_locale
+from sagenb.misc.misc import SAGENB_ROOT, DATA, SAGE_DOC, translations_path, N_, nN_, unicode_str
+from json import dumps
+from sagenb.notebook.cell import number_of_rows
+from sagenb.notebook.template import (css_escape, clean_name,
+                                      prettify_time_ago, TEMPLATE_PATH)
+from sagenb.misc.misc import theme_paths, default_theme
 from flask.ext.themes2 import Themes, theme_paths_loader
 from sagenb.misc.misc import SAGENB_ROOT, DATA, SAGE_DOC, translations_path, N_, nN_, unicode_str, theme_paths, default_theme
 from json import dumps
@@ -22,7 +28,6 @@ from sagenb.notebook.cell import number_of_rows
 from sagenb.notebook.template import (css_escape, clean_name,
                                       prettify_time_ago, TEMPLATE_PATH)
 from sagenb.notebook.themes import render_template
-
 oid = OpenID()
 
 class SageNBFlask(Flask):
@@ -425,30 +430,9 @@ def create_app(path_to_notebook, *args, **kwds):
     ##############
     # Create app #
     ##############
-    from sagenb.notebook.template import TEMPLATE_PATH
-    app = SageNBFlask('flask_version',
-                      startup_token=startup_token,
-                      template_folder=TEMPLATE_PATH) #Template path is now
-                                                     #set up here.
+    app = SageNBFlask('flask_version', startup_token=startup_token,
+                      template_folder=TEMPLATE_PATH)
     app.secret_key = os.urandom(24)
-    ###########
-    # Filters #
-    ###########
-    #This has been moved from sage.notebook.template because of
-    #the jinja_env setup changes.
-    import json
-    from sagenb.notebook.template import css_escape, number_of_rows,\
-         clean_name, prettify_time_ago 
-    from sagenb.misc.misc import unicode_str
-    app.add_template_filter(css_escape)
-    app.add_template_filter(number_of_rows)
-    app.add_template_filter(clean_name)
-    app.add_template_filter(prettify_time_ago)
-    app.add_template_filter(max)
-    app.add_template_filter(
-            lambda x: repr(unicode_str(x))[1:], name='repr_str')
-    app.add_template_filter(json.dumps, name='tojson')
-    
     oid.init_app(app)
     app.debug = True
 
