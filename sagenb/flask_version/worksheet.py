@@ -4,7 +4,7 @@ import os
 import threading
 import collections
 from functools import wraps
-from flask import Module, make_response, url_for, render_template, request, session, redirect, g, current_app
+from flask import Module, make_response, url_for, request, session, redirect, g, current_app
 from jinja2.exceptions import TemplateNotFound
 from .decorators import login_required, with_lock
 from collections import defaultdict
