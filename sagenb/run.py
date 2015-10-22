@@ -40,42 +40,10 @@ class NotebookFrontend(object):
             }
 
         self.defaults = {
-            # Parsed
-            'directory': None,
-            'port': 8080,
-            'interface': 'localhost',
-            'port_tries': 50,
-            'secure': False,
-            'reset': False,
-            'accounts': False,
-            'openid': None,
-
-            'server_pool': None,
-            'ulimit': '',
-
-            'timeout': None,
-            'doc_timeout': None,
-
-            'upload': None,
-            'automatic_login': True,
-
-            'start_path': '',
-            'fork': False,
-            'quiet': False,
-
-            'server': 'twistd',
-            'profile': False,
-
             # Not parsed
             'cwd': os.getcwd(),
             'startup_token': '{0:x}'.format(random.randint(0, 2**128)),
             'conf_path': os.path.join(DOT_SAGENB, 'notebook'),
-
-            #Not supported
-            'subnets': None,
-            'require_login': None,
-            'open_viewer': None,
-            'address': None,
             }
 
         self.conf = {}
@@ -201,6 +169,32 @@ class NotebookFrontend(object):
             '--profile',
             dest='profile',
             action='store_true',
+            )
+
+        # Not supported options
+        parser.add_argument(
+            '--subnets',
+            dest='subnets',
+            default=None,
+            action='store',
+            )
+        parser.add_argument(
+            '--require_login',
+            dest='require_login',
+            default=None,
+            action='store',
+            )
+        parser.add_argument(
+            '--open_viewer',
+            dest='open_viewer',
+            default=None,
+            action='store',
+            )
+        parser.add_argument(
+            '--address',
+            dest='address',
+            default=None,
+            action='store',
             )
 
         return parser
