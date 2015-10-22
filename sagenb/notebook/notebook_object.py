@@ -7,6 +7,7 @@ Notebook server.
 """
 #############################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#                 (C) 2015 J. Miguel Farto <jmfarto@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
@@ -19,6 +20,7 @@ import pexpect
 
 import notebook as _notebook
 from sagenb.run import NotebookFrontend
+
 
 class NotebookObject:
     r"""
@@ -50,7 +52,7 @@ class NotebookObject:
           must have OpenSSL installed to use this feature, or if you compile
           Sage yourself, have the OpenSSL development libraries installed.
           *Highly recommended!*
-          
+
           When ``notebook()`` is run for first time with ``secure=True``, it
           will generate new keys and store them to ``.sage/notebook/``.
           Remove this when you want to generate new keys, for example if an
@@ -247,39 +249,38 @@ class NotebookObject:
     def __call__(self, *args, **kwds):
         return self.notebook(*args, **kwds)
 
-    def notebook(
-        self,
+    def notebook(self,
 
-        directory=None,
-        port=8080,
-        interface='localhost',
-        port_tries=50,
-        secure=False,
-        reset=False,
-        accounts=None,
-        openid=None,
+                 directory=None,
+                 port=8080,
+                 interface='localhost',
+                 port_tries=50,
+                 secure=False,
+                 reset=False,
+                 accounts=None,
+                 openid=None,
 
-        server_pool=None,
-        ulimit='',
+                 server_pool=None,
+                 ulimit='',
 
-        timeout=None,
-        doc_timeout=None,
+                 timeout=None,
+                 doc_timeout=None,
 
-        upload=None,
-        automatic_login=True,
+                 upload=None,
+                 automatic_login=True,
 
-        start_path='',
-        fork=False,
-        quiet=False,
+                 start_path='',
+                 fork=False,
+                 quiet=False,
 
-        server='twistd',
-        profile=False,
+                 server='twistd',
+                 profile=False,
 
-        subnets=None,
-        require_login=None,
-        open_viewer=None,
-        address=None
-        ):
+                 subnets=None,
+                 require_login=None,
+                 open_viewer=None,
+                 address=None):
+
         loc = locals().copy()
         del loc['self']
         loc['no_automatic_login'] = not loc['automatic_login']
@@ -354,9 +355,10 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050,
                  interface=interface, automatic_login=False, fork=True,
                  quiet=True)
     p.expect("Starting factory")
+
     def dispose():
         try:
-            p.send('\x03') # control-C
+            p.send('\x03')  # control-C
         except pexpect.EOF:
             pass
         p.close(force=True)

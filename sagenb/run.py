@@ -5,7 +5,7 @@ Script to start the notebook form the command line
 
 #############################################################################
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
-#                 (C) 2014 J. Miguel Farto <migeruhito@gmail.com>
+#                 (C) 2014, 2015 J. Miguel Farto <jmfarto@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
@@ -25,9 +25,13 @@ from functools import partial
 import sagenb.flask_version.base as flask_base
 import sagenb.notebook.misc
 from sagenb.notebook import notebook
-from sagenb.misc.misc import (DOT_SAGENB, find_next_available_port, open_page,
-                              print_open_msg, module_exists, cmd_exists,
-                              min_password_length)
+from sagenb.misc.misc import DOT_SAGENB
+from sagenb.misc.misc import find_next_available_port
+from sagenb.misc.misc import open_page
+from sagenb.misc.misc import print_open_msg
+from sagenb.misc.misc import module_exists
+from sagenb.misc.misc import cmd_exists
+from sagenb.misc.misc import min_password_length
 
 
 class NotebookFrontend(object):
@@ -463,8 +467,8 @@ class NotebookFrontend(object):
         from twisted.web import server
         from twisted.web.wsgi import WSGIResource
         from twisted.application import service, strports
-        from twisted.scripts._twistd_unix import (ServerOptions,
-                                                 UnixApplicationRunner)
+        from twisted.scripts._twistd_unix import ServerOptions
+        from twisted.scripts._twistd_unix import UnixApplicationRunner
 
         if self.conf['secure']:
             self.conf['strport'] = 'ssl:{port}:'\
