@@ -39,15 +39,12 @@ class NotebookFrontend(object):
             'tornado': self.tornado,
             }
 
-        self.defaults = {
-            # Not parsed
+        self.conf = {
+            # Not parsed configuration parameters
             'cwd': os.getcwd(),
             'startup_token': '{0:x}'.format(random.randint(0, 2**128)),
             'conf_path': os.path.join(DOT_SAGENB, 'notebook'),
             }
-
-        self.conf = {}
-        self.conf.update(self.defaults)
 
     @property
     def parser(self):
