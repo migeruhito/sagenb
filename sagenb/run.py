@@ -385,7 +385,7 @@ class NotebookFrontend(object):
                     'first run notebook.setup().',
                     'Now running notebook.setup()',
                     sep='\n')
-                self.notebook_setup(self.conf)
+                self.notebook_setup()
             if (not os.path.exists(self.conf['private_pem']) or
                     not os.path.exists(self.conf['public_pem'])):
                 print('Failed to setup notebook.  Please try notebook.setup() '
@@ -422,7 +422,7 @@ class NotebookFrontend(object):
         self.save_notebook(flask_base.notebook)
         os.unlink(self.conf['pidfile'])
         os.chdir(self.conf['cwd'])
-        
+
     def werkzeug(self, flask_app):
         from werkzeug import serving
         with open(self.conf['pidfile'], "w") as pidfile:
@@ -538,7 +538,7 @@ class NotebookFrontend(object):
 
         twisted_conf = ServerOptions()
         twisted_conf.parseOptions(self.conf['twisted_opts'])
-            
+
         AppRunner(application, twisted_conf).run()
 
     def tornado(self, flask_app):
@@ -548,7 +548,7 @@ class NotebookFrontend(object):
 
         with open(self.conf['pidfile'], "w") as pidfile:
             pidfile.write(str(os.getpid()))
-        
+
         ssl_options = {
             'certfile': self.conf['public_pem'],
             'keyfile': self.conf['private_pem']
