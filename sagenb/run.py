@@ -34,6 +34,7 @@ class NotebookFrontend(object):
     def __init__(self, **kwargs):
         self.servers = {
             'twistd': self.twisted,
+            'werkzeug': self.werkzeug,
             'flask': self.werkzeug,
             'tornado': self.tornado,
             }
