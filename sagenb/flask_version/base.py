@@ -394,7 +394,7 @@ notebook = None
 def create_app(path_to_notebook, *args, **kwds):
     """
     This is the main method to create a running notebook. This is
-    called from the process spawned in run_notebook.py
+    called from the process spawned in run.py
     """
     global notebook
     startup_token = kwds.pop('startup_token', None)

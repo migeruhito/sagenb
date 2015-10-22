@@ -18,7 +18,7 @@ import tempfile
 import pexpect
 
 import notebook as _notebook
-import run_notebook
+from sagenb.run import NotebookFrontend
 
 class NotebookObject:
     r"""
@@ -241,14 +241,72 @@ class NotebookObject:
     .. _this Sage wiki page:  http://wiki.sagemath.org/StartingTheNotebook
 
     """
+    def __init__(self, *args, **kwargs):
+        self.nb_frend = NotebookFrontend()
+
     def __call__(self, *args, **kwds):
         return self.notebook(*args, **kwds)
 
-    def notebook(self, *args, **kwargs):
-        return run_notebook.notebook_run(*args, **kwargs)
+    def notebook(
+        self,
+
+        directory=None,
+        port=8080,
+        interface='localhost',
+        port_tries=50,
+        secure=False,
+        reset=False,
+        accounts=None,
+        openid=None,
+
+        server_pool=None,
+        ulimit='',
+
+        timeout=None,
+        doc_timeout=None,
+
+        upload=None,
+        automatic_login=True,
+
+        start_path='',
+        fork=False,
+        quiet=False,
+
+        server='twistd',
+        profile=False,
+
+        subnets=None,
+        require_login=None,
+        open_viewer=None,
+        address=None
+        ):
+        loc = locals().copy()
+        del loc['self']
+        loc['no_automatic_login'] = not loc['automatic_login']
+        del loc['automatic_login']
+        args = []
+        for arg in ['directory', 'accounts', 'openid', 'server_pool',
+                    'timeout', 'doc_timeout', 'upload', 'subnets',
+                    'require_login', 'open_viewer', 'address']:
+            val = loc.get(arg, None)
+            if val is not None:
+                args.append('--{}'.format(arg))
+                args.append(str(val))
+        for arg in ['port', 'interface', 'port_tries', 'ulimit', 'start_path',
+                    'server']:
+            val = loc.get(arg, None)
+            if val:
+                args.append('--{}'.format(arg))
+                args.append(str(val))
+        for arg in ['secure', 'reset', 'no_automatic_login', 'fork', 'quiet',
+                    'profile']:
+            if loc.get(arg):
+                args.append('--{}'.format(arg))
+
+        return self.nb_frend(args)
 
     def setup(self, *args, **kwargs):
-        return run_notebook.notebook_setup(*args, **kwargs)
+        return self.nb_frend.notebook_setup(*args, **kwargs)
 
 notebook = NotebookObject()
 
