@@ -88,28 +88,28 @@ class NotebookFrontend(object):
         parser.add_argument(
             '--directory',
             dest='directory',
+            default=None,
             action='store',
-            default=self.defaults['directory'],
             )
         parser.add_argument(
             '--port',
             dest='port',
+            default=8080,
             action='store',
             type=int,
-            default=self.defaults['port'],
             )
         parser.add_argument(
             '--interface',
             dest='interface',
+            default='localhost',
             action='store',
-            default=self.defaults['interface'],
             )
         parser.add_argument(
             '--port_tries',
             dest='port_tries',
+            default=50,
             action='store',
             type=int,
-            default=self.defaults['port_tries'],
             )
         parser.add_argument(
             '--secure',
@@ -129,43 +129,43 @@ class NotebookFrontend(object):
         parser.add_argument(
             '--openid',
             dest='openid',
+            default=None,
             action='store',
-            default=self.defaults['openid'],
             )
 
         parser.add_argument(
             '--server_pool',
             dest='server_pool',
+            default=None,
             nargs='+',
-            default=self.defaults['server_pool'],
             )
         parser.add_argument(
             '--ulimit',
             dest='ulimit',
+            default='',
             action='store',
-            default=self.defaults['ulimit'],
             )
 
         parser.add_argument(
             '--timeout',
             dest='timeout',
+            default=None,
             action='store',
             type=int,
-            default=self.defaults['timeout'],
             )
         parser.add_argument(
             '--doc_timeout',
             dest='doc_timeout',
+            default=None,
             action='store',
             type=int,
-            default=self.defaults['doc_timeout'],
             )
 
         parser.add_argument(
             '--upload',
             dest='upload',
+            default=None,
             action='store',
-            default=self.defaults['upload'],
             )
         parser.add_argument(
             '--no_automatic_login',
@@ -176,8 +176,8 @@ class NotebookFrontend(object):
         parser.add_argument(
             '--start_path',
             dest='start_path',
+            default='',
             action='store',
-            default=self.defaults['start_path'],
             )
         parser.add_argument(
             '--fork',
@@ -193,8 +193,8 @@ class NotebookFrontend(object):
         parser.add_argument(
             '--server',
             dest='server',
+            default='twistd',
             action='store',
-            default=self.defaults['server'],
             choices=tuple(self.servers),
             )
         parser.add_argument(
