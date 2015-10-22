@@ -79,7 +79,6 @@ class NotebookFrontend(object):
 
         self.conf = {}
         self.conf.update(self.defaults)
-        self.conf.update(self.parser.parse_args().__dict__)
 
     @property
     def parser(self):
@@ -205,9 +204,8 @@ class NotebookFrontend(object):
 
         return parser
 
-    def __call__(self):
-        self.update_conf()
-        self.run()
+    def __call__(self, args=None):
+        self.run(args)
 
     def non_supported(self):
         if self.conf['subnets'] is not None:
@@ -391,7 +389,9 @@ class NotebookFrontend(object):
                 print('Failed to setup notebook.  Please try notebook.setup() '
                       'again manually.')
 
-    def run(self):
+    def run(self, args=None):
+        self.conf.update(vars(self.parser.parse_args(args)))
+        self.update_conf()
         if not self.conf['quiet']:
             print_open_msg(self.conf['interface'], self.conf['port'],
                            secure=self.conf['secure'])
