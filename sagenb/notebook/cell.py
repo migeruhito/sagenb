@@ -13,18 +13,29 @@ a list of cells.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
+from __future__ import absolute_import
+
 import os
 import re
 import shutil
 import textwrap
 import time
 from cgi import escape
+from random import randint
+from sys import maxint
 
-from sagenb.misc.misc import (word_wrap, strip_string_literals,
-                              set_restrictive_permissions, unicode_str,
-                              encoded_str)
-from interact import (INTERACT_RESTART, INTERACT_UPDATE_PREFIX,
-                      INTERACT_TEXT, INTERACT_HTML)
+from sagenb.misc.misc import word_wrap
+from sagenb.misc.misc import strip_string_literals
+from sagenb.misc.misc import set_restrictive_permissions
+from sagenb.misc.misc import unicode_str
+from sagenb.misc.misc import encoded_str
+
+from .interact import INTERACT_RESTART
+from .interact import INTERACT_UPDATE_PREFIX
+from .interact import INTERACT_TEXT
+from .interact import INTERACT_HTML
+from .template import template
+from .misc import CODE_PY
 
 # Maximum number of characters allowed in output.  This is needed
 # avoid overloading web browser.  For example, it should be possible
@@ -559,7 +570,6 @@ class TextCell(Cell_generic):
             u'...text_cell...2+3...'
             sage: C.set_input_text("$2+3$")
         """
-        from template import template
         return template(os.path.join('html', 'notebook', 'text_cell.html'),
                         cell = self, wrap = wrap, div_wrap = div_wrap,
                         do_print = do_print,
@@ -663,8 +673,6 @@ class Cell(Cell_generic):
 
         # start with a random integer so that evaluations of the cell
         # from different runs have different version numbers.
-        from sys import maxint
-        from random import randint
         self._version = randint(0,maxint)
 
     def __repr__(self):
@@ -2145,8 +2153,6 @@ class Cell(Cell_generic):
         except AttributeError:
             # start with a random integer so that evaluations of the cell
             # from different runs have different version numbers.
-            from sys import maxint
-            from random import randint
             self._version = randint(0,maxint)
             return self._version
 
@@ -2203,8 +2209,6 @@ class Cell(Cell_generic):
             sage: C.html()
             u'...cell_outer_0...2+3...5...'
         """
-        from template import template
-
         if wrap is None:
             wrap = self.notebook().conf()['word_wrap_cols']
 
@@ -2407,7 +2411,6 @@ class Cell(Cell_generic):
         jmoldatafile=''
         hasjmolimages = False
         jmolimagebase=''
-        from worksheet import CODE_PY
         # The question mark trick here is so that images will be
         # reloaded when the async request requests the output text for
         # a computation.  This is inspired by
@@ -2466,6 +2469,8 @@ class Cell(Cell_generic):
                 os.mkdir(png_path)
             png_name = os.path.join(png_path,jmolimagebase)
             #test for JavaVM
+
+            # TODO: sage dependency
             from sage.interfaces.jmoldata import JmolData
             jdata = JmolData()
             if (jdata.is_jvm_available()):
@@ -2542,35 +2547,3 @@ def format_exception(s0, ncols):
         s = s.replace("exec compile(ur'", "")
         s = s.replace("' + '\\n', '', 'single')", "")
     return s
-
-def number_of_rows(txt, ncols):
-    r"""
-    Returns the number of rows needed to display a string, given a
-    maximum number of columns per row.
-
-    INPUT:
-
-    - ``txt`` - a string; the text to "wrap"
-
-    - ``ncols`` - an integer; the number of word wrap columns
-
-    OUTPUT:
-
-    - an integer
-
-    EXAMPLES::
-
-        sage: from sagenb.notebook.cell import number_of_rows
-        sage: s = "asdfasdf\nasdfasdf\n"
-        sage: number_of_rows(s, 8)
-        2
-        sage: number_of_rows(s, 5)
-        4
-        sage: number_of_rows(s, 4)
-        4
-    """
-    rows = txt.splitlines()
-    nrows = len(rows)
-    for i in range(nrows):
-        nrows += int((len(rows[i]) - 1) / ncols)
-    return nrows

@@ -20,7 +20,6 @@ import jinja2
 import os, re, sys, json
 
 from sagenb.misc.misc import SAGE_VERSION, DATA, unicode_str
-from sagenb.notebook.cell import number_of_rows
 from flask.ext.babel import gettext, ngettext, lazy_gettext
 
 if os.environ.has_key('SAGENB_TEMPLATE_PATH'):
@@ -95,6 +94,40 @@ def clean_name(name):
         this_is_bad_string
     """
     return ''.join([x if x.isalnum() else '_' for x in name])
+
+
+def number_of_rows(txt, ncols):
+    r"""
+    Returns the number of rows needed to display a string, given a
+    maximum number of columns per row.
+
+    INPUT:
+
+    - ``txt`` - a string; the text to "wrap"
+
+    - ``ncols`` - an integer; the number of word wrap columns
+
+    OUTPUT:
+
+    - an integer
+
+    EXAMPLES::
+
+        sage: from sagenb.notebook.cell import number_of_rows
+        sage: s = "asdfasdf\nasdfasdf\n"
+        sage: number_of_rows(s, 8)
+        2
+        sage: number_of_rows(s, 5)
+        4
+        sage: number_of_rows(s, 4)
+        4
+    """
+    rows = txt.splitlines()
+    nrows = len(rows)
+    for i in range(nrows):
+        nrows += int((len(rows[i]) - 1) / ncols)
+    return nrows
+
 
 env.filters['css_escape'] = css_escape
 env.filters['number_of_rows'] = number_of_rows

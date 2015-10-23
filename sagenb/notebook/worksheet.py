@@ -53,6 +53,7 @@ from sagenb.interfaces import (WorksheetProcess_ExpectImplementation,
 
 import sagenb.misc.support  as support
 from sagenb.misc.format import relocate_future_imports
+from .misc import CODE_PY
 
 # Imports specifically relevant to the sage notebook
 from cell import Cell, TextCell
@@ -63,9 +64,6 @@ _ = gettext
 # Set some constants that will be used for regular expressions below.
 whitespace = re.compile('\s')  # Match any whitespace character
 non_whitespace = re.compile('\S')
-
-# The file to which the Sage code that will be evaluated is written.
-CODE_PY = "___code___.py"
 
 # Constants that control the behavior of the worksheet.
 INTERRUPT_TRIES = 3    # number of times to send control-c to
