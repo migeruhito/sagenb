@@ -1,21 +1,72 @@
 #!/usr/bin/env python
-import os, time, re
-from functools import partial
-from flask import Flask, Module, url_for, render_template, request, session, redirect, g, make_response, current_app
-from decorators import login_required, guest_or_login_required, with_lock
-from decorators import global_lock
-# Make flask use the old session foo from <=flask-0.9
-from flask_oldsessions import OldSecureCookieSessionInterface
+from __future__ import absolute_import
 
+import mimetypes
+import os
+import re
+import time
+from cgi import escape
+from functools import partial
+from hashlib import sha1
+
+from flask import Flask
+from flask import Module
+from flask import url_for
+from flask import render_template
+from flask import request
+from flask import session
+from flask import redirect
+from flask import g
+from flask import make_response
+from flask import current_app
+# Make flask use the old session foo from <=flask-0.9
+from flask.ext.oldsessions import OldSecureCookieSessionInterface
 from flask.ext.autoindex import AutoIndex
+from flask.ext.openid import OpenID
+from flask.ext.babel import Babel
+from flask.ext.babel import gettext
+from flask.ext.babel import get_locale
+from flask.helpers import send_file
+from flask.helpers import send_from_directory
+
+from sagenb.misc.misc import DATA
+from sagenb.misc.misc import mathjax_macros
+from sagenb.misc.misc import N_
+from sagenb.misc.misc import nN_
+from sagenb.misc.misc import SAGE_DOC
+from sagenb.misc.misc import SAGE_VERSION
+from sagenb.misc.misc import SAGENB_ROOT
+from sagenb.misc.misc import walltime
+from sagenb.notebook.challenge import challenge
+from sagenb.notebook.css import css
+from sagenb.notebook.js import javascript
+from sagenb.notebook.keyboards import get_keyboard
+from sagenb.notebook.misc import is_valid_username
+from sagenb.notebook.misc import is_valid_email
+from sagenb.notebook.misc import valid_username_chars
+from sagenb.notebook.notification import logger
+from sagenb.notebook.template import env
+from sagenb.notebook.tutorial import notebook_help
+from sagenb.notebook.user import User
+
+from .admin import admin
+from .authentication import authentication
+from .authentication import login
+from .decorators import login_required
+from .decorators import guest_or_login_required
+from .decorators import with_lock
+from .decorators import global_lock
+from .doc import doc
+from .settings import settings
+from .worksheet import url_for_worksheet
+from .worksheet import ws as worksheet
+from .worksheet_listing import worksheet_listing
+
 try:
     from sage.env import SAGE_SRC
 except ImportError:
     SAGE_SRC = os.environ.get('SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage'))
 SRC = os.path.join(SAGE_SRC, 'sage')
-from flask.ext.openid import OpenID
-from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext, get_locale
-from sagenb.misc.misc import SAGENB_ROOT, DATA, SAGE_DOC, translations_path, N_, nN_
 
 oid = OpenID()
 
@@ -42,7 +93,6 @@ class SageNBFlask(Flask):
         self.add_static_path('/j2s', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol","j2s"))
         self.add_static_path('/jsmol/j2s', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol","j2s"))
         self.add_static_path('/j2s/core', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol","j2s","core"))
-        import mimetypes
         mimetypes.add_type('text/plain','.jmol')
 
 
@@ -56,12 +106,10 @@ class SageNBFlask(Flask):
         #self.add_static_path('/doc/static/reference', os.path.join(SAGE_DOC, 'reference'))
 
     def create_jinja_environment(self):
-        from sagenb.notebook.template import env
         env.globals.update(url_for=url_for)
         return env
 
     def static_view_func(self, root_path, filename):
-        from flask.helpers import send_from_directory
         return send_from_directory(root_path, filename)
 
     def add_static_path(self, base_url, root_path):
@@ -97,7 +145,6 @@ def index():
         response.set_cookie('cookie_test_%s'%g.notebook.port, expires=1)
         return response
 
-    from authentication import login
 
     if current_app.startup_token is not None and 'startup_token' in request.args:
         if request.args['startup_token'] == current_app.startup_token:
@@ -111,10 +158,8 @@ def index():
 ######################
 # Dynamic Javascript #
 ######################
-from hashlib import sha1
 @base.route('/javascript/dynamic/notebook_dynamic.js')
 def dynamic_js():
-    from sagenb.notebook.js import javascript
     # the javascript() function is cached, so there shouldn't be a big slowdown calling it
     data,datahash = javascript()
     if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
@@ -148,7 +193,6 @@ _mathjax_js_cache = None
 def mathjax_js():
     global _mathjax_js_cache
     if _mathjax_js_cache is None:
-        from sagenb.misc.misc import mathjax_macros
         data = render_template('js/mathjax_sage.js', theme_mathjax_macros=mathjax_macros)
         _mathjax_js_cache = (data, sha1(repr(data)).hexdigest())
     data,datahash = _mathjax_js_cache
@@ -163,7 +207,6 @@ def mathjax_js():
 
 @base.route('/javascript/dynamic/keyboard/<browser_os>')
 def keyboard_js(browser_os):
-    from sagenb.notebook.keyboards import get_keyboard
     data = get_keyboard(browser_os)
     datahash=sha1(data).hexdigest()
     if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
@@ -179,7 +222,6 @@ def keyboard_js(browser_os):
 ###############
 @base.route('/css/main.css')
 def main_css():
-    from sagenb.notebook.css import css
     data,datahash = css()
     if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
         response = make_response('',304)
@@ -195,8 +237,6 @@ def main_css():
 @base.route('/help')
 @login_required
 def help():
-    from sagenb.notebook.tutorial import notebook_help
-    from sagenb.misc.misc import SAGE_VERSION
     return render_template(os.path.join('html', 'docs.html'), username = g.username, notebook_help = notebook_help, sage_version=SAGE_VERSION)
 
 ###########
@@ -212,7 +252,6 @@ def history():
 @login_required
 def live_history():
     W = g.notebook.create_new_worksheet_from_history(gettext('Log'), g.username, 100)
-    from worksheet import url_for_worksheet
     return redirect(url_for_worksheet(W))
 
 ###########
@@ -220,7 +259,6 @@ def live_history():
 ###########
 @base.route('/favicon.ico')
 def favicon():
-    from flask.helpers import send_file
     return send_file(os.path.join(DATA, 'sage', 'images', 'favicon.ico'))
 
 @base.route('/loginoid', methods=['POST', 'GET'])
@@ -258,7 +296,6 @@ def set_profiles():
     if not g.notebook.conf()['openid']:
         return redirect(url_for('base.index'))
 
-    from sagenb.notebook.challenge import challenge
 
 
     show_challenge=g.notebook.conf()['challenge']
@@ -269,7 +306,6 @@ def set_profiles():
 
     if request.method == 'GET':
         if 'openid_response' in session:
-            from sagenb.notebook.misc import valid_username_chars
             re_invalid_username_chars = re.compile('[^(%s)]' % valid_username_chars)
             openid_resp = session['openid_response']
             if openid_resp.fullname is not None:
@@ -293,8 +329,6 @@ def set_profiles():
         try:
             resp = session['openid_response']
             username = request.form.get('username')
-            from sagenb.notebook.user import User
-            from sagenb.notebook.misc import is_valid_username, is_valid_email
 
             if show_challenge:
                 parse_dict['challenge'] = True
@@ -344,7 +378,6 @@ def set_profiles():
 # save if make a change to notebook and at least some seconds have elapsed since last save.
 def init_updates():
     global save_interval, idle_interval, last_save_time, last_idle_time
-    from sagenb.misc.misc import walltime
 
     save_interval = notebook.conf()['save_interval']
     idle_interval = notebook.conf()['idle_check_interval']
@@ -353,7 +386,6 @@ def init_updates():
 
 def notebook_save_check():
     global last_save_time
-    from sagenb.misc.misc import walltime
 
     t = walltime()
     if t > last_save_time + save_interval:
@@ -368,7 +400,6 @@ def notebook_save_check():
 
 def notebook_idle_check():
     global last_idle_time
-    from sagenb.misc.misc import walltime
 
     t = walltime()
 
@@ -443,29 +474,22 @@ def create_app(path_to_notebook, *args, **kwds):
     ########################
     app.register_blueprint(base)
 
-    from worksheet_listing import worksheet_listing
     app.register_blueprint(worksheet_listing)
 
-    from admin import admin
     app.register_blueprint(admin)
 
-    from authentication import authentication
     app.register_blueprint(authentication)
 
-    from doc import doc
     app.register_blueprint(doc)
 
-    from worksheet import ws as worksheet
     app.register_blueprint(worksheet)
 
-    from settings import settings
     app.register_blueprint(settings)
 
     # Handles all uncaught exceptions by sending an e-mail to the
     # administrator(s) and displaying an error page.
     @app.errorhandler(Exception)
     def log_exception(error):
-        from sagenb.notebook.notification import logger
         logger.exception(error)
         return app.message(
             gettext('''500: Internal server error.'''),
@@ -481,7 +505,6 @@ def create_app(path_to_notebook, *args, **kwds):
     def autoindex(path='.'):
         filename = os.path.join(SRC, path)
         if os.path.isfile(filename):
-            from cgi import escape
             src = escape(open(filename).read().decode('utf-8','ignore'))
             if (os.path.splitext(filename)[1] in
                 ['.py','.c','.cc','.h','.hh','.pyx','.pxd']):
