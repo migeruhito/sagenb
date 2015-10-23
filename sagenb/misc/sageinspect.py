@@ -8,7 +8,16 @@ inspect module.
 AUTHORS:
 
 - John Palmieri, Simon King
+
+MODIFIED BY:
+- J Miguel Farto, 2015
 """
+from __future__ import absolute_import
+
+import inspect
+from .misc import import_from
+
+
 def sagenb_getdef(obj, obj_name=''):
     r"""
     Return the definition header for any callable object.
@@ -28,8 +37,8 @@ def sagenb_getdef(obj, obj_name=''):
         sage: sagenb_getdef(f, 'hello')
         'hello(a, b=0, *args, **kwds)'
     """
-    from inspect import formatargspec, getargspec
-    return obj_name + formatargspec(*getargspec(obj))
+    return obj_name + inspect.formatargspec(*inspect.getargspec(obj))
+
 
 def sagenb_getdoc(obj, obj_name=''):
     r"""
@@ -45,8 +54,7 @@ def sagenb_getdoc(obj, obj_name=''):
         sage: sagenb_getdoc(sagenb.misc.sageinspect.sagenb_getdoc)[0:55]
         'Return the docstring associated to ``obj`` as a string.'
     """
-    from inspect import getdoc
-    s = getdoc(obj)
+    s = inspect.getdoc(obj)
     if obj_name != '':
         i = obj_name.find('.')
         if i != -1:
@@ -54,20 +62,15 @@ def sagenb_getdoc(obj, obj_name=''):
         s = s.replace('self.','%s.'%obj_name)
     return s
 
-try:
-    # If Sage is available, use sage.misc.sageinspect.
-    import sage.misc.sageinspect as si
-    sage_getargspec = si.sage_getargspec
-    sage_getdef = si.sage_getdef
-    sage_getdoc = si.sage_getdoc
-    sage_getfile = si.sage_getfile
-    sage_getsourcelines = si.sage_getsourcelines
-except ImportError:
-    # If Sage is not available, use Python's inspect module where
-    # possible, and slight variants on its functions where needed.
-    import inspect
-    sage_getargspec = inspect.getargspec
-    sage_getfile = inspect.getfile
-    sage_getsourcelines = inspect.getsourcelines
-    sage_getdef = sagenb_getdef
-    sage_getdoc = sagenb_getdoc
+
+sage_getargspec = import_from(
+    'sage.misc.sageinspect', 'sage_getargspec', default=inspect.getargspec)
+sage_getdef = import_from(
+    'sage.misc.sageinspect', 'sage_getdef', default=sagenb_getdef)
+sage_getdoc = import_from(
+    'sage.misc.sageinspect', 'sage_getdoc', default=sagenb_getdoc)
+sage_getfile = import_from(
+    'sage.misc.sageinspect', 'sage_getfile', default=inspect.getfile)
+sage_getsourcelines = import_from(
+    'sage.misc.sageinspect', 'sage_getsourcelines',
+    default=inspect.getsourcelines)
