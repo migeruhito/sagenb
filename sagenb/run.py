@@ -29,7 +29,7 @@ from sagenb.misc.misc import DOT_SAGENB
 from sagenb.misc.misc import find_next_available_port
 from sagenb.misc.misc import open_page
 from sagenb.misc.misc import print_open_msg
-from sagenb.misc.misc import module_exists
+from sagenb.misc.misc import get_module
 from sagenb.misc.misc import cmd_exists
 from sagenb.misc.misc import min_password_length
 
@@ -229,7 +229,7 @@ class NotebookFrontend(object):
                                                   'cert.cfg')
 
         # Check whether pyOpenSSL is installed or not (see Sage trac #13385)
-        if self.conf['secure'] and not module_exists('OpenSSL'):
+        if self.conf['secure'] and get_module('OpenSSL') is None:
             raise RuntimeError('HTTPS cannot be used without pyOpenSSL '
                                'installed. '
                                'See the Sage README for more information.')

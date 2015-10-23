@@ -40,7 +40,7 @@ from flask.ext.babel import lazy_gettext
 
 from sage.misc.all import walltime
 # Sage libraries
-from sagenb.misc.misc import unicode_str, module_exists
+from sagenb.misc.misc import unicode_str, get_module
 
 # Sage Notebook
 import sagenb.notebook.misc
@@ -59,7 +59,7 @@ from misc import extract_title
 from docutils.core import publish_parts
 from worksheet import extract_name
 
-if module_exists('sage'):
+if get_module('sage') is not None:
     # sage is installed
     # [(string: name, bool: optional)]
     SYSTEMS = [('sage', False),
