@@ -9,37 +9,42 @@ AUTHORS:
 - Nick Alexander
 """
 
-import inspect
-import os
+from __future__ import absolute_import
+
 import base64
+import os
 import string
 import sys
-import __builtin__
-from cPickle import PicklingError
-import pydoc
+from pydoc import describe
+from pydoc import html
+from pydoc import resolve
 
-from misc import loads, dumps, cython, session_init
+from . import sageinspect
+from .misc import cython
+from .misc import get_module
+from .misc import import_from
+from .misc import InlineFortran
+from .misc import session_init
+from .format import displayhook_hack
 
-import sageinspect
 
-try:
-    from sage.misc.sagedoc import format_src
-except ImportError:
-    # Fallback
-    def format_src(s, *args, **kwds):
-        return s
+## Fallback functions in case sage is not present
+def format_src(s, *args, **kwds):
+    return s
 
-try:
-    from sagenb.misc.sphinxify import sphinxify, is_sphinx_markup
-except ImportError as msg:
-    print msg
-    print "Sphinx docstrings not available."
-    # Don't do any Sphinxifying if sphinx's dependencies aren't around
-    def sphinxify(s):
-        return s
-    def is_sphinx_markup(s):
+
+# TODO: sage dependency
+format_src = import_from('sage.misc.sagedoc', 'format_src', default=format_src)
+
+## Fallback functions in case sagenb.misc.sphinxify is not present
+def sphinxify(s):
+    return s
+def is_sphinx_markup(s):
         return False
-
+sphinxify = import_from('sagenb.misc.sphinxify', 'sphinxify', default=sphinxify)
+is_sphinx_markup = import_from(
+    'sagenb.misc.sphinxify', 'is_sphinx_markup', default=is_sphinx_markup)
+# TODO: sage dependency
 try:
     from sage.misc.displayhook import DisplayHook
     sys.displayhook = DisplayHook()
@@ -64,35 +69,30 @@ def init(object_directory=None, globs={}):
     global EMBEDDED_MODE
 
     os.environ['PAGER'] = 'cat'
-    
+
     sage_globals = globs
     #globals_at_init = set(globs.keys())
     globals_at_init = globs.values()
     global_names_at_init = set(globs.keys())
     EMBEDDED_MODE = True
-    
+
     setup_systems(globs)
     session_init(globs)
 
     # Ugly cruft.  Initialize the embedded mode of the old Sage
     # notebook, which is going to be included in old copies of Sage
     # forever.
-    try:
-        import sage.server.support
-        sage.server.support.EMBEDDED_MODE = True
-    except ImportError:
-        pass
+    # TODO: sage dependency
+    get_module(
+        'sage.server.support', default=lambda: None).EMBEDDED_MODE = True
     # Also initialize EMBEDDED_MODE in Sage's misc.sageinspect module,
     # which is used to format docstrings in the notebook.
-    try:
-        import sage.misc.sageinspect
-        sage.misc.sageinspect.EMBEDDED_MODE = True
-    except ImportError:
-        pass
+    # TODO: sage dependency
+    get_module(
+        'sage.misc.sageinspect', default=lambda: None).EMBEDDED_MODE = True
 
 
 def setup_systems(globs):
-    from misc import InlineFortran
     fortran = InlineFortran(globs)
     globs['fortran'] = fortran
 
@@ -106,18 +106,18 @@ def help(obj):
     help is often more extensive than that given by 'obj?'.  This
     function does not return a value --- it prints HTML as a side
     effect.
-    
+
     .. note::
 
        This a wrapper around the built-in help. If formats the output
        as HTML without word wrap, which looks better in the notebook.
 
     INPUT:
-    
+
     -  ``obj`` - a Python object, module, etc.
-    
+
     TESTS::
-    
+
         sage: import numpy.linalg
         sage: current_dir = os.getcwd()
         sage: os.chdir(tmp_dir('server_doctest'))
@@ -127,8 +127,6 @@ def help(obj):
         <br></font></tr></td></table></html>
         sage: os.chdir(current_dir)
     """
-    from pydoc import resolve, html, describe
-    import sagenb.notebook.interact as interact
 
     print '<html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">'
     object, name = resolve(obj)
@@ -142,14 +140,14 @@ def help(obj):
     open(filename, 'w').write(page)
     print "&nbsp;&nbsp;&nbsp;<a target='_new' href='cell://%s'>Click to open help window</a>&nbsp;&nbsp;&nbsp;"%filename
     print '<br></font></tr></td></table></html>'
-    
+
 def get_rightmost_identifier(s):
     X = string.ascii_letters + string.digits + '._'
     i = len(s)-1
     while i >= 0 and s[i] in X:
         i -= 1
     return s[i+1:]
-    
+
 def completions(s, globs, format=False, width=90, system="None"):
     """
     Return a list of completions in the given context.
@@ -161,9 +159,9 @@ def completions(s, globs, format=False, width=90, system="None"):
 
     - ``format`` - a bool (default: False); whether to tabulate the
       list
-    
+
     - ``width`` - an int; character width of the table
-    
+
     - ``system`` - a string (default: 'None'); system prefix for the
       completions
 
@@ -182,7 +180,7 @@ def completions(s, globs, format=False, width=90, system="None"):
     try:
         if not '.' in s and not '(' in s:
             v = [x for x in globs.keys() if x[:n] == s] + \
-                [x for x in __builtins__.keys() if x[:n] == s] 
+                [x for x in __builtins__.keys() if x[:n] == s]
         else:
             if not ')' in s:
                 i = s.rfind('.')
@@ -213,19 +211,19 @@ def completions(s, globs, format=False, width=90, system="None"):
     if prepend:
         i = len(prepend)
         v = [x[i:] for x in v]
-        
+
     if format:
         if len(v) == 0:
             return "No completions of '%s' currently defined"%s
         else:
             return tabulate(v, width)
-    return v    
+    return v
 
 def docstring(obj_name, globs, system='sage'):
     r"""
     Format an object's docstring to process and display in the Sage
     notebook.
-    
+
     INPUT:
 
     - ``obj_name`` - a string; a name of an object
@@ -285,12 +283,6 @@ def docstring(obj_name, globs, system='sage'):
     return html_markup(s.decode('utf-8'))
 
 def html_markup(s):
-    try:
-        from sagenb.misc.sphinxify import sphinxify, is_sphinx_markup
-    except ImportError, msg:
-        # sphinx not available
-        def is_sphinx_markup(s): return False
-
     if is_sphinx_markup(s):
         try:
             return sphinxify(s)
@@ -313,7 +305,7 @@ def source_code(s, globs, system='sage'):
     r"""
     Format an object's source code to process and display in the
     Sage notebook.
-    
+
     INPUT:
 
     - ``s`` - a string; a name of an object
@@ -342,7 +334,7 @@ def source_code(s, globs, system='sage'):
         obj = eval(s, globs)
     except NameError:
         return html_markup("No object %s"%s)
-    
+
     try:
         try:
             return html_markup(obj._sage_src_())
@@ -365,11 +357,11 @@ def source_code(s, globs, system='sage'):
             output += newline
             output += src
         return html_markup(output)
-    
+
     except (TypeError, IndexError), msg:
         return html_markup("Source code for {} is not available.".format(s) +
                            "\nUse {}? to see the documentation.".format(s))
-    
+
 def tabulate(v, width=90, ncols=3):
     e = len(v)
     if e == 0:
@@ -401,7 +393,7 @@ def syseval(system, cmd, dir=None):
     (e.g., python, gap).
 
     INPUT:
-        
+
     - ``system`` - an object with an eval method that takes an input
 
     - ``cmd`` - a string input
@@ -414,7 +406,7 @@ def syseval(system, cmd, dir=None):
     OUTPUT:
 
     - :func:`system.eval`'s output
-                  
+
     EXAMPLES::
 
         sage: from sage.misc.python import python
@@ -447,12 +439,12 @@ def cython_import(filename, verbose=False, compile_message=False,
     module.  Raises an ``ImportError`` if anything goes wrong.
 
     INPUT:
-    
+
     - ``filename`` - a string; name of a file that contains Cython
       code
-    
+
     OUTPUT:
-    
+
     - the module that contains the compiled Cython code.
     """
     name, build_dir = cython(filename, verbose=verbose,
@@ -460,7 +452,7 @@ def cython_import(filename, verbose=False, compile_message=False,
                                             use_cache=use_cache,
                                             create_local_c_file=create_local_c_file)
     sys.path.append(build_dir)
-    return __builtin__.__import__(name)
+    return get_module(name)
 
 
 def cython_import_all(filename, globals, verbose=False, compile_message=False,
@@ -475,40 +467,39 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
     Raises an ``ImportError`` exception if anything goes wrong.
 
     INPUT:
-    
+
     - ``filename`` - a string; name of a file that contains Cython
       code
     """
     m = cython_import(filename, verbose=verbose, compile_message=compile_message,
                      use_cache=use_cache,
                      create_local_c_file=create_local_c_file)
-    for k, x in m.__dict__.iteritems():
-        if k[0] != '_':
+    for k, x in vars(m).iteritems():
+        if not k.stratswith('_'):
             globals[k] = x
-            
 
 
 ###################################################
 # Preparser
 ###################################################
-try:
-    from sage.repl.preparse import preparse, preparse_file
-    def do_preparse():
-        """
-        Return True if the preparser is set to on, and False otherwise.
-        """
-        import sage.repl.interpreter
-        return sage.repl.interpreter._do_preparse
-except ImportError:
-    def preparse(line, *args, **kwds):
-        return line
-    def preparse_file(contents, *args, **kwds):
-        return contents
-    def do_preparse():
-        """
-        Return True if the preparser is set to on, and False otherwise.
-        """
-        return False
+
+## Fallback functions in case sage is not present
+def preparse(line, *args, **kwds):
+    return line
+def preparse_file(contents, *args, **kwds):
+    return contents
+# TODO: sage dependency
+preparse = import_from('sage.repl.preparse', 'preparse', default=preparse)
+# TODO: sage dependency
+preparse_file = import_from(
+    'sage.repl.preparse', 'preparse_file', default=preparse_file)
+def do_preparse():
+    """
+    Return True if the preparser is set to on, and False otherwise.
+    """
+    # TODO: sage dependency
+    return import_from(
+        'sage.repl.interpreter', '_do_preparse', default=False)
 
 
 ########################################################################
@@ -516,15 +507,18 @@ except ImportError:
 # Automatic Creation of Variable Names
 #
 # See the docstring for automatic_names below for an explanation of how
-# this works. 
+# this works.
 #
 ########################################################################
 
 _automatic_names = False
 # We wrap everything in a try/catch, in case this is being imported
 # without the sage library present, e.g., in FEMhub.
-try:
-    from sage.symbolic.all import Expression, SR
+# TODO: sage dependency
+Expression = import_from('sage.symbolic.all', 'Expression')
+# TODO: sage dependency
+SR = import_from('sage.symbolic.all', 'SR')
+if Expression is not None and SR is not None:
     class AutomaticVariable(Expression):
         """
         An automatically created symbolic variable with an additional
@@ -539,7 +533,7 @@ try:
             substitution.
             """
             if len(args) == 0:
-                return Expression.__call__(self, **kwds)
+                return super(self.__class__, self).__call__(**kwds)
             return args[0].__getattribute__(str(self))(*args[1:], **kwds)
 
     def automatic_name_eval(s, globals, max_names=10000):
@@ -548,7 +542,7 @@ try:
         dictionary, and if any :exc:`NameError`\ s are raised, try to
         fix them by defining the variable that caused the error to be
         raised, then eval again.  Try up to ``max_names`` times.
-        
+
         INPUT:
 
            - ``s`` -- a string
@@ -619,10 +613,10 @@ try:
 
         Here, ``trig_expand``, ``y``, and ``theta`` are all
         automatically created::
-        
+
             sage: trig_expand((2*x + 4*y + sin(2*theta))^2)   # not tested
             4*(sin(theta)*cos(theta) + x + 2*y)^2
-           
+
         IMPLEMENTATION: Here's how this works, internally.  We define
         an :class:`AutomaticVariable` class derived from
         :class:`~sage.symbolic.all.Expression`.  An instance of
@@ -655,11 +649,7 @@ try:
         if state is None:
             return _automatic_names
         _automatic_names = bool(state)
-        
-except ImportError:
-    pass
 
-from sagenb.misc.format import displayhook_hack
 
 def preparse_worksheet_cell(s, globals):
     """
@@ -682,7 +672,7 @@ def preparse_worksheet_cell(s, globals):
 
         - a string
     """
-    if do_preparse(): 
+    if do_preparse():
         s = preparse_file(s, globals=globals)
     s = displayhook_hack(s)
     if _automatic_names:

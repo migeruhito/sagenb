@@ -16,13 +16,14 @@ AUTHORS:
 #
 # Distributed under the terms of the BSD License
 #**************************************************
+from __future__ import absolute_import
+
 import os
 import re
 import shutil
 import sys
 from tempfile import mkdtemp
 
-from .misc import import_from
 from .misc import SAGE_DOC
 
 # Globals
