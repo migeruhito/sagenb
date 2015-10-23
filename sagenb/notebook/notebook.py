@@ -26,18 +26,38 @@ import shutil
 import time
 import bz2
 import cPickle
+import logging
+import traceback
+import random
+import sys
 from cgi import escape
+from docHTMLProcessor import SphinxHTMLProcessor
+from docHTMLProcessor import docutilsHTMLProcessor
+from time import strftime
 
+from flask import current_app
 from flask.ext.babel import lazy_gettext
 
+from sage.misc.all import walltime
 # Sage libraries
 from sagenb.misc.misc import unicode_str, module_exists
 
 # Sage Notebook
+import sagenb.notebook.misc
 from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
 from . import user         # users
-from   template import template, prettify_time_ago
+from template import template, prettify_time_ago
+from user_manager import OpenIDUserManager
+from sagenb.storage import FilesystemDatastore
+from sagenb.notebook.notification import logger, TwistedEmailHandler
+from sagenb.interfaces import WorksheetProcess_ExpectImplementation
+from sagenb.interfaces import WorksheetProcess_ReferenceImplementation
+from sagenb.interfaces import WorksheetProcess_RemoteExpectImplementation
+from sagenb.interfaces import ProcessLimits
+from misc import extract_title
+from docutils.core import publish_parts
+from worksheet import extract_name
 
 if module_exists('sage'):
     # sage is installed
@@ -75,7 +95,8 @@ SYSTEM_NAMES = [v[0] for v in SYSTEMS]
 
 MATHJAX = True
 
-JEDITABLE_TINYMCE  = True
+JEDITABLE_TINYMCE = True
+
 
 class WorksheetDict(dict):
     def __init__(self, notebook, *args, **kwds):
@@ -89,29 +110,29 @@ class WorksheetDict(dict):
 
         try:
             if '/' not in item:
-                raise KeyError, item
+                raise KeyError(item)
         except TypeError:
-            raise KeyError, item
+            raise KeyError(item)
 
         username, id = item.split('/')
         try:
-            id=int(id)
+            id = int(id)
         except ValueError:
-            raise KeyError, item
+            raise KeyError(item)
         try:
             worksheet = self.storage.load_worksheet(username, id)
         except ValueError:
-            raise KeyError, item
+            raise KeyError(item)
 
         dict.__setitem__(self, item, worksheet)
         return worksheet
-        
-        
+
+
 class Notebook(object):
     HISTORY_MAX_OUTPUT = 92*5
     HISTORY_NCOLS = 90
-    
-    def __init__(self, dir, user_manager = None):
+
+    def __init__(self, dir, user_manager=None):
 
         if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
             dir = dir[:-1]
@@ -123,7 +144,6 @@ class Notebook(object):
 
         # For now we only support the FilesystemDatastore storage
         # backend.
-        from sagenb.storage import FilesystemDatastore
         S = FilesystemDatastore(dir)
         self.__storage = S
 
@@ -131,15 +151,14 @@ class Notebook(object):
         try:
             self.__conf = S.load_server_conf()
         except IOError:
-            # Worksheet has never been saved before, so the server conf doesn't exist.
+            # Worksheet has never been saved before, so the server conf doesn't
+            # exist.
             self.__worksheets = WorksheetDict(self)
 
-        from user_manager import SimpleUserManager, OpenIDUserManager
-        self._user_manager = OpenIDUserManager(conf=self.conf()) if user_manager is None else user_manager
+        self._user_manager = (OpenIDUserManager(conf=self.conf())
+                              if user_manager is None else user_manager)
 
         # Set up email notification logger
-        import logging
-        from sagenb.notebook.notification import logger, TwistedEmailHandler
         logger.addHandler(TwistedEmailHandler(self.conf(), logging.ERROR))
         # also log to stderr
         logger.addHandler(logging.StreamHandler())
@@ -155,15 +174,18 @@ class Notebook(object):
         self.__worksheets = W
 
         # Store / Refresh public worksheets
-        for id_number in os.listdir(self.__storage._abspath(self.__storage._user_path("pub"))):
+        for id_number in os.listdir(self.__storage._abspath(
+                self.__storage._user_path("pub"))):
             if id_number.isdigit():
                 a = "pub/"+str(id_number)
                 if a not in self.__worksheets:
                     try:
-                        self.__worksheets[a] = self.__storage.load_worksheet("pub",int(id_number))
+                        self.__worksheets[a] = self.__storage.load_worksheet(
+                            "pub", int(id_number))
                     except Exception:
                         import traceback
-                        print "Warning: problem loading %s/%s: %s"%("pub", int(id_number), traceback.format_exc())
+                        print "Warning: problem loading %s/%s: %s" % (
+                            "pub", int(id_number), traceback.format_exc())
 
         # Set the openid-user dict
         try:
@@ -200,7 +222,8 @@ class Notebook(object):
         systems = []
         for system in SYSTEMS:
             if system[1]:
-                systems.append(system[0] + ' (' + lazy_gettext('optional') + ')')
+                systems.append(
+                    system[0] + ' (' + lazy_gettext('optional') + ')')
             else:
                 systems.append(system[0])
         return systems
@@ -215,11 +238,11 @@ class Notebook(object):
         EXAMPLES::
 
             sage: n = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: n.user_manager() 
+            sage: n.user_manager()
             <sagenb.notebook.user_manager.OpenIDUserManager object at 0x...>
         """
         return self._user_manager
-        
+
     ##########################################################
     # Users
     ##########################################################
@@ -354,11 +377,12 @@ class Notebook(object):
                     v.append(self.__worksheets[a])
                 else:
                     try:
-                        self.__worksheets[a] = self.__storage.load_worksheet("pub", int(id_number))
+                        self.__worksheets[a] = self.__storage.load_worksheet(
+                            "pub", int(id_number))
                         v.append(self.__worksheets[a])
                     except Exception:
-                        import traceback
-                        print "Warning: problem loading %s/%s: %s"%("pub", id_number, traceback.format_exc())
+                        print "Warning: problem loading %s/%s: %s" % (
+                            "pub", id_number, traceback.format_exc())
         return v
 
     def users_worksheets(self, username):
@@ -373,7 +397,9 @@ class Notebook(object):
         # if a worksheet has already been loaded in self.__worksheets, return
         # that instead since worksheets that are already running should be
         # noted as such
-        return [self.__worksheets[w.filename()] if w.filename() in self.__worksheets else w for w in worksheets]
+        return ([self.__worksheets[w.filename()]
+                if w.filename() in self.__worksheets
+                else w for w in worksheets])
 
     def users_worksheets_view(self, username):
         r"""
@@ -381,14 +407,19 @@ class Notebook(object):
         """
         # Should return worksheets from self.__worksheets if possible
         worksheets = self.users_worksheets(username)
-        user=self.user_manager().user(username)
-        viewable_worksheets=[self.__storage.load_worksheet(owner, id) for owner,id in user.viewable_worksheets()]
+        user = self.user_manager().user(username)
+        viewable_worksheets = [self.__storage.load_worksheet(owner, id)
+                               for owner, id in user.viewable_worksheets()]
         # we double-check that we can actually view these worksheets
         # just in case someone forgets to update the map
-        worksheets.extend([w for w in viewable_worksheets if w.is_viewer(username)])
-        # if a worksheet has already been loaded in self.__worksheets, return that instead
-        # since worksheets that are already running should be noted as such
-        return [self.__worksheets[w.filename()] if w.filename() in self.__worksheets else w for w in worksheets]
+        worksheets.extend([w for w in viewable_worksheets
+                           if w.is_viewer(username)])
+        # if a worksheet has already been loaded in self.__worksheets, return
+        # that instead since worksheets that are already running should be
+        # noted as such
+        return [self.__worksheets[w.filename()]
+                if w.filename() in self.__worksheets else w
+                for w in worksheets]
 
     def publish_worksheet(self, worksheet, username):
         r"""
@@ -455,7 +486,7 @@ class Notebook(object):
             return W
 
     def create_new_worksheet(self, worksheet_name, username):
-        if username!='pub' and self.user_manager().user_is_guest(username):
+        if username != 'pub' and self.user_manager().user_is_guest(username):
             raise ValueError("guests cannot create new worksheets")
 
         W = self.worksheet(username)
@@ -486,8 +517,9 @@ class Notebook(object):
         try:
             W = self.__worksheets[filename]
         except KeyError:
-            raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
-        
+            raise KeyError("Attempt to delete missing worksheet '%s'" %
+                           filename)
+
         W.quit()
         shutil.rmtree(W.directory(), ignore_errors=False)
         self.deleted_worksheets()[filename] = W
@@ -555,7 +587,6 @@ class Notebook(object):
         W.sort()
         return W
 
-
     ##########################################################
     # Information about the pool of worksheet compute servers
     ##########################################################
@@ -593,15 +624,11 @@ class Notebook(object):
         Return a new worksheet process object with parameters determined by
         configuration of this notebook server.
         """
-        from sagenb.interfaces import (WorksheetProcess_ExpectImplementation,
-                                       WorksheetProcess_ReferenceImplementation,
-                                       WorksheetProcess_RemoteExpectImplementation)
 
         if USE_REFERENCE_WORKSHEET_PROCESSES:
             return WorksheetProcess_ReferenceImplementation()
 
         ulimit = self.get_ulimit()
-        from sagenb.interfaces import ProcessLimits
         # We have to parse the ulimit format to our ProcessLimits.
         # The typical format is.
         # '-u 400 -v 1000000 -t 3600'
@@ -616,40 +643,40 @@ class Notebook(object):
         tbl = {'v': None, 'u': None, 't': None}
         for x in ulimit.split('-'):
             for k in tbl.keys():
-                if x.startswith(k): 
+                if x.startswith(k):
                     tbl[k] = int(x.split()[1].strip())
         if tbl['v'] is not None:
             tbl['v'] = tbl['v'] / 1000.0
 
-
-        process_limits = ProcessLimits(max_vmem=tbl['v'], max_walltime=tbl['t'],
+        process_limits = ProcessLimits(max_vmem=tbl['v'],
+                                       max_walltime=tbl['t'],
                                        max_processes=tbl['u'])
 
         server_pool = self.server_pool()
         if not server_pool or len(server_pool) == 0:
-            return WorksheetProcess_ExpectImplementation(process_limits=process_limits)
+            return WorksheetProcess_ExpectImplementation(
+                process_limits=process_limits)
         else:
-            import random
             user_at_host = random.choice(server_pool)
-            python_command = os.path.join(os.environ['SAGE_ROOT'], 'sage -python')
-            return WorksheetProcess_RemoteExpectImplementation(user_at_host=user_at_host,
-                             process_limits=process_limits,
-                             remote_python=python_command)
-
+            python_command = os.path.join(
+                os.environ['SAGE_ROOT'], 'sage -python')
+            return WorksheetProcess_RemoteExpectImplementation(
+                user_at_host=user_at_host,
+                process_limits=process_limits,
+                remote_python=python_command)
 
     def _python_command(self):
         """
         """
-        try: 
+        try:
             return self.__python_command
-        except AttributeError: 
+        except AttributeError:
             pass
-
-
 
     ##########################################################
     # Configuration settings.
     ##########################################################
+
     def system(self, username=None):
         """
         The default math software system for new worksheets for a
@@ -699,7 +726,8 @@ class Notebook(object):
 
     def create_new_worksheet_from_history(self, name, username, maxlen=None):
         W = self.create_new_worksheet(name, username)
-        W.edit_save('Log Worksheet\n' + self.user_history_text(username, maxlen=None))
+        W.edit_save(
+            'Log Worksheet\n' + self.user_history_text(username, maxlen=None))
         return W
 
     def user_history_text(self, username, maxlen=None):
@@ -715,11 +743,12 @@ class Notebook(object):
         while len(history) > maxlen:
             del history[0]
 
-
     ##########################################################
     # Importing and exporting worksheets to files
     ##########################################################
-    def export_worksheet(self, worksheet_filename, output_filename, title=None):
+
+    def export_worksheet(self, worksheet_filename, output_filename,
+                         title=None):
         """
         Export a worksheet, creating a sws file on the file system.
 
@@ -769,7 +798,10 @@ class Notebook(object):
         u = self.user(username).conf()
         id_number = u['next_worksheet_id_number']
         if id_number == -1:  # need to initialize
-            id_number = max([w.id_number() for w in self.worksheet_list_for_user(username)] + [-1]) + 1
+            id_number = max(
+                [w.id_number()
+                    for w in self.worksheet_list_for_user(
+                        username)] + [-1]) + 1
         u['next_worksheet_id_number'] = id_number + 1
         return id_number
 
@@ -826,10 +858,12 @@ class Notebook(object):
         # Figure out the file extension
         ext = os.path.splitext(filename)[1]
         if ext.lower() == '.txt':
-            # A plain text file with {{{'s that defines a worksheet (no graphics).
+            # A plain text file with {{{'s that defines a worksheet
+            # (no graphics).
             W = self._import_worksheet_txt(filename, owner)
         elif ext.lower() == '.sws':
-            # An sws file (really a tar.bz2) which defines a worksheet with graphics, etc.
+            # An sws file (really a tar.bz2) which defines a worksheet with
+            # graphics, etc.
             W = self._import_worksheet_sws(filename, owner)
         elif ext.lower() == '.html':
             # An html file, which should contain the static version of
@@ -848,8 +882,8 @@ class Notebook(object):
                 W = self._import_worksheet_html(filename, owner)
             else:
                 # Unrecognized html file
-                # We do the default behavior, i.e. we import as if it was generated
-                # by Sphinx web page
+                # We do the default behavior, i.e. we import as if it was
+                # generated by Sphinx web page
                 W = self._import_worksheet_html(filename, owner)
         elif ext.lower() == '.rst':
             # A ReStructuredText file
@@ -1022,12 +1056,10 @@ class Notebook(object):
         """
         # Inspired from sagenb.notebook.twist.WorksheetFile.render
         doc_page_html = open(filename).read()
-        from docHTMLProcessor import SphinxHTMLProcessor
         # FIXME: does SphinxHTMLProcessor raise an appropriate message
         # if the html file does not contain a Sphinx HTML page?
         doc_page = SphinxHTMLProcessor().process_doc_html(doc_page_html)
 
-        from misc import extract_title
         title = extract_title(doc_page_html).replace('&mdash;','--')
 
         worksheet = self.create_new_worksheet(title, owner)
@@ -1099,19 +1131,17 @@ class Notebook(object):
         # docutils removes the backslashes if they are not escaped This is
         # not practical because backslashes are almost never escaped in
         # Sage docstrings written in ReST.  So if the user wants the
-        # backslashes to be escaped automatically, he adds the comment 
+        # backslashes to be escaped automatically, he adds the comment
         # ".. escape-backslashes" in the input file
         if re.search(r'^\.\.[ \t]+escape-backslashes', rst, re.MULTILINE) is not None:
             rst = rst.replace('\\','\\\\')
 
         # Do the translation rst -> html (using docutils)
-        from docutils.core import publish_parts
         D = publish_parts(rst, writer_name='html')
         title = D['title']
         html = D['whole']
 
         # Do the translation html -> txt
-        from docHTMLProcessor import docutilsHTMLProcessor
         translator = docutilsHTMLProcessor()
         worksheet_txt = translator.process_doc_html(html)
 
@@ -1181,12 +1211,10 @@ class Notebook(object):
         html = open(filename).read()
 
         # Do the translation html -> txt
-        from docHTMLProcessor import docutilsHTMLProcessor
         translator = docutilsHTMLProcessor()
         worksheet_txt = translator.process_doc_html(html)
 
         # Extract title
-        from worksheet import extract_name
         title, _ = extract_name(worksheet_txt)
         if title.startswith('<h1 class="title">'):
             title = title[18:]
@@ -1226,9 +1254,9 @@ class Notebook(object):
             return self.__conf
         except AttributeError:
             C = server_conf.ServerConfiguration()
-            # if we are newly creating a notebook, then we want to 
+            # if we are newly creating a notebook, then we want to
             # have a default model version of 1, currently
-            # we can't just set the default value in server_conf.py 
+            # we can't just set the default value in server_conf.py
             # to 1 since it would then be 1 for notebooks without the
             # model_version property
             # TODO: distinguish between a new server config default values
@@ -1325,7 +1353,7 @@ class Notebook(object):
             u'...Revision...Last Edited...ago...'
         """
         data = worksheet.snapshot_data()  # pairs ('how long ago', key)
-        
+
         return template(os.path.join("html", "notebook", "worksheet_revision_list.html"),
                         data = data, worksheet = worksheet,
                         notebook = self,
@@ -1369,7 +1397,7 @@ class Notebook(object):
                     next_rev = data[i + 1][1]
                 break
 
-        return template(os.path.join("html", "notebook", 
+        return template(os.path.join("html", "notebook",
                                      "specific_revision.html"),
                         worksheet = W, # the revision, not the original!
                         username = username, rev = rev, prev_rev = prev_rev,
@@ -1452,7 +1480,7 @@ class Notebook(object):
         # TODO: check if the worksheets are active
         #return [ws for ws in self.get_worksheets_with_viewer(username) if ws.is_active(username)]
         return self.users_worksheets_view(username)
-    
+
     def get_all_worksheets(self):
         """
         We should only call this if the user is admin!
@@ -1647,7 +1675,6 @@ class Notebook(object):
 
         - a string - the post-publication page rendered as HTML
         """
-        from time import strftime
         time = strftime("%B %d, %Y %I:%M %p", dtime)
 
         return template(os.path.join("html", "notebook", "afterpublish_window.html"),
@@ -1714,7 +1741,6 @@ class Notebook(object):
             except KeyError:
                 W = None
 
-        from flask import current_app
         if W is None:
             return current_app.message(gettext("The worksheet does not exist"))
 
@@ -1769,14 +1795,12 @@ class Notebook(object):
                     #   is thrown (we should be using shutil.move instead, probably)
                     # users with these problems won't have their sharing cached, but they will probably have
                     # problems logging in anyway, so they probably won't notice not having shared worksheets
-                    import sys
-                    import traceback
                     print >> sys.stderr, 'Error on username %s'%username.encode('utf8')
                     print >> sys.stderr, traceback.format_exc()
                     pass
             print 'Done upgrading to model version 1'
             self.conf()['model_version'] = 1
-        
+
 ####################################################################
 
 def load_notebook(dir, interface=None, port=None, secure=None, user_manager=None):
@@ -1818,7 +1842,6 @@ def load_notebook(dir, interface=None, port=None, secure=None, user_manager=None
     # global notebook object used for computations.  This is
     # mainly to avoid circular references, etc.  This also means
     # only one notebook can actually be used at any point.
-    import sagenb.notebook.misc
     sagenb.notebook.misc.notebook = nb
 
     return nb
@@ -1907,7 +1930,6 @@ def migrate_old_notebook_v1(dir):
                     tags[user] = [val]
         except AttributeError:
             pass
-        import time
         last_change = (old_ws.last_to_edit(), old_ws.last_edited())
         try:
             published_id_number = int(os.path.split(old_ws._Worksheet__published_version)[1])
@@ -1918,9 +1940,9 @@ def migrate_old_notebook_v1(dir):
         ws_pub = (ws_pub[0], int(ws_pub[1]))
 
         obj = {'name': old_ws.name(), 'system': old_ws.system(),
-               'viewers': old_ws.viewers(), 
+               'viewers': old_ws.viewers(),
                'collaborators' :old_ws.collaborators(),
-               'pretty_print': old_ws.pretty_print(), 
+               'pretty_print': old_ws.pretty_print(),
                'ratings': old_ws.ratings(),
                'auto_publish': old_ws.is_auto_publish(), 'tags': tags,
                'last_change': last_change,
@@ -1945,7 +1967,7 @@ def migrate_old_notebook_v1(dir):
         # copy over the DATA directory and cells directories
         try:
             dest = new_ws.data_directory()
-            if os.path.exists(dest): 
+            if os.path.exists(dest):
                 shutil.rmtree(dest)
             shutil.copytree(old_ws.data_directory(), dest)
         except Exception, msg:
@@ -1954,7 +1976,7 @@ def migrate_old_notebook_v1(dir):
         try:
             if os.path.exists(old_ws.cells_directory()):
                 dest = new_ws.cells_directory()
-                if os.path.exists(dest): 
+                if os.path.exists(dest):
                     shutil.rmtree(dest)
                 shutil.copytree(old_ws.cells_directory(), dest)
         except Exception, msg:
@@ -1966,7 +1988,6 @@ def migrate_old_notebook_v1(dir):
     worksheets = WorksheetDict(new_nb)
     num_worksheets = len(old_nb._Notebook__worksheets)
     print "Migrating (at most) %s worksheets..." % num_worksheets
-    from sage.misc.all import walltime
     tm = walltime()
     i = 0
     for ws_name, old_ws in old_nb._Notebook__worksheets.iteritems():
