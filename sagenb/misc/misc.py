@@ -554,3 +554,16 @@ def get_module(module, pkg=None):
         return import_module(module, pkg)
     except ImportError:
         return None
+
+
+def import_from(mod, obj):
+    """
+    Returns the object from module mod if the given module exists and has such
+    object, else None.
+    The object is not assigned to the caller's namespace
+    """
+    try:
+        return get_module(mod).obj
+    except AttributeError:
+        return None
+

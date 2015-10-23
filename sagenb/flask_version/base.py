@@ -30,6 +30,7 @@ from flask.helpers import send_file
 from flask.helpers import send_from_directory
 
 from sagenb.misc.misc import DATA
+from sagenb.misc.misc import import_from
 from sagenb.misc.misc import mathjax_macros
 from sagenb.misc.misc import N_
 from sagenb.misc.misc import nN_
@@ -62,12 +63,13 @@ from .worksheet import url_for_worksheet
 from .worksheet import ws as worksheet
 from .worksheet_listing import worksheet_listing
 
-try:
-    from sage.env import SAGE_SRC
-except ImportError:
-    SAGE_SRC = os.environ.get('SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage'))
+# Globals
+SAGE_SRC = import_from('sage.env', 'SAGE_SRC')
+if SAGE_SRC is None:
+    SAGE_SRC = os.environ.get(
+        'SAGE_SRC',
+        os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage'))
 SRC = os.path.join(SAGE_SRC, 'sage')
-
 oid = OpenID()
 
 class SageNBFlask(Flask):
