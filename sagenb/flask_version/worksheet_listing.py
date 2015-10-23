@@ -1,12 +1,41 @@
 """
 """
-import os
-import urllib, urlparse
-from flask import Module, url_for, render_template, request, session, redirect, g, current_app
-from decorators import login_required, guest_or_login_required, with_lock
-from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext
-_ = gettext
+from __future__ import absolute_import
 
+import json
+import os
+import re
+import shutil
+import urllib
+import urlparse
+import zipfile
+from HTMLParser import HTMLParser
+
+from flask import current_app
+from flask import g
+from flask import Module
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask import url_for
+from flask.ext.babel import gettext
+from flask.helpers import send_from_directory
+from werkzeug.utils import secure_filename
+
+from sagenb.misc.misc import SAGE_VERSION
+from sagenb.misc.misc import unicode_str
+from sagenb.misc.misc import tmp_filename
+from sagenb.misc.misc import walltime
+
+
+from .decorators import login_required
+from .decorators import guest_or_login_required
+from .worksheet import pub_worksheet
+from .worksheet import url_for_worksheet
+from .worksheet import unconditional_download
+
+# Globals
+_ = gettext
 worksheet_listing = Module('sagenb.flask_version.worksheet_listing')
 
 def render_worksheet_list(args, pub, username):
@@ -28,10 +57,6 @@ def render_worksheet_list(args, pub, username):
 
     a string
     """
-
-    from sagenb.notebook.notebook import sort_worksheet_list
-    from sagenb.misc.misc import unicode_str, SAGE_VERSION
-
     typ = args['typ'] if 'typ' in args else 'active'
     search = unicode_str(args['search']) if 'search' in args else None
     sort = args['sort'] if 'sort' in args else 'last_edited'
@@ -81,7 +106,6 @@ def get_worksheets_from_request():
     if 'filename' in request.form:
         filenames = [request.form['filename']]
     elif 'filenames' in request.form:
-        import json
         filenames = json.loads(request.form['filenames'])
     else:
         filenames = []
@@ -146,7 +170,6 @@ def pub():
 @worksheet_listing.route('/home/pub/<id>/')
 @guest_or_login_required
 def public_worksheet(id):
-    from worksheet import pub_worksheet
     filename = 'pub/%s'%id
     if g.notebook.conf()['pub_interact']:
         try:
@@ -166,7 +189,6 @@ def public_worksheet(id):
 
 @worksheet_listing.route('/home/pub/<id>/download/<path:title>')
 def public_worksheet_download(id, title):
-    from worksheet import unconditional_download
     worksheet_filename =  "pub" + "/" + id
     try:
         worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
@@ -181,7 +203,6 @@ def public_worksheet_cells(id, filename):
         worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
     except KeyError:
         return current_app.message(_("You do not have permission to access this worksheet"))
-    from flask.helpers import send_from_directory
     return send_from_directory(worksheet.cells_directory(), filename)
 
 #######################
@@ -190,8 +211,6 @@ def public_worksheet_cells(id, filename):
 @worksheet_listing.route('/download_worksheets.zip')
 @login_required
 def download_worksheets():
-    from sagenb.misc.misc import walltime, tmp_filename
-
     t = walltime()
     print "Starting zipping a group of worksheets in a separate thread..."
     zip_filename = tmp_filename() + ".zip"
@@ -199,14 +218,12 @@ def download_worksheets():
     # child
     worksheet_names = set()
     if 'filenames' in request.values:
-        import json
         filenames = json.loads(request.values['filenames'])
         worksheets = [g.notebook.get_worksheet_with_filename(x.strip())
                       for x in filenames if len(x.strip()) > 0]
     else:
         worksheets = g.notebook.worksheet_list_for_user(g.username)
 
-    import zipfile
     zip = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_STORED)
     for worksheet in worksheets:
         sws_filename = tmp_filename() + '.sws'
@@ -235,7 +252,6 @@ def download_worksheets():
 @worksheet_listing.route('/upload')
 @login_required
 def upload():
-    from sagenb.misc.misc import SAGE_VERSION
     if g.notebook.readonly_user(g.username):
         return current_app.message(_("Account is in read-only mode"), cont=url_for('home', username=g.username))
     return render_template(os.path.join('html', 'upload.html'),
@@ -297,7 +313,6 @@ def parse_link_rel(url, fn):
     appropriate link tags found, the returned list is empty. If the HTML
     parser raises an HTMLParseError, we simply return an empty list.
     """
-    from HTMLParser import HTMLParser
     class GetLinkRelWorksheets(HTMLParser):
         def __init__(self):
             HTMLParser.__init__(self)
@@ -332,9 +347,9 @@ def parse_link_rel(url, fn):
 @worksheet_listing.route('/upload_worksheet', methods=['GET', 'POST'])
 @login_required
 def upload_worksheet():
-    from sage.misc.all import tmp_filename, tmp_dir
-    from werkzeug.utils import secure_filename
-    import zipfile
+    # TODO: sage dependency
+    from sage.misc.all import tmp_filename
+    from sagenb.misc.all import tmp_dir
 
     if g.notebook.readonly_user(g.username):
         return current_app.message(_("Account is in read-only mode"), cont=url_for('home', username=g.username))
@@ -354,13 +369,11 @@ def upload_worksheet():
             return current_app.message(_("Unknown worksheet extension: %(ext)s. %(links)s", ext=extension, links=backlinks))
         filename = tmp_filename()+extension
         try:
-            import re
             matches = re.match("file://(?:localhost)?(/.+)", url)
             if matches:
                 if g.notebook.interface != 'localhost':
                     return current_app.message(_("Unable to load file URL's when not running on localhost.\n%(backlinks)s",backlinks=backlinks))
 
-                import shutil
                 shutil.copy(matches.group(1),filename)
             else:
                 my_urlretrieve(url, filename, backlinks=backlinks)
@@ -428,7 +441,6 @@ def upload_worksheet():
             os.unlink(filename)
             # if a temp directory was created, we delete it now.
             if dir:
-                import shutil
                 shutil.rmtree(dir)
 
     except ValueError, msg:
@@ -438,5 +450,4 @@ def upload_worksheet():
     if new_name:
         W.set_name(new_name)
 
-    from worksheet import url_for_worksheet
     return redirect(url_for_worksheet(W))
