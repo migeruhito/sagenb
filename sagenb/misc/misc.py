@@ -14,15 +14,56 @@ Check that github issue #195 is fixed::
 
 #############################################################################
 #       Copyright (C) 2006, 2007 William Stein <wstein@gmail.com>
+#                 (C) 2015 J Miguel Farto <jmfarto@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-from pkg_resources import resource_filename
-from babel import Locale
-from babel.core import UnknownLocaleError
+import cPickle
+import os
+import socket
 from importlib import import_module
+from pkg_resources import resource_filename
+
+def get_module(module, pkg=None, default=None):
+    """
+    Returns the module if the given module exists, else 'default' parameter.
+    The module is not assigned to the caller's namespace
+    """
+    try:
+        return import_module(module, pkg)
+    except ImportError:
+        return default
+
+
+def import_from(mod, obj, default=None):
+    """
+    Returns the object from module mod if the given module exists and has such
+    object, else 'default' parameter.
+    The object is not assigned to the caller's namespace
+    """
+    try:
+        return getattr(get_module(mod), obj)
+    except AttributeError:
+        return default
+
+# Globals
+min_password_length = 6
+SAGENB_ROOT = os.path.split(resource_filename(__name__, ''))[0]
+DATA = os.path.join(SAGENB_ROOT, 'data')
+try:
+    DOT_SAGENB = os.environ['DOT_SAGENB']
+except KeyError:
+    try:
+        DOT_SAGENB = os.environ['DOT_SAGE']
+    except KeyError:
+        DOT_SAGENB = os.path.join(os.environ['HOME'], '.sagenb')
+# TODO: sage dependency
+SAGE_URL = import_from('sage.env', 'SAGE_URL', default='http://sagemath.org')
+# TODO: sage dependency
+SAGE_DOC = import_from('sage.env', 'SAGE_DOC', default='stub')
+
 
 def stub(f):
     def g(*args, **kwds):
@@ -30,10 +71,6 @@ def stub(f):
         return f(*args, **kwds)
     return g
 
-
-min_password_length = 6
-
-import os, cPickle, socket, sys
 
 def print_open_msg(address, port, secure=False, path=""):
     """
@@ -90,7 +127,7 @@ def print_open_msg(address, port, secure=False, path=""):
         s += ' '
     n = max(t+4, 50)
     k = n - t  - 1
-    j = k/2 
+    j = k/2
     msg = '┌' + '─' * (n - 2) + '┐\n'
     msg += '│' + ' ' * (n - 2) + '│\n'
     msg += '│' + ' ' * j + s + ' ' * j + '│\n'
@@ -126,7 +163,7 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
         sage: find_next_available_port('127.0.0.1', 9000, verbose=False)   # random output -- depends on network
         9002
     """
-    alarm_count = 0  
+    alarm_count = 0
     for port in range(start, start+max_tries+1):
         try:
             alarm(5)
@@ -137,11 +174,11 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
                 if verbose: print "Using port = %s"%port
                 return port
         except KeyboardInterrupt:
-            if verbose: print "alarm"                   
+            if verbose: print "alarm"
             alarm_count += 1
             if alarm_count >= 10:
                  break
-            pass 
+            pass
         finally:
             cancel_alarm()
         if verbose:
@@ -158,10 +195,11 @@ def open_page(address, port, secure, path=""):
 
     os.system('%s %s://%s:%s%s 1>&2 > /dev/null &'%(browser(), rsrc, address, port, path))
 
+
 def pad_zeros(s, size=3):
     """
     EXAMPLES::
-    
+
         sage: pad_zeros(100)
         '100'
         sage: pad_zeros(10)
@@ -172,33 +210,37 @@ def pad_zeros(s, size=3):
         '00389'
         sage: pad_zeros(389, 10)
         '0000000389'
-    """    
+    """
     return "0"*(size-len(str(s))) + str(s)
 
-SAGENB_ROOT = os.path.split(resource_filename(__name__, ''))[0]
 
-DATA = os.path.join(SAGENB_ROOT, 'data')
 
-if os.environ.has_key('DOT_SAGENB'):
-    DOT_SAGENB = os.environ['DOT_SAGENB']
-elif os.environ.has_key('DOT_SAGE'):
-    DOT_SAGENB = os.environ['DOT_SAGE']
-else:
-    DOT_SAGENB = os.path.join(os.environ['HOME'], '.sagenb')
 
-try:
-    from sage.env import SAGE_URL
-except ImportError:
-    SAGE_URL = 'http://sagemath.org'
+#try:
+#    mathjax_macros = import_from(
+#        'sage.misc.latex_macros', 'sage_mathjax_macros', default=[
+#            "ZZ : '{\\\\Bold{Z}}'",
+#            "RR : '{\\\\Bold{R}}'",
+#            "CC : '{\\\\Bold{C}}'",
+#            "QQ : '{\\\\Bold{Q}}'",
+#            "QQbar : '{\\\\overline{\\\\QQ}}'",
+#            "GF : ['{\\\\Bold{F}_{#1}}', 1]",
+#            "Zp : ['{\\\\ZZ_{#1}}', 1]",
+#            "Qp : ['{\\\\QQ_{#1}}', 1]",
+#            "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
+#            "CIF : '{\\\\Bold{C}}'",
+#            "CLF : '{\\\\Bold{C}}'",
+#            "RDF : '{\\\\Bold{R}}'",
+#            "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
+#            "RLF : '{\\\\Bold{R}}'",
+#            "CFF : '{\\\\Bold{CFF}}'",
+#            "Bold : ['{\\\\mathbf{#1}}', 1]"])
+#except Exception:
+#    sage_mathjax_macros_easy = []
+#    raise
 
-try:
-    from sage.env import SAGE_DOC
-except ImportError:
-    SAGE_DOC = "stub"
-    
 # TODO: Get macros from server and user settings.
 try:
-    import sage.all
     from sage.misc.latex_macros import sage_mathjax_macros
     mathjax_macros = sage_mathjax_macros()
 except ImportError:
@@ -229,7 +271,7 @@ except ImportError:
     @stub
     def session_init(*args, **kwds):
         pass
-    
+
 try:
     from sage.misc.sage_eval import sage_eval
 except ImportError:
@@ -287,7 +329,7 @@ def cputime(t=0):
         t = float(t)
     except TypeError:
         t = 0.0
-    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2] 
+    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
     return u+s - t
 
 def walltime(t=0):
@@ -402,7 +444,7 @@ except ImportError:
     @stub
     def cython(*args, **kwds):
         # TODO
-        raise NotImplementedError, "Curently %cython mode requires Sage." 
+        raise NotImplementedError, "Curently %cython mode requires Sage."
 
 #############################################################
 # File permissions
@@ -415,7 +457,7 @@ def set_restrictive_permissions(filename, allow_execute=False):
     if allow_execute:
         x = x | stat.S_IXGRP |  stat.S_IXOTH
     os.chmod(filename, x)
-    
+
 def set_permissive_permissions(filename):
     os.chmod(filename, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH | \
              stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | \
@@ -458,7 +500,7 @@ def unicode_str(obj, encoding='utf-8'):
     elif isinstance(obj, unicode):
         return obj
     return unicode(obj)
-        
+
 
 
 def ignore_nonexistent_files(curdir, dirlist):
@@ -545,25 +587,4 @@ def cmd_exists(cmd):
     return os.system('which %s 2>/dev/null >/dev/null' % cmd) == 0
 
 
-def get_module(module, pkg=None):
-    """
-    Returns the module if the given module exists, else None.
-    The module is not assigned to the caller's namespace
-    """
-    try:
-        return import_module(module, pkg)
-    except ImportError:
-        return None
-
-
-def import_from(mod, obj):
-    """
-    Returns the object from module mod if the given module exists and has such
-    object, else None.
-    The object is not assigned to the caller's namespace
-    """
-    try:
-        return get_module(mod).obj
-    except AttributeError:
-        return None
 

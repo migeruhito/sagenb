@@ -65,11 +65,9 @@ from .worksheet_listing import worksheet_listing
 
 # Globals
 # TODO: sage dependency
-SAGE_SRC = import_from('sage.env', 'SAGE_SRC')
-if SAGE_SRC is None:
-    SAGE_SRC = os.environ.get(
+SAGE_SRC = import_from('sage.env', 'SAGE_SRC', default=os.environ.get(
         'SAGE_SRC',
-        os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage'))
+        os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')))
 SRC = os.path.join(SAGE_SRC, 'sage')
 oid = OpenID()
 base = Module('sagenb.flask_version.base')
