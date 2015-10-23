@@ -87,7 +87,7 @@ SAGE_VERSION = import_from('sage.version', 'version', default='')
 # TODO: sage dependency
 SAGE_URL = import_from('sage.env', 'SAGE_URL', default='http://sagemath.org')
 # TODO: sage dependency
-SAGE_DOC = import_from('sage.env', 'SAGE_DOC', default='stub')
+SAGE_DOC = import_from('sage.env', 'SAGE_DOC', default='')
 # TODO: sage dependency
 # TODO: Get macros from server and user settings.
 try:

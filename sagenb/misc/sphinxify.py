@@ -19,15 +19,15 @@ AUTHORS:
 import os
 import re
 import shutil
+import sys
 from tempfile import mkdtemp
 
+from .misc import import_from
+from .misc import SAGE_DOC
+
+# Globals
 # We import Sphinx on demand, to reduce Sage startup time.
 Sphinx = None
-
-try:
-    from sage.env import SAGE_DOC
-except ImportError:
-    SAGE_DOC = ''  # used to be None
 
 
 def is_sphinx_markup(docstring):
@@ -105,6 +105,7 @@ def sphinxify(docstring, format='html'):
     # buildername, confoverrides, status, warning, freshenv).
     temp_confdir = False
     confdir = os.path.join(SAGE_DOC, 'en', 'introspect')
+    # TODO: sage dependency
     if not SAGE_DOC and not os.path.exists(confdir):
         # If we don't have Sage, we need to do our own configuration
         # This may be inefficient or broken.  TODO: Find a faster way to do this.
@@ -115,7 +116,6 @@ def sphinxify(docstring, format='html'):
     doctreedir = os.path.join(srcdir, 'doctrees')
     confoverrides = {'html_context': {}, 'master_doc': 'docstring'}
 
-    import sys
     old_sys_path = list(sys.path)  # Sphinx modifies sys.path
     sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
                         confoverrides, None, None, True)
@@ -613,7 +613,6 @@ def setup(app):
     open(os.path.join(directory, 'static', 'empty'), 'w').write('')
 
 if __name__ == '__main__':
-    import sys
     if len(sys.argv) == 2:
         print sphinxify(sys.argv[1])
     else:
