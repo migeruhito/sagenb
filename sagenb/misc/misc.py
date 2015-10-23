@@ -545,12 +545,12 @@ def cmd_exists(cmd):
     return os.system('which %s 2>/dev/null >/dev/null' % cmd) == 0
 
 
-def get_module(module):
+def get_module(module, pkg=None):
     """
     Returns the module if the given module exists, else None.
     The module is not assigned to the caller's namespace
     """
     try:
-        return import_module(module)
+        return import_module(module, pkg)
     except ImportError:
         return None
