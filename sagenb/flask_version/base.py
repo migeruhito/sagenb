@@ -71,6 +71,7 @@ if SAGE_SRC is None:
         os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage'))
 SRC = os.path.join(SAGE_SRC, 'sage')
 oid = OpenID()
+base = Module('sagenb.flask_version.base')
 
 class SageNBFlask(Flask):
     static_path = ''
@@ -126,7 +127,6 @@ class SageNBFlask(Flask):
         return render_template(os.path.join('html', 'error_message.html'),
                                **template_dict)
 
-base = Module('sagenb.flask_version.base')
 
 #############
 # Main Page #
