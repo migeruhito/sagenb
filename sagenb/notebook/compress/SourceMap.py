@@ -42,8 +42,11 @@
 # @Version		0.1
 # @Application		Last version of JavaScriptCompressor class use this one to map source code.
 # @License              GNU General Public License (GPL)
+from __future__ import absolute_import
 
 import re
+
+
 class SourceMap:
 	
 	# public method

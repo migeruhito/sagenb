@@ -54,8 +54,15 @@
 # @Browsers		Convertion is supported by every browser with JSL Library (FF 1+ Opera 8+ and IE5.5+ are supported without JSL too)
 # @Credits		Dean Edwards for his originally idea [dean.edwards.name] and his JavaScript packer
 # @License		GNU General Public License (GPL)
+from __future__ import absolute_import
 
-import re, time, string, SourceMap, BaseConvert
+import re
+import time
+import string
+import SourceMap
+import BaseConvert
+
+
 class JavaScriptCompressor:
 	
 	# public variables

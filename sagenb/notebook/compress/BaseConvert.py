@@ -20,6 +20,7 @@
 # @Date			2006/06/05
 # @Version		1.0
 # @License              GNU General Public License (GPL)
+from __future__ import absolute_import
 
 class BaseConvert:
 	
