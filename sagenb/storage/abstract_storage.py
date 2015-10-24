@@ -18,19 +18,19 @@ class Datastore(object):
 
             sage: from sagenb.storage.abstract_storage import Datastore
             sage: Datastore().__repr__()
-            'Abstract Datastore'        
+            'Abstract Datastore'
         """
         return "Abstract Datastore"
 
     def load_server_conf(self):
         raise NotImplementedError
-    
+
     def save_server_conf(self, server_conf):
         raise NotImplementedError
 
     def load_openid(self):
         raise NotImplementedError
-    
+
     def save_openid(self, openid_dict):
         raise NotImplementedError
 
@@ -42,7 +42,7 @@ class Datastore(object):
         """
         raise NotImplementedError
 
-    
+
     def save_users(self, users):
         """
         INPUT:
@@ -64,7 +64,7 @@ class Datastore(object):
             - list of strings
         """
         raise NotImplementedError
-    
+
     def save_user_history(self, username, history):
         """
         Save the history log (a list of strings) for the given user.
@@ -75,8 +75,8 @@ class Datastore(object):
 
             - ``history`` -- list of strings
         """
-        raise NotImplementedError        
-        
+        raise NotImplementedError
+
     def save_worksheet(self, worksheet, conf_only=False):
         """
         INPUT:
@@ -84,9 +84,9 @@ class Datastore(object):
             - ``worksheet`` -- a Sage worksheet
 
             - ``conf_only`` -- default: False; if True, only save
-              the config file, not the actual body of the worksheet      
+              the config file, not the actual body of the worksheet
         """
-        raise NotImplementedError        
+        raise NotImplementedError
 
     def create_worksheet(self, username, id_number):
         """
@@ -123,7 +123,7 @@ class Datastore(object):
 
             - a worksheet
         """
-        raise NotImplementedError        
+        raise NotImplementedError
 
 
     def export_worksheet(self, username, id_number, filename, title):
@@ -132,19 +132,19 @@ class Datastore(object):
         given filename (e.g., 'worksheet.sws').
 
         INPUT:
-    
+
             - ``title`` - title to use for the exported worksheet (if
                None, just use current title)
         """
-        raise NotImplementedError        
+        raise NotImplementedError
 
     def import_worksheet(self, username, id_number, filename):
         """
         Input the worksheet username/id_number from the file with
         given filename.
         """
-        raise NotImplementedError        
-        
+        raise NotImplementedError
+
     def worksheets(self, username):
         """
         Return list of all the worksheets belonging to the user with
@@ -153,19 +153,19 @@ class Datastore(object):
 
         EXAMPLES: The load_user_data function must be defined in the
         derived class::
-        
+
             sage: from sagenb.storage.abstract_storage import Datastore
             sage: Datastore().worksheets('foobar')
             Traceback (most recent call last):
             ...
             NotImplementedError
         """
-        raise NotImplementedError        
+        raise NotImplementedError
 
-        
+
     def delete(self):
         """
         Delete all files associated with this datastore.  Dangerous!
         This is only here because it is useful for doctesting.
         """
-        raise NotImplementedError        
+        raise NotImplementedError
