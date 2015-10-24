@@ -377,47 +377,43 @@ def set_profiles():
 # Notebook autosave.
 ############################
 # save if make a change to notebook and at least some seconds have elapsed since last save.
-def init_updates():
-    global save_interval, idle_interval, last_save_time, last_idle_time
+class NotebookUpdater(object):
+    def __init__(self, notebook):
+        self.notebook = notebook
+        self.save_interval = notebook.conf()['save_interval']
+        self.idle_interval = notebook.conf()['idle_check_interval']
+        self.last_save_time = walltime()
+        self.last_idle_time = walltime()
 
-    save_interval = notebook.conf()['save_interval']
-    idle_interval = notebook.conf()['idle_check_interval']
-    last_save_time = walltime()
-    last_idle_time = walltime()
+    def save_check(self):
+        t = walltime()
+        if t > self.last_save_time + self.save_interval:
+            with global_lock:
+                # if someone got the lock before we did, they might have saved,
+                # so we check against the last_save_time again we don't put the
+                # global_lock around the outer loop since we don't need it
+                # unless we are actually thinking about saving.
+                if t > self.last_save_time + self.save_interval:
+                    self.notebook.save()
+                    self.last_save_time = t
 
-def notebook_save_check():
-    global last_save_time
+    def idle_check(self):
+        t = walltime()
+        if t > self.last_idle_time + self.idle_interval:
+            with global_lock:
+                # if someone got the lock before we did, they might have
+                # already idled, so we check against the last_idle_time again
+                # we don't put the global_lock around the outer loop since we
+                # don't need it unless we are actually thinking about quitting
+                # worksheets
+                if t > self.last_idle_time + self.idle_interval:
+                    self.notebook.update_worksheet_processes()
+                    self.notebook.quit_idle_worksheet_processes()
+                    self.last_idle_time = t
 
-    t = walltime()
-    if t > last_save_time + save_interval:
-        with global_lock:
-            # if someone got the lock before we did, they might have saved,
-            # so we check against the last_save_time again
-            # we don't put the global_lock around the outer loop since we don't need
-            # it unless we are actually thinking about saving.
-            if t > last_save_time + save_interval:
-                notebook.save()
-                last_save_time = t
-
-def notebook_idle_check():
-    global last_idle_time
-
-    t = walltime()
-
-    if t > last_idle_time + idle_interval:
-        with global_lock:
-            # if someone got the lock before we did, they might have already idled,
-            # so we check against the last_idle_time again
-            # we don't put the global_lock around the outer loop since we don't need
-            # it unless we are actually thinking about quitting worksheets
-            if t > last_idle_time + idle_interval:
-                notebook.update_worksheet_processes()
-                notebook.quit_idle_worksheet_processes()
-                last_idle_time = t
-
-def notebook_updates():
-    notebook_save_check()
-    notebook_idle_check()
+    def update(self):
+        self.save_check()
+        self.idle_check()
 
 
 notebook = None
@@ -437,7 +433,6 @@ def create_app(path_to_notebook, *args, **kwds):
     import sagenb.notebook.notebook as notebook
     notebook.MATHJAX = True
     notebook = notebook.load_notebook(path_to_notebook, *args, **kwds)
-    init_updates()
 
     ##############
     # Create app #
@@ -450,6 +445,7 @@ def create_app(path_to_notebook, *args, **kwds):
     @app.before_request
     def set_notebook_object():
         g.notebook = notebook
+        g.notebook_updater = NotebookUpdater(notebook)
 
     ####################################
     # create Babel translation manager #

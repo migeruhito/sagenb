@@ -30,7 +30,6 @@ from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
 from sagenb.notebook.interact import INTERACT_UPDATE_PREFIX
 from sagenb.notebook.misc import encode_response
 
-from .base import notebook_updates
 from .decorators import login_required
 
 _ = gettext
@@ -66,7 +65,7 @@ def worksheet_view(f):
                 worksheet.set_active(g.username)
 
             #This was in twist.Worksheet.childFactory
-            notebook_updates()
+            g.notebook_updater.update()
 
             return f(username, id, **kwds)
 
@@ -441,10 +440,10 @@ def worksheet_eval(worksheet):
     cell.set_input_text(input_text)
 
     if int(request.values.get('save_only', '0')):
-        notebook_updates()
+        g.notebook_updater.update()
         return encode_response(r)
     elif int(request.values.get('text_only', '0')):
-        notebook_updates()
+        g.notebook_updater.update()
         r['cell_html'] = cell.html()
         return encode_response(r)
 
@@ -459,7 +458,7 @@ def worksheet_eval(worksheet):
     else:
         r['next_id'] = cell.next_compute_id()
 
-    notebook_updates()
+    g.notebook_updater.update()
 
     return encode_response(r)
 
