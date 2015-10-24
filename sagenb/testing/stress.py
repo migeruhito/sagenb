@@ -30,8 +30,8 @@ class PubStressTest:
             - ``timeit_number`` -- integer (default: 1)
 
             - ``timeit_repeat`` -- integer (default: 1)
-            
-            
+
+
         """
         self._url = url
         self._verbose = verbose
@@ -89,7 +89,7 @@ class PubStressTest:
             return TIMEOUT
         finally:
             cancel_alarm()
-        
+
     def test_login_screen(self):
         """
         Download the main login screen for the Sage notebook server.

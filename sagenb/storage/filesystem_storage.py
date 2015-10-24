@@ -34,7 +34,7 @@ Sage notebook server::
                 ...
              username1/
              ...
-             
+
 """
 
 import copy, cPickle, shutil, tarfile, tempfile
@@ -92,7 +92,7 @@ class FilesystemDatastore(Datastore):
         p = self._abspath(path)
         if not os.path.exists(p): os.makedirs(p)
         return path
-    
+
     def _deep_user_path(self, username):
         from hashlib import md5
         h = md5(username).hexdigest()
@@ -105,7 +105,7 @@ class FilesystemDatastore(Datastore):
         # There are weird cases, e.g., old notebook server migration
         # where username is None, and if we don't string it here,
         # saving can be broken (at a bad moment!).
-        
+
         # There are also some cases where the username could have unicode in it.
         username = str(username)
         path = self._abspath(os.path.join(self._home_path, username))
@@ -125,10 +125,10 @@ class FilesystemDatastore(Datastore):
             os.chdir(old_dir)
 
         return path
-    
+
     def _worksheet_pathname(self, username, id_number):
         return os.path.join(self._user_path(username), str(id_number))
-    
+
     def _worksheet_path(self, username, id_number=None):
         if id_number is None:
             return self._makepath(self._user_path(username))
@@ -159,7 +159,7 @@ class FilesystemDatastore(Datastore):
             '...foo.pickle'
         """
         return os.path.join(self._path, file)
-    
+
     #########################################################################
     # Loading and saving basic Python objects to disk.
     # The input filename is always relative to self._path.
@@ -239,10 +239,10 @@ class FilesystemDatastore(Datastore):
     #########################################################################
     # Now we implement the API we're supposed to implement
     #########################################################################
-    
+
     def load_server_conf(self):
         return self._basic_to_server_conf(self._load('conf.pickle'))
-    
+
     def save_server_conf(self, server_conf):
         """
         INPUT:
@@ -271,9 +271,9 @@ class FilesystemDatastore(Datastore):
         OUTPUT:
 
             - dictionary of user info
-        
+
         EXAMPLES::
-        
+
             sage: from sagenb.notebook.user import User
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
@@ -288,18 +288,18 @@ class FilesystemDatastore(Datastore):
             {'admin': admin, 'wstein': wstein}
         """
         for user in self._basic_to_users(self._load('users.pickle')).itervalues():
-            user_manager.add_user_object(user, force=True) 
+            user_manager.add_user_object(user, force=True)
             user_manager.set_password(user.username(), user.password(), encrypt = False)
         return user_manager
-    
+
     def save_users(self, users):
         """
         INPUT:
 
             - ``users`` -- dictionary mapping user names to users
-        
+
         EXAMPLES::
-        
+
             sage: from sagenb.notebook.user import User
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
@@ -315,7 +315,7 @@ class FilesystemDatastore(Datastore):
         """
         self._save(self._users_to_basic(users), 'users.pickle')
         self._permissions('users.pickle')
-        
+
     def load_user_history(self, username):
         """
         Return the history log for the given user.
@@ -346,7 +346,7 @@ class FilesystemDatastore(Datastore):
         filename = self._history_filename(username)
         self._save(history, filename)
         self._permissions(filename)
-        
+
     def save_worksheet(self, worksheet, conf_only=False):
         """
         INPUT:
@@ -354,10 +354,10 @@ class FilesystemDatastore(Datastore):
             - ``worksheet`` -- a Sage worksheet
 
             - ``conf_only`` -- default: False; if True, only save
-              the config file, not the actual body of the worksheet      
+              the config file, not the actual body of the worksheet
 
         EXAMPLES::
-        
+
             sage: from sagenb.notebook.worksheet import Worksheet
             sage: tmp = tmp_dir()
             sage: W = Worksheet('test', 2, tmp, system='gap', owner='sageuser')
@@ -426,7 +426,7 @@ class FilesystemDatastore(Datastore):
         dirname = self._worksheet_pathname(username, id_number)
         if not os.path.exists(dirname):
             raise ValueError("Worksheet %s/%s does not exist"%(username, id_number))
-        
+
         filename = self._worksheet_html_filename(username, id_number)
         html_file = self._abspath(filename)
         if not os.path.exists(html_file):
@@ -457,7 +457,7 @@ class FilesystemDatastore(Datastore):
         given filename (e.g., 'worksheet.sws').
 
         INPUT:
-    
+
             - ``title`` - title to use for the exported worksheet (if
                None, just use current title)
         """
@@ -473,7 +473,7 @@ class FilesystemDatastore(Datastore):
                   'collaborators', 'auto_publish']:
             if basic.has_key(k):
                 del basic[k]
-                
+
         self._save(basic, self._worksheet_conf_filename(username, id_number) + '2')
         tmp = self._abspath(self._worksheet_conf_filename(username, id_number) + '2')
         T.add(tmp, os.path.join('sage_worksheet','worksheet_conf.pickle'))
@@ -503,7 +503,7 @@ class FilesystemDatastore(Datastore):
         if os.path.exists(data):
             for X in os.listdir(data):
                 T.add(os.path.join(data, X), os.path.join('sage_worksheet','data',X))
-                    
+
         # Add the contents of each of the cell directories.
         cells = os.path.join(path, 'cells')
         if os.path.exists(cells):
@@ -518,7 +518,7 @@ class FilesystemDatastore(Datastore):
 
     def _import_old_worksheet(self, username, id_number, filename):
         """
-        Import a worksheet from an old version of Sage. 
+        Import a worksheet from an old version of Sage.
         """
         T = tarfile.open(filename, 'r:bz2')
         members = [a for a in T.getmembers() if 'worksheet.txt' in a.name and is_safe(a.name)]
@@ -530,7 +530,7 @@ class FilesystemDatastore(Datastore):
         W.edit_save_old_format(T.extractfile(worksheet_txt).read().decode('utf-8', 'ignore'))
         # '/' is right, since old worksheets always unix
         dir = worksheet_txt.split('/')[0]
-            
+
         path = self._abspath(self._worksheet_pathname(username, id_number))
 
         base = os.path.join(dir,'data')
@@ -540,7 +540,7 @@ class FilesystemDatastore(Datastore):
             dest = os.path.join(path, 'data')
             if os.path.exists(dest): shutil.rmtree(dest)
             shutil.move(os.path.join(path,base), path)
-        
+
         base = os.path.join(dir,'cells')
         members = [a for a in T.getmembers() if a.name.startswith(base) and is_safe(a.name)]
         if len(members) > 0:
@@ -548,7 +548,7 @@ class FilesystemDatastore(Datastore):
             dest = os.path.join(path, 'cells')
             if os.path.exists(dest): shutil.rmtree(dest)
             shutil.move(os.path.join(path, base), path)
-            
+
         tmp = os.path.join(path, dir)
         if os.path.exists(tmp):
             shutil.rmtree(tmp)
@@ -556,7 +556,7 @@ class FilesystemDatastore(Datastore):
         T.close()
 
         return W
-            
+
 
     def import_worksheet(self, username, id_number, filename):
         """
@@ -584,7 +584,7 @@ class FilesystemDatastore(Datastore):
         if len(members) > 0:
             T.extractall(path, members)
             shutil.move(os.path.join(path,base), path)
-        
+
         base = os.path.join('sage_worksheet','cells')
         members = [a for a in T.getmembers() if a.name.startswith(base) and is_safe(a.name)]
         if len(members) > 0:
@@ -594,11 +594,11 @@ class FilesystemDatastore(Datastore):
         tmp = os.path.join(path, 'sage_worksheet')
         if os.path.exists(tmp):
             shutil.rmtree(tmp)
-        
+
         T.close()
-        
+
         return self.load_worksheet(username, id_number)
-        
+
     def worksheets(self, username):
         """
         Return list of all the worksheets belonging to the user with
@@ -607,7 +607,7 @@ class FilesystemDatastore(Datastore):
 
         EXAMPLES: The load_user_data function must be defined in the
         derived class::
-        
+
             sage: from sagenb.storage import FilesystemDatastore
             sage: tmp = tmp_dir()
             sage: FilesystemDatastore(tmp).worksheets('foobar')
@@ -657,7 +657,7 @@ class FilesystemDatastore(Datastore):
 
 
 ##############################################################################
-# 
+#
 # Why not use JSON, YAML, or XML??
 #
 # I experimented with using these, but they are 10-100 times slower,
@@ -665,7 +665,7 @@ class FilesystemDatastore(Datastore):
 # dumping/loading a worksheet basic datastructure in each of the
 # following is given below.  XML is also very bad compared to cPickle.
 #
-#     cPickle, 
+#     cPickle,
 #     pickle
 #     json
 #     yaml
@@ -701,6 +701,6 @@ class FilesystemDatastore(Datastore):
 # at 52 microseconds.  cPickle just can't be beat.
 #
 # NOTE!  Actually simplejson does just as well at cPickle for this benchmark.
-#        Thanks to Mitesh Patel for pointing this out. 
+#        Thanks to Mitesh Patel for pointing this out.
 #
 #############################################################################
