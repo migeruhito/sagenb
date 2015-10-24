@@ -23,7 +23,7 @@ def sagetex(filename, gen=True, **kwds):
         raise ValueError, "File must be a latex file (end in .tex): '%s'"%filename
     if not '\\document' in open(filename).read():
         raise ValueError, "File must be a latex file (contain \\document...): '%s'"%filename
-    
+
     if gen:
         os.system('latex2html -no_images %s'%filename)
 
@@ -41,7 +41,7 @@ def sagetex(filename, gen=True, **kwds):
         open(fn,'w').write(r)
 
     notebook(sagetex_path=path, start_path="/sagetex/index.html", **kwds)
-    
-    
 
-    
+
+
+

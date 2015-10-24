@@ -52,7 +52,7 @@ class Parser:
     attachment_schemas = ["attachment", "inline", "drawing"]
     punct_pattern = re.escape(u'''"\'}]|:,.)?!''')
     url_pattern = (u'http|https|ftp|nntp|news|mailto|telnet|wiki|file|irc|' +
-            u'|'.join(attachment_schemas) + 
+            u'|'.join(attachment_schemas) +
             (config.url_schemas and u'|' + u'|'.join(config.url_schemas) or ''))
 
     # some common rules
@@ -117,7 +117,7 @@ class Parser:
         'word_rule': word_rule,
         'smiley': u'|'.join(map(re.escape, config.smileys.keys()))}
 
-    # Don't start p before these 
+    # Don't start p before these
     no_new_p_before = ("heading rule table tableZ tr td "
                        "ul ol dl dt dd li li_none indent "
                        "macro processor pre")
@@ -190,7 +190,7 @@ class Parser:
             is_self_reference = 1
         elif url2.startswith('wiki:'):
             url = url[5:] # remove "wiki:"
-           
+
         tag, tail = wikiutil.split_wiki(url)
         if text is None:
             if tag:
@@ -213,8 +213,8 @@ class Parser:
         # link to self?
         if wikitag is None:
             return self._word_repl(wikitail)
-              
-        return (self.formatter.interwikilink(1, tag, tail) + 
+
+        return (self.formatter.interwikilink(1, tag, tail) +
                 self.formatter.text(text) +
                 self.formatter.interwikilink(0, tag, tail))
 
@@ -241,7 +241,7 @@ class Parser:
         # (images are always inlined, just like for other URLs)
         if not kw.get('pretty_url', 0) and wikiutil.isPicture(url):
             return self.formatter.attachment_image(url)
-                
+
         # inline the attachment
         if inline:
             return self.formatter.attachment_inlined(url, text)
@@ -476,7 +476,7 @@ class Parser:
     def _ent_symbolic_repl(self, word):
         """Handle symbolic SGML entities."""
         return self.formatter.rawHTML(word)
-    
+
     def _indent_repl(self, match):
         """Handle pure indentation (no - * 1. markup)."""
         result = []
@@ -542,7 +542,7 @@ class Parser:
         if self._indent_level() != new_level and self.in_table:
             close.append(self.formatter.table(0))
             self.in_table = 0
-        
+
         while self._indent_level() > new_level:
             self._close_item(close)
             if self.list_types[-1] == 'ol':
@@ -555,13 +555,13 @@ class Parser:
 
             del self.list_indents[-1]
             del self.list_types[-1]
-            
+
             if self.list_types: # we are still in a list
                 if self.list_types[-1] == 'dl':
                     self.in_dd = 1
                 else:
                     self.in_li = 1
-                
+
         # Open new list, if necessary
         if self._indent_level() < new_level:
             self.list_indents.append(new_level)
@@ -569,7 +569,7 @@ class Parser:
 
             if self.formatter.in_p:
                 close.append(self.formatter.paragraph(0))
-            
+
             if list_type == 'ol':
                 tag = self.formatter.number_list(1, numtype, numstart)
             elif list_type == 'dl':
@@ -577,16 +577,16 @@ class Parser:
             else:
                 tag = self.formatter.bullet_list(1)
             open.append(tag)
-            
+
             self.first_list_item = 1
             self.in_li = 0
             self.in_dd = 0
-            
+
         # If list level changes, close an open table
         if self.in_table and (open or close):
             close[0:0] = [self.formatter.table(0)]
             self.in_table = 0
-        
+
         self.in_list = self.list_types != []
         return ''.join(close) + ''.join(open)
 
@@ -753,9 +753,9 @@ class Parser:
                     attrs['colspan'] = '"%d"' % (word.count("|")/2)
 
             # return the complete cell markup
-            result.append(self.formatter.table_cell(1, attrs) + attrerr)         
+            result.append(self.formatter.table_cell(1, attrs) + attrerr)
             result.append(self._line_anchordef())
-            return ''.join(result) 
+            return ''.join(result)
         else:
             return self.formatter.text(word)
 
@@ -785,7 +785,7 @@ class Parser:
 
         return (result + self.formatter.text(title_text) +
                 self.formatter.heading(0, depth))
-    
+
     def _processor_repl(self, word):
         """Handle processed code displays."""
         if word[:3] == '{{{':
@@ -851,7 +851,7 @@ class Parser:
         if self.formatter.in_p:
             return self.formatter.paragraph(0)
         return ''
-        
+
     def _macro_repl(self, word):
         """Handle macros ([[macroname]])."""
         macro_name = word[2:-2]
@@ -870,33 +870,33 @@ class Parser:
 
     def scan(self, scan_re, line):
         """ Scans one line
-        
+
         Append text before match, invoke replace() with match, and add text after match.
         """
         result = []
         lastpos = 0
 
         ###result.append(u'<span class="info">[scan: <tt>"%s"</tt>]</span>' % line)
-      
+
         for match in scan_re.finditer(line):
             # Add text before the match
             if lastpos < match.start():
-                
+
                 ###result.append(u'<span class="info">[add text before match: <tt>"%s"</tt>]</span>' % line[lastpos:match.start()])
-                
+
                 if not (self.inhibit_p or self.in_pre or self.formatter.in_p):
                     result.append(self.formatter.paragraph(1, css_class="line862"))
                 result.append(self.formatter.text(line[lastpos:match.start()]))
-            
+
             # Replace match with markup
             if not (self.inhibit_p or self.in_pre or self.formatter.in_p or
                     self.in_table or self.in_list):
                 result.append(self.formatter.paragraph(1, css_class="line867"))
             result.append(self.replace(match))
             lastpos = match.end()
-        
+
         ###result.append('<span class="info">[no match, add rest: <tt>"%s"<tt>]</span>' % line[lastpos:])
-        
+
         # Add paragraph with the remainder of the line
         if not (self.in_pre or self.in_li or self.in_dd or self.inhibit_p or
                 self.formatter.in_p) and lastpos < len(line):
@@ -909,16 +909,16 @@ class Parser:
         result = []
         for type, hit in match.groupdict().items():
             if hit is not None and type != "hmarker":
-                
+
                 ###result.append(u'<span class="info">[replace: %s: "%s"]</span>' % (type, hit))
                 if self.in_pre and type not in ['pre', 'ent']:
-                    return self.formatter.text(hit) 
+                    return self.formatter.text(hit)
                 else:
                     # Open p for certain types
                     if not (self.inhibit_p or self.formatter.in_p
                             or self.in_pre or (type in self.no_new_p_before)):
                         result.append(self.formatter.paragraph(1, css_class="line891"))
-                    
+
                     # Get replace method and replece hit
                     replace = getattr(self, '_' + type + '_repl')
                     result.append(replace(hit))
@@ -953,13 +953,13 @@ class Parser:
                 'word_rule': self.word_rule,
                 'rules': rules,
             }
-        self.request.clock.start('compile_huge_and_ugly')        
+        self.request.clock.start('compile_huge_and_ugly')
         scan_re = re.compile(rules, re.UNICODE)
         number_re = re.compile(self.ol_rule, re.UNICODE)
         term_re = re.compile(self.dl_rule, re.UNICODE)
         indent_re = re.compile("^\s*", re.UNICODE)
         eol_re = re.compile(r'\r?\n', re.UNICODE)
-        self.request.clock.stop('compile_huge_and_ugly')        
+        self.request.clock.stop('compile_huge_and_ugly')
 
         # get text and replace TABs
         rawtext = self.raw.expandtabs()
@@ -1025,12 +1025,12 @@ class Parser:
                         continue
                     if line[:endpos]:
                         self.colorize_lines.append(line[:endpos])
-                    
+
                     # Close p before calling processor
                     # TODO: do we really need this?
                     self.request.write(self._closeP())
                     res = self.formatter.processor(self.processor_name,
-                                                   self.colorize_lines, 
+                                                   self.colorize_lines,
                                                    self.processor_is_parser)
                     self.request.write(res)
                     del self.colorize_lines
@@ -1045,7 +1045,7 @@ class Parser:
                 # we don't have \n as whitespace any more
                 # This is the space between lines we join to one paragraph
                 line += ' '
-                
+
                 # Paragraph break on empty lines
                 if not line.strip():
                     if self.in_table:
@@ -1086,7 +1086,7 @@ class Parser:
                 self.request.write(self._indent_to(indlen, indtype, numtype, numstart))
 
                 # Table mode
-                # TODO: move into function?                
+                # TODO: move into function?
                 if (not self.in_table and line[indlen:indlen + 2] == "||"
                     and line[-3:] == "|| " and len(line) >= 5 + indlen):
                     # Start table
@@ -1095,7 +1095,7 @@ class Parser:
                         ## CHANGE: no automatic p on li
                         ##self.request.write(self.formatter.paragraph(1))
                         self.in_li = 1
-                        
+
                     # CHANGE: removed check for self.in_li
                     # paragraph should end before table, always!
                     if self.formatter.in_p:
@@ -1105,16 +1105,16 @@ class Parser:
                     self.in_table = True # self.lineno
                 elif (self.in_table and not
                       # intra-table comments should not break a table
-                      (line[:2] == "##" or  
+                      (line[:2] == "##" or
                        line[indlen:indlen + 2] == "||" and
                        line[-3:] == "|| " and
                        len(line) >= 5 + indlen)):
-                    
+
                     # Close table
                     self.request.write(self.formatter.table(0))
                     self.request.write(self._line_anchordef())
                     self.in_table = 0
-                                            
+
             # Scan line, format and write
             formatted_line = self.scan(scan_re, line)
             self.request.write(formatted_line)
@@ -1130,7 +1130,7 @@ class Parser:
 
     # --------------------------------------------------------------------
     # Private helpers
-    
+
     def setProcessor(self, name):
         """ Set processer to either processor or parser named 'name' """
         cfg = self.request.cfg
@@ -1180,4 +1180,4 @@ def wiki2html(s):
     request.cfg.siteid = ''
     request.cfg.data_underlay_dir = ''
     request._page_headings = ''
-    
+

@@ -52,6 +52,6 @@ def send_mail(fromaddr, toaddr, subject, body, on_success=sendComplete, on_failu
         smtp_server = str(mx_rec.name)
         sending = smtp.sendmail(smtp_server, fromaddr, [toaddr], messageData)
         sending.addCallback(on_success).addErrback(on_failure)
-        
+
     relaymanager.MXCalculator().getMX(recpt_domain).addCallback(on_found_record)
 

@@ -44,18 +44,18 @@ http://sage.math.washington.edu/home/boothby/modular.old/www/keys_capture.html
 and follow the directions you see there.  Copy the output, and email
 it to boothby@u.washington.edu
 """
-                
+
 def get_keyboard(s):
     # keyboard_map is a dictionary defined at the bottom of this
     # file that maps os/browser codes to functions that give the
-    # corresponding keymaps. 
+    # corresponding keymaps.
     if keyboard_map.has_key(s):
         codes = keyboard_map[s]()
     else:
         # Default in case something goes wrong.  This should
-        # never get called. 
+        # never get called.
         codes = keyboard_map['mm']()
-        
+
     defaults = {'KEY_CTRLENTER':'KEY_ENTER'}
 
     # We now add in each default keycode if it isn't already present.

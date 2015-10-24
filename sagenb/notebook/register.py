@@ -11,7 +11,7 @@
 from __future__ import absolute_import
 
 """
-Helper functions dealing with the verification of user  
+Helper functions dealing with the verification of user
 """
 from random import randint
 

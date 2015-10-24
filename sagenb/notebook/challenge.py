@@ -197,7 +197,7 @@ class NotConfiguredChallenge(AbstractChallenge):
         OUTPUT:
 
         - a :class:`ChallengeResponse` instance
- 
+
        TESTS::
 
             sage: from sagenb.notebook.challenge import NotConfiguredChallenge
@@ -300,7 +300,7 @@ class SimpleChallenge(AbstractChallenge):
             sage: chal = SimpleChallenge(nb.conf())
             sage: chal.html() # random
             '...What is the largest prime factor of 1001?...'
-            
+
         """
         question = random.choice([q for q in QUESTIONS])
         return SIMPLE_TEMPLATE % { 'question' : gettext(question),
@@ -445,11 +445,11 @@ class reCAPTCHAChallenge(AbstractChallenge):
         - ``error_code`` - a string (default: None); an optional error
           code to embed in the HTML, giving feedback about the user's
           *previous* response
-        
+
         - ``kwargs`` - a dictionary of extra keyword arguments
 
         OUTPUT:
-        
+
         - a string; HTML and JavaScript to render the reCAPTCHA
           challenge
 
@@ -482,7 +482,7 @@ class reCAPTCHAChallenge(AbstractChallenge):
         """
         Submits a reCAPTCHA request for verification and returns its
         status.
-        
+
         INPUT:
 
         - ``req_args`` - a dictionary; the arguments of the responding

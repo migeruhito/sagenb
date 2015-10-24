@@ -30,7 +30,7 @@ CODE_PY = "___code___.py"
 #####################################################
 ## Utility functions
 #####################################################
-valid_username_chars = 'a-z|A-Z|0-9|_|.|@' 
+valid_username_chars = 'a-z|A-Z|0-9|_|.|@'
 re_valid_username = re.compile('[%s]*' % valid_username_chars)
 def is_valid_username(username):
     r"""
@@ -94,7 +94,7 @@ def is_valid_password(password, username):
         sage: is_valid_password('8u7', None)
         False
         sage: is_valid_password('fUmDagaz8LmtonAowjSe0Pvu9C5Gvr6eKcC6wsAT', None)
-        True 
+        True
         sage: is_valid_password('rrcF !u78!', None)
         False
         sage: is_valid_password('markusup89', 'markus')

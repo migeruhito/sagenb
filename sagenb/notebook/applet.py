@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 
 class Applet:
-    
+
     def __init__(self, id, code, archive, codebase="", width=400, height=400, params={}):
         self.id = id
         self.code = code
@@ -12,7 +12,7 @@ class Applet:
         self.height = height
         self.params = params
         self.codebase = "/java/" + codebase
-        
+
     def html_tag(self):
         params_text = "\n".join(["""<param name="%s" value="%s"/>""" % x for x in self.params.iteritems()])
         tag = """
@@ -20,11 +20,11 @@ class Applet:
           %s
         </applet>
         """ % (self.id,
-               self.code, 
-               self.width, 
-               self.height, 
+               self.code,
+               self.width,
+               self.height,
                self.codebase,
-               ",".join(self.archive), 
+               ",".join(self.archive),
                params_text)
         return tag
-        
+

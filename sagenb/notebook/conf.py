@@ -40,7 +40,7 @@ G_LDAP = lazy_gettext('LDAP')
 POS_DEFAULT = 100
 
 class Configuration(object):
-    
+
     def __init__(self):
         self.confs = {}
 
@@ -49,7 +49,7 @@ class Configuration(object):
 
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.confs == other.confs
-        
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -75,7 +75,7 @@ class Configuration(object):
 
     def __setitem__(self, key, value):
         self.confs[key] = value
-        
+
     def html_conf_form(self, action):
         D = self.defaults()
         C = self.confs
@@ -152,7 +152,7 @@ class Configuration(object):
         DS = self.defaults_descriptions()
         C = self.confs
         K = set(C.keys() + D.keys())
-        
+
         G = {}
         # Make groups
         for key in K:

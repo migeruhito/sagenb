@@ -86,7 +86,7 @@ class MailClient(smtp.ESMTPClient):
     # the real work
     getMailFrom = lambda self: self._mesg._mail_from
     getMailTo = lambda self: self._mesg._rcpt
-    
+
     def getMailData(self):
         return StringIO(self._mesg._data)
 

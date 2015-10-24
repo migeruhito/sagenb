@@ -22,5 +22,5 @@ def draggable(option=''):
 
 def resizable():
     s = '$("#cell_outer_%s").resizable()'%cell_id()
-    javascript(s)    
+    javascript(s)
 

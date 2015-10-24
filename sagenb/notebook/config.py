@@ -2,7 +2,7 @@
 r"""
 Notebook Keybindings
 
-This module is responsible for setting the keyboard bindings for the notebook. 
+This module is responsible for setting the keyboard bindings for the notebook.
 
 These are the standard key and mouse bindings available in the
 notebook:
@@ -62,7 +62,7 @@ KEYS=(
 ('indent', {'key': "KEY_TAB", 'shift': False}),  # tab
 ('indent', {'key': "KEY_GT", 'shift': False}),  # tab
 ('unindent', {'key': "KEY_TAB", 'shift': True}),  # tab
-('unindent', {'key': "KEY_LT", 'shift': False}), 
+('unindent', {'key': "KEY_LT", 'shift': False}),
 ('request_history', {'key': "KEY_Q", 'ctrl': True}),
 ('request_history', {'key': "KEY_QQ", 'ctrl': True}),
 ('request_log', {'key': "KEY_P", 'ctrl': True}),

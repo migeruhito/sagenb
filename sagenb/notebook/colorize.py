@@ -28,7 +28,7 @@ import keyword
 import token
 import tokenize
 
-#Set up basic values.  
+#Set up basic values.
 _KEYWORD = token.NT_OFFSET + 1
 _TEXT    = token.NT_OFFSET + 2
 

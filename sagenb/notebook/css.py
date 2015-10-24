@@ -22,21 +22,21 @@ _css_cache = None
 def css(color='default'):
     r"""
     Return the CSS header used by the Sage Notebook.
-    
+
     INPUT:
-    
-    
+
+
     -  ``color`` - string or pair of html colors, e.g.,
        'gmail' 'grey' ``('#ff0000', '#0000ff')``
-    
-    
+
+
     EXAMPLES::
-    
+
         sage: import sagenb.notebook.css as c
         sage: type(c.css()[0])
         <type 'str'>
     """
-    # TODO: the color argument does nothing right now, since 
+    # TODO: the color argument does nothing right now, since
     # the main.css file does not use it at all
     global _css_cache
     if _css_cache is None:

@@ -35,10 +35,10 @@ def default_email_address():
 
     OUTPUT:
         string
-     
+
     EXAMPLES::
 
-        sage: sagenb.notebook.sage_email.default_email_address()     
+        sage: sagenb.notebook.sage_email.default_email_address()
         '...@...'
     """
     hostname = socket.gethostname()
@@ -48,7 +48,7 @@ def default_email_address():
 def email(to, subject, body = '', from_address = None, verbose = True, block = False, kill_on_exit = False):
     """
     Send an email message.
-    
+
     INPUT:
         to           -- string; address of recipient
         subject      -- string; subject of the email
@@ -67,7 +67,7 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
                         keep running for a while.  This should never
                         be a problem, but might be useful for certain
                         users.
-                        
+
     EXAMPLES::
 
         sage: email('xxxsageuser@gmail.com', 'The calculation finished!')  # not tested
@@ -88,7 +88,7 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
     # to work using threads instead, but I did not do so, since Python
     # threading with Twisted is not fun, and would likely have many
     # of the same problems.  Plus the below works extremely well.
-    
+
     try:
         pid = os.fork()
     except:
@@ -98,7 +98,7 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
     if from_address is None:
         # Use a default email address as the from: line.
         from_address = default_email_address()
-    
+
     if pid: # We're the parent process
         if kill_on_exit:
             # Tell the Sage cleaner about this subprocess, just in case somehow it fails
@@ -115,7 +115,7 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
     if not block:
         # Do a non-block sendmail, which is typically what a user wants, since it can take
         # a while to send an email.
-        
+
         # Use the old "double fork" trick -- otherwise there would *definitely* be a zombie
         # every time.  Here's a description from the web of this trick:
         # "If you can't stand zombies, you can get rid of them with a double fork().
@@ -146,7 +146,7 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
             print "Successfully sent an email to %s."%to
         reactor.stop()
         os.kill(os.getpid(),9)                     # suicide
-        
+
     def on_failure(error):
         """
         Callback in case of a failure sending an email.
@@ -161,8 +161,8 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
 
     # Finally, call the send_mail function.  This is code that sets up
     # a twisted deferred, which actually happens when we run the
-    # reactor.  
+    # reactor.
     send_mail(from_address, to, subject, body, on_success, on_failure)
 
-    # Start the twisted reactor. 
+    # Start the twisted reactor.
     reactor.run()
