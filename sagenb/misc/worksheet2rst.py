@@ -35,14 +35,15 @@ Each kind of text is dealt with separately.
 #
 # Distributed under the terms of the GPL License
 #**************************************************
+from __future__ import absolute_import
 
-
-import sys
+import codecs
 import os
 import re
-from comments2rst import html2rst
-from results2rst import results2rst
-import codecs
+import sys
+
+from .comments2rst import html2rst
+from .results2rst import results2rst
 
 #We parse lines one by one but keep track of current scope
 #comments

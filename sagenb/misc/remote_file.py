@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*
-import os, sys
+from __future__ import absolute_import
+
+import os
+import sys
+import urllib
+
+from .misc import tmp_filename
 
 def get_remote_file(filename, verbose=True):
     """
@@ -19,11 +25,9 @@ def get_remote_file(filename, verbose=True):
     """
     if verbose:
         print "Attempting to load remote file: " + filename
-    from misc import tmp_filename
     temp_name = tmp_filename() + '.' + os.path.splitext(filename)[1][1:]
     # IMPORTANT -- urllib takes a long time to load,
     # so do not import it in the module scope.
-    import urllib
     global cur
     cur = 0
     if verbose:

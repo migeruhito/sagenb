@@ -11,9 +11,10 @@ This is called by sws2rst
 #
 # Distributed under the terms of the GPL License
 #**************************************************
-
+from __future__ import absolute_import
 
 import re
+
 IMAGES_DIR = 'images/'
 
 #We parse lines one by one but keep track of current scope

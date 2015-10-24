@@ -11,15 +11,19 @@ This is called by sws2rst
 #
 # Distributed under the terms of the GPL License
 #**************************************************
+from __future__ import absolute_import
 
-
-import re
 import os
+import re
 try:
-    from BeautifulSoup import (ICantBelieveItsBeautifulSoup, Tag,
-                               CData, Comment, Declaration, ProcessingInstruction)
+    from BeautifulSoup import ICantBelieveItsBeautifulSoup
+    from BeautifulSoup import Tag
+    from BeautifulSoup import CData
+    from BeautifulSoup import Comment
+    from BeautifulSoup import Declaration
+    from BeautifulSoup import ProcessingInstruction
 except ImportError:
-    raise ImportError, """BeautifulSoup must be installed.
+    raise ImportError("""BeautifulSoup must be installed.
 
 Please either install using Sage spkg installation
 
@@ -31,7 +35,7 @@ or by using one of
     easy_install BeautifulSoup
 
 in the Sage shell (sage --sh).
-"""
+""")
 
 #negative lookbehind: http://www.regular-expressions.info/lookaround.html
 double_dollar = re.compile(r'(?<!\\)\$\$')
