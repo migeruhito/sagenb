@@ -1544,7 +1544,7 @@ class Notebook(object):
     def logout(self, username):
         r"""
         Do not do anything on logout (so far).
-        
+
         In particular, do **NOT** stop all ``username``'s worksheets!
         """
         pass
@@ -1707,7 +1707,7 @@ class Notebook(object):
         return template(os.path.join("html", "notebook", "upload_data_window.html"),
                         worksheet = ws, username = username)
 
-    def html(self, worksheet_filename=None, username='guest', admin=False, 
+    def html(self, worksheet_filename=None, username='guest', admin=False,
              do_print=False):
         r"""
         Return the HTML for a worksheet's index page.

@@ -86,7 +86,7 @@ def javascript():
                  debug_mode=debug_mode)
 
     if debug_mode:
-        # TODO: maybe we should return a random hash so that the code 
+        # TODO: maybe we should return a random hash so that the code
         # is reloaded on every refresh
         return s, sha1(s).hexdigest()
 
@@ -104,7 +104,7 @@ def javascript():
 
 class JSKeyHandler:
     """
-    This class is used to make javascript functions to check 
+    This class is used to make javascript functions to check
     for specific keyevents.
     """
 

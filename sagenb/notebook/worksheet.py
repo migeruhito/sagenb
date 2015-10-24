@@ -245,7 +245,7 @@ class Worksheet(object):
             self.__state_number = 0
 
     def state_number(self):
-        if self.is_published() or self.docbrowser(): 
+        if self.is_published() or self.docbrowser():
             return 0
 
         try:
@@ -306,7 +306,7 @@ class Worksheet(object):
             ws_pub = (self.owner(), self.id_number())
 
         try:
-            saved_by_info = self.__saved_by_info 
+            saved_by_info = self.__saved_by_info
         except AttributeError:
             saved_by_info = {}
 
@@ -397,9 +397,9 @@ class Worksheet(object):
             sage: W0.basic() == W.basic()
             True
         """
-        try: 
+        try:
             del self.__cells
-        except AttributeError: 
+        except AttributeError:
             pass
         for key, value in obj.iteritems():
             if key == 'name':
@@ -931,7 +931,7 @@ class Worksheet(object):
         if not hasattr(self, '_notebook'):
             import misc
             self._notebook = misc.notebook
-        return self._notebook 
+        return self._notebook
 
     def save(self, conf_only=False):
         self.notebook().save_worksheet(self, conf_only=conf_only)
@@ -2055,7 +2055,7 @@ class Worksheet(object):
     # Saving
     ##########################################################
     def save_snapshot(self, user, E=None):
-        if not self.body_is_loaded(): 
+        if not self.body_is_loaded():
             return
         self.uncache_snapshot_data()
         path = self.snapshot_directory()
@@ -2218,7 +2218,7 @@ class Worksheet(object):
         s = ''
         for C in self.cell_list():
             t = C.edit_text().strip()
-            if t: 
+            if t:
                 s += '\n\n' + t
         return s
 
@@ -2479,7 +2479,7 @@ class Worksheet(object):
 
         s = template(os.path.join("html", "notebook", "worksheet.html"),
                      do_print=do_print, publish=publish,
-                     worksheet=self, username=username) 
+                     worksheet=self, username=username)
 
         if self.is_published():
             self.__html = s
@@ -2583,7 +2583,7 @@ class Worksheet(object):
         return time.time() - self.last_edited()
 
 
-    def warn_about_other_person_editing(self, username, 
+    def warn_about_other_person_editing(self, username,
                                         threshold = WARN_THRESHOLD):
         r"""
         Check to see if another user besides username was the last to edit
@@ -3068,7 +3068,7 @@ except (KeyError, IOError):
         # right pretty printing mode.
         if self.pretty_print():
             S.execute('pretty_print_default(True);')
-            
+
         if not self.is_published():
             self._enqueue_auto_cells()
 
@@ -3092,14 +3092,14 @@ except (KeyError, IOError):
             return None
         try:
             S = self.__sage
-            if S.is_started(): 
+            if S.is_started():
                 return S
         except AttributeError:
             pass
         self.__sage = self.notebook().new_worksheet_process()
         all_worksheet_processes.append(self.__sage)
         self.__next_block_id = 0
-        
+
         # make sure we have a __sage attribute
         # We do this to diagnose google issue 81; once we
         # have fixed that issue, we can remove this next statement
@@ -3148,7 +3148,7 @@ except (KeyError, IOError):
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system()
-                if S is None: 
+                if S is None:
                     S = 'sage'
                 C.set_output_text('Exited %s process' % S,'')
                 return
@@ -3276,7 +3276,7 @@ except (KeyError, IOError):
                         if os.path.split(X)[1] == CODE_PY:
                             continue
                         target = os.path.join(cell_dir, os.path.split(X)[1])
-                        if os.path.exists(target): 
+                        if os.path.exists(target):
                             os.unlink(target)
                         os.symlink(X, target)
                 ########################################################
@@ -3315,9 +3315,9 @@ except (KeyError, IOError):
                 if os.path.split(X)[-1] != CODE_PY:
                     Y = os.path.join(d, X)
                     if os.path.isfile(Y):
-                        try: 
+                        try:
                             os.unlink(Y)
-                        except: 
+                        except:
                             pass
                     else:
                         shutil.rmtree(Y, ignore_errors=True)
@@ -3370,10 +3370,10 @@ except (KeyError, IOError):
         INPUT:
 
         - ``timeout`` -- time to wait for interruption to succeed
-        
+
         - ``callback`` -- callback to be called. Called with True if
           interrupt succeeds, else called with False.
-        
+
         OUTPUT:
 
         -  ``deferred`` - a Deferred object with the given callbacks and errbacks
@@ -3427,7 +3427,7 @@ except (KeyError, IOError):
             return False
         else:
             return True
-        
+
     def clear_queue(self):
         # empty the queue
         for C in self.__queue:
@@ -3584,13 +3584,13 @@ except (KeyError, IOError):
     ##########################################################
     def get_cell_with_id_or_none(self, id):
         """
-        Gets a pre-existing cell with this id, or returns None. 
+        Gets a pre-existing cell with this id, or returns None.
         """
         for c in self.cell_list():
             if c.id() == id:
                 return c
         return None
-        
+
     def get_cell_with_id(self, id):
         """
         Get a pre-existing cell with this id, or creates a new one with it.

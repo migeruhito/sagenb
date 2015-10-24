@@ -286,7 +286,7 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-        
+
             sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
             sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
@@ -446,7 +446,7 @@ class Cell_generic(object):
         - a boolean
 
         EXAMPLES::
-        
+
             sage: G = sagenb.notebook.cell.Cell_generic(0, None)
             sage: T = sagenb.notebook.cell.TextCell(0, 'hello!', None)
             sage: [X.is_auto_cell() for X in (G, T)]
@@ -481,7 +481,7 @@ class TextCell(Cell_generic):
         """
         text = unicode_str(text)
         self._text = text
-        
+
         super(TextCell, self).__init__(id, worksheet)
 
     def __repr__(self):
@@ -2333,7 +2333,7 @@ class Cell(Cell_generic):
             size = 500
 
         # The ".jmol" script has defaultdirectory pointing
-        # to a zip file [see Graphics3d.show()]. But it is 
+        # to a zip file [see Graphics3d.show()]. But it is
         # relative to the worksheet URL as seen in the browser.
         # But that doesn't make sense for live help.
         #
@@ -2344,11 +2344,11 @@ class Cell(Cell_generic):
             with open(jmol_name, 'r') as f:
                 jmol_script = f.read()
             jmol_script = jmol_script.replace(
-                'defaultdirectory "', 
+                'defaultdirectory "',
                 'defaultdirectory "{0}/'.format(self.url_to_worksheet()))
             with open(jmol_name, 'w') as f:
                 f.write(jmol_script)
- 
+
         image_name = os.path.join(self.url_to_self(),'.jmol_images',F)
         script_name = os.path.join(self.url_to_self(), F)
         return textwrap.dedent("""

@@ -27,7 +27,7 @@ def generate_salt():
     """
     return hex(random.getrandbits(256))[2:-1]
 
-    
+
 class User(object):
     def __init__(self, username, password='', email='', account_type='admin', external_auth=None):
         self._username = username
@@ -84,7 +84,7 @@ class User(object):
             return self.history
         except AttributeError:
             import misc   # late import
-            if misc.notebook is None: return []       
+            if misc.notebook is None: return []
             history_file = "%s/worksheets/%s/history.sobj"%(misc.notebook.directory(), self._username)
             if os.path.exists(history_file):
                 try:
@@ -94,7 +94,7 @@ class User(object):
                     self.history = []
             else:
                 self.history = []
-            return self.history    
+            return self.history
 
     def save_history(self):
         if not hasattr(self, 'history'):
@@ -126,7 +126,7 @@ class User(object):
 
     def password(self):
         """
-        Deprecated. Use user_manager object instead. 
+        Deprecated. Use user_manager object instead.
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
@@ -220,7 +220,7 @@ class User(object):
             'bob@gmail.gov'
         """
         self._email = email
-        
+
     def set_email_confirmation(self, value):
         """
         EXAMPLES::
@@ -238,7 +238,7 @@ class User(object):
         """
         value = bool(value)
         self._email_confirmed = value
-        
+
     def is_email_confirmed(self):
         """
         EXAMPLES::
@@ -269,7 +269,7 @@ class User(object):
         if self._username == 'admin':
             return 'admin'
         return self._account_type
-    
+
     def is_admin(self):
         """
         EXAMPLES::
@@ -307,7 +307,7 @@ class User(object):
 
     def external_auth(self):
         return self._external_auth
-        
+
     def is_suspended(self):
         """
         EXAMPLES::
@@ -321,7 +321,7 @@ class User(object):
             return self._is_suspended
         except AttributeError:
             return False
-        
+
     def set_suspension(self):
         """
         EXAMPLES::
