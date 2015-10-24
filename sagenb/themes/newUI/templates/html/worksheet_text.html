@@ -19,7 +19,7 @@
 {% endblock navbar %}
 
 {% block page %}
-	<pre id="worksheet_text">{{ plain_text }}</pre>
+	<pre id="worksheet_text">{{ plain_text | safe }}</pre>
 {% endblock page %}
 
 {% block extra_javascript %}
