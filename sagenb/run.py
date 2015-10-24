@@ -17,21 +17,21 @@ import random
 import argparse
 import logging
 import urllib
-import subprocess
 import getpass
 import signal
 from functools import partial
 
 import sagenb.flask_version.base as flask_base
 import sagenb.notebook.misc
-from sagenb.notebook import notebook
+from sagenb.misc.misc import cmd_exists
 from sagenb.misc.misc import DOT_SAGENB
+from sagenb.misc.misc import get_module
 from sagenb.misc.misc import find_next_available_port
+from sagenb.misc.misc import min_password_length
 from sagenb.misc.misc import open_page
 from sagenb.misc.misc import print_open_msg
-from sagenb.misc.misc import get_module
-from sagenb.misc.misc import cmd_exists
-from sagenb.misc.misc import min_password_length
+from sagenb.misc.misc import system_command
+from sagenb.notebook import notebook
 
 
 class NotebookFrontend(object):
@@ -220,6 +220,9 @@ class NotebookFrontend(object):
             raise ValueError('Use "interface" instead of "address" when '
                              'calling notebook(...).')
 
+    def parse(self, args=None):
+        self.conf.update(vars(self.parser.parse_args(args)))
+
     def update_conf(self):
         self.conf['private_pem'] = os.path.join(self.conf['conf_path'],
                                                 'private.pem')
@@ -386,7 +389,7 @@ class NotebookFrontend(object):
                       'again manually.')
 
     def run(self, args=None):
-        self.conf.update(vars(self.parser.parse_args(args)))
+        self.parse(args)
         self.update_conf()
         if not self.conf['quiet']:
             print_open_msg(self.conf['interface'], self.conf['port'],
@@ -614,8 +617,8 @@ class NotebookFrontend(object):
         if not os.path.exists(self.conf['conf_path']):
             os.makedirs(self.conf['conf_path'])
 
-        if not cmd_exists('certtool'):
-            raise RuntimeError('You must install certtool to use the secure '
+        if not cmd_exists('openssl'):
+            raise RuntimeError('You must install openssl to use the secure'
                                'notebook server.')
 
         dn = raw_input('Domain name [localhost]: ').strip()
@@ -623,62 +626,29 @@ class NotebookFrontend(object):
             print('Using default localhost')
             dn = 'localhost'
 
-        template_dict = {'organization': 'SAGE (at {})'.format(dn),
-                         'unit': '389',
-                         'locality': None,
-                         'state': 'Washington',
-                         'country': 'US',
-                         'cn': dn,
-                         'uid': 'sage_user',
-                         'dn_oid': None,
-                         'serial': str(random.randint(1, 2 ** 31)),
-                         'dns_name': None,
-                         'crl_dist_points': None,
-                         'ip_address': None,
-                         'expiration_days': 8999,
-                         'email': 'sage@sagemath.org',
-                         'ca': None,
-                         'tls_www_client': None,
-                         'tls_www_server': True,
-                         'signing_key': True,
-                         'encryption_key': True,
-                         }
+        #Key and certificate data
+        bits = 2048
+        days = 10000
+        distinguished_name = "'/{}/'".format('/'.join((
+            'CN={}'.format(dn),
+            'C=US',
+            'ST=Washington',
+            'O=SAGE (at localhost)',
+            'OU=389',
+            'emailAddress=sage@sagemath.org',
+            'UID=sage_user',
+            )))
 
-        s = ''
-        for key, val in template_dict.iteritems():
-            if val is None:
-                continue
-            if val is True:
-                w = ''
-            elif isinstance(val, list):
-                w = ' '.join('"{}"'.format(x) for x in val)
-            else:
-                w = '"{}"'.format(val)
-            s += '{} = {} \n'.format(key, w)
-
-        f = open(self.conf['template_file'], 'w')
-        f.write(s)
-        f.close()
-
-        if cmd_exists('openssl'):
-            # We use openssl by default if it exists, since it is open
-            # *vastly* faster on Linux, for some weird reason.
-            cmd = ['openssl genrsa 1024 > {}'.format(self.conf['private_pem'])]
-            print('Using openssl to generate key', cmd[0], sep='\n')
-            subprocess.call(cmd, shell=True)
-        else:
-            # We checked above that certtool is available.
-            cmd = ['certtool --generate-privkey --outfile {}'.format(
-                self.conf['private_pem'])]
-            print('Using certtool to generate key', cmd[0], sep='\n')
-            subprocess.call(cmd, shell=True)
-
-        cmd = ['certtool --generate-self-signed --template {} '
-               '--load-privkey {} --outfile {}'.format(
-                   self.conf['template_file'], self.conf['private_pem'],
-                   self.conf['public_pem'])]
-        print(cmd[0])
-        subprocess.call(cmd, shell=True)
+        # We use openssl since it is open
+        # *vastly* faster on Linux, for some weird reason.
+        system_command(
+            'openssl genrsa -out {} {}'.format(self.conf['private_pem'], bits),
+            'Using openssl to generate key')
+        system_command(
+            'openssl req  -key {} -out {} -newkey rsa:{} -x509 '
+            '-days {} -subj {}'.format(
+                self.conf['private_pem'], self.conf['public_pem'], bits,
+                days, distinguished_name))
 
         # Set permissions on private cert
         os.chmod(self.conf['private_pem'], 0600)

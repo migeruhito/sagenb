@@ -27,6 +27,7 @@ import os
 import resource
 import socket
 import stat
+import subprocess
 import tempfile
 import time
 from babel import Locale
@@ -598,3 +599,9 @@ def pad_zeros(s, size=3):
         '0000000389'
     """
     return "0"*(size-len(str(s))) + str(s)
+
+
+def system_command(cmd, msg=None):
+    msg = cmd if msg is None else '\n'.join((msg, cmd))
+    print(msg)
+    subprocess.call([cmd], shell=True)

@@ -306,10 +306,12 @@ class NotebookObject:
             if loc.get(arg):
                 args.append('--{}'.format(arg))
 
-        return self.nb_frend(args)
+        self.nb_frend(args)
 
     def setup(self, *args, **kwargs):
-        return self.nb_frend.notebook_setup(*args, **kwargs)
+        self.nb_frend.parse(['--secure'])
+        self.nb_frend.update_conf()
+        self.nb_frend.notebook_setup(*args, **kwargs)
 
 notebook = NotebookObject()
 
