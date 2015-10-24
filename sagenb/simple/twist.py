@@ -3,16 +3,16 @@ r"""nodoctest
 Simple Sage Server API
 
 This module provides a very simple API for interacting with a Sage session
-over HTTP. It runs as part of the notebook server. 
+over HTTP. It runs as part of the notebook server.
 
-.. warning:: 
+.. warning::
 
     This code currently doesn't work, since the notebook moved to a
     flask-based architecture. Volunteers are welcome to port this to
     the new flask notebook.
 
 .. note::
- 
+
     The exact data in the JSON header may vary over time (for example,
     further data may be added), but should remain backwards compatible
     if it is being parsed as JSON data.
@@ -38,7 +38,7 @@ function::
 
     sage: import urllib, re
     sage: def get_url(url): h = urllib.urlopen(url); data = h.read(); h.close(); return data
-    
+
 Login to a new session::
 
     sage: sleep(1)
@@ -92,7 +92,7 @@ Get the status of the computation::
 Interrupt the computation::
 
     sage: _ = get_url('http://localhost:%s/simple/interrupt?session=%s' % (port, session))
-    
+
 You can download files that your code creates on the remote server. Here
 we write a file, and then download it to our client::
 
@@ -107,7 +107,7 @@ we write a file, and then download it to our client::
 
     sage: print get_url('http://localhost:%s/simple/file?session=%s&cell=3&file=a.txt' % (port, session))
     test
-    
+
 When you are done, log out::
 
     sage: _ = get_url('http://localhost:%s/simple/logout?session=%s' % (port, session))
@@ -157,7 +157,7 @@ def late_import():
 def simple_jsonize(data):
     """
     This will be replaced by a JSON spkg when Python 2.6 gets into Sage.
-    
+
     EXAMPLES::
 
         sage: from sagenb.simple.twist import simple_jsonize
@@ -180,19 +180,19 @@ def simple_jsonize(data):
             return value
         else:
             return '"%s"' % value
-                    
+
 class SessionObject:
     def __init__(self, id, username, worksheet, timeout=5):
         self.id = id
         self.username = username
         self.worksheet = worksheet
         self.default_timeout = timeout
-        
+
     def get_status(self):
         """
-        Return a dictionary to be returned (in JSON format) representing 
-        the status of self. 
-        
+        Return a dictionary to be returned (in JSON format) representing
+        the status of self.
+
         TEST::
 
             sage: from sagenb.simple.twist import SessionObject
@@ -205,7 +205,7 @@ class SessionObject:
         }
 
 class LoginResource(resource.Resource):
-    
+
     def render(self, ctx):
         late_import()
         try:
@@ -216,7 +216,7 @@ class LoginResource(resource.Resource):
                 raise ValueError # want to return the same error message
         except KeyError, ValueError:
             return http.Response(stream = "Invalid login.")
-            
+
         worksheet = notebook_twist.notebook.create_new_worksheet("_simple_session_", username, add_to_list=False)
         worksheet.sage() # create the sage session
         worksheet.initialize_sage()
@@ -229,7 +229,7 @@ class LoginResource(resource.Resource):
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
 class LogoutResource(resource.Resource):
-    
+
     def render(self, ctx):
         try:
             session = sessions[ctx.args['session'][0]]
@@ -242,7 +242,7 @@ class LogoutResource(resource.Resource):
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
 class InterruptResource(resource.Resource):
-    
+
     def render(self, ctx):
         try:
             session = sessions[ctx.args['session'][0]]
@@ -251,9 +251,9 @@ class InterruptResource(resource.Resource):
         session.worksheet.interrupt()
         status = session.get_status()
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
-        
+
 class RestartResource(resource.Resource):
-    
+
     def render(self, ctx):
         try:
             session = sessions[ctx.args['session'][0]]
@@ -274,7 +274,7 @@ class CellResource(resource.Resource):
         d = looper.start(0.25, now=True)
         d.addCallback(self.render_cell_result)
         return d
-            
+
     def check_comp(self, cell, start_time, timeout, looper_list):
         cell.worksheet().check_comp(wait=0.01) # don't want to block, delay handled by twisted
         if not cell.computing() or time.time() - start_time > timeout:
@@ -296,7 +296,7 @@ class CellResource(resource.Resource):
 
 
 class ComputeResource(CellResource):
-    
+
     def render(self, ctx):
         print ctx.args
         try:
@@ -312,7 +312,7 @@ class ComputeResource(CellResource):
         cell.evaluate(username = session.username)
         print cell
         return self.start_comp(cell, timeout)
-                    
+
 
 class StatusResource(CellResource):
 
