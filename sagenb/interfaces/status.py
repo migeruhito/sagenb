@@ -9,11 +9,11 @@ class OutputStatus:
     attributes:
 
             - ``output`` - a string, the output so far
-            
+
             - ``filenames`` -- list of names of files created by this execution
 
             - ``done`` -- bool; whether or not the computation is now done
-    
+
     """
     def __init__(self, output, filenames, done, tempdir=None):
         """

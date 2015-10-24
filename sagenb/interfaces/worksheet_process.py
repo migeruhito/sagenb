@@ -34,7 +34,7 @@ class WorksheetProcess:
 
     def __repr__(self):
         """
-        Return string representation of this worksheet process. 
+        Return string representation of this worksheet process.
         """
         return "Worksheet process"
 
@@ -52,13 +52,13 @@ class WorksheetProcess:
         """
         Send an interrupt signal to the currently running computation
         in the controlled process.  This may or may not succeed.  Call
-        ``self.is_computing()`` to find out if it did. 
+        ``self.is_computing()`` to find out if it did.
         """
         raise NotImplementedError
 
     def quit(self):
         """
-        Quit this worksheet process.  
+        Quit this worksheet process.
         """
         raise NotImplementedError
 
@@ -85,7 +85,7 @@ class WorksheetProcess:
 
             - ``bool``
         """
-        raise NotImplementedError        
+        raise NotImplementedError
 
     def is_started(self):
         """
@@ -95,7 +95,7 @@ class WorksheetProcess:
 
             - ``bool``
         """
-        raise NotImplementedError                
+        raise NotImplementedError
 
     ###########################################################
     # Sending a string to be executed in the subprocess
@@ -111,9 +111,9 @@ class WorksheetProcess:
             - ``data`` -- a string or None; if given, must specify an
               absolute path on the server host filesystem.   This may
               be ignored by some worksheet process implementations.
-            
+
         """
-        raise NotImplementedError                        
+        raise NotImplementedError
 
     ###########################################################
     # Getting the output so far from a subprocess
@@ -129,7 +129,7 @@ class WorksheetProcess:
 
             - ``OutputStatus`` object.
         """
-        raise NotImplementedError                        
+        raise NotImplementedError
 
 
 

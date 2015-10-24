@@ -49,7 +49,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         self._start_walltime = None
         self._data_dir = None
         self._python = python
-        
+
 
         if process_limits:
             u = ''
@@ -58,7 +58,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
             if process_limits.max_cputime is not None:
                 u += ' -t %s'%(int(process_limits.max_cputime))
             if process_limits.max_processes is not None:
-                u += ' -u %s'%(int(process_limits.max_processes))            
+                u += ' -u %s'%(int(process_limits.max_processes))
             # prepend ulimit options
             if u == '':
                 self._ulimit = u
@@ -74,7 +74,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         return self._python
         # TODO: The following simply doesn't work -- this is not a valid way to run
         # ulimited.  Also we should check if ulimit is available before even
-        # doing this.   
+        # doing this.
         return '&&'.join([x for x in [self._ulimit, self._python] if x])
 
     def __del__(self):
@@ -94,7 +94,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
 
     def __repr__(self):
         """
-        Return string representation of this worksheet process. 
+        Return string representation of this worksheet process.
         """
         return "Pexpect implementation of worksheet process"
 
@@ -105,7 +105,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         """
         Send an interrupt signal to the currently running computation
         in the controlled process.  This may or may not succeed.  Call
-        ``self.is_computing()`` to find out if it did. 
+        ``self.is_computing()`` to find out if it did.
         """
         if self._expect is None: return
         try:
@@ -114,11 +114,11 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
 
     def quit(self):
         """
-        Quit this worksheet process.  
+        Quit this worksheet process.
         """
         if self._expect is None: return
         try:
-            self._expect.sendline(chr(3))  # send ctrl-c        
+            self._expect.sendline(chr(3))  # send ctrl-c
             self._expect.sendline('quit_sage()')
         except:
             pass
@@ -207,7 +207,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         # as the same user on the local machine.
         s = tempfile.mkdtemp()
         return (s, s)
-    
+
     def execute(self, string, data=None):
         """
         Start executing the given string in this subprocess.
@@ -225,7 +225,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
 
         if self._expect is None:
             raise RuntimeError, "unable to start subprocess using command '%s'"%self.command()
-        
+
         self._number += 1
 
         local, remote = self.get_tmpdir()
@@ -238,7 +238,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
             os.symlink(data, os.path.join(local, self._data))
         else:
             self._data = ''
-            
+
         self._tempdir = local
         sage_input = '_sage_input_%s.py'%self._number
         self._filename = os.path.join(self._tempdir, sage_input)
@@ -285,7 +285,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
             self._is_computing = False
         else:
             self._so_far += self._expect.before
-            
+
         v = re.findall('START%s.*%s'%(self._number,self._prompt), self._so_far, re.DOTALL)
         if len(v) > 0:
             self._is_computing = False
@@ -304,7 +304,7 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         if os.path.exists(self._tempdir):
             files = [os.path.join(self._tempdir, x) for x in os.listdir(self._tempdir) if x != self._data]
             files = [x for x in files if x != self._filename]
-            
+
         return OutputStatus(s, files, not self._is_computing)
 
 
@@ -336,7 +336,7 @@ class WorksheetProcess_RemoteExpectImplementation(WorksheetProcess_ExpectImpleme
           worksheet users, then putting ~/.ssh/id_rsa.pub as the file
           .ssh/authorized_keys.  You must make the permissions of
           files and directories right.
-          
+
         - ``local_directory`` -- (default: None) name of a directory on
           the local computer that the notebook server can write to,
           which the remote computer also has read/write access to.  If
@@ -346,7 +346,7 @@ class WorksheetProcess_RemoteExpectImplementation(WorksheetProcess_ExpectImpleme
 
         - ``remote_directory`` -- (default: None) if the local_directory is
           mounted on the remote machine as a different directory name,
-          this string is that directory name. 
+          this string is that directory name.
 
         - ``process_limits`` -- None or a ProcessLimits objects as defined by
           the ``sagenb.interfaces.ProcessLimits`` object.
@@ -381,7 +381,7 @@ class WorksheetProcess_RemoteExpectImplementation(WorksheetProcess_ExpectImpleme
         else:
             c = '&&'.join([x for x in [self._ulimit, self._remote_python] if x])
         return 'sage-native-execute ssh -t %s "%s"'%(self._user_at_host, c)
-        
+
     def get_tmpdir(self):
         """
         Return two strings (local, remote), where local is the name

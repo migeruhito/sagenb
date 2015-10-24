@@ -4,7 +4,7 @@ from __future__ import absolute_import
 class ProcessLimits:
     """
     INPUT:
-    
+
         - ``max_vmem`` -- maximum virtual memory available to worksheet
           process in megabytes, e.g., 500 would limit worksheet to
           use 500 megabytes.

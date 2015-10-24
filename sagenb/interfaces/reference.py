@@ -28,7 +28,7 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
 
     def __repr__(self):
         """
-        Return string representation of this worksheet process. 
+        Return string representation of this worksheet process.
         """
         return "Reference implementation of worksheet process"
 
@@ -39,13 +39,13 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
         """
         Send an interrupt signal to the currently running computation
         in the controlled process.  This may or may not succeed.  Call
-        ``self.is_computing()`` to find out if it did. 
+        ``self.is_computing()`` to find out if it did.
         """
         pass
 
     def quit(self):
         """
-        Quit this worksheet process.  
+        Quit this worksheet process.
         """
         self._state ={}
 
@@ -126,7 +126,7 @@ def execute_code(string, state, data=None):
     if data is not None:
         # make a symbolic link from the data directory into local tmp directory
         os.symlink(data, os.path.join(tempdir, os.path.split(data)[1]))
-    
+
     s = StringIO.StringIO()
     saved_stream = sys.stdout
     sys.stdout = s
