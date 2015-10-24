@@ -59,8 +59,9 @@ from __future__ import absolute_import
 import re
 import time
 import string
-import SourceMap
-import BaseConvert
+
+from . import SourceMap
+from . import BaseConvert
 
 
 class JavaScriptCompressor:
