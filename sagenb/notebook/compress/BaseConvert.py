@@ -23,14 +23,14 @@
 from __future__ import absolute_import
 
 class BaseConvert:
-	
+
 	__base = ""
 	__baseLength = 0
-	
+
 	def __init__(self, __base):
 		self.__base = __base
 		self.__baseLength = len(__base)
-	
+
 	def toBase(self, num):
 		module = 0
 		result = ""
@@ -42,7 +42,7 @@ class BaseConvert:
 			result = self.__base[0]
 		return result
 
-	
+
 	def fromBase(self, str):
 		pos = 0
 		strLen = len(str) - 1

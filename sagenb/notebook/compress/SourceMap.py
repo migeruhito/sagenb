@@ -14,16 +14,16 @@
 # --------------------------------------------------------------
 # What about the delimeter
 # 	It's an array/list of arrays/dictionary/obects with some properties to find what you're looking for.
-# 
+#
 # parameters are:
 #  - name, the name of the delimeter (i.e. "doublequote")
 #  - start, one or mode chars to find as start delimeter (i.e. " for double quoted string)
 #  - end, one or mode chars to find as end delimeter (i.e. " for double quoted string) [end should be an array/list too]
-# 
+#
 # optional parameters are:
 #  - noslash, if true find the end of the delimeter only if last char is not slashed (i.e. "string\"test" find " after test)
 #  - match, if choosed language has regexp, verify if string from start to end matches used regexp (i.e. /^\/[^\n\r]+\/$/ for JavaScript regexp)
-# 
+#
 # If end parameter is an array, match and noslash are not supported (i.e. ["\n", "\r"] for end delimeter of a single line comment)
 # --------------------------------------------------------------
 # What about SourceMap usage
@@ -48,7 +48,7 @@ import re
 
 
 class SourceMap:
-	
+
 	# public method
         # 	getMap(&$source:string, &$delimeters:array):array
 	# Maps the source code using $delimeters rules and returns map as an array
@@ -56,9 +56,9 @@ class SourceMap:
         #
         # @param	string		generic source code
         # @param	array		array with nested array with code rules
-	
+
 	def getMap(self, source, delimeters):
-		
+
 		# "unsigned" integer variables
 		sourcePosition = 0
 		delimetersPosition = 0
@@ -67,18 +67,18 @@ class SourceMap:
 		tempIndex = 0
 		sourceLength = len(source)
 		delimetersLength = len(delimeters)
-		
+
 		# integer variables
 		tempPosition = -1
 		endPosition = -1
-		
+
 		# list variables
 		codeMap = []
 		tempMap = []
-		
+
 		# dictionary variable
 		tempDelimeter = {}
-		
+
 		while sourcePosition < sourceLength:
 			endPosition = -1
 			for delimetersPosition in range(0, delimetersLength):
@@ -140,10 +140,10 @@ class SourceMap:
 				if tempIndex + 1 == templen and codeMap[tempIndex]["end"] < sourceLength:
 					tempMap.append({"name":"code", "start":codeMap[tempIndex]["end"], "end":sourceLength});
 		return tempMap
-	
+
 	def __has(self, dict, name):
 		return dict.get(name, None) != None
-	
+
 	def __endCharNoSlash(self, source, position, find, sourceLen):
 		loop = True
 		temp = len(find)
@@ -154,7 +154,7 @@ class SourceMap:
 		if position == -1:
 			position = sourceLen - temp
 		return position + temp
-	
+
 	def __charNoSlash(self, source, position):
 		next = 1
 		sourceLen = position - next

@@ -64,7 +64,7 @@ import BaseConvert
 
 
 class JavaScriptCompressor:
-	
+
 	# public variables
         # 	stats:string		after every compression has some informations
         #      version:string		version of this class
@@ -90,14 +90,14 @@ class JavaScriptCompressor:
         # @param	mixed		view example and notes on class comments
 	def getClean(self, jsSource):
 		return self.__commonInitMethods(jsSource, False)
-	
+
 	# public method
         # 	string self.getClean(jsSource:mixed)
         #      compress JavaScript replaceing words and removing comments and some spaces
         # @param	mixed		view example and notes on class comments
 	def getPacked(self, jsSource):
 		return self.__commonInitMethods(jsSource, True)
-	
+
 	# private methods, any comment sorry
 	def __addCleanCode(self, str):
 		for a in range(0, len(self.__cleanFinder)):
@@ -138,7 +138,7 @@ class JavaScriptCompressor:
 		self.__setStats()
 		return header + sources
 	def __doReplacement(self, matchobj):
-		return self.__BC.toBase(self.__wordsParser(matchobj.group(0)))	
+		return self.__BC.toBase(self.__wordsParser(matchobj.group(0)))
 	def __getHeader(self):
 		return string.join([
 			"/* ", self.__getScriptNames(), "JavaScriptCompressor ", self.version, " [www.devpro.it], ",
