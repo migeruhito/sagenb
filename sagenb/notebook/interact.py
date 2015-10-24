@@ -5,6 +5,7 @@
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 r"""
 Interact Functions in the Notebook
@@ -145,16 +146,22 @@ VERSION 3:
        This involves doing something with SAGE_CELL_ID and the cell_id() method.
    [ ] framed -- put a frame around an object
 """
-
 # Standard system libraries
+import cgi
 import inspect
 import math
 import types
-from base64 import standard_b64decode
 
 # Sage libraries
-from sagenb.misc.misc import srange, sage_eval, Color, is_Matrix
+# TODO: sage dependency
 from sage.misc.cachefunc import cached_method
+# TODO: sage dependency
+from sage.misc.decorators import decorator_defaults
+
+from sagenb.misc.misc import srange
+from sagenb.misc.misc import sage_eval
+from sagenb.misc.misc import Color
+from sagenb.misc.misc import is_Matrix
 
 # SAGE_CELL_ID is a module scope variable that is always set equal to
 # the current cell id (of the executing cell).  Code that sets this is
@@ -829,7 +836,6 @@ class InteractControl(InteractElement):
         s = self.default_value()
         if not isinstance(s, str):
             s = repr(s)
-        import cgi
         return cgi.escape(s, quote=True)
 
     def adapt_number(self):
@@ -2251,7 +2257,6 @@ class UpdateButton(JavascriptCodeButton):
         return self.__var
 
 
-from sage.misc.decorators import decorator_defaults
 
 @decorator_defaults
 def interact(f, layout=None, width='800px'):

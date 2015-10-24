@@ -25,40 +25,43 @@ AUTHORS:
 ###########################################################################
 
 # Import standard Python libraries that we will use below
+from __future__ import absolute_import
+
 import base64
 import bz2
 import calendar
 import copy
+import datetime
 import os
 import re
 import shutil
-import string
 import time
 import traceback
-import locale
+
+from flask.ext.babel import format_datetime
+from flask.ext.babel import gettext
+from flask.ext.babel import lazy_gettext
 
 # General sage library code
-from sagenb.misc.misc import (cython, load, save,
-                              alarm, cancel_alarm, verbose, DOT_SAGENB,
-                              walltime, ignore_nonexistent_files,
-                              set_restrictive_permissions,
-                              set_permissive_permissions,
-                              encoded_str, unicode_str)
-
-from sagenb.misc.remote_file import get_remote_file
-
-from sagenb.interfaces import (WorksheetProcess_ExpectImplementation,
-                               WorksheetProcess_ReferenceImplementation,
-                               WorksheetProcess_RemoteExpectImplementation)
-
 import sagenb.misc.support  as support
+from sagenb.misc.misc import cython
+from sagenb.misc.misc import verbose
+from sagenb.misc.misc import DOT_SAGENB
+from sagenb.misc.misc import walltime
+from sagenb.misc.misc import ignore_nonexistent_files
+from sagenb.misc.misc import set_restrictive_permissions
+from sagenb.misc.misc import unicode_str
+from sagenb.misc.remote_file import get_remote_file
 from sagenb.misc.format import relocate_future_imports
-from .misc import CODE_PY
 
+from . import misc
+from .misc import CODE_PY
 # Imports specifically relevant to the sage notebook
-from cell import Cell, TextCell
-from template import template, clean_name, prettify_time_ago
-from flask.ext.babel import gettext, lazy_gettext
+from .cell import Cell, TextCell
+from .template import template
+from .template import clean_name
+from .template import prettify_time_ago
+
 _ = gettext
 
 # Set some constants that will be used for regular expressions below.
@@ -100,7 +103,6 @@ def update_worksheets():
     for S in all_worksheet_processes:
         S.update()
 
-import notebook as _notebook
 def worksheet_filename(name, owner):
     """
     Return the relative directory name of this worksheet with given
@@ -929,7 +931,6 @@ class Worksheet(object):
             True
         """
         if not hasattr(self, '_notebook'):
-            import misc
             self._notebook = misc.notebook
         return self._notebook
 
@@ -2989,7 +2990,6 @@ class Worksheet(object):
         self.clear_queue()
         del self.__cells
 
-        import shutil
         for cell in self.cell_list():
             try:
                 dir = cell._directory_name()
@@ -3020,9 +3020,9 @@ class Worksheet(object):
             return False
 
     def initialize_sage(self):
+        # TODO: sage dependency
         S = self.__sage
         try:
-            import misc
             cmd = """
 import base64
 import sagenb.misc.support as _support_
@@ -3420,7 +3420,6 @@ except (KeyError, IOError):
         S = self.__sage
         S.interrupt()
 
-        import time
         time.sleep(timeout)
 
         if S.is_computing():
@@ -4400,8 +4399,6 @@ def convert_time_to_string(t):
     Converts ``t`` (in Unix time) to a locale-specific string
     describing the time and date.
     """
-    from flask.ext.babel import format_datetime
-    import datetime, time
     try:
         return format_datetime(datetime.datetime.fromtimestamp(float(t)))
     except AttributeError: #testing as opposed to within the Flask app

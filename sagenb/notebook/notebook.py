@@ -17,47 +17,55 @@ AUTHORS:
 #############################################################################
 
 # For debugging sometimes it is handy to use only the reference implementation.
-USE_REFERENCE_WORKSHEET_PROCESSES = False
+from __future__ import absolute_import
 
 # System libraries
-import os
-import re
-import shutil
-import time
 import bz2
 import cPickle
 import logging
-import traceback
+import os
 import random
+import re
+import shutil
+import time
+import traceback
 import sys
 from cgi import escape
-from docHTMLProcessor import SphinxHTMLProcessor
-from docHTMLProcessor import docutilsHTMLProcessor
 from time import strftime
 
+from docutils.core import publish_parts
 from flask import current_app
 from flask.ext.babel import lazy_gettext
 
-from sage.misc.all import walltime
+
 # Sage libraries
-from sagenb.misc.misc import unicode_str, get_module
+# TODO: sage dependency
+from sage.misc.all import walltime
+
+from sagenb.interfaces import WorksheetProcess_ExpectImplementation
+from sagenb.interfaces import WorksheetProcess_ReferenceImplementation
+from sagenb.interfaces import WorksheetProcess_RemoteExpectImplementation
+from sagenb.interfaces import ProcessLimits
+from sagenb.misc.misc import unicode_str
+from sagenb.misc.misc import get_module
+from sagenb.storage import FilesystemDatastore
 
 # Sage Notebook
 import sagenb.notebook.misc
 from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
 from . import user         # users
-from template import template, prettify_time_ago
-from user_manager import OpenIDUserManager
-from sagenb.storage import FilesystemDatastore
-from sagenb.notebook.notification import logger, TwistedEmailHandler
-from sagenb.interfaces import WorksheetProcess_ExpectImplementation
-from sagenb.interfaces import WorksheetProcess_ReferenceImplementation
-from sagenb.interfaces import WorksheetProcess_RemoteExpectImplementation
-from sagenb.interfaces import ProcessLimits
-from misc import extract_title
-from docutils.core import publish_parts
-from worksheet import extract_name
+from .docHTMLProcessor import SphinxHTMLProcessor
+from .docHTMLProcessor import docutilsHTMLProcessor
+from .misc import extract_title
+from .notification import logger
+from .notification import TwistedEmailHandler
+from .template import template
+from .template import prettify_time_ago
+from .user_manager import OpenIDUserManager
+from .worksheet import extract_name
+
+USE_REFERENCE_WORKSHEET_PROCESSES = False
 
 if get_module('sage') is not None:
     # sage is installed
@@ -183,7 +191,6 @@ class Notebook(object):
                         self.__worksheets[a] = self.__storage.load_worksheet(
                             "pub", int(id_number))
                     except Exception:
-                        import traceback
                         print "Warning: problem loading %s/%s: %s" % (
                             "pub", int(id_number), traceback.format_exc())
 

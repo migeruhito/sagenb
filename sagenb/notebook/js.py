@@ -25,25 +25,28 @@ interesting Javascript code is contained under
 #     contributed to the notebook, to whatever suits you."
 #
 ###########################################################################
+from __future__ import absolute_import
+
 
 import os
-import keyboards
-from template import template
-from sagenb.misc.misc import SAGE_URL
-from compress.JavaScriptCompressor import JavaScriptCompressor
 from hashlib import sha1
-from config import KEYS
+
+from pkg_resources import Requirement, working_set
+
+from sagenb.misc.misc import import_from
+from sagenb.misc.misc import SAGE_URL
+
+from .compress.JavaScriptCompressor import JavaScriptCompressor
+from .config import KEYS
+from .template import template
 
 # Debug mode?  If sagenb lives under SAGE_ROOT/, we minify/pack and cache
 # the Notebook JS library.
-debug_mode = False
-try:
-    from sage.env import SAGE_ROOT
-    from pkg_resources import Requirement, working_set
-    sagenb_path = working_set.find(Requirement.parse('sagenb')).location
-    debug_mode = SAGE_ROOT not in os.path.realpath(sagenb_path)
-except Exception:
-    pass
+sagenb_path = os.path.realpath(
+    working_set.find(Requirement.parse('sagenb')).location)
+# TODO: sage dependency
+SAGE_ROOT = import_from('sage.env', 'SAGE_ROOT')
+debug_mode = SAGE_ROOT is None or not sagenb_path.startswith(SAGE_ROOT)
 
 _cache_javascript = None
 def javascript():
