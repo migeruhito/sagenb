@@ -19,6 +19,8 @@ AUTHORS:
 ###################################################################
 # Abstract base class
 ###################################################################
+from __future__ import absolute_import
+
 class WorksheetProcess:
     """
     A controlled Python process that executes code.  This is a

@@ -1,2 +1,3 @@
 # -*- coding: utf-8 -*
-  # init
+# init
+from __future__ import absolute_import

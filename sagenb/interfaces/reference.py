@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*
-import os, StringIO, sys, traceback, tempfile
+from __future__ import absolute_import
 
-from status import OutputStatus
+import os
+import StringIO
+import sys
+import traceback
+import tempfile
+
 from sagenb.misc.format import displayhook_hack
-from worksheet_process import WorksheetProcess
+
+from .status import OutputStatus
+from .worksheet_process import WorksheetProcess
 
 ###################################################################
 # Reference implementation
@@ -106,8 +113,6 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
         OS = self._output_status
         self._output_status = OutputStatus('',[],True)
         return OS
-
-
 
 
 def execute_code(string, state, data=None):

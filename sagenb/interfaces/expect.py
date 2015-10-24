@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*
-import os, StringIO, sys, traceback, tempfile, random, shutil
+from __future__ import absolute_import
 
-from status import OutputStatus
-from sagenb.misc.format import format_for_pexpect
-from worksheet_process import WorksheetProcess
-from sagenb.misc.misc import (walltime,
-                              set_restrictive_permissions, set_permissive_permissions)
-
+import os
+import re
+import shutil
+import tempfile
 
 import pexpect
+
+from sagenb.misc.format import format_for_pexpect
+from sagenb.misc.misc import set_permissive_permissions
+from sagenb.misc.misc import set_restrictive_permissions
+from sagenb.misc.misc import walltime
+
+from .status import OutputStatus
+from .worksheet_process import WorksheetProcess
+
 
 
 ###################################################################
@@ -279,7 +286,6 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         else:
             self._so_far += self._expect.before
             
-        import re
         v = re.findall('START%s.*%s'%(self._number,self._prompt), self._so_far, re.DOTALL)
         if len(v) > 0:
             self._is_computing = False

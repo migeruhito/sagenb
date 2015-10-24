@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*
+from __future__ import absolute_import
+
 class ProcessLimits:
     """
     INPUT:
@@ -35,5 +37,3 @@ class ProcessLimits:
                '\n\tmax_cputime = %s'%self.max_cputime + \
                '\n\tmax_walltime = %s'%self.max_walltime + \
                '\n\tmax_processes = %s'%self.max_processes
-    
-                 

@@ -8,13 +8,14 @@
 #
 #############################################################################
 
+from __future__ import absolute_import
+
 # interfaces to other math software
+from .worksheet_process import WorksheetProcess
 
-from worksheet_process import WorksheetProcess
+from .reference import WorksheetProcess_ReferenceImplementation
 
-from reference import WorksheetProcess_ReferenceImplementation
+from .expect import WorksheetProcess_ExpectImplementation
+from .expect import WorksheetProcess_RemoteExpectImplementation
 
-from expect import (WorksheetProcess_ExpectImplementation,
-                    WorksheetProcess_RemoteExpectImplementation)
-
-from limits import ProcessLimits
+from .limits import ProcessLimits
