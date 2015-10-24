@@ -1,10 +1,23 @@
-import os
-import random
-from flask import Module, url_for, render_template, request, session, redirect, g, current_app
-from decorators import login_required, with_lock
-from flask.ext.babel import gettext, ngettext, lazy_gettext
-_ = gettext
+from __future__ import absolute_import
 
+import os
+from flask import Module
+from flask import url_for
+from flask import render_template
+from flask import request
+from flask import redirect
+from flask import g
+from flask import current_app
+from flask.ext.babel import gettext
+
+from sagenb.misc.misc import SAGE_VERSION
+from sagenb.notebook.misc import is_valid_password
+from sagenb.notebook.misc import is_valid_email
+
+from .decorators import login_required
+from .decorators import with_lock
+
+_ = gettext
 
 settings = Module('sagenb.flask_version.settings')
 
@@ -12,8 +25,6 @@ settings = Module('sagenb.flask_version.settings')
 @login_required
 @with_lock
 def settings_page():
-    from sagenb.notebook.misc import is_valid_password, is_valid_email
-    from sagenb.misc.misc import SAGE_VERSION
     error = None
     redirect_to_home = None
     redirect_to_logout = None

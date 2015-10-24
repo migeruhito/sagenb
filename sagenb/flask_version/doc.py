@@ -13,16 +13,25 @@ URLS to do:
 /src/<name>       - Source(os.path.join(SRC,name), self.username)
 
 """
-import os
-from flask import Module, url_for, render_template, request, session, redirect, g, current_app
-from decorators import login_required, guest_or_login_required
+from __future__ import absolute_import
 
-from flask.ext.babel import gettext, ngettext, lazy_gettext
+import os
+from flask import Module
+from flask import redirect
+from flask import g
+from flask import current_app
+from flask.ext.babel import gettext
+from flask.helpers import send_file
+
+from sagenb.misc.misc import SAGE_DOC
+
+from .decorators import login_required
+from .worksheet import worksheet_file
+
 _ = gettext
 
 doc = Module('sagenb.flask_version.doc')
 
-from sagenb.misc.misc import SAGE_DOC
 DOC = os.path.join(SAGE_DOC, 'output', 'html', 'en')
 
 ################
@@ -57,7 +66,6 @@ def doc_static_file(manual, path_static, filename):
     directory is a bug in Sphinx, and file a report or see if it has
     already been fixed upstream.
     """
-    from flask.helpers import send_file
     filename = os.path.join(DOC, manual, '_static', filename)
     return send_file(filename)
 
@@ -66,8 +74,6 @@ def doc_static_file(manual, path_static, filename):
 def doc_live(filename):
     filename = os.path.join(DOC, filename)
     if filename.endswith('.html'):
-        from worksheet import worksheet_file
         return worksheet_file(filename)
     else:
-        from flask.helpers import send_file
         return send_file(filename)

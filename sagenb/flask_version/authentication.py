@@ -1,8 +1,32 @@
+from __future__ import absolute_import
+
 import os
-import random
-from flask import Module, url_for, render_template, request, session, redirect, g, current_app
-from decorators import with_lock
-from flask.ext.babel import gettext, ngettext, lazy_gettext
+from random import choice
+import string
+
+from flask import Module
+from flask import url_for
+from flask import render_template
+from flask import request
+from flask import session
+from flask import redirect
+from flask import g
+from flask import current_app
+from flask.ext.babel import gettext
+
+from sagenb.misc.misc import SAGE_VERSION
+from sagenb.notebook.challenge import challenge
+from sagenb.notebook.misc import is_valid_username
+from sagenb.notebook.misc import is_valid_password
+from sagenb.notebook.misc import is_valid_email
+from sagenb.notebook.misc import do_passwords_match
+from sagenb.notebook.register import make_key
+from sagenb.notebook.register import build_msg
+from sagenb.notebook.register import build_password_msg
+from sagenb.notebook.smtpsend import send_mail
+
+from .decorators import with_lock
+
 _ = gettext
 
 authentication = Module('sagenb.flask_version.authentication')
@@ -19,7 +43,6 @@ def lookup_current_user():
 
 @authentication.route('/login', methods=['POST', 'GET'])
 def login(template_dict={}):
-    from sagenb.misc.misc import SAGE_VERSION
     template_dict.update({'accounts': g.notebook.user_manager().get_accounts(),
                           'recovery': g.notebook.conf()['email'],
                           'next': request.values.get('next', ''),
@@ -36,7 +59,6 @@ def login(template_dict={}):
             return _("Please enable cookies or delete all Sage cookies and localhost cookies in your browser and try again.")
 
         # we only handle ascii usernames.
-        from sagenb.notebook.misc import is_valid_username, is_valid_password
         if is_valid_username(username):
             try:
                 U = g.notebook.user_manager().user(username)
@@ -95,9 +117,6 @@ waiting = {}
 def register():
     if not g.notebook.user_manager().get_accounts():
         return redirect(url_for('base.index'))
-    from sagenb.notebook.misc import is_valid_username, is_valid_password, \
-    is_valid_email, do_passwords_match
-    from sagenb.notebook.challenge import challenge
 
     # VALIDATORS: is_valid_username, is_valid_password,
     # do_passwords_match, is_valid_email,
@@ -223,8 +242,6 @@ def register():
 
     # POST-VALIDATION hooks.  All required fields should be valid.
     if g.notebook.conf()['email']:
-        from sagenb.notebook.smtpsend import send_mail
-        from sagenb.notebook.register import make_key, build_msg
 
         # TODO: make this come from the server settings
         key = make_key()
@@ -242,7 +259,6 @@ def register():
             pass
 
     # Go to the login page.
-    from sagenb.misc.misc import SAGE_VERSION
     template_dict = {'accounts': g.notebook.user_manager().get_accounts(),
                      'welcome_user': username,
                      'recovery': g.notebook.conf()['email'],
@@ -296,14 +312,10 @@ def forgot_pass():
 
     #XXX: some of this could be factored out into a random passowrd
     #function.  There are a few places in admin.py that also use it.
-    from random import choice
-    import string
     chara = string.letters + string.digits
     old_pass = user.password()
     password = ''.join([choice(chara) for i in range(8)])
 
-    from sagenb.notebook.smtpsend import send_mail
-    from sagenb.notebook.register import build_password_msg
     # TODO: make this come from the server settings
 
     listenaddr = g.notebook.interface

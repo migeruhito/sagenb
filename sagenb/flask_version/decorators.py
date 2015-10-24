@@ -1,6 +1,14 @@
+from __future__ import absolute_import
+
 from functools import wraps
-from flask import Flask, url_for, render_template, request, session, redirect, g, current_app
-from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext
+from flask import url_for
+from flask import request
+from flask import session
+from flask import redirect
+from flask import g
+from flask import current_app
+from flask.ext.babel import gettext
+
 _ = gettext
 
 from threading import Lock

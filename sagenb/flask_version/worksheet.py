@@ -1,15 +1,39 @@
-import re
-import os, threading, collections
-from functools import wraps
-from flask import Module, make_response, url_for, render_template, request, session, redirect, g, current_app, escape
-from decorators import login_required, with_lock
-from collections import defaultdict
-from werkzeug.utils import secure_filename
-from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext
-_ = gettext
+from __future__ import absolute_import
 
+import base64
+import bz2
+import re
+import os
+import threading
+import time
+import urllib2
+from collections import defaultdict
+from functools import wraps
+from urlparse import urlparse
+
+from flask import Module
+from flask import make_response
+from flask import url_for
+from flask import request
+from flask import redirect
+from flask import g
+from flask import current_app
+from flask import escape
+from flask.ext.babel import gettext
+from flask.helpers import send_file
+from flask.helpers import send_from_directory
+from werkzeug.utils import secure_filename
+
+from sagenb.misc.misc import tmp_filename
+from sagenb.misc.misc import unicode_str
+from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
 from sagenb.notebook.interact import INTERACT_UPDATE_PREFIX
 from sagenb.notebook.misc import encode_response
+
+from .base import notebook_updates
+from .decorators import login_required
+
+_ = gettext
 
 ws = Module('sagenb.flask_version.worksheet')
 worksheet_locks = defaultdict(threading.Lock)
@@ -42,7 +66,6 @@ def worksheet_view(f):
                 worksheet.set_active(g.username)
 
             #This was in twist.Worksheet.childFactory
-            from base import notebook_updates
             notebook_updates()
 
             return f(username, id, **kwds)
@@ -267,7 +290,6 @@ def worksheet_set_cell_output_type(worksheet):
 ########################################################
 #Cell creation
 ########################################################
-from sagenb.misc.misc import unicode_str
 
 
 @worksheet_command('new_cell_before')
@@ -382,7 +404,6 @@ def worksheet_eval(worksheet):
     documentation of the function and the source code of the function
     respectively.
     """
-    from base import notebook_updates
 
     r = {}
 
@@ -445,7 +466,6 @@ def worksheet_eval(worksheet):
 
 @worksheet_command('cell_update')
 def worksheet_cell_update(worksheet):
-    import time
 
     r = {}
     r['id'] = id = get_cell_id()
@@ -622,7 +642,6 @@ def worksheet_revisions(worksheet):
         rev = request.values['rev']
         action = request.values['action']
         if action == 'revert':
-            import bz2
             worksheet.save_snapshot(g.username)
             #XXX: Requires access to filesystem
             txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
@@ -630,7 +649,6 @@ def worksheet_revisions(worksheet):
             worksheet.edit_save(txt)
             return redirect(url_for_worksheet(worksheet))
         elif action == 'publish':
-            import bz2
             W = g.notebook.publish_worksheet(worksheet, g.username)
             txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
             W.delete_cells_directory()
@@ -648,7 +666,6 @@ def worksheet_revisions(worksheet):
 def worksheet_cells(worksheet, filename):
     #XXX: This requires that the worker filesystem be accessible from
     #the server.
-    from flask.helpers import send_from_directory
     return send_from_directory(worksheet.cells_directory(), filename)
 
 
@@ -676,7 +693,6 @@ def worksheet_jsmol_data(worksheet):
         def encoder(x): 
             return x
     elif encoding == u'base64':
-        import base64
         def encoder(x): 
             # JSmol expects the magic ';base64,' in front of output
             return ';base64,' + base64.encodestring(x)
@@ -733,7 +749,6 @@ def worksheet_data(worksheet, filename):
     if not os.path.exists(dir):
         return current_app.message(_('No data files'))
     else:
-        from flask.helpers import send_from_directory
         return send_from_directory(worksheet.data_directory(), filename)
 
 @worksheet_command('datafile')
@@ -815,8 +830,6 @@ def worksheet_do_upload_data(worksheet):
         return current_app.message(_('Error uploading file (missing filename).%(backlinks)s', backlinks=backlinks), worksheet_url)
 
     if url != '':
-        import urllib2
-        from urlparse import urlparse
         # we normalize the url by parsing it first
         parsedurl=urlparse(url)
         if not parsedurl[0] in ('http','https','ftp'):
@@ -832,7 +845,6 @@ def worksheet_do_upload_data(worksheet):
 
     response = redirect(worksheet_datafile.url_for(worksheet, name=name))
 
-    import re
     matches = re.match("file://(?:localhost)?(/.+)", url)
     if matches:
         f = file(dest, 'wb')
@@ -938,8 +950,6 @@ def worksheet_download(worksheet, title):
     return unconditional_download(worksheet, title)
 
 def unconditional_download(worksheet, title):
-    from sagenb.misc.misc import tmp_filename
-    from flask.helpers import send_file
     filename = tmp_filename() + '.sws'
 
     if title.endswith('.sws'):
@@ -951,7 +961,6 @@ def unconditional_download(worksheet, title):
     except KeyError:
         return current_app.message(_('No such worksheet.'))
 
-    from flask.helpers import send_file
     return send_file(filename, mimetype='application/sage')
 
 
@@ -1037,7 +1046,6 @@ def worksheet_file(path):
         return current_app.message(_('Document does not exist.'))
 
     doc_page_html = open(path).read()
-    from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
     doc_page = SphinxHTMLProcessor().process_doc_html(doc_page_html)
 
     title = (extract_title(doc_page_html).replace('&mdash;', '--') or

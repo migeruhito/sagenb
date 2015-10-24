@@ -1,7 +1,24 @@
+from __future__ import absolute_import
+
 import os
-from flask import Module, url_for, render_template, request, session, redirect, g, current_app
-from decorators import login_required, admin_required, with_lock
-from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext
+import string
+from random import choice
+
+from flask import Module
+from flask import url_for
+from flask import render_template
+from flask import request
+from flask import redirect
+from flask import g
+from flask import current_app
+from flask.ext.babel import gettext
+
+from sagenb.misc.misc import SAGE_VERSION
+from sagenb.notebook.misc import is_valid_username
+
+from .decorators import admin_required
+from .decorators import with_lock
+
 _ = gettext
 
 admin = Module('sagenb.flask_version.admin')
@@ -11,12 +28,9 @@ admin = Module('sagenb.flask_version.admin')
 @admin_required
 @with_lock
 def users(reset=None):
-    from sagenb.misc.misc import SAGE_VERSION
     template_dict = {}
     template_dict['sage_version'] = SAGE_VERSION
     if reset:
-        from random import choice
-        import string
         chara = string.letters + string.digits
         password = ''.join([choice(chara) for i in range(8)])
         try:
@@ -74,8 +88,6 @@ def toggle_admin(user):
 @admin_required
 @with_lock
 def add_user():
-    from sagenb.notebook.misc import is_valid_username
-    from sagenb.misc.misc import SAGE_VERSION
     template_dict = {'admin': g.notebook.user_manager().user(g.username).is_admin(),
             'username': g.username, 'sage_version': SAGE_VERSION}
     if 'username' in request.values:
@@ -86,8 +98,6 @@ def add_user():
             return render_template(os.path.join('html', 'settings', 'admin_add_user.html'),
                                    error='username_invalid', username_input=username, **template_dict)
 
-        from random import choice
-        import string
         chara = string.letters + string.digits
         password = ''.join([choice(chara) for i in range(8)])
         if username in g.notebook.user_manager().usernames():
@@ -106,7 +116,6 @@ def add_user():
 @admin_required
 @with_lock
 def notebook_settings():
-    from sagenb.misc.misc import SAGE_VERSION
     updated = {}
     if 'form' in request.values:
         updated = g.notebook.conf().update_from_form(request.values)
@@ -119,4 +128,3 @@ def notebook_settings():
 
     return render_template(os.path.join('html', 'settings', 'notebook_settings.html'),
                            **template_dict)
-
