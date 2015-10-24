@@ -23,6 +23,10 @@ from .conf import T_CHOICE
 from .conf import T_STRING
 from .conf import T_LIST
 from .conf import T_INFO
+from .conf import G_APPEARANCE
+from .conf import G_AUTH
+from .conf import G_SERVER
+from .conf import G_LDAP
 
 _ = lazy_gettext
 
@@ -71,11 +75,6 @@ defaults = {'word_wrap_cols':72,
             'ldap_username_attrib': 'cn',
             'ldap_timeout': 5,
             }
-
-G_APPEARANCE = _('Appearance')
-G_AUTH = _('Authentication')
-G_SERVER = _('Server')
-G_LDAP = _('LDAP')
 
 defaults_descriptions = {
 

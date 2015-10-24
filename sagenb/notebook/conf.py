@@ -16,7 +16,6 @@ from flask.ext.babel import lazy_gettext
 
 from sagenb.misc.misc import import_from
 
-from .server_conf import G_LDAP
 
 POS = 'pos'
 DESC = 'desc'
@@ -32,6 +31,11 @@ T_COLOR = 4
 T_STRING = 5
 T_LIST = 6
 T_INFO = 7
+
+G_APPEARANCE = lazy_gettext('Appearance')
+G_AUTH = lazy_gettext('Authentication')
+G_SERVER = lazy_gettext('Server')
+G_LDAP = lazy_gettext('LDAP')
 
 POS_DEFAULT = 100
 
