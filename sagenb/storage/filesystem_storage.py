@@ -36,15 +36,27 @@ Sage notebook server::
              ...
 
 """
+from __future__ import absolute_import
 
-import copy, cPickle, shutil, tarfile, tempfile
-
+import copy
+import cPickle
 import os
+import shutil
+import tarfile
+import tempfile
+import traceback
+from hashlib import md5
 
-from abstract_storage import Datastore
-from sagenb.misc.misc import set_restrictive_permissions, encoded_str
-
+# TODO: sage dependency
 from sage.misc.temporary_file import atomic_write
+
+from sagenb.misc.misc import set_restrictive_permissions
+from sagenb.misc.misc import encoded_str
+from sagenb.notebook.server_conf import ServerConfiguration_from_basic
+from sagenb.notebook.user import User_from_basic
+from sagenb.notebook.worksheet import Worksheet_from_basic
+
+from .abstract_storage import Datastore
 
 def is_safe(a):
     """
@@ -94,7 +106,6 @@ class FilesystemDatastore(Datastore):
         return path
 
     def _deep_user_path(self, username):
-        from hashlib import md5
         h = md5(username).hexdigest()
         base = ['__store__', h[:1], h[:2], h[:3], h[:4]]
         path = os.path.join(*base)
@@ -207,7 +218,6 @@ class FilesystemDatastore(Datastore):
     # storage will work).
     #########################################################################
     def _basic_to_users(self, obj):
-        from sagenb.notebook.user import User_from_basic
         return dict([(name, User_from_basic(basic)) for name, basic in obj])
 
     def _users_to_basic(self, users):
@@ -215,7 +225,6 @@ class FilesystemDatastore(Datastore):
         return new
 
     def _basic_to_server_conf(self, obj):
-        from sagenb.notebook.server_conf import ServerConfiguration_from_basic
         return ServerConfiguration_from_basic(obj)
 
     def _server_conf_to_basic(self, server):
@@ -225,7 +234,6 @@ class FilesystemDatastore(Datastore):
         """
         Given a basic Python object obj, return corresponding worksheet.
         """
-        from sagenb.notebook.worksheet import Worksheet_from_basic
         path = self._abspath(self._worksheet_path(obj['owner']))
         return Worksheet_from_basic(obj, path)
 
@@ -440,7 +448,6 @@ class FilesystemDatastore(Datastore):
             W._last_basic = basic   # cache
         except Exception:
             #the worksheet conf loading didn't work, so we make up one
-            import traceback
             print "Warning: problem loading config for %s/%s; using default config: %s"%(username, id_number, traceback.format_exc())
             W = self._basic_to_worksheet({'owner':username, 'id_number': id_number})
             if username=='_sage_':
@@ -628,7 +635,6 @@ class FilesystemDatastore(Datastore):
                 try:
                     v.append(self.load_worksheet(username, int(id_number)))
                 except Exception:
-                    import traceback
                     print "Warning: problem loading %s/%s: %s"%(username, id_number, traceback.format_exc())
         return v
 
@@ -651,7 +657,6 @@ class FilesystemDatastore(Datastore):
         Delete all files associated with this datastore.  Dangerous!
         This is only here because it is useful for doctesting.
         """
-        import shutil
         shutil.rmtree(self._path, ignore_errors=True)
 
 

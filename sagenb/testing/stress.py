@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*
+from __future__ import absolute_import
+
 import re
 import urllib2
 
 
+# TODO: sage dependency
 from sage.misc.sage_timeit import sage_timeit
+# TODO: sage dependency
 from sage.misc.all import alarm, cancel_alarm
-from sagenb.misc.misc import walltime, cputime
+from sagenb.misc.misc import walltime
 
 
 TIMEOUT = 'timeout'
