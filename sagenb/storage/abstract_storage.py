@@ -5,8 +5,6 @@ Sage Notebook Storage Abstraction Layer
 from __future__ import absolute_import
 
 
-import os
-
 class Datastore(object):
     """
     The Sage Notebook storage abstraction layer abstract base class.
