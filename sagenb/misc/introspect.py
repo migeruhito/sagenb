@@ -18,17 +18,17 @@ output format for docstring
 def introspect(S, query, format='html'):
     """
     Return introspection from a given query string.
-    
+
     INPUT:
-    
-    
+
+
     -  ``S`` - a Sage0 object, i.e., an interface to a
        running instance of Python with the Sage libraries loaded
-    
+
     -  ``query`` - a string: - if has no '?' then return
        completion list - if begins or ends in one '?' return docstring -
        if begins or ends in '??' return source code
-    
+
     -  ``format`` - (string) 'html', 'png', 'none' (only
        html is implemented right now!)
     """
@@ -41,12 +41,12 @@ def introspect(S, query, format='html'):
         if query[:2] == '??':
             return get_source_code(S, query[2:])
         elif query[-2:] == '??':
-            return get_source_code(S, query[:-2])    
+            return get_source_code(S, query[:-2])
     if len(query) > 0:
         if query[0] == '?':
             return get_docstring(S, query[1:])
         elif query[-1] == '?':
-            return get_docstring(S, query[:-1])    
+            return get_docstring(S, query[:-1])
     return get_completions(S, query)
 
 
@@ -55,7 +55,7 @@ def _get_docstring(S, query):
     cmd = '_support_.docstring("%s", globals())'%query
     z = S.eval(cmd)
     z = z.replace('\\n','\n').replace('\\t','        ')[1:-1]
-    z = word_wrap(z, ncols=numcols)    
+    z = word_wrap(z, ncols=numcols)
     return z
 
 def _get_source_code(S, query):

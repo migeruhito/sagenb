@@ -15,7 +15,7 @@ def get_remote_file(filename, verbose=True):
     EXAMPLES:
         sage: g = get_remote_file("http://sagemath.org/ack.html", verbose=False)   # optional -- requires the internet
         sage: len(open(g).read())   # optional and randomly growing.
-        10198                  
+        10198
     """
     if verbose:
         print "Attempting to load remote file: " + filename
@@ -23,7 +23,7 @@ def get_remote_file(filename, verbose=True):
     temp_name = tmp_filename() + '.' + os.path.splitext(filename)[1][1:]
     # IMPORTANT -- urllib takes a long time to load,
     # so do not import it in the module scope.
-    import urllib 
+    import urllib
     global cur
     cur = 0
     if verbose:

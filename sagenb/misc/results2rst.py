@@ -76,17 +76,17 @@ class ResultsParser(object):
                      (re.compile(r"^\<html\>.*</html\>$"),
                       "    <html>...</html>",
                       LineTypes.HTML,
-                      States.NORMAL),        
+                      States.NORMAL),
                 #START HTML
                      (re.compile(r"^\<html\>.*"),
                       "    <html>...</html>",
                       LineTypes.HTML,
-                      States.HTML),        
+                      States.HTML),
                 #CONTINUE NORMAL
                      (re.compile("(.*)"),
                       "    \\1",
                       LineTypes.PLAIN,
-                      States.NORMAL),                
+                      States.NORMAL),
                 ],
             States.MATH:[
                  #END MATH
@@ -98,7 +98,7 @@ class ResultsParser(object):
                      (re.compile("(.*)"),
                       "    \\1",
                       LineTypes.LATEX,
-                      States.MATH),        
+                      States.MATH),
                 ],
             States.TRACEBACK:[
                  #END Traceback
@@ -115,7 +115,7 @@ class ResultsParser(object):
                       States.NORMAL),
                 ],
         }
-    
+
     def parse(self, text):
         result_plain = []
         result_show = []
@@ -160,7 +160,7 @@ def results2rst(text, images_dir):
         sage: results2rst("4",'')
         '    4'
         sage: s=r'<html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{3}{2}</div></html>'
-        sage: results2rst(s,'')                                       
+        sage: results2rst(s,'')
         '\n.. MATH::\n\n    \\frac{3}{2}\n'
     """
     Parser = ResultsParser(images_dir)

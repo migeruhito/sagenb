@@ -3,7 +3,7 @@
 r"""
 Convert worksheet.html files into ReStructuredText documents
 
-This is called by 'sage -sws2rst'. Can also be used as a commandline script 
+This is called by 'sage -sws2rst'. Can also be used as a commandline script
 (if BeautifulSoup is installed):
 
 ``python worksheet2rst.py worksheet.html``
@@ -17,7 +17,7 @@ AUTHOR:
 - Pablo Angulo Ardoy (2011-02-25): initial version
 
 
-The content of worksheet.html is split into comments, code, and output 
+The content of worksheet.html is split into comments, code, and output
 (the result of evaluating the code), as follows:
 
 comments
@@ -83,7 +83,7 @@ transitions = {
 
 def code_parser(text):
     """
-    
+
     Arguments:
 
     INPUT:
@@ -94,7 +94,7 @@ def code_parser(text):
 
     - string -- rst text
 
-    EXAMPLES (not used for unit test, see 
+    EXAMPLES (not used for unit test, see
     http://groups.google.com/group/sage-devel/browse_thread/thread/d82cb049ac102f3a)
 
     : from sagenb.misc.worksheet2rst import code_parser
@@ -139,7 +139,7 @@ def worksheet2rst(s, images_dir=''):
 
     - string -- rst text
 
-    EXAMPLES (not used for unit test, see 
+    EXAMPLES (not used for unit test, see
     http://groups.google.com/group/sage-devel/browse_thread/thread/d82cb049ac102f3a)
 
     : from sagenb.misc.worksheet2rst import worksheet2rst
@@ -156,7 +156,7 @@ def worksheet2rst(s, images_dir=''):
     last = 0
     for line in s.splitlines():
         regex, next_state= transitions[state]
-        m = regex.match(line) 
+        m = regex.match(line)
         if m:
             if state == States.COMMENT:
                 last_cell_id = m.group(1)
@@ -192,7 +192,7 @@ def worksheet2rst(s, images_dir=''):
     return u'\n'.join(result)
 
 if __name__=='__main__':
-    if len(sys.argv)>1:        
+    if len(sys.argv)>1:
         fichero = codecs.open(sys.argv[1], mode='r', encoding='utf-8')
         text = fichero.read()
         fichero.close()

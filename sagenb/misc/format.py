@@ -26,7 +26,7 @@ def relocate_future_imports(string):
 
     - (string, string) -- a tuple consisting of the string without
       ``__future__`` imports and the ``__future__`` imports.
-    
+
     EXAMPLES::
 
         sage: from sagenb.misc.format import relocate_future_imports
@@ -138,7 +138,7 @@ def displayhook_hack(string):
     """
     Modified version of string so that ``exec``'ing it results in
     displayhook possibly being called.
-    
+
     STRING:
 
         - ``string`` - a string
@@ -149,7 +149,7 @@ def displayhook_hack(string):
           it is an expression
 
     EXAMPLES::
-    
+
         sage: from sagenb.misc.format import displayhook_hack
         sage: displayhook_hack('\n12\n')
         "\nexec compile(u'12' + '\\n', '', 'single')"
