@@ -18,7 +18,6 @@ from flask import request
 from flask import redirect
 from flask import g
 from flask import current_app
-from flask import escape
 from flask.ext.babel import gettext
 from flask.helpers import send_file
 from flask.helpers import send_from_directory
@@ -931,7 +930,7 @@ def worksheet_rate(worksheet):
         return current_app.message(_("Gees -- You can't fool the rating system that easily!"),
                           url_for_worksheet(worksheet))
 
-    comment = str(escape(request.values['comment']))
+    comment = request.values['comment']
     worksheet.rate(rating, comment, g.username)
     s = _("""
     Thank you for rating the worksheet <b><i>%(worksheet_name)s</i></b>!
