@@ -8,6 +8,7 @@ import time
 from cgi import escape
 from functools import partial
 from hashlib import sha1
+from json import dumps
 
 from flask import Flask
 from flask import Module
@@ -37,6 +38,7 @@ from sagenb.misc.misc import nN_
 from sagenb.misc.misc import SAGE_DOC
 from sagenb.misc.misc import SAGE_VERSION
 from sagenb.misc.misc import SAGENB_ROOT
+from sagenb.misc.misc import unicode_str
 from sagenb.misc.misc import walltime
 from sagenb.notebook.challenge import challenge
 from sagenb.notebook.css import css
@@ -46,7 +48,11 @@ from sagenb.notebook.misc import is_valid_username
 from sagenb.notebook.misc import is_valid_email
 from sagenb.notebook.misc import valid_username_chars
 from sagenb.notebook.notification import logger
-from sagenb.notebook.template import env
+from sagenb.notebook.template import css_escape
+from sagenb.notebook.template import clean_name
+from sagenb.notebook.template import prettify_time_ago
+from sagenb.notebook.template import TEMPLATE_PATH
+from sagenb.notebook.template import number_of_rows
 from sagenb.notebook.tutorial import notebook_help
 from sagenb.notebook.user import User
 
@@ -107,9 +113,18 @@ class SageNBFlask(Flask):
         self.add_static_path('/doc/static', DOC)
         #self.add_static_path('/doc/static/reference', os.path.join(SAGE_DOC, 'reference'))
 
-    def create_jinja_environment(self):
-        env.globals.update(url_for=url_for)
-        return env
+        # Template globals
+        self.add_template_global(url_for)
+        # Template filters
+        self.add_template_filter(css_escape)
+        self.add_template_filter(number_of_rows)
+        self.add_template_filter(clean_name)
+        self.add_template_filter(prettify_time_ago)
+        self.add_template_filter(max)
+        self.add_template_filter(lambda x: repr(unicode_str(x))[1:],
+                                 name='repr_str')
+        self.add_template_filter(dumps, 'tojson')
+
 
     def static_view_func(self, root_path, filename):
         return send_from_directory(root_path, filename)
@@ -437,7 +452,8 @@ def create_app(path_to_notebook, *args, **kwds):
     ##############
     # Create app #
     ##############
-    app = SageNBFlask('flask_version', startup_token=startup_token)
+    app = SageNBFlask('flask_version', startup_token=startup_token,
+                      template_folder=TEMPLATE_PATH)
     app.secret_key = os.urandom(24)
     oid.init_app(app)
     app.debug = True

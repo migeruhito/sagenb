@@ -19,12 +19,13 @@ import jinja2
 
 import os
 import re
-import json
 
+from flask import current_app as app
 from flask.ext.babel import gettext
 from flask.ext.babel import ngettext
 
-from sagenb.misc.misc import SAGE_VERSION, DATA, unicode_str
+from sagenb.misc.misc import SAGE_VERSION
+from sagenb.misc.misc import DATA
 
 if os.environ.has_key('SAGENB_TEMPLATE_PATH'):
     if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):
@@ -33,7 +34,6 @@ if os.environ.has_key('SAGENB_TEMPLATE_PATH'):
     TEMPLATE_PATH = os.environ['SAGENB_TEMPLATE_PATH']
 else:
     TEMPLATE_PATH = os.path.join(DATA, 'sage')
-env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_PATH))
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
 
@@ -133,14 +133,6 @@ def number_of_rows(txt, ncols):
     return nrows
 
 
-env.filters['css_escape'] = css_escape
-env.filters['number_of_rows'] = number_of_rows
-env.filters['clean_name'] = clean_name
-env.filters['prettify_time_ago'] = prettify_time_ago
-env.filters['max'] = max
-env.filters['repr_str'] = lambda x: repr(unicode_str(x))[1:]
-env.filters['tojson'] = json.dumps
-
 def template(filename, **user_context):
     """
     Returns HTML, CSS, etc., for a template file rendered in the given
@@ -180,7 +172,7 @@ def template(filename, **user_context):
                        'JEDITABLE_TINYMCE': JEDITABLE_TINYMCE,
                        'conf': notebook.conf() if notebook else None}
     try:
-        tmpl = env.get_template(filename)
+        tmpl = app.jinja_env.get_template(filename)
     except jinja2.exceptions.TemplateNotFound:
         return "Notebook Bug -- missing template %s"%filename
 
