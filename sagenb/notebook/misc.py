@@ -3,6 +3,18 @@
 Miscellaneus functions used by the Sage Notebook
 
 """
+from __future__ import absolute_import
+
+import re
+import string
+
+from sagenb.misc.misc import get_module
+
+# simplejson is faster, so try to import it first
+json = get_module('simplejson')
+if json is None:
+    import json
+
 #####################################################
 ## Global variables across the application
 #####################################################
@@ -18,8 +30,6 @@ CODE_PY = "___code___.py"
 #####################################################
 ## Utility functions
 #####################################################
-
-import re
 valid_username_chars = 'a-z|A-Z|0-9|_|.|@' 
 re_valid_username = re.compile('[%s]*' % valid_username_chars)
 def is_valid_username(username):
@@ -60,7 +70,6 @@ def is_valid_username(username):
         sage: is_valid_username('dandrews@sagemath.org')
         True
     """
-    import string
 
     if not (len(username) > 2 and len(username) < 65):
         return False
@@ -91,7 +100,6 @@ def is_valid_password(password, username):
         sage: is_valid_password('markusup89', 'markus')
         False
     """
-    import string
     if len(password) < 4 or ' ' in password:
         return False
     if username:
@@ -185,11 +193,6 @@ def is_valid_email(email):
         return True
     return False
 
-try: 
-    # simplejson is faster, so try to import it first
-    import simplejson as json
-except ImportError: 
-    import json
 
 def encode_response(obj, separators=(',', ':'), **kwargs):
     """

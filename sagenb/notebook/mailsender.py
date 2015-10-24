@@ -8,16 +8,17 @@
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
+
+from email.MIMEBase import MIMEBase
+from email.MIMEMultipart import MIMEMultipart
+from StringIO import StringIO
 
 from twisted.application import service
 from twisted.application import internet
 from twisted.internet import protocol
+from twisted.internet import reactor
 from twisted.mail import smtp, relaymanager
-from StringIO import StringIO
-from email.MIMEBase import MIMEBase
-from email.MIMEMultipart import MIMEMultipart
-from email import Encoders
-import mimetypes
 
 
 class MailMessage(MIMEMultipart):
@@ -92,7 +93,6 @@ class MailClient(smtp.ESMTPClient):
     def sentMail(self, code, resp, numOk, addresses, log):
         print '<< dest SMTP server >> %s: %s' % (code, resp)
         print 'Sent %s messages.' % numOk
-        from twisted.internet import reactor
         reactor.stop()
 
 class SMTPClientFactory(protocol.ClientFactory):

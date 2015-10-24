@@ -8,10 +8,13 @@
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 """
 Helper functions dealing with the verification of user  
 """
+from random import randint
+
 from flask.ext.babel import gettext as _
 
 def build_msg(key, username, addr, port, secure):
@@ -34,6 +37,5 @@ def build_password_msg(key, username, addr, port, secure):
     return s.encode('utf-8')
 
 def make_key():
-    from random import randint
     key = randint(0,2**128-1)
     return key

@@ -7,6 +7,9 @@ r"""nodoctest
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
+
+from flask.ext.babel import lazy_gettext as _
 
 r"""
 Sage Notebook Interface
@@ -348,7 +351,6 @@ the "save" command), and get back to where you were quickly.
 
 #####################################
 
-from flask.ext.babel import lazy_gettext as _
 
 notebook_help = [
     (_('Find Help and Documentation'),

@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*
+from __future__ import absolute_import
+
 import logging
-from sage_email import default_email_address
-from smtpsend import send_mail
 from socket import getfqdn
+
+from .sage_email import default_email_address
+from .smtpsend import send_mail
 
 logger = logging.getLogger('notification')
 

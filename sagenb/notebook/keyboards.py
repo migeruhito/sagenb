@@ -13,6 +13,8 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
+
 
 """
 The functions below return a block of javascript code that defines
@@ -42,7 +44,6 @@ http://sage.math.washington.edu/home/boothby/modular.old/www/keys_capture.html
 and follow the directions you see there.  Copy the output, and email
 it to boothby@u.washington.edu
 """
-
                 
 def get_keyboard(s):
     # keyboard_map is a dictionary defined at the bottom of this

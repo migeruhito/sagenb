@@ -2,13 +2,28 @@
 """nodoctest
 """
 #from   template import language
+from __future__ import absolute_import
+
 import copy
 
-import conf
-from conf import (POS, DESC, GROUP, TYPE, CHOICES, T_BOOL, T_INTEGER,
-                  T_CHOICE, T_REAL, T_COLOR, T_STRING, T_LIST, T_INFO)
-from sagenb.misc.misc import get_languages, N_
-from flask.ext.babel import gettext, lazy_gettext
+from flask.ext.babel import lazy_gettext
+
+from sagenb.misc.misc import get_languages
+from sagenb.misc.misc import N_
+
+from . import conf
+from .conf import POS
+from .conf import DESC
+from .conf import GROUP
+from .conf import TYPE
+from .conf import CHOICES
+from .conf import T_BOOL
+from .conf import T_INTEGER
+from .conf import T_CHOICE
+from .conf import T_STRING
+from .conf import T_LIST
+from .conf import T_INFO
+
 _ = lazy_gettext
 
 defaults = {'word_wrap_cols':72,

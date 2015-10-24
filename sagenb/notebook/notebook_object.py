@@ -12,14 +12,16 @@ Notebook server.
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 import os
 import shutil
 import tempfile
 import pexpect
 
-import notebook as _notebook
 from sagenb.run import NotebookFrontend
+
+from . import notebook as _notebook
 
 
 class NotebookObject:

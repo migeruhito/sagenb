@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*
-import interact
+from __future__ import absolute_import
+
+from . import interact
 
 def javascript(s):
     print '<html><script>%s</script></html>'%s

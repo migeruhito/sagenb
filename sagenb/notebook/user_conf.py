@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*
 """nodoctest
 """
-import os, copy
+from __future__ import absolute_import
 
-import server_conf
-from conf import (Configuration, POS, DESC, GROUP, TYPE, CHOICES, T_BOOL,
-                  T_INTEGER, T_CHOICE, T_REAL, T_COLOR, T_STRING, T_LIST)
-from sagenb.misc.misc import SAGENB_ROOT, get_languages
+import copy
+
 from flask.ext.babel import lazy_gettext
+
+from sagenb.misc.misc import get_languages
+
+from .conf import Configuration
+from .conf import DESC
+from .conf import GROUP
+from .conf import TYPE
+from .conf import CHOICES
+from .conf import T_CHOICE
 
 defaults = {'max_history_length':1000,
             'default_system':'sage',

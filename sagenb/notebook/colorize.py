@@ -17,6 +17,7 @@
     FROM: Modified version of
       http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/442482
 """
+from __future__ import absolute_import
 
 # Imports
 import cgi
@@ -26,8 +27,6 @@ import cStringIO
 import keyword
 import token
 import tokenize
-import re
-import os
 
 #Set up basic values.  
 _KEYWORD = token.NT_OFFSET + 1
@@ -122,7 +121,6 @@ class Parser:
 
 
 def colorize(source):
-    import os, sys
     # write colorized version to "[filename].py.html"
     html = cStringIO.StringIO()
     Parser(source, html).format(None, None)

@@ -17,10 +17,14 @@ AUTHORS:
 
 import jinja2
 
-import os, re, sys, json
+import os
+import re
+import json
+
+from flask.ext.babel import gettext
+from flask.ext.babel import ngettext
 
 from sagenb.misc.misc import SAGE_VERSION, DATA, unicode_str
-from flask.ext.babel import gettext, ngettext, lazy_gettext
 
 if os.environ.has_key('SAGENB_TEMPLATE_PATH'):
     if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):

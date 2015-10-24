@@ -23,11 +23,18 @@ AUTHORS:
 .. _here: http://code.google.com/p/recaptcha
 
 """
+from __future__ import absolute_import
 
-import os, random, re, urllib2, urllib
+import os
+import random
+import re
+import urllib2
+import urllib
 
 from sagenb.notebook.template import template
-from flask.ext.babel import gettext, lazy_gettext
+from flask.ext.babel import gettext
+from flask.ext.babel import lazy_gettext
+
 _ = lazy_gettext
 
 class ChallengeResponse(object):

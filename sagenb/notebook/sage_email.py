@@ -22,9 +22,11 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
-
+import getpass
 import os
+import socket
 
 def default_email_address():
     """
@@ -39,8 +41,6 @@ def default_email_address():
         sage: sagenb.notebook.sage_email.default_email_address()     
         '...@...'
     """
-    import socket
-    import getpass
     hostname = socket.gethostname()
     username = getpass.getuser()
     return '%s@%s'%(username, hostname)

@@ -9,7 +9,14 @@ Configuration
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-from flask.ext.babel import gettext, lazy_gettext
+from __future__ import absolute_import
+
+from flask.ext.babel import gettext
+from flask.ext.babel import lazy_gettext
+
+from sagenb.misc.misc import import_from
+
+from .server_conf import G_LDAP
 
 POS = 'pos'
 DESC = 'desc'
@@ -132,13 +139,9 @@ class Configuration(object):
         return updated
 
     def html_table(self, updated = {}):
-        from server_conf import G_LDAP
 
         # check if LDAP can be used
-        try:
-            from ldap import __version__ as ldap_version
-        except ImportError:
-            ldap_version = None
+        ldap_version = import_from('ldap', '__version__')
 
         # For now, we assume there's a description for each setting.
         D = self.defaults()

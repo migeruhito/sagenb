@@ -8,6 +8,7 @@
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 """
  Wiki to HTML converter
@@ -21,10 +22,13 @@ AUTHOR:
     -- William Stein: adoption for Sage
 """
 
-import os, re
-from MoinMoin import config, wikimacro, wikiutil
+import re
+from hashlib import sha1
+
+from MoinMoin import config
+from MoinMoin import wikimacro
+from MoinMoin import wikiutil
 from MoinMoin.Page import Page
-from MoinMoin.util import web
 
 Dependencies = []
 
@@ -230,7 +234,6 @@ class Parser:
         url = wikiutil.url_unquote(url, want_unicode=True)
         text = text or url
 
-        from MoinMoin.action import AttachFile
         if drawing:
             return self.formatter.attachment_drawing(url, text)
 
@@ -759,7 +762,6 @@ class Parser:
 
     def _heading_repl(self, word):
         """Handle section headings."""
-        from hashlib import sha1
 
         h = word.strip()
         level = 1

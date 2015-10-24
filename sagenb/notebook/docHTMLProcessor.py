@@ -105,9 +105,9 @@ Process the output of docutils ``rst2html`` command::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 from sgmllib import SGMLParser
-from urllib import splittag
 from htmlentitydefs import entitydefs
 
 class genericHTMLProcessor(SGMLParser):

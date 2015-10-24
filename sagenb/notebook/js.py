@@ -27,7 +27,6 @@ interesting Javascript code is contained under
 ###########################################################################
 from __future__ import absolute_import
 
-
 import os
 from hashlib import sha1
 

@@ -1,3 +1,8 @@
+from __future__ import absolute_import
+
+from sagenb.misc.misc import get_module
+
+
 class AuthMethod():
     """
     Abstract class for authmethods that are used by ExtAuthUserManager
@@ -39,9 +44,7 @@ class LdapAuth(AuthMethod):
         """
         def wrap(f):
             def wrapped_f(self, *args, **kwargs):
-                try:
-                    from ldap import __version__ as ldap_version
-                except ImportError:
+                if get_module('ldap') is None:
                     print "cannot 'import ldap', disabling LDAP auth"
                     self._conf['auth_ldap'] = False
                     return default_return

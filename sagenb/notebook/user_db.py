@@ -8,6 +8,7 @@
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 class UserDatabase():
     def add_user(self, user, passwd, email):

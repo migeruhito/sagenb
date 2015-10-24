@@ -10,12 +10,13 @@ Notebook Stylesheets (CSS)
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
 
 import os
+from hashlib import sha1
 
 from sagenb.misc.misc import DOT_SAGENB
 from sagenb.notebook.template import template
-from hashlib import sha1
 
 _css_cache = None
 def css(color='default'):

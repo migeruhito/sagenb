@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*
+from __future__ import absolute_import
+
 import os
 
-from notebook_object import notebook
+from .notebook_object import notebook
 
 def sagetex(filename, gen=True, **kwds):
     """
