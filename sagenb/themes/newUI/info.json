@@ -1,0 +1,9 @@
+{
+    "application": "sagenb", 
+    "identifier": "newUI", 
+    "name": "Sage newui", 
+    "author": "Sage",
+    "license": "GPL",
+    "description": "Sage's new gui. Modified by J. Miguel Farto to run as a theme.",
+    "version": "0.1"
+}
