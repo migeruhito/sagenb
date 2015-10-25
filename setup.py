@@ -37,6 +37,7 @@ install_requires = [ 'twisted>=11.0.0'
                    , 'babel'
                    , 'flask-babel'
                    , 'webassets'
+                   , 'flask-themes2'
                    ]
 
 if __name__ == '__main__':
@@ -71,7 +72,8 @@ if __name__ == '__main__':
                          ],
           package_data = {'sagenb':
                               all_files('sagenb/data', 'sagenb/') +
-                              all_files('sagenb/translations', 'sagenb/')
+                              all_files('sagenb/translations', 'sagenb/') +
+                              all_files('sagenb/themes', 'sagenb/')
                          },
           zip_safe     = False,
           )

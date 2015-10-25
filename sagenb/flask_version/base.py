@@ -13,7 +13,6 @@ from json import dumps
 from flask import Flask
 from flask import Module
 from flask import url_for
-from flask import render_template
 from flask import request
 from flask import session
 from flask import redirect
@@ -27,6 +26,8 @@ from flask.ext.openid import OpenID
 from flask.ext.babel import Babel
 from flask.ext.babel import gettext
 from flask.ext.babel import get_locale
+from flask.ext.themes2 import Themes
+from flask.ext.themes2 import theme_paths_loader
 from flask.helpers import send_file
 from flask.helpers import send_from_directory
 
@@ -38,6 +39,8 @@ from sagenb.misc.misc import nN_
 from sagenb.misc.misc import SAGE_DOC
 from sagenb.misc.misc import SAGE_VERSION
 from sagenb.misc.misc import SAGENB_ROOT
+from sagenb.misc.misc import theme_paths
+from sagenb.misc.misc import default_theme
 from sagenb.misc.misc import unicode_str
 from sagenb.misc.misc import walltime
 from sagenb.notebook.challenge import challenge
@@ -53,6 +56,7 @@ from sagenb.notebook.template import clean_name
 from sagenb.notebook.template import prettify_time_ago
 from sagenb.notebook.template import TEMPLATE_PATH
 from sagenb.notebook.template import number_of_rows
+from sagenb.notebook.themes import render_template
 from sagenb.notebook.tutorial import notebook_help
 from sagenb.notebook.user import User
 
@@ -236,6 +240,9 @@ def keyboard_js(browser_os):
 ###############
 # Dynamic CSS #
 ###############
+#DOT_SAGENB/notebook.css mechanism is left for backwards compatibility,
+#but it has no sense with the themes infrastructure and should
+#be deprecated
 @base.route('/css/main.css')
 def main_css():
     data,datahash = css()
@@ -481,6 +488,18 @@ def create_app(path_to_notebook, *args, **kwds):
     @babel.localeselector
     def get_locale():
         return g.notebook.conf()['default_language']
+
+    #################
+    # Set up themes #
+    #################
+    #A new conf entry, 'themes', was added to notebook
+    app.config['THEME_PATHS'] = theme_paths()
+    app.config['DEFAULT_THEME'] = default_theme()
+    Themes(app, loaders=[theme_paths_loader], app_identifier='sagenb')
+    name = notebook.conf()['theme']
+    if name not in app.theme_manager.themes:
+        notebook.conf()['theme'] = app.config['DEFAULT_THEME']
+    #app.theme_manager.refresh()
 
     ########################
     # Register the modules #

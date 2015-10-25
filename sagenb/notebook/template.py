@@ -20,12 +20,12 @@ import jinja2
 import os
 import re
 
-from flask import current_app as app
 from flask.ext.babel import gettext
 from flask.ext.babel import ngettext
 
 from sagenb.misc.misc import SAGE_VERSION
 from sagenb.misc.misc import DATA
+from sagenb.notebook.themes import get_template
 
 if os.environ.has_key('SAGENB_TEMPLATE_PATH'):
     if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):
@@ -172,7 +172,7 @@ def template(filename, **user_context):
                        'JEDITABLE_TINYMCE': JEDITABLE_TINYMCE,
                        'conf': notebook.conf() if notebook else None}
     try:
-        tmpl = app.jinja_env.get_template(filename)
+        tmpl = get_template(filename)
     except jinja2.exceptions.TemplateNotFound:
         return "Notebook Bug -- missing template %s"%filename
 

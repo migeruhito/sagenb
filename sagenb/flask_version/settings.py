@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import os
 from flask import Module
 from flask import url_for
-from flask import render_template
 from flask import request
 from flask import redirect
 from flask import g
@@ -13,6 +12,7 @@ from flask.ext.babel import gettext
 from sagenb.misc.misc import SAGE_VERSION
 from sagenb.notebook.misc import is_valid_password
 from sagenb.notebook.misc import is_valid_email
+from sagenb.notebook.themes import render_template
 
 from .decorators import login_required
 from .decorators import with_lock

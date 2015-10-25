@@ -6,7 +6,6 @@ import string
 
 from flask import Module
 from flask import url_for
-from flask import render_template
 from flask import request
 from flask import session
 from flask import redirect
@@ -24,6 +23,7 @@ from sagenb.notebook.register import make_key
 from sagenb.notebook.register import build_msg
 from sagenb.notebook.register import build_password_msg
 from sagenb.notebook.smtpsend import send_mail
+from sagenb.notebook.themes import render_template
 
 from .decorators import with_lock
 

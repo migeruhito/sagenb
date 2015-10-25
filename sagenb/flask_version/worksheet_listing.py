@@ -15,7 +15,6 @@ from flask import current_app
 from flask import g
 from flask import Module
 from flask import redirect
-from flask import render_template
 from flask import request
 from flask import url_for
 from flask.ext.babel import gettext
@@ -26,6 +25,7 @@ from sagenb.misc.misc import SAGE_VERSION
 from sagenb.misc.misc import unicode_str
 from sagenb.misc.misc import tmp_filename
 from sagenb.misc.misc import walltime
+from sagenb.notebook.themes import render_template
 
 
 from .decorators import login_required

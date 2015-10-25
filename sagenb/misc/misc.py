@@ -605,3 +605,39 @@ def system_command(cmd, msg=None):
     msg = cmd if msg is None else '\n'.join((msg, cmd))
     print(msg)
     subprocess.call([cmd], shell=True)
+
+
+def theme_paths():
+    """
+    Paths where notebook search themes at start up. Built-in 
+    themes are in SAGENB_ROOT/themes.
+    If the user has a DOT_SAGE/themes directory, additional themes are searched
+    in it
+    """
+    paths = [os.path.join(SAGENB_ROOT, 'themes')]
+    user_path = os.path.join(DOT_SAGENB, 'themes')
+    if os.path.isdir(user_path):
+        paths.append(user_path)
+    return paths
+
+
+def default_theme():
+    """
+    Returns the name of the default theme.
+    A valid Default then must exit in some of the theme_paths().
+    """
+    return 'Default'
+
+
+def get_themes():
+    """
+    Returns o sorted list of themes for the notebook settings page.
+    """
+    themes = []
+    for path in theme_paths():
+        themes.extend([
+            theme
+            for theme in os.listdir(path)
+            if os.path.isdir(os.path.join(path, theme))])
+    themes.sort()
+    return themes

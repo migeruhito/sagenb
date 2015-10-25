@@ -432,7 +432,23 @@ notebook_help = [
        _('Use "save(obj1,DATA+\'foo\')" to save an object to the data directory of a worksheet, and "obj1 = load(DATA+\'foo\')" to load it again.  To use such objects between worksheets, you may save to any filename (given as a string) Sage can write to on your system.')),
       (_('Loading and Saving Sessions'),
        _('Use "save_session(\'name\')" to save all variables to an object.  Use "load_session(\'name\')" to <i>merge</i> in all variables from a saved session.')),
-      (_('Customizing the Notebook CSS'),
-       _('If you create a file <tt>$HOME/.sage/notebook.css</tt> then it will get applied when rendering the notebook.   See '))
+      (_('Customizing the Notebook'),
+          _('Sage Notebook comes with several built-in themes. If you create \
+a <tt>$HOME/.sage/themes</tt> directory, you can populate it with your own \
+custom themes. To get started, follow the steps below.\
+<ul><li> Copy from <tt>SAGE_ROOT/devel/sagenb/sagenb/themes/</tt> one of the built-in temes (other than <tt>Default</tt>) to <tt>$HOME/.sage/themes</tt>.</li>\
+<li>Change the copied directory name as desired (e.g. my_fancy_theme). \
+Spaces are not allowed.</li>\
+<li>Edit \
+<tt>SAGE_ROOT/devel/sagenb/sagenb/themes/my_fancy_theme/info.json</tt> \
+and set the <tt>identifier</tt> field to the directory\'s name of the theme \
+(e.g. my_fancy_theme). \
+Do not change the <tt>application</tt> field.</li>\
+<li>Hack on it. Great results may be attained by only changing css files. \
+For extensive changes in the template system, some knowledge of \
+notebook internals is needed. If your notebook becomes totally broken, \
+remove the disturbing theme from your themes directory and restart your \
+notebook. \
+</li></ul>'))
     ])
     ]

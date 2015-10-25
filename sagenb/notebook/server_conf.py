@@ -9,6 +9,7 @@ import copy
 from flask.ext.babel import lazy_gettext
 
 from sagenb.misc.misc import get_languages
+from sagenb.misc.misc import get_themes
 from sagenb.misc.misc import N_
 
 from . import conf
@@ -64,6 +65,7 @@ defaults = {'word_wrap_cols':72,
             'recaptcha_public_key':'',
             'recaptcha_private_key':'',
             'default_language': 'en_US',
+            'theme': 'Default',
             'model_version': 0,
 
             'auth_ldap':False,
@@ -275,6 +277,13 @@ defaults_descriptions = {
         DESC: _('Query timeout (seconds)'),
         GROUP : G_LDAP,
         TYPE : T_INTEGER,
+        },
+
+    'theme': {
+        DESC : _('Theme'),
+        GROUP : G_APPEARANCE,
+        TYPE : T_CHOICE,
+        CHOICES : get_themes(),
         },
 }
 

@@ -6,7 +6,6 @@ from random import choice
 
 from flask import Module
 from flask import url_for
-from flask import render_template
 from flask import request
 from flask import redirect
 from flask import g
@@ -15,6 +14,7 @@ from flask.ext.babel import gettext
 
 from sagenb.misc.misc import SAGE_VERSION
 from sagenb.notebook.misc import is_valid_username
+from sagenb.notebook.themes import render_template
 
 from .decorators import admin_required
 from .decorators import with_lock
@@ -119,6 +119,24 @@ def notebook_settings():
     updated = {}
     if 'form' in request.values:
         updated = g.notebook.conf().update_from_form(request.values)
+
+    #Changes theme
+    if 'theme' in request.values:
+        # Invalidate dynamic js and css caches so that all the themes can be
+        # without restarting
+        from sagenb.flask_version import base
+        from sagenb.notebook import js, css
+        base._localization_cache = {}
+        base._mathjax_js_cache = None
+        js._cache_javascript = None
+        css._css_cache = None
+        # TODO: Implement a better and uniform cache system.
+        new_theme = request.values['theme']
+        if new_theme not in current_app.theme_manager.themes:
+            g.notebook.conf()['theme'] = current_app.config['DEFAULT_THEME']
+        else:
+            g.notebook.conf()['theme'] = new_theme
+        current_app.theme_manager.refresh()
 
     template_dict = {}
     template_dict['sage_version'] = SAGE_VERSION
