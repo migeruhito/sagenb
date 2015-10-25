@@ -19,6 +19,7 @@ from flask import request
 from flask import url_for
 from flask.ext.babel import gettext
 from flask.helpers import send_from_directory
+from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
 from sagenb.misc.misc import SAGE_VERSION
@@ -83,13 +84,73 @@ def render_worksheet_list(args, pub, username):
     sage_version = SAGE_VERSION
     return render_template('html/worksheet_listing.html', **locals())
 
+#New UI
+@worksheet_listing.route('/worksheet_list')
+@guest_or_login_required
+def worksheet_list():
+    """
+    Returns a worksheet listing.
+
+    INPUT:
+
+    -  ``args`` - ctx.args where ctx is the dict passed
+       into a resource's render method
+
+    -  ``pub`` - boolean, True if this is a listing of
+       public worksheets
+
+    -  ``username`` - the user whose worksheets we are
+       listing
+
+    OUTPUT:
+
+    a string
+    """
+
+    from sagenb.misc.misc import unicode_str, SAGE_VERSION
+    from sagenb.notebook.misc import encode_response
+    r = {}
+
+    pub = 'pub' in request.args
+    readonly = g.notebook.readonly_user(g.username)
+    typ = request.args['type'] if 'type' in request.args else 'active'
+    search = unicode_str(request.args['search']) if 'search' in request.args else None
+    sort = request.args['sort'] if 'sort' in request.args else 'last_edited'
+    reverse = (request.args['reverse'] == 'True') if 'reverse' in request.args else False
+
+    try:
+        if not pub:
+            r['worksheets'] = [x.basic_new() for x in g.notebook.worksheet_list_for_user(g.username, typ=typ, sort=sort, search=search, reverse=reverse)]
+        else:
+            r['worksheets'] = [x.basic_new() for x in g.notebook.worksheet_list_for_public(g.username, sort=sort, search=search, reverse=reverse)]
+
+    except ValueError as E:
+        # for example, the sort key was not valid
+        print "Error displaying worksheet listing: ", E
+        return current_app.message(_("Error displaying worksheet listing."))
+
+    #if pub and (not g.username or g.username == tuple([])):
+    #    r['username'] = 'pub'
+
+    r['accounts'] = g.notebook.user_manager().get_accounts()
+    r['sage_version'] = SAGE_VERSION
+    # r['pub'] = pub
+
+    return encode_response(r)
+#New UI end
+
 @worksheet_listing.route('/home/<username>/')
 @login_required
 def home(username):
     if not g.notebook.user_manager().user_is_admin(g.username) and username != g.username:
         return current_app.message(_("User '%(user)s' does not have permission to view the home page of '%(name)s'.", user=g.username, name=username))
     else:
-        return render_worksheet_list(request.args, pub=False, username=username)
+        try:
+            #New UI
+            return render_template('html/worksheet_list.html')
+        except TemplateNotFound:
+            #New UI end
+            return render_worksheet_list(request.args, pub=False, username=username)
 
 @worksheet_listing.route('/home/')
 @login_required

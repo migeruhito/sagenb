@@ -21,6 +21,7 @@ from flask import current_app
 from flask.ext.babel import gettext
 from flask.helpers import send_file
 from flask.helpers import send_from_directory
+from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
 from sagenb.misc.misc import tmp_filename
@@ -28,6 +29,7 @@ from sagenb.misc.misc import unicode_str
 from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
 from sagenb.notebook.interact import INTERACT_UPDATE_PREFIX
 from sagenb.notebook.misc import encode_response
+from sagenb.notebook.themes import render_template
 
 from .decorators import login_required
 
@@ -112,9 +114,14 @@ def worksheet(username, id, worksheet=None):
     # /home/pub/* is handled in worksheet_listing.py
     assert worksheet is not None
     worksheet.sage()
-    s = g.notebook.html(worksheet_filename=worksheet.filename(),
-                        username=g.username)
-    return s
+    #New UI
+    try:
+        return render_template(os.path.join('html', 'worksheet.html'))
+    except TemplateNotFound:
+    #New UI end
+        s = g.notebook.html(worksheet_filename=worksheet.filename(),
+                            username=g.username)
+        return s
 
 published_commands_allowed = set(['alive', 'cells', 'cell_update',
                           'data', 'download', 'edit_published_page', 'eval',
@@ -252,6 +259,41 @@ def worksheet_revert_to_last_saved_state(worksheet):
     worksheet.revert_to_last_saved_state()
     return 'reverted'
 
+#New UI
+########################################################
+# Worksheet properties
+########################################################
+@worksheet_command('worksheet_properties')
+def worksheet_properties(worksheet):
+    """
+    Send worksheet properties as a JSON object
+    """
+    r = worksheet.basic_new()
+
+    if worksheet.has_published_version():
+        hostname = request.headers.get(
+                'host',
+                g.notebook.interface + ':' + str(g.notebook.port))
+
+        r['published_url'] = 'http%s://%s/home/%s' % (
+                '' if not g.notebook.secure else 's',
+                hostname,
+                worksheet.published_version().filename())
+
+    return encode_response(r)
+
+########################################################
+# Cell properties
+########################################################
+@worksheet_command('cell_properties')
+def worksheet_cell_properties(worksheet):
+    """
+    Return the cell with the given id as a JSON object
+    """
+    id = get_cell_id()
+    return encode_response(worksheet.get_cell_with_id(id).basic())
+#New UI end
+
 ########################################################
 # Used in refreshing the cell list
 ########################################################
@@ -265,6 +307,9 @@ def worksheet_cell_list(worksheet):
     r['state_number'] = worksheet.state_number()
     # TODO: Send and actually use the body's HTML.
     r['html_cell_list'] = ''
+    #New UI
+    r['cell_list'] = [c.basic() for c in worksheet.cell_list()]
+    #Newi UI end
     #r['html_cell_list'] = W.html_cell_list()
 
     return encode_response(r)
