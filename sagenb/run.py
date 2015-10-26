@@ -167,6 +167,11 @@ class NotebookFrontend(object):
             choices=tuple(self.servers),
             )
         parser.add_argument(
+            '--debug',
+            dest='debug',
+            action='store_true',
+            )
+        parser.add_argument(
             '--profile',
             dest='profile',
             action='store_true',
@@ -224,6 +229,9 @@ class NotebookFrontend(object):
         self.conf.update(vars(self.parser.parse_args(args)))
 
     def update_conf(self):
+        if self.conf['debug']:
+            self.conf['server'] = 'werkzeug'
+
         self.conf['private_pem'] = os.path.join(self.conf['conf_path'],
                                                 'private.pem')
         self.conf['public_pem'] = os.path.join(self.conf['conf_path'],
@@ -441,9 +449,10 @@ class NotebookFrontend(object):
             ssl_context = None
 
         logger = logging.getLogger('werkzeug')
-        logger.setLevel(logging.WARNING)
+        logger.setLevel(
+            logging.DEBUG if self.conf['debug']
+            else logger.setLevel(logging.WARNING))
         #logger.setLevel(logging.INFO) # to see page requests
-        #logger.setLevel(logging.DEBUG)
         logger.addHandler(logging.StreamHandler())
 
         if self.conf['secure']:
@@ -460,7 +469,8 @@ class NotebookFrontend(object):
 
         try:
             flask_app.run(host=self.conf['interface'], port=self.conf['port'],
-                          threaded=True, ssl_context=ssl_context, debug=False)
+                          threaded=True, ssl_context=ssl_context,
+                          debug=self.conf['debug'])
         finally:
             self.exit()
 
