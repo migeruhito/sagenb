@@ -26,6 +26,7 @@ from sagenb.misc.misc import SAGE_VERSION
 from sagenb.misc.misc import unicode_str
 from sagenb.misc.misc import tmp_filename
 from sagenb.misc.misc import walltime
+from sagenb.notebook.misc import encode_response
 from sagenb.notebook.themes import render_template
 
 
@@ -106,9 +107,6 @@ def worksheet_list():
 
     a string
     """
-
-    from sagenb.misc.misc import unicode_str, SAGE_VERSION
-    from sagenb.notebook.misc import encode_response
     r = {}
 
     pub = 'pub' in request.args
