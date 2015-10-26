@@ -37,6 +37,7 @@ import re
 import shutil
 import time
 import traceback
+from time import strftime
 
 from flask.ext.babel import format_datetime
 from flask.ext.babel import gettext
@@ -290,6 +291,66 @@ class Worksheet(object):
         the data files in the DATA directory and images and other data
         in the individual cell directories.
 
+        The fields of the dictionary are:
+            'id_number'
+                Basic identification
+            'name'
+                Basic identification
+
+            'owner'
+                permission: who can look at the worksheet
+            'system'
+                default type of computation system that evaluates cells
+            'viewers'
+                permission: who can look at the worksheet
+            'collaborators'
+                permission: who can look at the worksheet
+
+            'published_id_number'
+                publishing worksheets (am I published?); auto-publish me?
+                If this worksheet is published, then the published_id_number is
+                the id of the published version of this worksheet. Otherwise,
+                it is None.
+            'worksheet_that_was_published'
+                If this is a published worksheet, then ws_pub is a 2-tuple
+                ('username', id_number) of a non-published worksheet.
+                Otherwise ws_pub is None.
+            'auto_publish'
+                Whether or not this worksheet should automatically be
+                republished when changed.
+            'published'
+            'published_time'
+
+            'pretty_print'
+                Appearance
+                default
+            'live_3D'
+                Whether to load 3-D live.  Should only be set to
+                true by the user as worksheets with more than 1 or 2
+                live (interactive) 3-D plots may bog down because of
+                javascript overload.
+            'ratings'
+                what other users think of this worksheet
+                triples
+                      (username, rating, comment)
+            'saved_by_info'
+                #???
+            'tags'
+                dictionary mapping usernames to list of tags that
+                reflect what the tages are for that user.  A tag can be
+                an integer
+                  0,1,2 (=ARCHIVED,ACTIVE,TRASH),
+                or a string (not yet supported).
+                This is used for now to fill in the __user_views.
+            'last_change'
+                information about when this worksheet was last changed,
+                and by whom
+                    last_change = ('username', time.time())
+            'last_change_pretty'
+            'filename'
+            'running'
+            'attached_data_files'
+
         EXAMPLES::
 
             sage: import sagenb.notebook.worksheet
@@ -297,94 +358,44 @@ class Worksheet(object):
             sage: sorted((W.basic().items()))
             [('auto_publish', False), ('collaborators', []), ('id_number', 0), ('last_change', ('sage', ...)), ('live_3D', False), ('name', u'test'), ('owner', 'sage'), ('pretty_print', False), ('published_id_number', None), ('ratings', []), ('saved_by_info', {}), ('system', None), ('tags', {'sage': [1]}), ('viewers', []), ('worksheet_that_was_published', ('sage', 0))]
         """
-        try:
-            published_id_number = int(os.path.split(self.__published_version)[1])
-        except AttributeError:
-            published_id_number = None
-
-        try:
-            ws_pub = self.__worksheet_came_from
-        except AttributeError:
-            ws_pub = (self.owner(), self.id_number())
-
-        try:
-            saved_by_info = self.__saved_by_info
-        except AttributeError:
-            saved_by_info = {}
-
-        d = {#############
-             # basic identification
+        d = {
              'name': unicode(self.name()),
              'id_number': int(self.id_number()),
-
-             #############
-             # default type of computation system that evaluates cells
              'system': self.system(),
-
-             #############
-             # permission: who can look at the worksheet
              'owner': self.owner(),
              'viewers': self.viewers(),
              'collaborators': self.collaborators(),
-
-             #############
-             # publishing worksheets (am I published?); auto-publish me?
-             # If this worksheet is published, then the published_id_number
-             # is the id of the published version of this worksheet. Otherwise,
-             # it is None.
-             'published_id_number': published_id_number,
-             # If this is a published worksheet, then ws_pub
-             # is a 2-tuple ('username', id_number) of a non-published
-             # worksheet.  Otherwise ws_pub is None.
-             'worksheet_that_was_published': ws_pub,
-             # Whether or not this worksheet should automatically be
-             # republished when changed.
              'auto_publish': self.is_auto_publish(),
-
-             # Appearance: e.g., whether to pretty print this
-             # worksheet by default
              'pretty_print': self.pretty_print(),
-
-             # Whether to load 3-D live.  Should only be set to
-             # true by the user as worksheets with more than 1 or 2
-             # live (interactive) 3-D plots may bog down because of
-             # javascript overload.
              'live_3D': self.live_3D(),
-
-             # what other users think of this worksheet: list of
-             # triples
-             #       (username, rating, comment)
              'ratings': self.ratings(),
-
-             #???
-             'saved_by_info':saved_by_info,
-
-             # dictionary mapping usernames to list of tags that
-             # reflect what the tages are for that user.  A tag can be
-             # an integer:
-             #   0,1,2 (=ARCHIVED,ACTIVE,TRASH),
-             # or a string (not yet supported).
-             # This is used for now to fill in the __user_views.
              'tags': self.tags(),
-
-             # information about when this worksheet was last changed,
-             # and by whom:
-             #     last_change = ('username', time.time())
              'last_change': self.last_change(),
+             'saved_by_info': getattr(self, '__saved_by_info', {}),
+             'worksheet_that_was_published': getattr(
+                 self, '__worksheet_came_from', (self.owner(),
+                                                 self.id_number())),
+             #New UI
+             'last_change_pretty': prettify_time_ago(
+                 time.time() - self.last_change()[1]),
+             'filename': self.filename(),
+             'running': self.compute_process_has_been_started(),
+             'attached_data_files': self.attached_data_files(),
+             'published': self.has_published_version(),
+             #New UI end
              }
+        try:
+            d['published_id_number'] = int(os.path.split(
+                self.__published_version)[1])
+        except AttributeError:
+            d['published_id_number'] = None
+        #New UI
+        if d['published']:
+            d['published_time'] = strftime(
+                "%B %d, %Y %I:%M %p", self.published_version().date_edited())
+        #New UI end
+
         return d
-    #New UI
-    def basic_new(self):
-        d=self.basic()
-        del(d['published_id_number'])
-        del(d['auto_publish'])
-        d['attached_data_files'] = self.attached_data_files()
-        d['running'] = self.compute_process_has_been_started()
-        d['last_change_pretty'] =  prettify_time_ago(
-                time.time() -  self.last_change()[1])
-        d['filename'] = self.filename()
-        return d
-    #New UI end
 
     def reconstruct_from_basic(self, obj, notebook_worksheet_directory=None):
         """

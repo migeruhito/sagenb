@@ -268,7 +268,7 @@ def worksheet_properties(worksheet):
     """
     Send worksheet properties as a JSON object
     """
-    r = worksheet.basic_new()
+    r = worksheet.basic()
 
     if worksheet.has_published_version():
         hostname = request.headers.get(
