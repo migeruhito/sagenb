@@ -447,16 +447,6 @@ class NotebookFrontend(object):
         #logger.setLevel(logging.INFO) # to see page requests
         logger.addHandler(logging.StreamHandler())
 
-        if self.conf['secure']:
-            # Monkey-patch werkzeug so that it works with pyOpenSSL and
-            # Python 2.7
-            # otherwise, we constantly get TypeError:
-            #shutdown() takes exactly 0 arguments (1 given)
-
-            @monkeypatch_method(serving.BaseWSGIServer)
-            def shutdown_request(self, request):
-                request.shutdown()
-
         self.open_page()
 
         try:
@@ -656,17 +646,6 @@ class NotebookFrontend(object):
         os.chmod(self.conf['private_pem'], 0600)
 
         print('Successfully configured notebook.')
-
-
-def monkeypatch_method(cls):
-    '''
-    Monkey patching idiom:
-    http://mail.python.org/pipermail/python-dev/2008-January/076194.html
-    '''
-    def decorator(func):
-        setattr(cls, func.__name__, func)
-        return func
-    return decorator
 
 
 if __name__ == '__main__':
