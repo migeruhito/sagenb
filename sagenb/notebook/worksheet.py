@@ -32,10 +32,9 @@ import copy
 import os
 import re
 import shutil
-import string
 import time
 import traceback
-import locale
+from time import strftime
 
 # General sage library code
 from sagenb.misc.misc import (cython, load, save,
@@ -243,7 +242,7 @@ class Worksheet(object):
             self.__state_number = 0
 
     def state_number(self):
-        if self.is_published() or self.docbrowser(): 
+        if self.is_published() or self.docbrowser():
             return 0
 
         try:
@@ -286,6 +285,61 @@ class Worksheet(object):
         the data files in the DATA directory and images and other data
         in the individual cell directories.
 
+        The fields of the dictionary are:
+            'id_number'
+                Basic identification
+            'name'
+                Basic identification
+
+            'owner'
+                permission: who can look at the worksheet
+            'system'
+                default type of computation system that evaluates cells
+            'viewers'
+                permission: who can look at the worksheet
+            'collaborators'
+                permission: who can look at the worksheet
+
+            'published_id_number'
+                publishing worksheets (am I published?); auto-publish me?
+                If this worksheet is published, then the published_id_number is
+                the id of the published version of this worksheet. Otherwise,
+                it is None.
+            'worksheet_that_was_published'
+                If this is a published worksheet, then ws_pub is a 2-tuple
+                ('username', id_number) of a non-published worksheet.
+                Otherwise ws_pub is None.
+            'auto_publish'
+                Whether or not this worksheet should automatically be
+                republished when changed.
+            'published'
+            'published_time'
+
+            'pretty_print'
+                Appearance
+                default
+            'ratings'
+                what other users think of this worksheet
+                triples
+                      (username, rating, comment)
+            'saved_by_info'
+                #???
+            'tags'
+                dictionary mapping usernames to list of tags that
+                reflect what the tages are for that user.  A tag can be
+                an integer
+                  0,1,2 (=ARCHIVED,ACTIVE,TRASH),
+                or a string (not yet supported).
+                This is used for now to fill in the __user_views.
+            'last_change'
+                information about when this worksheet was last changed,
+                and by whom
+                    last_change = ('username', time.time())
+            'last_change_pretty'
+            'filename'
+            'running'
+            'attached_data_files'
+
         EXAMPLES::
 
             sage: import sagenb.notebook.worksheet
@@ -293,72 +347,37 @@ class Worksheet(object):
             sage: sorted((W.basic().items()))
             [('auto_publish', False), ('collaborators', []), ('id_number', 0), ('last_change', ('sage', ...)), ('name', u'test'), ('owner', 'sage'), ('pretty_print', False), ('published_id_number', None), ('ratings', []), ('saved_by_info', {}), ('system', None), ('tags', {'sage': [1]}), ('viewers', []), ('worksheet_that_was_published', ('sage', 0))]
         """
-        d = {#############
-             # basic identification
+        d = {
              'name': unicode(self.name()),
              'id_number': int(self.id_number()),
-
-             #############
-             # default type of computation system that evaluates cells
              'system': self.system(),
-
-             #############
-             # permission: who can look at the worksheet
              'owner': self.owner(),
              'viewers': self.viewers(),
              'collaborators': self.collaborators(),
-
-             # Appearance: e.g., whether to pretty print this
-             # worksheet by default
+             'auto_publish': self.is_auto_publish(),
              'pretty_print': self.pretty_print(),
-
-             # what other users think of this worksheet: list of
-             # triples
-             #       (username, rating, comment)
              'ratings': self.ratings(),
-
-             # dictionary mapping usernames to list of tags that
-             # reflect what the tages are for that user.  A tag can be
-             # an integer:
-             #   0,1,2 (=ARCHIVED,ACTIVE,TRASH),
-             # or a string (not yet supported).
-             # This is used for now to fill in the __user_views.
              'tags': self.tags(),
-
-             # information about when this worksheet was last changed,
-             # and by whom:
-             #     last_change = ('username', time.time())
              'last_change': self.last_change(),
-             'last_change_pretty': prettify_time_ago(time.time() - self.last_change()[1]),
-
+             'saved_by_info': getattr(self, '__saved_by_info', {}),
+             'worksheet_that_was_published': getattr(
+                 self, '__worksheet_came_from', (self.owner(),
+                                                 self.id_number())),
+             'last_change_pretty': prettify_time_ago(
+                 time.time() - self.last_change()[1]),
              'filename': self.filename(),
-
              'running': self.compute_process_has_been_started(),
-
-             'attached_data_files': self.attached_data_files()
-        }
-
+             'attached_data_files': self.attached_data_files(),
+             'published': self.has_published_version(),
+             }
         try:
-            d['saved_by_info'] = self.__saved_by_info 
+            d['published_id_number'] = int(os.path.split(
+                self.__published_version)[1])
         except AttributeError:
-            d['saved_by_info'] = {}
-
-        try:
-            d['worksheet_that_was_published'] = self.__worksheet_came_from
-        except AttributeError:
-            d['worksheet_that_was_published'] = (self.owner(), self.id_number())
-
-        if self.has_published_version():
-            d['published'] = True
-            d['auto_publish'] = self.is_auto_publish()
-
-            from time import strftime
-            d['published_time'] = strftime("%B %d, %Y %I:%M %p", self.published_version().date_edited())
-
-            try:
-                d['published_id_number'] = int(os.path.split(self.__published_version)[1])
-            except AttributeError:
-                d['published_id_number'] = None
+            d['published_id_number'] = None
+        if d['published']:
+            d['published_time'] = strftime(
+                "%B %d, %Y %I:%M %p", self.published_version().date_edited())
 
         return d
 
