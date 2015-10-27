@@ -98,8 +98,7 @@ class NotebookFrontend(object):
         parser.add_argument(
             '--openid',
             dest='openid',
-            default=None,
-            action='store',
+            action='store_true',
             )
 
         parser.add_argument(
@@ -301,13 +300,7 @@ class NotebookFrontend(object):
         if self.conf['doc_timeout'] is not None:
             nb.conf()['doc_timeout'] = self.conf['doc_timeout']
 
-        if self.conf['openid'] is not None:
-            nb.conf()['openid'] = self.conf['openid']
-        elif not nb.conf()['openid']:
-            # What is the purpose behind this elif?  It seems rather pointless.
-            # all it appears to do is set the config to False if bool(config)
-            # is False
-            nb.conf()['openid'] = False
+        nb.conf()['openid'] = self.conf['openid']
 
         if self.conf['accounts'] is not None:
             nb.user_manager().set_accounts(self.conf['accounts'])

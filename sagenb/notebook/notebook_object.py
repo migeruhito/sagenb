@@ -252,7 +252,6 @@ class NotebookObject:
         return self.notebook(*args, **kwds)
 
     def notebook(self,
-
                  directory=None,
                  port=8080,
                  interface='localhost',
@@ -260,7 +259,7 @@ class NotebookObject:
                  secure=False,
                  reset=False,
                  accounts=None,
-                 openid=None,
+                 openid=False,
 
                  server_pool=None,
                  ulimit='',
@@ -288,7 +287,7 @@ class NotebookObject:
         loc['no_automatic_login'] = not loc['automatic_login']
         del loc['automatic_login']
         args = []
-        for arg in ['directory', 'accounts', 'openid', 'server_pool',
+        for arg in ['directory', 'accounts', 'server_pool',
                     'timeout', 'doc_timeout', 'upload', 'subnets',
                     'require_login', 'open_viewer', 'address']:
             val = loc.get(arg, None)
@@ -301,7 +300,7 @@ class NotebookObject:
             if val:
                 args.append('--{}'.format(arg))
                 args.append(str(val))
-        for arg in ['secure', 'reset', 'no_automatic_login', 'fork', 'quiet',
+        for arg in ['secure', 'reset', 'openid', 'no_automatic_login', 'fork', 'quiet',
                     'profile']:
             if loc.get(arg):
                 args.append('--{}'.format(arg))
