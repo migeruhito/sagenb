@@ -443,8 +443,7 @@ class NotebookFrontend(object):
 
         logger = logging.getLogger('werkzeug')
         logger.setLevel(
-            logging.DEBUG if self.conf['debug']
-            else logger.setLevel(logging.WARNING))
+            logging.DEBUG if self.conf['debug'] else logging.WARNING)
         #logger.setLevel(logging.INFO) # to see page requests
         logger.addHandler(logging.StreamHandler())
 
