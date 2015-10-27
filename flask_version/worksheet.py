@@ -1,13 +1,38 @@
-import os, threading, collections
-from functools import wraps
-from flask import Module, url_for, render_template, request, session, redirect, g, current_app, make_response
-from decorators import guest_or_login_required, login_required, with_lock
-from collections import defaultdict
-from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext
-_ = gettext
+from __future__ import absolute_import
 
+import bz2
+import re
+import os
+import threading
+import time
+import urllib2
+from cgi import escape
+from collections import defaultdict
+from functools import wraps
+from urlparse import urlparse
+
+from flask import Module
+from flask import make_response
+from flask import url_for
+from flask import render_template
+from flask import request
+from flask import redirect
+from flask import g
+from flask import current_app
+from flask.ext.babel import gettext
+from flask.helpers import send_file
+from flask.helpers import send_from_directory
+from werkzeug.utils import secure_filename
+
+from sagenb.misc.misc import tmp_filename
+from sagenb.misc.misc import unicode_str
 from sagenb.notebook.interact import INTERACT_UPDATE_PREFIX
 from sagenb.notebook.misc import encode_response
+
+from .decorators import guest_or_login_required
+from .decorators import login_required
+
+_ = gettext
 
 ws = Module('sagenb.flask_version.worksheet')
 worksheet_locks = defaultdict(threading.Lock)
@@ -40,8 +65,7 @@ def worksheet_view(f):
                 worksheet.set_active(g.username)
 
             #This was in twist.Worksheet.childFactory
-            from base import notebook_updates
-            notebook_updates()
+            g.notebook_updater.update()
 
             return f(username, id, **kwds)
 
@@ -225,7 +249,6 @@ def worksheet_properties(worksheet):
     """
     Send worksheet properties as a JSON object
     """
-    from sagenb.notebook.misc import encode_response
 
     r = worksheet.basic()
 
@@ -278,7 +301,6 @@ def worksheet_set_cell_output_type(worksheet):
 ########################################################
 #Cell creation
 ########################################################
-from sagenb.misc.misc import unicode_str
 @worksheet_command('new_cell_before')
 def worksheet_new_cell_before(worksheet):
     """Add a new cell before a given cell."""
@@ -390,7 +412,6 @@ def worksheet_eval(worksheet):
     documentation of the function and the source code of the function
     respectively.
     """
-    from base import notebook_updates
 
     r = {}
 
@@ -428,10 +449,10 @@ def worksheet_eval(worksheet):
     cell.set_input_text(input_text)
 
     if int(request.values.get('save_only', '0')):
-        notebook_updates()
+        g.notebook_updater.update()
         return encode_response(r)
     elif int(request.values.get('text_only', '0')):
-        notebook_updates()
+        g.notebook_updater.update()
         r['cell_html'] = cell.html()
         return encode_response(r)
 
@@ -446,13 +467,12 @@ def worksheet_eval(worksheet):
     else:
         r['next_id'] = cell.next_compute_id()
 
-    notebook_updates()
+    g.notebook_updater.update()
 
     return encode_response(r)
 
 @worksheet_command('cell_update')
 def worksheet_cell_update(worksheet):
-    import time
 
     r = {}
     r['id'] = id = get_cell_id()
@@ -538,7 +558,6 @@ def worksheet_text(worksheet):
     Return a window that allows the user to edit the text of the
     worksheet with the given filename.
     """
-    from cgi import escape
     plain_text = worksheet.plain_text(prompts=True, banner=False)
     plain_text = escape(plain_text).strip()
 
@@ -625,7 +644,6 @@ def worksheet_revisions(worksheet):
         rev = request.values['rev']
         action = request.values['action']
         if action == 'revert':
-            import bz2
             worksheet.save_snapshot(g.username)
             #XXX: Requires access to filesystem
             txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
@@ -633,7 +651,6 @@ def worksheet_revisions(worksheet):
             worksheet.edit_save(txt)
             return redirect(url_for_worksheet(worksheet))
         elif action == 'publish':
-            import bz2
             W = g.notebook.publish_worksheet(worksheet, g.username)
             txt = bz2.decompress(open(worksheet.get_snapshot_text_filename(rev)).read())
             W.delete_cells_directory()
@@ -649,7 +666,6 @@ def worksheet_revisions(worksheet):
 def worksheet_cells(worksheet, filename):
     #XXX: This requires that the worker filesystem be accessible from
     #the server.
-    from flask.helpers import send_from_directory
     return send_from_directory(worksheet.cells_directory(), filename)
 
 
@@ -666,7 +682,6 @@ def worksheet_data(worksheet, filename):
     if not os.path.exists(dir):
         return make_response(_('No data file'), 404)
     else:
-        from flask.helpers import send_from_directory
         return send_from_directory(worksheet.data_directory(), filename)
 
 @worksheet_command('delete_datafile')
@@ -732,7 +747,6 @@ def worksheet_save_datafile(worksheet):
 
 @worksheet_command('upload_datafile')
 def worksheet_upload_datafile(worksheet):
-    from werkzeug.utils import secure_filename
 
     file = request.files['file']
     name = request.values.get('name', '').strip() or file.filename
@@ -750,7 +764,6 @@ def worksheet_upload_datafile(worksheet):
 
 @worksheet_command('datafile_from_url')
 def worksheet_datafile_from_url(worksheet):
-    from werkzeug.utils import secure_filename
 
     name = request.values.get('name', '').strip()
     url = request.values.get('url', '').strip()
@@ -758,8 +771,6 @@ def worksheet_datafile_from_url(worksheet):
         name = url.split('/')[-1]
     name = secure_filename(name)
 
-    import urllib2
-    from urlparse import urlparse
     # we normalize the url by parsing it first
     parsedurl = urlparse(url)
     if not parsedurl[0] in ('http','https','ftp'):
@@ -772,7 +783,6 @@ def worksheet_datafile_from_url(worksheet):
             return _('Suspicious filename encountered uploading file.')
         os.unlink(dest)
 
-    import re
     matches = re.match("file://(?:localhost)?(/.+)", url)
     if matches:
         f = file(dest, 'wb')
@@ -786,7 +796,6 @@ def worksheet_datafile_from_url(worksheet):
 
 @worksheet_command('new_datafile')
 def worksheet_new_datafile(worksheet):
-    from werkzeug.utils import secure_filename
 
     name = request.values.get('new', '').strip()
     name = secure_filename(name)
@@ -865,8 +874,6 @@ def worksheet_download(worksheet, title):
     return unconditional_download(worksheet, title)
 
 def unconditional_download(worksheet, title):
-    from sagenb.misc.misc import tmp_filename
-    from flask.helpers import send_file
     filename = tmp_filename() + '.sws'
 
     if title.endswith('.sws'):
@@ -878,7 +885,6 @@ def unconditional_download(worksheet, title):
     except KeyError:
         return current_app.message(_('No such worksheet.'))
 
-    from flask.helpers import send_file
     return send_file(filename, mimetype='application/sage')
 
 
