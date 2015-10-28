@@ -424,7 +424,6 @@ class NotebookFrontend(object):
         os.chdir(self.conf['cwd'])
 
     def werkzeug(self, flask_app):
-        from werkzeug import serving
         with open(self.conf['pidfile'], "w") as pidfile:
             pidfile.write(str(os.getpid()))
 
