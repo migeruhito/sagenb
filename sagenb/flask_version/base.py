@@ -33,7 +33,6 @@ from sagenb.misc.misc import mathjax_macros
 from sagenb.misc.misc import N_
 from sagenb.misc.misc import nN_
 from sagenb.misc.misc import SAGE_VERSION
-from sagenb.misc.misc import SAGENB_ROOT
 from sagenb.misc.misc import theme_paths
 from sagenb.misc.misc import default_theme
 from sagenb.misc.misc import unicode_str
@@ -84,8 +83,6 @@ class SageNBFlask(Flask):
         self.session_interface = OldSecureCookieSessionInterface()
 
         self.config['SESSION_COOKIE_HTTPONLY'] = False
-
-        self.root_path = SAGENB_ROOT
 
         mimetypes.add_type('text/plain','.jmol')
 
@@ -408,7 +405,7 @@ def create_app(path_to_notebook, *args, **kwds):
     ##############
     # Create app #
     ##############
-    app = SageNBFlask('flask_version', startup_token=startup_token,
+    app = SageNBFlask('sagenb', startup_token=startup_token,
                       static_folder='data', static_url_path='/static',
                       template_folder=TEMPLATE_PATH)
     app.secret_key = os.urandom(24)
