@@ -6,7 +6,6 @@ import os
 import re
 import time
 from cgi import escape
-from functools import partial
 from hashlib import sha1
 from json import dumps
 
@@ -28,10 +27,7 @@ from flask.ext.babel import gettext
 from flask.ext.babel import get_locale
 from flask.ext.themes2 import Themes
 from flask.ext.themes2 import theme_paths_loader
-from flask.helpers import send_file
-from flask.helpers import send_from_directory
 
-from sagenb.misc.misc import DATA
 from sagenb.misc.misc import import_from
 from sagenb.misc.misc import mathjax_macros
 from sagenb.misc.misc import N_
@@ -43,7 +39,6 @@ from sagenb.misc.misc import default_theme
 from sagenb.misc.misc import unicode_str
 from sagenb.misc.misc import walltime
 from sagenb.notebook.challenge import challenge
-from sagenb.notebook.css import css
 from sagenb.notebook.js import javascript
 from sagenb.notebook.keyboards import get_keyboard
 from sagenb.notebook.misc import is_valid_username
@@ -68,6 +63,7 @@ from .decorators import with_lock
 from .decorators import global_lock
 from .doc import doc
 from .settings import settings
+from .static_paths import static_paths
 from .worksheet import url_for_worksheet
 from .worksheet import ws as worksheet
 from .worksheet_listing import worksheet_listing
@@ -82,8 +78,6 @@ oid = OpenID()
 base = Module('sagenb.flask_version.base')
 
 class SageNBFlask(Flask):
-    static_path = ''
-
     def __init__(self, *args, **kwds):
         self.startup_token = kwds.pop('startup_token', None)
         Flask.__init__(self, *args, **kwds)
@@ -93,30 +87,6 @@ class SageNBFlask(Flask):
 
         self.root_path = SAGENB_ROOT
 
-        self.add_static_path('/css', os.path.join(DATA, "sage", "css"))
-        self.add_static_path('/images', os.path.join(DATA, "sage", "images"))
-        self.add_static_path('/javascript', DATA)
-        self.add_static_path('/static', DATA)
-        self.add_static_path('/java', DATA)
-        self.add_static_path('/java/jmol',
-                             os.path.join(os.environ['SAGE_ROOT'],
-                                          'local', 'share', 'jmol'))
-        self.add_static_path('/jsmol',
-                             os.path.join(os.environ['SAGE_ROOT'],
-                                          'local', 'share', 'jsmol'))
-        self.add_static_path('/jsmol/js',
-                             os.path.join(os.environ['SAGE_ROOT'],
-                                          'local', 'share', 'jsmol', 'js'))
-        self.add_static_path('/j2s',
-                             os.path.join(os.environ['SAGE_ROOT'],
-                                          'local', 'share', 'jsmol', 'j2s'))
-        self.add_static_path('/jsmol/j2s',
-                             os.path.join(os.environ['SAGE_ROOT'],
-                                          'local', 'share', 'jsmol', 'j2s'))
-        self.add_static_path('/j2s/core',
-                             os.path.join(os.environ['SAGE_ROOT'],
-                                          'local', 'share', 'jsmol', 'j2s',
-                                          'core'))
         mimetypes.add_type('text/plain','.jmol')
 
 
@@ -131,15 +101,6 @@ class SageNBFlask(Flask):
         self.add_template_filter(lambda x: repr(unicode_str(x))[1:],
                                  name='repr_str')
         self.add_template_filter(dumps, 'tojson')
-
-
-    def static_view_func(self, root_path, filename):
-        return send_from_directory(root_path, filename)
-
-    def add_static_path(self, base_url, root_path):
-        self.add_url_rule(base_url + '/<path:filename>',
-                          endpoint='/static'+base_url,
-                          view_func=partial(self.static_view_func, root_path))
 
     def message(self, msg, cont='/', username=None, **kwds):
         """Returns an error message to the user."""
@@ -240,30 +201,15 @@ def keyboard_js(browser_os):
         response.headers['Etag']=datahash
     return response
 
-###############
-# Dynamic CSS #
-###############
-#DOT_SAGENB/notebook.css mechanism is left for backwards compatibility,
-#but it has no sense with the themes infrastructure and should
-#be deprecated
-@base.route('/css/main.css')
-def main_css():
-    data,datahash = css()
-    if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
-        response = make_response('',304)
-    else:
-        response = make_response(data)
-        response.headers['Content-Type'] = 'text/css; charset=utf-8'
-        response.headers['Etag']=datahash
-    return response
-
 ########
 # Help #
 ########
 @base.route('/help')
 @login_required
 def help():
-    return render_template(os.path.join('html', 'docs.html'), username = g.username, notebook_help = notebook_help, sage_version=SAGE_VERSION)
+    return render_template(
+      os.path.join('html', 'docs.html'), username = g.username,
+      notebook_help = notebook_help, sage_version=SAGE_VERSION)
 
 ###########
 # History #
@@ -285,7 +231,7 @@ def live_history():
 ###########
 @base.route('/favicon.ico')
 def favicon():
-    return send_file(os.path.join(DATA, 'sage', 'images', 'favicon.ico'))
+    return redirect(url_for('static_paths.images', filename='favicon.ico'))
 
 @base.route('/loginoid', methods=['POST', 'GET'])
 @guest_or_login_required
@@ -463,6 +409,7 @@ def create_app(path_to_notebook, *args, **kwds):
     # Create app #
     ##############
     app = SageNBFlask('flask_version', startup_token=startup_token,
+                      static_folder='data', static_url_path='/static',
                       template_folder=TEMPLATE_PATH)
     app.secret_key = os.urandom(24)
     oid.init_app(app)
@@ -507,18 +454,14 @@ def create_app(path_to_notebook, *args, **kwds):
     ########################
     # Register the modules #
     ########################
-    app.register_blueprint(base)
-
-    app.register_blueprint(worksheet_listing)
-
-    app.register_blueprint(admin)
-
-    app.register_blueprint(authentication)
-
     app.register_blueprint(doc, url_prefix='/doc')
+    app.register_blueprint(static_paths)
 
+    app.register_blueprint(base)
+    app.register_blueprint(worksheet_listing)
+    app.register_blueprint(admin)
+    app.register_blueprint(authentication)
     app.register_blueprint(worksheet)
-
     app.register_blueprint(settings)
 
     # Handles all uncaught exceptions by sending an e-mail to the
