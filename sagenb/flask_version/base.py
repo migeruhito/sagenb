@@ -36,7 +36,6 @@ from sagenb.misc.misc import import_from
 from sagenb.misc.misc import mathjax_macros
 from sagenb.misc.misc import N_
 from sagenb.misc.misc import nN_
-from sagenb.misc.misc import SAGE_DOC
 from sagenb.misc.misc import SAGE_VERSION
 from sagenb.misc.misc import SAGENB_ROOT
 from sagenb.misc.misc import theme_paths
@@ -99,23 +98,27 @@ class SageNBFlask(Flask):
         self.add_static_path('/javascript', DATA)
         self.add_static_path('/static', DATA)
         self.add_static_path('/java', DATA)
-        self.add_static_path('/java/jmol', os.path.join(os.environ["SAGE_ROOT"],"local","share","jmol"))
-        self.add_static_path('/jsmol', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol"))
-        self.add_static_path('/jsmol/js', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol","js"))
-        self.add_static_path('/j2s', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol","j2s"))
-        self.add_static_path('/jsmol/j2s', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol","j2s"))
-        self.add_static_path('/j2s/core', os.path.join(os.environ["SAGE_ROOT"],"local","share","jsmol","j2s","core"))
+        self.add_static_path('/java/jmol',
+                             os.path.join(os.environ['SAGE_ROOT'],
+                                          'local', 'share', 'jmol'))
+        self.add_static_path('/jsmol',
+                             os.path.join(os.environ['SAGE_ROOT'],
+                                          'local', 'share', 'jsmol'))
+        self.add_static_path('/jsmol/js',
+                             os.path.join(os.environ['SAGE_ROOT'],
+                                          'local', 'share', 'jsmol', 'js'))
+        self.add_static_path('/j2s',
+                             os.path.join(os.environ['SAGE_ROOT'],
+                                          'local', 'share', 'jsmol', 'j2s'))
+        self.add_static_path('/jsmol/j2s',
+                             os.path.join(os.environ['SAGE_ROOT'],
+                                          'local', 'share', 'jsmol', 'j2s'))
+        self.add_static_path('/j2s/core',
+                             os.path.join(os.environ['SAGE_ROOT'],
+                                          'local', 'share', 'jsmol', 'j2s',
+                                          'core'))
         mimetypes.add_type('text/plain','.jmol')
 
-
-        #######
-        # Doc #
-        #######
-        #These "should" be in doc.py
-        DOC = os.path.join(SAGE_DOC, 'output', 'html', 'en')
-        self.add_static_path('/pdf', os.path.join(SAGE_DOC, 'output', 'pdf'))
-        self.add_static_path('/doc/static', DOC)
-        #self.add_static_path('/doc/static/reference', os.path.join(SAGE_DOC, 'reference'))
 
         # Template globals
         self.add_template_global(url_for)

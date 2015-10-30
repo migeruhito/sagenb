@@ -16,12 +16,11 @@ URLS to do:
 from __future__ import absolute_import
 
 import os
-from flask import Module
-from flask import redirect
+from flask import Blueprint
 from flask import g
 from flask import current_app
 from flask.ext.babel import gettext
-from flask.helpers import send_file
+from flask.helpers import send_from_directory
 
 from sagenb.misc.misc import SAGE_DOC
 
@@ -30,7 +29,7 @@ from .worksheet import worksheet_file
 
 _ = gettext
 
-doc = Module('sagenb.flask_version.doc')
+doc = Blueprint('doc', __name__)
 
 DOC = os.path.join(SAGE_DOC, 'output', 'html', 'en')
 
@@ -40,18 +39,17 @@ DOC = os.path.join(SAGE_DOC, 'output', 'html', 'en')
 
 #The static documentation paths are currently set in base.SageNBFlask.__init__
 
-@doc.route('/doc/static/')
-def docs_static_index():
-    return redirect('/doc/static/index.html')
+@doc.route('/doc/static/', defaults={'filename': 'index.html'})
+@doc.route('/doc/static/<path:filename>')
+def doc_static(filename):
+    return send_from_directory(DOC, filename)
+
 
 @doc.route('/doc/live/')
-@login_required
-def doc_live_base():
-    return current_app.message(_('nothing to see.'), username=g.username)
-
 @doc.route('/doc/live/<manual>/<path:path_static>/_static/<path:filename>')
+@doc.route('/doc/live/<path:filename>')
 @login_required
-def doc_static_file(manual, path_static, filename):
+def doc_live(filename=None, manual=None, path_static=None):
     """
     The docs reference a _static URL in the current directory, even if
     the real _static directory only lives in the root of the manual.
@@ -66,14 +64,14 @@ def doc_static_file(manual, path_static, filename):
     directory is a bug in Sphinx, and file a report or see if it has
     already been fixed upstream.
     """
-    filename = os.path.join(DOC, manual, '_static', filename)
-    return send_file(filename)
+    if filename is None:
+        return current_app.message(_('nothing to see.'), username=g.username)
+    if path_static is not None:
+        path_static = os.path.join(DOC, manual, '_static')
+        return send_from_directory(path_static, filename)
 
-@doc.route('/doc/live/<path:filename>')
-@login_required
-def doc_live(filename):
-    filename = os.path.join(DOC, filename)
     if filename.endswith('.html'):
+        filename = os.path.join(DOC, filename)
         return worksheet_file(filename)
     else:
-        return send_file(filename)
+        return send_from_directory(DOC, filename)
