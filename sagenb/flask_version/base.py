@@ -515,7 +515,7 @@ def create_app(path_to_notebook, *args, **kwds):
 
     app.register_blueprint(authentication)
 
-    app.register_blueprint(doc)
+    app.register_blueprint(doc, url_prefix='/doc')
 
     app.register_blueprint(worksheet)
 

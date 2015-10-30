@@ -3,15 +3,8 @@ Documentation functions
 
 URLS to do:
 
-###/pdf/       <-FILE->  DOC_PDF
 ###/doc/live/   - WorksheetFile(os.path.join(DOC, name)
 ###/doc/static/ - DOC/index.html
-###/doc/static/reference/ <-FILE-> DOC/reference/
-###/doc/reference/media/  <-FILE-> DOC_REF_MEDIA
-
-/src/             - SourceBrowser
-/src/<name>       - Source(os.path.join(SRC,name), self.username)
-
 """
 from __future__ import absolute_import
 
@@ -33,23 +26,18 @@ doc = Blueprint('doc', __name__)
 
 DOC = os.path.join(SAGE_DOC, 'output', 'html', 'en')
 
-################
-# Static paths #
-################
 
-#The static documentation paths are currently set in base.SageNBFlask.__init__
-
-@doc.route('/doc/static/', defaults={'filename': 'index.html'})
-@doc.route('/doc/static/<path:filename>')
-def doc_static(filename):
+@doc.route('/static/', defaults={'filename': 'index.html'})
+@doc.route('/static/<path:filename>')
+def static(filename):
     return send_from_directory(DOC, filename)
 
 
-@doc.route('/doc/live/')
-@doc.route('/doc/live/<manual>/<path:path_static>/_static/<path:filename>')
-@doc.route('/doc/live/<path:filename>')
+@doc.route('/live/')
+@doc.route('/live/<manual>/<path:path_static>/_static/<path:filename>')
+@doc.route('/live/<path:filename>')
 @login_required
-def doc_live(filename=None, manual=None, path_static=None):
+def live(filename=None, manual=None, path_static=None):
     """
     The docs reference a _static URL in the current directory, even if
     the real _static directory only lives in the root of the manual.
