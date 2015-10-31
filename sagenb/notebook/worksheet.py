@@ -45,15 +45,15 @@ from flask.ext.babel import lazy_gettext
 
 # General sage library code
 import sagenb.misc.support  as support
-from sagenb.misc.misc import cython
-from sagenb.misc.misc import verbose
-from sagenb.misc.misc import DOT_SAGENB
-from sagenb.misc.misc import walltime
-from sagenb.misc.misc import ignore_nonexistent_files
-from sagenb.misc.misc import set_restrictive_permissions
-from sagenb.misc.misc import unicode_str
-from sagenb.misc.remote_file import get_remote_file
-from sagenb.misc.format import relocate_future_imports
+from ..misc.misc import cython
+from ..misc.misc import verbose
+from ..misc.misc import DOT_SAGENB
+from ..misc.misc import walltime
+from ..misc.misc import ignore_nonexistent_files
+from ..misc.misc import set_restrictive_permissions
+from ..misc.misc import unicode_str
+from ..misc.remote_file import get_remote_file
+from ..misc.format import relocate_future_imports
 
 from . import misc
 from .misc import CODE_PY
@@ -3062,7 +3062,7 @@ sage.plot.plot.EMBEDDED_MODE=True
 sage.misc.latex.EMBEDDED_MODE=True
 # TODO: For now we take back sagenb interact; do this until the sage notebook
 # gets removed from the sage library.
-from sagenb.notebook.all import *
+from ..notebook.all import *
 try:
     load(os.path.join(os.environ['DOT_SAGE'], 'init.sage'), globals(),attach=True)
 except (KeyError, IOError):

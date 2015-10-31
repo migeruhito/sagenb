@@ -31,9 +31,10 @@ import re
 import urllib2
 import urllib
 
-from sagenb.notebook.template import template
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
+
+from ..notebook.template import template
 
 _ = lazy_gettext
 

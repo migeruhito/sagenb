@@ -23,9 +23,9 @@ import re
 from flask.ext.babel import gettext
 from flask.ext.babel import ngettext
 
-from sagenb.misc.misc import SAGE_VERSION
-from sagenb.misc.misc import DATA
-from sagenb.notebook.themes import get_template
+from ..misc.misc import SAGE_VERSION
+from ..misc.misc import DATA
+from ..notebook.themes import get_template
 
 if os.environ.has_key('SAGENB_TEMPLATE_PATH'):
     if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):

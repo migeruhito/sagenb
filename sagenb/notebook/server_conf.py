@@ -8,9 +8,9 @@ import copy
 
 from flask.ext.babel import lazy_gettext
 
-from sagenb.misc.misc import get_languages
-from sagenb.misc.misc import get_themes
-from sagenb.misc.misc import N_
+from ..misc.misc import get_languages
+from ..misc.misc import get_themes
+from ..misc.misc import N_
 
 from . import conf
 from .conf import POS

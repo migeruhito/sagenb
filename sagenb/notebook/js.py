@@ -32,8 +32,8 @@ from hashlib import sha1
 
 from pkg_resources import Requirement, working_set
 
-from sagenb.misc.misc import import_from
-from sagenb.misc.misc import SAGE_URL
+from ..misc.misc import import_from
+from ..misc.misc import SAGE_URL
 
 from .compress.JavaScriptCompressor import JavaScriptCompressor
 from .config import KEYS

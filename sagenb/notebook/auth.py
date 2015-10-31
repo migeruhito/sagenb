@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from sagenb.misc.misc import get_module
+from ..misc.misc import get_module
 
 
 class AuthMethod():

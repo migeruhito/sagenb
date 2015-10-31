@@ -19,7 +19,7 @@ import shutil
 import tempfile
 import pexpect
 
-from sagenb.run import NotebookFrontend
+from ..run import NotebookFrontend
 
 from . import notebook as _notebook
 

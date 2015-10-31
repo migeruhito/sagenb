@@ -8,7 +8,7 @@ from __future__ import absolute_import
 import re
 import string
 
-from sagenb.misc.misc import get_module
+from ..misc.misc import get_module
 
 # simplejson is faster, so try to import it first
 json = get_module('simplejson')

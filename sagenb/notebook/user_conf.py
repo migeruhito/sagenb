@@ -7,7 +7,7 @@ import copy
 
 from flask.ext.babel import lazy_gettext
 
-from sagenb.misc.misc import get_languages
+from ..misc.misc import get_languages
 
 from .conf import Configuration
 from .conf import DESC

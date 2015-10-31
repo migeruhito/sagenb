@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import os
-from sagenb.notebook.themes import render_template
+from ..notebook.themes import render_template
 
 def message(msg, cont='/', username=None, **kwds):
     """Returns an error message to the user."""

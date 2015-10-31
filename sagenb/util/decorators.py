@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
 from functools import wraps
+from threading import Lock
+
 from flask import url_for
 from flask import request
 from flask import session
@@ -12,7 +14,6 @@ from . import templates
 
 _ = gettext
 
-from threading import Lock
 global_lock = Lock()
 
 def login_required(f):

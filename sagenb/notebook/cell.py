@@ -23,11 +23,11 @@ from cgi import escape
 from random import randint
 from sys import maxint
 
-from sagenb.misc.misc import word_wrap
-from sagenb.misc.misc import strip_string_literals
-from sagenb.misc.misc import set_restrictive_permissions
-from sagenb.misc.misc import unicode_str
-from sagenb.misc.misc import encoded_str
+from ..misc.misc import word_wrap
+from ..misc.misc import strip_string_literals
+from ..misc.misc import set_restrictive_permissions
+from ..misc.misc import unicode_str
+from ..misc.misc import encoded_str
 
 from .interact import INTERACT_RESTART
 from .interact import INTERACT_UPDATE_PREFIX

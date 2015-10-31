@@ -16,7 +16,7 @@ from __future__ import absolute_import
 import ast
 import re
 
-from sagenb.misc.misc import unicode_str
+from .misc import unicode_str
 
 _futureimport_re = re.compile(r'((?:from __future__ import [^;\n]+)+)(?:;\s*)?(.*)')
 def relocate_future_imports(string):

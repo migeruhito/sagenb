@@ -37,16 +37,16 @@ from docutils.core import publish_parts
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
-from sagenb.util import templates
-from sagenb.util.decorators import global_lock
-from sagenb.interfaces import WorksheetProcess_ExpectImplementation
-from sagenb.interfaces import WorksheetProcess_ReferenceImplementation
-from sagenb.interfaces import WorksheetProcess_RemoteExpectImplementation
-from sagenb.interfaces import ProcessLimits
-from sagenb.misc.misc import unicode_str
-from sagenb.misc.misc import get_module
-from sagenb.misc.misc import walltime
-from sagenb.storage import FilesystemDatastore
+from ..util import templates
+from ..util.decorators import global_lock
+from ..interfaces import WorksheetProcess_ExpectImplementation
+from ..interfaces import WorksheetProcess_ReferenceImplementation
+from ..interfaces import WorksheetProcess_RemoteExpectImplementation
+from ..interfaces import ProcessLimits
+from ..misc.misc import unicode_str
+from ..misc.misc import get_module
+from ..misc.misc import walltime
+from ..storage import FilesystemDatastore
 
 # Sage Notebook
 import sagenb.notebook.misc
