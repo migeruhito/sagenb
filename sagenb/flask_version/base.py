@@ -77,10 +77,6 @@ base = Module('sagenb.flask_version.base')
 
 mimetypes.add_type('text/plain','.jmol')
 
-class SageNBFlask(Flask):
-    pass
-
-
 #############
 # Main Page #
 #############
@@ -313,7 +309,7 @@ def create_app(notebook, *args, **kwds):
     """
     startup_token = kwds.pop('startup_token', None)
     # Create app
-    app = SageNBFlask('sagenb',
+    app = Flask('sagenb',
                       static_folder='data', static_url_path='/static',
                       template_folder=TEMPLATE_PATH)
     app.startup_token = startup_token
