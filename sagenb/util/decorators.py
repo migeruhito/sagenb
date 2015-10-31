@@ -16,12 +16,13 @@ _ = gettext
 
 global_lock = Lock()
 
+
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         if 'username' not in session:
-            #XXX: Do we have to specify this for the publised
-            #worksheets here?
+            # XXX: Do we have to specify this for the publised
+            # worksheets here?
             if request.path.startswith('/home/_sage_/'):
                 g.username = 'guest'
                 return f(*args, **kwds)
@@ -32,15 +33,19 @@ def login_required(f):
         return f(*args, **kwds)
     return wrapper
 
+
 def admin_required(f):
     @login_required
     @wraps(f)
     def wrapper(*args, **kwds):
         if not g.notebook.user_manager().user_is_admin(g.username):
-            return templates.message(_("You do not have permission to access this location"), cont=url_for('base.index'))
+            return templates.message(
+                _("You do not have permission to access this location"),
+                cont=url_for('base.index'))
         return f(*args, **kwds)
 
     return wrapper
+
 
 def guest_or_login_required(f):
     @wraps(f)
@@ -51,6 +56,7 @@ def guest_or_login_required(f):
             g.username = session['username']
         return f(*args, **kwds)
     return wrapper
+
 
 def with_lock(f):
     @wraps(f)
