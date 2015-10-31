@@ -310,27 +310,14 @@ def set_profiles():
         return redirect(url_for('base.index'))
 
 
-notebook = None
-
 #CLEAN THIS UP!
-def create_app(path_to_notebook, *args, **kwds):
+def create_app(notebook, *args, **kwds):
     """
     This is the main method to create a running notebook. This is
     called from the process spawned in run.py
     """
-    global notebook
     startup_token = kwds.pop('startup_token', None)
-
-    #############
-    # OLD STUFF #
-    #############
-    import sagenb.notebook.notebook as notebook
-    notebook.MATHJAX = True
-    notebook = notebook.load_notebook(path_to_notebook, *args, **kwds)
-
-    ##############
-    # Create app #
-    ##############
+    # Create app
     app = SageNBFlask('sagenb',
                       static_folder='data', static_url_path='/static',
                       template_folder=TEMPLATE_PATH)

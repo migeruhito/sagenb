@@ -50,6 +50,8 @@ class NotebookFrontend(object):
             'conf_path': os.path.join(DOT_SAGENB, 'notebook'),
             }
 
+        self.notebook = None
+
     @property
     def parser(self):
         parser = argparse.ArgumentParser(description='Starts sage notebook')
@@ -288,7 +290,8 @@ class NotebookFrontend(object):
         # first use provided values, if none, use loaded values,
         # if none use defaults
 
-        nb = notebook.load_notebook(self.conf['directory'])
+        self.notebook = notebook.load_notebook(self.conf['absdirectory'])
+        nb = self.notebook
 
         self.conf['directory'] = nb._dir
 
@@ -357,7 +360,6 @@ class NotebookFrontend(object):
 
         nb.upgrade_model()
         nb.save()
-        del nb
 
         if self.conf['interface'] != 'localhost' and not self.conf['secure']:
             print(
@@ -411,7 +413,7 @@ class NotebookFrontend(object):
         if self.conf['automatic_login']:
             opts['startup_token'] = self.conf['startup_token']
 
-        flask_app = flask_base.create_app(self.conf['absdirectory'],
+        flask_app = flask_base.create_app(self.notebook,
                                           interface=self.conf['interface'],
                                           port=self.conf['port'],
                                           secure=self.conf['secure'],
@@ -419,7 +421,7 @@ class NotebookFrontend(object):
         self.servers[self.conf['server']](flask_app)
 
     def exit(self):
-        self.save_notebook(flask_base.notebook)
+        self.save_notebook()
         os.unlink(self.conf['pidfile'])
         os.chdir(self.conf['cwd'])
 
@@ -508,9 +510,7 @@ class NotebookFrontend(object):
         s.setServiceParent(application)
 
         #This has to be done after flask_base.create_app is run
-        reactor.addSystemEventTrigger(
-            'before', 'shutdown',
-            partial(self.save_notebook, flask_base.notebook))
+        reactor.addSystemEventTrigger('before', 'shutdown', self.save_notebook)
 
         # Run the application without .tac file
         class AppRunner(UnixApplicationRunner):
@@ -568,11 +568,11 @@ class NotebookFrontend(object):
                       '/upload_worksheet?url=file://{}'.format(
                           urllib.quote(self.conf['upload'])))
 
-    def save_notebook(self, notebook):
+    def save_notebook(self):
         print('Quitting all running worksheets...')
-        notebook.quit()
+        self.notebook.quit()
         print('Saving notebook...')
-        notebook.save()
+        self.notebook.save()
         print('Notebook cleanly saved.')
 
     def get_admin_passwd(self):
