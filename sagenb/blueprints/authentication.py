@@ -4,7 +4,7 @@ import os
 from random import choice
 import string
 
-from flask import Module
+from flask import Blueprint
 from flask import url_for
 from flask import request
 from flask import session
@@ -13,24 +13,24 @@ from flask import g
 from flask import current_app
 from flask.ext.babel import gettext
 
-from sagenb.misc.misc import SAGE_VERSION
-from sagenb.notebook.challenge import challenge
-from sagenb.notebook.misc import is_valid_username
-from sagenb.notebook.misc import is_valid_password
-from sagenb.notebook.misc import is_valid_email
-from sagenb.notebook.misc import do_passwords_match
-from sagenb.notebook.register import make_key
-from sagenb.notebook.register import build_msg
-from sagenb.notebook.register import build_password_msg
-from sagenb.notebook.smtpsend import send_mail
-from sagenb.notebook.themes import render_template
+from ..misc.misc import SAGE_VERSION
+from ..notebook.challenge import challenge
+from ..notebook.misc import is_valid_username
+from ..notebook.misc import is_valid_password
+from ..notebook.misc import is_valid_email
+from ..notebook.misc import do_passwords_match
+from ..notebook.register import make_key
+from ..notebook.register import build_msg
+from ..notebook.register import build_password_msg
+from ..notebook.smtpsend import send_mail
+from ..notebook.themes import render_template
 
-from . import templates
-from .decorators import with_lock
+from ..flask_version import templates
+from ..flask_version.decorators import with_lock
 
 _ = gettext
 
-authentication = Module('sagenb.flask_version.authentication')
+authentication = Blueprint('authentication', __name__)
 
 ##################
 # Authentication #

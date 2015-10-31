@@ -1,25 +1,25 @@
 from __future__ import absolute_import
 
 import os
-from flask import Module
+from flask import Blueprint
 from flask import url_for
 from flask import request
 from flask import redirect
 from flask import g
 from flask.ext.babel import gettext
 
-from sagenb.misc.misc import SAGE_VERSION
-from sagenb.notebook.misc import is_valid_password
-from sagenb.notebook.misc import is_valid_email
-from sagenb.notebook.themes import render_template
+from ..misc.misc import SAGE_VERSION
+from ..notebook.misc import is_valid_password
+from ..notebook.misc import is_valid_email
+from ..notebook.themes import render_template
 
-from . import templates
-from .decorators import login_required
-from .decorators import with_lock
+from ..flask_version import templates
+from ..flask_version.decorators import login_required
+from ..flask_version.decorators import with_lock
 
 _ = gettext
 
-settings = Module('sagenb.flask_version.settings')
+settings = Blueprint('settings', __name__)
 
 @settings.route('/settings', methods = ['GET','POST'])
 @login_required

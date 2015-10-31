@@ -11,7 +11,7 @@ from collections import defaultdict
 from functools import wraps
 from urlparse import urlparse
 
-from flask import Module
+from flask import Blueprint
 from flask import make_response
 from flask import url_for
 from flask import request
@@ -24,19 +24,19 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
-from sagenb.misc.misc import tmp_filename
-from sagenb.misc.misc import unicode_str
-from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
-from sagenb.notebook.interact import INTERACT_UPDATE_PREFIX
-from sagenb.notebook.misc import encode_response
-from sagenb.notebook.themes import render_template
+from ..misc.misc import tmp_filename
+from ..misc.misc import unicode_str
+from ..notebook.docHTMLProcessor import SphinxHTMLProcessor
+from ..notebook.interact import INTERACT_UPDATE_PREFIX
+from ..notebook.misc import encode_response
+from ..notebook.themes import render_template
 
-from . import templates
-from .decorators import login_required
+from ..flask_version import templates
+from ..flask_version.decorators import login_required
 
 _ = gettext
 
-ws = Module('sagenb.flask_version.worksheet')
+worksheet = Blueprint('worksheet', __name__)
 worksheet_locks = defaultdict(threading.Lock)
 
 def worksheet_view(f):
@@ -96,7 +96,7 @@ def get_cell_id():
 ##############################
 # Views
 ##############################
-@ws.route('/new_worksheet')
+@worksheet.route('/new_worksheet')
 @login_required
 def new_worksheet():
     if g.notebook.readonly_user(g.username):
@@ -105,9 +105,9 @@ def new_worksheet():
     W = g.notebook.create_new_worksheet(gettext("Untitled"), g.username)
     return redirect(url_for_worksheet(W))
 
-@ws.route('/home/<username>/<id>/')
+@worksheet.route('/home/<username>/<id>/')
 @worksheet_view
-def worksheet(username, id, worksheet=None):
+def worksheet_v(username, id, worksheet=None):
     """
     username is the owner of the worksheet
     id is the id of the worksheet
@@ -137,7 +137,7 @@ def worksheet_command(target, **route_kwds):
         route_kwds['methods'] = ['GET', 'POST']
 
     def decorator(f):
-        @ws.route('/home/<username>/<id>/' + target, **route_kwds)
+        @worksheet.route('/home/<username>/<id>/' + target, **route_kwds)
         @worksheet_view
         @wraps(f)
         def wrapper(*args, **kwds):

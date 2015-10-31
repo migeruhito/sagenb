@@ -4,7 +4,7 @@ import os
 import string
 from random import choice
 
-from flask import Module
+from flask import Blueprint
 from flask import url_for
 from flask import request
 from flask import redirect
@@ -12,17 +12,17 @@ from flask import g
 from flask import current_app
 from flask.ext.babel import gettext
 
-from sagenb.misc.misc import SAGE_VERSION
-from sagenb.notebook.misc import is_valid_username
-from sagenb.notebook.themes import render_template
+from ..misc.misc import SAGE_VERSION
+from ..notebook.misc import is_valid_username
+from ..notebook.themes import render_template
 
-from . import templates
-from .decorators import admin_required
-from .decorators import with_lock
+from ..flask_version import templates
+from ..flask_version.decorators import admin_required
+from ..flask_version.decorators import with_lock
 
 _ = gettext
 
-admin = Module('sagenb.flask_version.admin')
+admin = Blueprint('admin', __name__)
 
 @admin.route('/users')
 @admin.route('/users/reset/<reset>')

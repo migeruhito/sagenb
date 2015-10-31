@@ -19,19 +19,18 @@ import logging
 import urllib
 import getpass
 import signal
-from functools import partial
 
-import sagenb.flask_version.base as flask_base
-import sagenb.notebook.misc
-from sagenb.misc.misc import cmd_exists
-from sagenb.misc.misc import DOT_SAGENB
-from sagenb.misc.misc import get_module
-from sagenb.misc.misc import find_next_available_port
-from sagenb.misc.misc import min_password_length
-from sagenb.misc.misc import open_page
-from sagenb.misc.misc import print_open_msg
-from sagenb.misc.misc import system_command
-from sagenb.notebook import notebook
+from . import create_app
+from .notebook import misc
+from .misc.misc import cmd_exists
+from .misc.misc import DOT_SAGENB
+from .misc.misc import get_module
+from .misc.misc import find_next_available_port
+from .misc.misc import min_password_length
+from .misc.misc import open_page
+from .misc.misc import print_open_msg
+from .misc.misc import system_command
+from .notebook import notebook
 
 
 class NotebookFrontend(object):
@@ -406,14 +405,14 @@ class NotebookFrontend(object):
         print('Executing Sage Notebook with {} server'.format(
             self.conf['server']))
 
-        sagenb.notebook.misc.DIR = self.conf['cwd']  # We should really get rid
+        misc.DIR = self.conf['cwd']  # We should really get rid
                                                      # of this!
 
         opts = {}
         if self.conf['automatic_login']:
             opts['startup_token'] = self.conf['startup_token']
 
-        flask_app = flask_base.create_app(self.notebook,
+        flask_app = create_app(self.notebook,
                                           interface=self.conf['interface'],
                                           port=self.conf['port'],
                                           secure=self.conf['secure'],
@@ -509,7 +508,7 @@ class NotebookFrontend(object):
         self.open_page()
         s.setServiceParent(application)
 
-        #This has to be done after flask_base.create_app is run
+        #This has to be done after sagenb.create_app is run
         reactor.addSystemEventTrigger('before', 'shutdown', self.save_notebook)
 
         # Run the application without .tac file

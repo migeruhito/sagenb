@@ -14,10 +14,10 @@ from flask import g
 from flask.ext.babel import gettext
 from flask.helpers import send_from_directory
 
-from sagenb.misc.misc import SAGE_DOC
+from ..misc.misc import SAGE_DOC
 
-from . import templates
-from .decorators import login_required
+from ..flask_version import templates
+from ..flask_version.decorators import login_required
 from .worksheet import worksheet_file
 
 _ = gettext

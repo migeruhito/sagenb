@@ -13,7 +13,7 @@ from HTMLParser import HTMLParser
 
 from flask import current_app
 from flask import g
-from flask import Module
+from flask import Blueprint
 from flask import redirect
 from flask import request
 from flask import url_for
@@ -22,24 +22,24 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
-from sagenb.misc.misc import SAGE_VERSION
-from sagenb.misc.misc import unicode_str
-from sagenb.misc.misc import tmp_filename
-from sagenb.misc.misc import walltime
-from sagenb.notebook.misc import encode_response
-from sagenb.notebook.themes import render_template
+from ..misc.misc import SAGE_VERSION
+from ..misc.misc import unicode_str
+from ..misc.misc import tmp_filename
+from ..misc.misc import walltime
+from ..notebook.misc import encode_response
+from ..notebook.themes import render_template
 
 
-from . import templates
-from .decorators import login_required
-from .decorators import guest_or_login_required
+from ..flask_version import templates
+from ..flask_version.decorators import login_required
+from ..flask_version.decorators import guest_or_login_required
 from .worksheet import pub_worksheet
 from .worksheet import url_for_worksheet
 from .worksheet import unconditional_download
 
 # Globals
 _ = gettext
-worksheet_listing = Module('sagenb.flask_version.worksheet_listing')
+worksheet_listing = Blueprint('worksheet_listing', __name__)
 
 def render_worksheet_list(args, pub, username):
     """
