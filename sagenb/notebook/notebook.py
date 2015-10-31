@@ -37,17 +37,14 @@ from docutils.core import publish_parts
 from flask import current_app
 from flask.ext.babel import lazy_gettext
 
-
-# Sage libraries
-# TODO: sage dependency
-from sage.misc.all import walltime
-
+from sagenb.flask_version.decorators import global_lock
 from sagenb.interfaces import WorksheetProcess_ExpectImplementation
 from sagenb.interfaces import WorksheetProcess_ReferenceImplementation
 from sagenb.interfaces import WorksheetProcess_RemoteExpectImplementation
 from sagenb.interfaces import ProcessLimits
 from sagenb.misc.misc import unicode_str
 from sagenb.misc.misc import get_module
+from sage.misc.misc import walltime
 from sagenb.storage import FilesystemDatastore
 
 # Sage Notebook
@@ -136,6 +133,49 @@ class WorksheetDict(dict):
         return worksheet
 
 
+# Old stuff
+# Notebook autosave.
+# Save if make a change to notebook and at least some seconds have elapsed
+# since last save.
+class NotebookUpdater(object):
+    def __init__(self, notebook):
+        self.notebook = notebook
+        self.save_interval = notebook.conf()['save_interval']
+        self.idle_interval = notebook.conf()['idle_check_interval']
+        self.last_save_time = walltime()
+        self.last_idle_time = walltime()
+
+    def save_check(self):
+        t = walltime()
+        if t > self.last_save_time + self.save_interval:
+            with global_lock:
+                # if someone got the lock before we did, they might have saved,
+                # so we check against the last_save_time again we don't put the
+                # global_lock around the outer loop since we don't need it
+                # unless we are actually thinking about saving.
+                if t > self.last_save_time + self.save_interval:
+                    self.notebook.save()
+                    self.last_save_time = t
+
+    def idle_check(self):
+        t = walltime()
+        if t > self.last_idle_time + self.idle_interval:
+            with global_lock:
+                # if someone got the lock before we did, they might have
+                # already idled, so we check against the last_idle_time again
+                # we don't put the global_lock around the outer loop since we
+                # don't need it unless we are actually thinking about quitting
+                # worksheets
+                if t > self.last_idle_time + self.idle_interval:
+                    self.notebook.update_worksheet_processes()
+                    self.notebook.quit_idle_worksheet_processes()
+                    self.last_idle_time = t
+
+    def update(self):
+        self.save_check()
+        self.idle_check()
+
+
 class Notebook(object):
     HISTORY_MAX_OUTPUT = 92*5
     HISTORY_NCOLS = 90
@@ -199,6 +239,9 @@ class Notebook(object):
             self._user_manager.load(S)
         except IOError:
             pass
+
+        # Old stuff
+        self.updater = NotebookUpdater(self)
 
     def delete(self):
         """
@@ -1810,6 +1853,7 @@ class Notebook(object):
 
 ####################################################################
 
+
 def load_notebook(dir, interface=None, port=None, secure=None, user_manager=None):
     """
     Load and return a notebook from a given directory.  Create a new
@@ -1852,6 +1896,7 @@ def load_notebook(dir, interface=None, port=None, secure=None, user_manager=None
     sagenb.notebook.misc.notebook = nb
 
     return nb
+
 
 def migrate_old_notebook_v1(dir):
     """
@@ -2022,6 +2067,7 @@ def migrate_old_notebook_v1(dir):
 
     print "Worksheet migration completed."
     return new_nb
+
 
 def make_path_relative(dir):
     r"""

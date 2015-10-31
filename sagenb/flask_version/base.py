@@ -36,7 +36,6 @@ from sagenb.misc.misc import SAGE_VERSION
 from sagenb.misc.misc import theme_paths
 from sagenb.misc.misc import default_theme
 from sagenb.misc.misc import unicode_str
-from sagenb.misc.misc import walltime
 from sagenb.notebook.challenge import challenge
 from sagenb.notebook.js import javascript
 from sagenb.notebook.keyboards import get_keyboard
@@ -59,7 +58,6 @@ from .authentication import login
 from .decorators import login_required
 from .decorators import guest_or_login_required
 from .decorators import with_lock
-from .decorators import global_lock
 from .doc import doc
 from .settings import settings
 from .static_paths import static_paths
@@ -312,52 +310,6 @@ def set_profiles():
         return redirect(url_for('base.index'))
 
 
-#############
-# OLD STUFF #
-#############
-############################
-# Notebook autosave.
-############################
-# save if make a change to notebook and at least some seconds have elapsed since last save.
-class NotebookUpdater(object):
-    def __init__(self, notebook):
-        self.notebook = notebook
-        self.save_interval = notebook.conf()['save_interval']
-        self.idle_interval = notebook.conf()['idle_check_interval']
-        self.last_save_time = walltime()
-        self.last_idle_time = walltime()
-
-    def save_check(self):
-        t = walltime()
-        if t > self.last_save_time + self.save_interval:
-            with global_lock:
-                # if someone got the lock before we did, they might have saved,
-                # so we check against the last_save_time again we don't put the
-                # global_lock around the outer loop since we don't need it
-                # unless we are actually thinking about saving.
-                if t > self.last_save_time + self.save_interval:
-                    self.notebook.save()
-                    self.last_save_time = t
-
-    def idle_check(self):
-        t = walltime()
-        if t > self.last_idle_time + self.idle_interval:
-            with global_lock:
-                # if someone got the lock before we did, they might have
-                # already idled, so we check against the last_idle_time again
-                # we don't put the global_lock around the outer loop since we
-                # don't need it unless we are actually thinking about quitting
-                # worksheets
-                if t > self.last_idle_time + self.idle_interval:
-                    self.notebook.update_worksheet_processes()
-                    self.notebook.quit_idle_worksheet_processes()
-                    self.last_idle_time = t
-
-    def update(self):
-        self.save_check()
-        self.idle_check()
-
-
 notebook = None
 
 #CLEAN THIS UP!
@@ -405,7 +357,6 @@ def create_app(path_to_notebook, *args, **kwds):
     @app.before_request
     def set_notebook_object():
         g.notebook = notebook
-        g.notebook_updater = NotebookUpdater(notebook)
 
     ####################################
     # create Babel translation manager #

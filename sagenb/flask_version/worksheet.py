@@ -66,7 +66,7 @@ def worksheet_view(f):
                 worksheet.set_active(g.username)
 
             #This was in twist.Worksheet.childFactory
-            g.notebook_updater.update()
+            g.notebook.updater.update()
 
             return f(username, id, **kwds)
 
@@ -484,10 +484,10 @@ def worksheet_eval(worksheet):
     cell.set_input_text(input_text)
 
     if int(request.values.get('save_only', '0')):
-        g.notebook_updater.update()
+        g.notebook.updater.update()
         return encode_response(r)
     elif int(request.values.get('text_only', '0')):
-        g.notebook_updater.update()
+        g.notebook.updater.update()
         r['cell_html'] = cell.html()
         return encode_response(r)
 
@@ -502,7 +502,7 @@ def worksheet_eval(worksheet):
     else:
         r['next_id'] = cell.next_compute_id()
 
-    g.notebook_updater.update()
+    g.notebook.updater.update()
 
     return encode_response(r)
 
