@@ -7,7 +7,7 @@ import sys
 import traceback
 import tempfile
 
-from sagenb.misc.format import displayhook_hack
+from ..misc.format import displayhook_hack
 
 from .status import OutputStatus
 from .worksheet_process import WorksheetProcess

@@ -8,10 +8,10 @@ import tempfile
 
 import pexpect
 
-from sagenb.misc.format import format_for_pexpect
-from sagenb.misc.misc import set_permissive_permissions
-from sagenb.misc.misc import set_restrictive_permissions
-from sagenb.misc.misc import walltime
+from ..misc.format import format_for_pexpect
+from ..misc.misc import set_permissive_permissions
+from ..misc.misc import set_restrictive_permissions
+from ..misc.misc import walltime
 
 from .status import OutputStatus
 from .worksheet_process import WorksheetProcess
