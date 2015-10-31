@@ -29,6 +29,7 @@ def css(filename):
 
 
 @static_paths.route('/images/<path:filename>')
+@static_paths.route('/favicon.ico', defaults={'filename': 'favicon.ico'})
 def images(filename):
     # send_static file secures filename
     return app.send_static_file(os.path.join('sage', 'images', filename))

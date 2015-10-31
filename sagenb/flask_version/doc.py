@@ -24,6 +24,7 @@ _ = gettext
 
 doc = Blueprint('doc', __name__)
 
+# TODO: sage dependency
 DOC = os.path.join(SAGE_DOC, 'output', 'html', 'en')
 
 

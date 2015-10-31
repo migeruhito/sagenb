@@ -204,13 +204,6 @@ def live_history():
     W = g.notebook.create_new_worksheet_from_history(gettext('Log'), g.username, 100)
     return redirect(url_for_worksheet(W))
 
-###########
-# Favicon #
-###########
-@base.route('/favicon.ico')
-def favicon():
-    return redirect(url_for('static_paths.images', filename='favicon.ico'))
-
 @base.route('/loginoid', methods=['POST', 'GET'])
 @guest_or_login_required
 @oid.loginhandler
