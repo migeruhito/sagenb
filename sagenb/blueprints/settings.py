@@ -21,7 +21,8 @@ _ = gettext
 
 settings = Blueprint('settings', __name__)
 
-@settings.route('/settings', methods = ['GET','POST'])
+
+@settings.route('/settings', methods=['GET', 'POST'])
 @login_required
 @with_lock
 def settings_page():
@@ -30,7 +31,7 @@ def settings_page():
     redirect_to_logout = None
     nu = g.notebook.user_manager().user(g.username)
 
-    autosave = int(request.values.get('autosave', 0))*60
+    autosave = int(request.values.get('autosave', 0)) * 60
     if autosave:
         nu['autosave_interval'] = autosave
         redirect_to_home = True
@@ -47,7 +48,9 @@ def settings_page():
         elif not new:
             error = _('New password not given')
         elif not is_valid_password(new, g.username):
-            error = _('Password not acceptable. Must be 4 to 32 characters and not contain spaces or username.')
+            error = _(
+                'Password not acceptable. Must be 4 to 32 characters and not '
+                'contain spaces or username.')
         elif not two:
             error = _('Please type in new password again.')
         elif new != two:
@@ -64,7 +67,7 @@ def settings_page():
         if newemail:
             if is_valid_email(newemail):
                 nu.set_email(newemail)
-                ##nu.set_email_confirmation(False)
+                # nu.set_email_confirmation(False)
                 redirect_to_home = True
             else:
                 error = _('Invalid e-mail address.')
@@ -82,7 +85,9 @@ def settings_page():
     td['sage_version'] = SAGE_VERSION
     td['username'] = g.username
 
-    td['autosave_intervals'] = ((i, ' selected') if nu['autosave_interval']/60 == i else (i, '') for i in range(1, 10, 2))
+    td['autosave_intervals'] = (
+        (i, ' selected') if nu['autosave_interval'] / 60 == i else (i, '')
+        for i in range(1, 10, 2))
 
     td['email'] = g.notebook.conf()['email']
     if td['email']:
@@ -94,5 +99,5 @@ def settings_page():
 
     td['admin'] = nu.is_admin()
 
-    return render_template(os.path.join('html', 'settings', 'account_settings.html'), **td)
-
+    return render_template(
+        os.path.join('html', 'settings', 'account_settings.html'), **td)

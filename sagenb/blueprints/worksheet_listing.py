@@ -41,6 +41,7 @@ from .worksheet import unconditional_download
 _ = gettext
 worksheet_listing = Blueprint('worksheet_listing', __name__)
 
+
 def render_worksheet_list(args, pub, username):
     """
     Returns a rendered worksheet listing.
@@ -67,11 +68,11 @@ def render_worksheet_list(args, pub, username):
     readonly = g.notebook.readonly_user(g.username)
     try:
         if not pub:
-            worksheets = g.notebook.worksheet_list_for_user(username, typ=typ, sort=sort,
-                                                              search=search, reverse=reverse)
+            worksheets = g.notebook.worksheet_list_for_user(
+                username, typ=typ, sort=sort, search=search, reverse=reverse)
         else:
-            worksheets = g.notebook.worksheet_list_for_public(username, sort=sort,
-                                                                search=search, reverse=reverse)
+            worksheets = g.notebook.worksheet_list_for_public(
+                username, sort=sort, search=search, reverse=reverse)
     except ValueError as E:
         # for example, the sort key was not valid
         print "Error displaying worksheet listing: ", E
@@ -86,7 +87,9 @@ def render_worksheet_list(args, pub, username):
     sage_version = SAGE_VERSION
     return render_template('html/worksheet_listing.html', **locals())
 
-#New UI
+# New UI
+
+
 @worksheet_listing.route('/worksheet_list')
 @guest_or_login_required
 def worksheet_list():
@@ -113,22 +116,29 @@ def worksheet_list():
     pub = 'pub' in request.args
     readonly = g.notebook.readonly_user(g.username)
     typ = request.args['type'] if 'type' in request.args else 'active'
-    search = unicode_str(request.args['search']) if 'search' in request.args else None
+    search = unicode_str(
+        request.args['search']) if 'search' in request.args else None
     sort = request.args['sort'] if 'sort' in request.args else 'last_edited'
-    reverse = (request.args['reverse'] == 'True') if 'reverse' in request.args else False
+    reverse = (request.args['reverse'] ==
+               'True') if 'reverse' in request.args else False
 
     try:
         if not pub:
-            r['worksheets'] = [x.basic() for x in g.notebook.worksheet_list_for_user(g.username, typ=typ, sort=sort, search=search, reverse=reverse)]
+            r['worksheets'] = [
+                x.basic() for x in g.notebook.worksheet_list_for_user(
+                    g.username, typ=typ, sort=sort, search=search,
+                    reverse=reverse)]
         else:
-            r['worksheets'] = [x.basic() for x in g.notebook.worksheet_list_for_public(g.username, sort=sort, search=search, reverse=reverse)]
+            r['worksheets'] = [
+                x.basic() for x in g.notebook.worksheet_list_for_public(
+                    g.username, sort=sort, search=search, reverse=reverse)]
 
     except ValueError as E:
         # for example, the sort key was not valid
         print "Error displaying worksheet listing: ", E
         return templates.message(_("Error displaying worksheet listing."))
 
-    #if pub and (not g.username or g.username == tuple([])):
+    # if pub and (not g.username or g.username == tuple([])):
     #    r['username'] = 'pub'
 
     r['accounts'] = g.notebook.user_manager().get_accounts()
@@ -136,20 +146,26 @@ def worksheet_list():
     # r['pub'] = pub
 
     return encode_response(r)
-#New UI end
+# New UI end
+
 
 @worksheet_listing.route('/home/<username>/')
 @login_required
 def home(username):
-    if not g.notebook.user_manager().user_is_admin(g.username) and username != g.username:
-        return templates.message(_("User '%(user)s' does not have permission to view the home page of '%(name)s'.", user=g.username, name=username))
+    if not g.notebook.user_manager().user_is_admin(
+            g.username) and username != g.username:
+        return templates.message(_("User '%(user)s' does not have permission "
+                                   "to view the home page of '%(name)s'.",
+                                   user=g.username, name=username))
     else:
         try:
-            #New UI
+            # New UI
             return render_template('html/worksheet_list.html')
         except TemplateNotFound:
-            #New UI end
-            return render_worksheet_list(request.args, pub=False, username=username)
+            # New UI end
+            return render_worksheet_list(
+                request.args, pub=False, username=username)
+
 
 @worksheet_listing.route('/home/')
 @login_required
@@ -159,6 +175,7 @@ def bare_home():
 ###########
 # Folders #
 ###########
+
 
 def get_worksheets_from_request():
     U = g.notebook.user_manager().user(g.username)
@@ -173,13 +190,15 @@ def get_worksheets_from_request():
     for filename in filenames:
         W = g.notebook.get_worksheet_with_filename(filename)
         if W.owner() != g.username:
-            # TODO BUG: if trying to stop a shared worksheet, this check means that
-            # only the owner can stop from the worksheet listing (using /send_to_stop), but any
-            # shared person can stop the worksheet by quitting it.
+            # TODO BUG: if trying to stop a shared worksheet, this check means
+            # that only the owner can stop from the worksheet listing (using
+            # /send_to_stop), but any shared person can stop the worksheet by
+            # quitting it.
             continue
         worksheets.append(W)
 
     return worksheets
+
 
 @worksheet_listing.route('/send_to_trash', methods=['POST'])
 @login_required
@@ -188,12 +207,14 @@ def send_worksheet_to_trash():
         W.move_to_trash(g.username)
     return ''
 
+
 @worksheet_listing.route('/send_to_archive', methods=['POST'])
 @login_required
 def send_worksheet_to_archive():
     for W in get_worksheets_from_request():
         W.move_to_archive(g.username)
     return ''
+
 
 @worksheet_listing.route('/send_to_active', methods=['POST'])
 @login_required
@@ -202,12 +223,14 @@ def send_worksheet_to_active():
         W.set_active(g.username)
     return ''
 
+
 @worksheet_listing.route('/send_to_stop', methods=['POST'])
 @login_required
 def send_worksheet_to_stop():
     for W in get_worksheets_from_request():
         W.quit()
     return ''
+
 
 @worksheet_listing.route('/emptytrash', methods=['POST'])
 @login_required
@@ -227,13 +250,15 @@ def empty_trash():
 def pub():
     return render_worksheet_list(request.args, pub=True, username=g.username)
 
+
 @worksheet_listing.route('/home/pub/<id>/')
 @guest_or_login_required
 def public_worksheet(id):
-    filename = 'pub/%s'%id
+    filename = 'pub/%s' % id
     if g.notebook.conf()['pub_interact']:
         try:
-            original_worksheet = g.notebook.get_worksheet_with_filename(filename)
+            original_worksheet = g.notebook.get_worksheet_with_filename(
+                filename)
         except KeyError:
             return _("Requested public worksheet does not exist"), 404
         worksheet = pub_worksheet(original_worksheet)
@@ -244,30 +269,36 @@ def public_worksheet(id):
                             username=g.username)
         worksheet.set_owner(owner)
     else:
-        s = g.notebook.html(worksheet_filename=filename, username = g.username)
+        s = g.notebook.html(worksheet_filename=filename, username=g.username)
     return s
+
 
 @worksheet_listing.route('/home/pub/<id>/download/<path:title>')
 def public_worksheet_download(id, title):
-    worksheet_filename =  "pub" + "/" + id
+    worksheet_filename = "pub" + "/" + id
     try:
         worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
     except KeyError:
-        return templates.message(_("You do not have permission to access this worksheet"))
+        return templates.message(
+            _("You do not have permission to access this worksheet"))
     return unconditional_download(worksheet, title)
+
 
 @worksheet_listing.route('/home/pub/<id>/cells/<path:filename>')
 def public_worksheet_cells(id, filename):
-    worksheet_filename =  "pub" + "/" + id
+    worksheet_filename = "pub" + "/" + id
     try:
         worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
     except KeyError:
-        return templates.message(_("You do not have permission to access this worksheet"))
+        return templates.message(
+            _("You do not have permission to access this worksheet"))
     return send_from_directory(worksheet.cells_directory(), filename)
 
 #######################
 # Download Worksheets #
 #######################
+
+
 @worksheet_listing.route('/download_worksheets.zip')
 @login_required
 def download_worksheets():
@@ -299,7 +330,8 @@ def download_worksheets():
     zip.close()
     r = open(zip_filename, 'rb').read()
     os.unlink(zip_filename)
-    print "Finished zipping %s worksheets (%s seconds)"%(len(worksheets), walltime(t))
+    print "Finished zipping %s worksheets (%s seconds)" % (
+        len(worksheets), walltime(t))
 
     response = current_app.make_response(r)
     response.headers['Content-Type'] = 'application/zip'
@@ -313,9 +345,12 @@ def download_worksheets():
 @login_required
 def upload():
     if g.notebook.readonly_user(g.username):
-        return templates.message(_("Account is in read-only mode"), cont=url_for('home', username=g.username))
+        return templates.message(
+            _("Account is in read-only mode"),
+            cont=url_for('home', username=g.username))
     return render_template(os.path.join('html', 'upload.html'),
                            username=g.username, sage_version=SAGE_VERSION)
+
 
 class RetrieveError(Exception):
     """
@@ -330,6 +365,7 @@ class RetrieveError(Exception):
     my_urlretrieve.
     """
     pass
+
 
 def my_urlretrieve(url, *args, **kwargs):
     """
@@ -350,9 +386,14 @@ def my_urlretrieve(url, *args, **kwargs):
         return urllib.urlretrieve(url, *args, **kwargs)
     except IOError as err:
         if err.strerror == 'unknown url type' and err.filename == 'https':
-            raise RetrieveError(_("This Sage notebook is not configured to load worksheets from 'https' URLs. Try a different URL or download the worksheet and upload it directly from your computer.\n%(backlinks)s",backlinks=backlinks))
+            raise RetrieveError(
+                _("This Sage notebook is not configured to load worksheets "
+                  "from 'https' URLs. Try a different URL or download the "
+                  "worksheet and upload it directly from your "
+                  "computer.\n%(backlinks)s", backlinks=backlinks))
         else:
             raise
+
 
 def parse_link_rel(url, fn):
     """
@@ -374,16 +415,18 @@ def parse_link_rel(url, fn):
     parser raises an HTMLParseError, we simply return an empty list.
     """
     class GetLinkRelWorksheets(HTMLParser):
+
         def __init__(self):
             HTMLParser.__init__(self)
             self.worksheets = []
 
         def handle_starttag(self, tag, attrs):
             if (tag == 'link' and
-                ('rel', 'alternate') in attrs and
-                ('type', 'application/sage') in attrs):
-                self.worksheets.append({'title': [_ for _ in attrs if _[0] == 'title'][0][1],
-                                          'url': [_ for _ in attrs if _[0] == 'href'][0][1]})
+                    ('rel', 'alternate') in attrs and
+                    ('type', 'application/sage') in attrs):
+                self.worksheets.append(
+                    {'title': [_ for _ in attrs if _[0] == 'title'][0][1],
+                     'url': [_ for _ in attrs if _[0] == 'href'][0][1]})
 
     parser = GetLinkRelWorksheets()
     with open(fn) as f:
@@ -398,11 +441,14 @@ def parse_link_rel(url, fn):
         # is that link a relative URL?
         if not urlparse.urlparse(sws).netloc:
             # unquote-then-quote to avoid turning %20 into %2520, etc
-            ret.append({'url': urlparse.urljoin(url, urllib.quote(urllib.unquote(sws))),
-                        'title': d['title']})
+            ret.append(
+                {'url': urlparse.urljoin(
+                    url, urllib.quote(urllib.unquote(sws))),
+                 'title': d['title']})
         else:
             ret.append({'url': sws, 'title': d['title']})
     return ret
+
 
 @worksheet_listing.route('/upload_worksheet', methods=['GET', 'POST'])
 @login_required
@@ -412,29 +458,37 @@ def upload_worksheet():
     from sagenb.misc.all import tmp_dir
 
     if g.notebook.readonly_user(g.username):
-        return templates.message(_("Account is in read-only mode"), cont=url_for('home', username=g.username))
+        return templates.message(
+            _("Account is in read-only mode"),
+            cont=url_for('home', username=g.username))
 
-    backlinks = _("""Return to <a href="/upload" title="Upload a worksheet"><strong>Upload File</strong></a>.""")
+    backlinks = _(
+        'Return to <a href="/upload" title="Upload a worksheet">'
+        '<strong>Upload File</strong></a>.')
 
     url = request.values['url'].strip()
     dir = ''
     if url != '':
-        #Downloading a file from the internet
+        # Downloading a file from the internet
         # The file will be downloaded from the internet and saved
         # to a temporary file with the same extension
         path = urlparse.urlparse(url).path
         extension = os.path.splitext(path)[1].lower()
         if extension not in ["", ".txt", ".sws", ".zip", ".html", ".rst"]:
             # Or shall we try to import the document as an sws when in doubt?
-            return templates.message(_("Unknown worksheet extension: %(ext)s. %(links)s", ext=extension, links=backlinks))
-        filename = tmp_filename()+extension
+            return templates.message(
+                _("Unknown worksheet extension: %(ext)s. %(links)s",
+                    ext=extension, links=backlinks))
+        filename = tmp_filename() + extension
         try:
             matches = re.match("file://(?:localhost)?(/.+)", url)
             if matches:
                 if g.notebook.interface != 'localhost':
-                    return templates.message(_("Unable to load file URL's when not running on localhost.\n%(backlinks)s",backlinks=backlinks))
+                    return templates.message(
+                        _("Unable to load file URL's when not running on "
+                          "localhost.\n%(backlinks)s", backlinks=backlinks))
 
-                shutil.copy(matches.group(1),filename)
+                shutil.copy(matches.group(1), filename)
             else:
                 my_urlretrieve(url, filename, backlinks=backlinks)
 
@@ -442,15 +496,19 @@ def upload_worksheet():
             return templates.message(str(err))
 
     else:
-        #Uploading a file from the user's computer
+        # Uploading a file from the user's computer
         dir = tmp_dir()
         file = request.files['file']
         if file.filename is None:
-            return templates.message(_("Please specify a worksheet to load.\n%(backlinks)s",backlinks=backlinks))
+            return templates.message(
+                _("Please specify a worksheet to load.\n%(backlinks)s",
+                    backlinks=backlinks))
 
         filename = secure_filename(file.filename)
-        if len(filename)==0:
-            return templates.message(_("Invalid filename.\n%(backlinks)s",backlinks=backlinks))
+        if len(filename) == 0:
+            return templates.message(
+                _("Invalid filename.\n%(backlinks)s",
+                    backlinks=backlinks))
 
         filename = os.path.join(dir, filename)
         file.save(filename)
@@ -467,17 +525,25 @@ def upload_worksheet():
                     # Mac zip files contain files like __MACOSX/._worksheet.sws
                     # which are metadata files, so we skip those as
                     # well as any other files we won't understand
-                    if extension in ['.sws', '.html', '.txt', '.rst'] and not prefix.startswith('__MACOSX/'):
+                    if extension in [
+                            '.sws',
+                            '.html',
+                            '.txt',
+                            '.rst'] and not prefix.startswith('__MACOSX/'):
                         tmpfilename = os.path.join(dir, "tmp" + extension)
                         try:
-                            tmpfilename = zip_file.extract(subfilename, tmpfilename)
+                            tmpfilename = zip_file.extract(
+                                subfilename, tmpfilename)
                         except AttributeError:
-                            open(tmpfilename, 'w').write(zip_file.read(subfilename))
-                        W = g.notebook.import_worksheet(tmpfilename, g.username)
+                            open(tmpfilename, 'w').write(
+                                zip_file.read(subfilename))
+                        W = g.notebook.import_worksheet(
+                            tmpfilename, g.username)
                         if new_name:
                             W.set_name("%s - %s" % (new_name, W.name()))
                     else:
-                        print "Unknown extension, file %s is ignored" % subfilename
+                        print("Unknown extension, file %s is "
+                              "ignored" % subfilename)
                 return redirect(url_for('home', username=g.username))
 
             else:
@@ -487,14 +553,22 @@ def upload_worksheet():
                         # just grab 1st URL; perhaps later add interface for
                         # downloading multiple linked .sws
                         try:
-                            filename = my_urlretrieve(linked_sws[0]['url'], backlinks=backlinks)[0]
-                            print 'Importing {0}, linked to from {1}'.format(linked_sws[0]['url'], url)
+                            filename = my_urlretrieve(
+                                linked_sws[0]['url'], backlinks=backlinks)[0]
+                            print 'Importing {0}, linked to from {1}'.format(
+                                linked_sws[0]['url'], url)
                         except RetrieveError as err:
                             return templates.message(str(err))
                 W = g.notebook.import_worksheet(filename, g.username)
         except Exception, msg:
             print 'error uploading worksheet', msg
-            s = _('There was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desperately need its contents contact the <a href="http://groups.google.com/group/sage-support">sage-support group</a> and post a link to your worksheet.  Alternatively, an sws file is just a bzip2 tarball; take a look inside!\n%(backlinks)s', backlinks=backlinks)
+            s = _('There was an error uploading the worksheet.  It could be '
+                  'an old unsupported format or worse.  If you desperately '
+                  'need its contents contact the '
+                  '<a href="http://groups.google.com/group/sage-support">'
+                  'sage-support group</a> and post a link to your worksheet.  '
+                  'Alternatively, an sws file is just a bzip2 tarball; take a '
+                  'look inside!\n%(backlinks)s', backlinks=backlinks)
             return templates.message(s, url_for('home', username=g.username))
         finally:
             # Clean up the temporarily uploaded filename.
@@ -504,7 +578,8 @@ def upload_worksheet():
                 shutil.rmtree(dir)
 
     except ValueError, msg:
-        s = _("Error uploading worksheet '%(msg)s'.%(backlinks)s", msg=msg, backlinks=backlinks)
+        s = _("Error uploading worksheet '%(msg)s'.%(backlinks)s",
+              msg=msg, backlinks=backlinks)
         return templates.message(s, url_for('home', username=g.username))
 
     if new_name:

@@ -35,6 +35,8 @@ authentication = Blueprint('authentication', __name__)
 ##################
 # Authentication #
 ##################
+
+
 @authentication.before_request
 def lookup_current_user():
     g.username = None
@@ -57,7 +59,8 @@ def login(template_dict={}):
         password = request.form['password']
 
         if username == 'COOKIESDISABLED':
-            return _("Please enable cookies or delete all Sage cookies and localhost cookies in your browser and try again.")
+            return _(r'Please enable cookies or delete all Sage cookies and '
+                     'localhost cookies in your browser and try again.')
 
         # we only handle ascii usernames.
         if is_valid_username(username):
@@ -70,8 +73,8 @@ def login(template_dict={}):
             U = None
             template_dict['username_error'] = True
 
-        # It is critically important that it be impossible to login as the
-        # pub, _sage_, or guest users.  This _sage_ user is a fake user that is used
+        # It is critically important that it be impossible to login as the pub,
+        # _sage_, or guest users.  This _sage_ user is a fake user that is used
         # internally by the notebook for the doc browser and other tasks.
         if username in ['_sage_', 'guest', 'pub']:
             U = None
@@ -82,19 +85,22 @@ def login(template_dict={}):
         elif (is_valid_password(password, username) and
               g.notebook.user_manager().check_password(username, password)):
             if U.is_suspended():
-                #suspended
+                # suspended
                 return _("Your account is currently suspended")
             else:
-                #Valid user, everything is okay
+                # Valid user, everything is okay
                 session['username'] = username
                 session.modified = True
-                return redirect(request.values.get('next', url_for('base.index')))
+                return redirect(
+                    request.values.get('next', url_for('base.index')))
         else:
             template_dict['password_error'] = True
 
-    response = current_app.make_response(render_template(os.path.join('html', 'login.html'), **template_dict))
-    response.set_cookie('cookie_test_%s'%g.notebook.port, 'cookie_test')
+    response = current_app.make_response(render_template(
+        os.path.join('html', 'login.html'), **template_dict))
+    response.set_cookie('cookie_test_%s' % g.notebook.port, 'cookie_test')
     return response
+
 
 @authentication.route('/logout/')
 def logout():
@@ -103,17 +109,16 @@ def logout():
     return redirect(url_for('base.index'))
 
 
-
-
 ################
 # Registration #
 ################
 
-#XXX: Yuck!  This global variable should not be here.
-#This is data should be stored somewhere more persistant.
+# XXX: Yuck!  This global variable should not be here.
+# This is data should be stored somewhere more persistant.
 waiting = {}
 
-@authentication.route('/register', methods = ['GET','POST'])
+
+@authentication.route('/register', methods=['GET', 'POST'])
 @with_lock
 def register():
     if not g.notebook.user_manager().get_accounts():
@@ -149,8 +154,8 @@ def register():
         required.add('challenge')
         empty_form_dict['challenge'] = True
         chal = challenge(g.notebook.conf(),
-                         is_secure = g.notebook.secure,
-                         remote_ip = request.environ['REMOTE_ADDR'])
+                         is_secure=g.notebook.secure,
+                         remote_ip=request.environ['REMOTE_ADDR'])
         empty_form_dict['challenge_html'] = chal.html()
 
     template_dict.update(empty_form_dict)
@@ -202,13 +207,14 @@ def register():
 
     # Challenge (e.g., reCAPTCHA).
     if g.notebook.conf()['challenge']:
-        status = chal.is_valid_response(req_args = request.values)
+        status = chal.is_valid_response(req_args=request.values)
         if status.is_valid is True:
             validated.add('challenge')
         elif status.is_valid is False:
             err_code = status.error_code
             if err_code:
-                template_dict['challenge_html'] = chal.html(error_code = err_code)
+                template_dict['challenge_html'] = chal.html(
+                    error_code=err_code)
             else:
                 template_dict['challenge_invalid'] = True
         else:
@@ -218,14 +224,18 @@ def register():
     # VALIDATE OVERALL.
     if empty == required:
         # All required fields are empty.  Not really an error.
-        return render_template(os.path.join('html', 'accounts', 'registration.html'),
+        return render_template(os.path.join('html',
+                                            'accounts',
+                                            'registration.html'),
                                **empty_form_dict)
     elif validated != required:
         # Error(s)!
         errors = len(required) - len(validated)
         template_dict['error'] = 'E ' if errors == 1 else 'Es '
-        return render_template(os.path.join('html', 'accounts', 'registration.html'),
-                        **template_dict)
+        return render_template(os.path.join('html',
+                                            'accounts',
+                                            'registration.html'),
+                               **template_dict)
 
     # Create an account, if username is unique.
     try:
@@ -234,12 +244,14 @@ def register():
         template_dict['username_taken'] = True
         template_dict['error'] = 'E '
 
-        form = render_template(os.path.join('html', 'accounts', 'registration.html'),
-                        **template_dict)
-        return HTMLResponse(stream = form)
+        form = render_template(os.path.join('html',
+                                            'accounts',
+                                            'registration.html'),
+                               **template_dict)
+        return HTMLResponse(stream=form)
 
-    #XXX: Add logging support
-    #log.msg("Created new user '%s'"%username)
+    # XXX: Add logging support
+    # log.msg("Created new user '%s'"%username)
 
     # POST-VALIDATION hooks.  All required fields should be valid.
     if g.notebook.conf()['email']:
@@ -286,19 +298,24 @@ def confirm():
         user.set_email_confirmation(True)
     except KeyError:
         return templates.message(invalid_confirm_key, '/register')
-    success = _("""<h1>Email address confirmed for user %(username)s</h1>""", username=username)
+    success = _(
+        """<h1>Email address confirmed for user %(username)s</h1>""",
+        username=username)
     del waiting[key]
     return templates.message(success, title=_('Email Confirmed'))
+
 
 @authentication.route('/forgotpass')
 @with_lock
 def forgot_pass():
     if not g.notebook.conf()['email']:
-        return templates.message(_('The account recovery system is not active.'))
+        return templates.message(
+            _('The account recovery system is not active.'))
 
     username = request.values.get('username', '').strip()
     if not username:
-        return render_template(os.path.join('html', 'accounts', 'account_recovery.html'))
+        return render_template(
+            os.path.join('html', 'accounts', 'account_recovery.html'))
 
     def error(msg):
         return templates.message(msg, url_for('forgot_pass'))
@@ -311,8 +328,8 @@ def forgot_pass():
     if not user.is_email_confirmed():
         return error(_("The e-mail address hasn't been confirmed."))
 
-    #XXX: some of this could be factored out into a random passowrd
-    #function.  There are a few places in admin.py that also use it.
+    # XXX: some of this could be factored out into a random passowrd
+    # function.  There are a few places in admin.py that also use it.
     chara = string.letters + string.digits
     old_pass = user.password()
     password = ''.join([choice(chara) for i in range(8)])
@@ -322,15 +339,19 @@ def forgot_pass():
     listenaddr = g.notebook.interface
     port = g.notebook.port
     fromaddr = 'no-reply@%s' % listenaddr
-    body = build_password_msg(password, username, listenaddr, port, g.notebook.secure)
+    body = build_password_msg(
+        password, username, listenaddr, port, g.notebook.secure)
     destaddr = user.get_email()
     try:
-        send_mail(fromaddr, destaddr, _("Sage Notebook Account Recovery"), body)
+        send_mail(fromaddr, destaddr, _(
+            "Sage Notebook Account Recovery"), body)
     except ValueError:
         # the email address is invalid
-        return error(_("The new password couldn't be sent to %(dest)s.", dest=destaddr))
+        return error(
+            _("The new password couldn't be sent to %(dest)s.", dest=destaddr))
     else:
         g.notebook.user_manager().set_password(username, password)
 
-    return templates.message(_("A new password has been sent to your e-mail address."), url_for('base.index'))
-
+    return templates.message(
+        _("A new password has been sent to your e-mail address."),
+        url_for('base.index'))

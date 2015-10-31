@@ -22,6 +22,7 @@ JMOL = os.path.join(SAGE_ROOT_SHARE, 'jmol')
 JSMOL = os.path.join(SAGE_ROOT_SHARE, 'jsmol')
 J2S = os.path.join(JSMOL, 'j2s')
 
+
 @static_paths.route('/css/<path:filename>')
 def css(filename):
     # send_static file secures filename

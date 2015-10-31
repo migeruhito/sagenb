@@ -45,10 +45,12 @@ from .blueprints.worksheet import worksheet
 
 # TODO: sage dependency
 SAGE_SRC = import_from('sage.env', 'SAGE_SRC', default=os.environ.get(
-        'SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')))
+    'SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')))
 SRC = os.path.join(SAGE_SRC, 'sage')
 
-#CLEAN THIS UP!
+# CLEAN THIS UP!
+
+
 def create_app(notebook, *args, **kwds):
     """
     This is the main method to create a running notebook. This is
@@ -57,8 +59,8 @@ def create_app(notebook, *args, **kwds):
     startup_token = kwds.pop('startup_token', None)
     # Create app
     app = Flask('sagenb',
-                      static_folder='data', static_url_path='/static',
-                      template_folder=TEMPLATE_PATH)
+                static_folder='data', static_url_path='/static',
+                template_folder=TEMPLATE_PATH)
     app.startup_token = startup_token
     app.session_interface = OldSecureCookieSessionInterface()
     app.config['SESSION_COOKIE_HTTPONLY'] = False
@@ -72,7 +74,7 @@ def create_app(notebook, *args, **kwds):
     app.add_template_filter(prettify_time_ago)
     app.add_template_filter(max)
     app.add_template_filter(lambda x: repr(unicode_str(x))[1:],
-                             name='repr_str')
+                            name='repr_str')
     app.add_template_filter(dumps, 'tojson')
 
     app.secret_key = os.urandom(24)
@@ -88,7 +90,7 @@ def create_app(notebook, *args, **kwds):
     ####################################
     babel = Babel(app, default_locale='en_US')
 
-    #Check if saved default language exists. If not fallback to default
+    # Check if saved default language exists. If not fallback to default
     @app.before_first_request
     def check_default_lang():
         def_lang = notebook.conf()['default_language']
@@ -96,8 +98,8 @@ def create_app(notebook, *args, **kwds):
         if def_lang not in trans_ids:
             notebook.conf()['default_language'] = None
 
-    #register callback function for locale selection
-    #this function must be modified to add per user language support
+    # register callback function for locale selection
+    # this function must be modified to add per user language support
     @babel.localeselector
     def get_locale():
         return g.notebook.conf()['default_language']
@@ -105,14 +107,14 @@ def create_app(notebook, *args, **kwds):
     #################
     # Set up themes #
     #################
-    #A new conf entry, 'themes', was added to notebook
+    # A new conf entry, 'themes', was added to notebook
     app.config['THEME_PATHS'] = theme_paths()
     app.config['DEFAULT_THEME'] = default_theme()
     Themes(app, loaders=[theme_paths_loader], app_identifier='sagenb')
     name = notebook.conf()['theme']
     if name not in app.theme_manager.themes:
         notebook.conf()['theme'] = app.config['DEFAULT_THEME']
-    #app.theme_manager.refresh()
+    # app.theme_manager.refresh()
 
     ########################
     # Register the modules #
@@ -136,22 +138,24 @@ def create_app(notebook, *args, **kwds):
             gettext('''500: Internal server error.'''),
             username=getattr(g, 'username', 'guest')), 500
 
-    #autoindex v0.3 doesnt seem to work with modules
-    #routing with app directly does the trick
-    #TODO: Check to see if autoindex 0.4 works with modules
+    # autoindex v0.3 doesnt seem to work with modules
+    # routing with app directly does the trick
+    # TODO: Check to see if autoindex 0.4 works with modules
     idx = AutoIndex(app, browse_root=SRC, add_url_rules=False)
+
     @app.route('/src/')
     @app.route('/src/<path:path>')
     @guest_or_login_required
     def autoindex(path='.'):
         filename = os.path.join(SRC, path)
         if os.path.isfile(filename):
-            src = escape(open(filename).read().decode('utf-8','ignore'))
+            src = escape(open(filename).read().decode('utf-8', 'ignore'))
             if (os.path.splitext(filename)[1] in
-                ['.py','.c','.cc','.h','.hh','.pyx','.pxd']):
-                return render_template(os.path.join('html', 'source_code.html'),
+                    ['.py', '.c', '.cc', '.h', '.hh', '.pyx', '.pxd']):
+                return render_template(os.path.join('html',
+                                                    'source_code.html'),
                                        src_filename=path,
-                                       src=src, username = g.username)
+                                       src=src, username=g.username)
             return src
         return idx.render_autoindex(path)
 
