@@ -15,15 +15,20 @@ from .worksheet_process import WorksheetProcess
 ###################################################################
 # Reference implementation
 ###################################################################
+
+
 class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
     """
     A controlled Python process that executes code.  This is a
     reference implementation.
     """
+
     def __init__(self, **kwds):
         for key in kwds.keys():
-            print "WorksheetProcess_ReferenceImplementation: does not support '%s' option.  Ignored."%key
-        self._output_status = OutputStatus('',[],True,None)
+            print(
+                "WorksheetProcess_ReferenceImplementation: does not support "
+                "'%s' option.  Ignored." % key)
+        self._output_status = OutputStatus('', [], True, None)
         self._state = {}
 
     def __repr__(self):
@@ -47,7 +52,7 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
         """
         Quit this worksheet process.
         """
-        self._state ={}
+        self._state = {}
 
     def start(self):
         """
@@ -60,7 +65,8 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
     ###########################################################
     def is_computing(self):
         """
-        Return True if a computation is currently running in this worksheet subprocess.
+        Return True if a computation is currently running in this worksheet
+        subprocess.
 
         OUTPUT:
 
@@ -111,7 +117,7 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
             - ``OutputStatus`` object.
         """
         OS = self._output_status
-        self._output_status = OutputStatus('',[],True)
+        self._output_status = OutputStatus('', [], True)
         return OS
 
 

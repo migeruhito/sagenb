@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*
 from __future__ import absolute_import
 
+
 class ProcessLimits:
     """
     INPUT:
@@ -20,10 +21,12 @@ class ProcessLimits:
         - ``max_processes`` -- maximum number of processes the
           worksheet process can create
     """
+
     def __init__(self,
-                 max_vmem=None,     # maximum amount of virtual memory available to the shell in megabytes
+                 max_vmem=None,     # maximum amount of virtual memory
+                                    # available to the shell in megabytes
                  max_cputime=None,  # maximum cpu time in seconds
-                 max_walltime=None, # maximum wall time in seconds
+                 max_walltime=None,  # maximum wall time in seconds
                  max_processes=None,
                  ):
         self.max_vmem = max_vmem
@@ -33,7 +36,7 @@ class ProcessLimits:
 
     def __repr__(self):
         return 'Process limit object:' + \
-               '\n\tmax_vmem = %s MB'%self.max_vmem +  \
-               '\n\tmax_cputime = %s'%self.max_cputime + \
-               '\n\tmax_walltime = %s'%self.max_walltime + \
-               '\n\tmax_processes = %s'%self.max_processes
+               '\n\tmax_vmem = %s MB' % self.max_vmem +  \
+               '\n\tmax_cputime = %s' % self.max_cputime + \
+               '\n\tmax_walltime = %s' % self.max_walltime + \
+               '\n\tmax_processes = %s' % self.max_processes

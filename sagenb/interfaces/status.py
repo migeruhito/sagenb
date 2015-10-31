@@ -15,6 +15,7 @@ class OutputStatus:
             - ``done`` -- bool; whether or not the computation is now done
 
     """
+
     def __init__(self, output, filenames, done, tempdir=None):
         """
         INPUT:
@@ -39,5 +40,6 @@ class OutputStatus:
         """
         Return string representation of this output status.
         """
-        return "Output Status:\n\toutput: '%s'\n\tfilenames: %s\n\tdone: %s"%(
-            self.output, self.filenames, self.done)
+        return (
+            "Output Status:\n\toutput: '%s'\n\tfilenames: %s\n\tdone: %s" % (
+                self.output, self.filenames, self.done))

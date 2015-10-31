@@ -21,11 +21,13 @@ AUTHORS:
 ###################################################################
 from __future__ import absolute_import
 
+
 class WorksheetProcess:
     """
     A controlled Python process that executes code.  This is a
     reference implementation.
     """
+
     def __init__(self, **kwds):
         """
         Initialize this worksheet process.
@@ -79,7 +81,8 @@ class WorksheetProcess:
     ###########################################################
     def is_computing(self):
         """
-        Return True if a computation is currently running in this worksheet subprocess.
+        Return True if a computation is currently running in this worksheet
+        subprocess.
 
         OUTPUT:
 
@@ -130,7 +133,3 @@ class WorksheetProcess:
             - ``OutputStatus`` object.
         """
         raise NotImplementedError
-
-
-
-
