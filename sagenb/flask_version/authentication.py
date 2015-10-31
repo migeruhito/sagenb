@@ -25,6 +25,7 @@ from sagenb.notebook.register import build_password_msg
 from sagenb.notebook.smtpsend import send_mail
 from sagenb.notebook.themes import render_template
 
+from . import templates
 from .decorators import with_lock
 
 _ = gettext
@@ -271,7 +272,7 @@ def register():
 @with_lock
 def confirm():
     if not g.notebook.conf()['email']:
-        return current_app.message(_('The confirmation system is not active.'))
+        return templates.message(_('The confirmation system is not active.'))
     key = int(request.values.get('key', '-1'))
 
     invalid_confirm_key = _("""\
@@ -284,23 +285,23 @@ def confirm():
         user = g.notebook.user(username)
         user.set_email_confirmation(True)
     except KeyError:
-        return current_app.message(invalid_confirm_key, '/register')
+        return templates.message(invalid_confirm_key, '/register')
     success = _("""<h1>Email address confirmed for user %(username)s</h1>""", username=username)
     del waiting[key]
-    return current_app.message(success, title=_('Email Confirmed'))
+    return templates.message(success, title=_('Email Confirmed'))
 
 @authentication.route('/forgotpass')
 @with_lock
 def forgot_pass():
     if not g.notebook.conf()['email']:
-        return current_app.message(_('The account recovery system is not active.'))
+        return templates.message(_('The account recovery system is not active.'))
 
     username = request.values.get('username', '').strip()
     if not username:
         return render_template(os.path.join('html', 'accounts', 'account_recovery.html'))
 
     def error(msg):
-        return current_app.message(msg, url_for('forgot_pass'))
+        return templates.message(msg, url_for('forgot_pass'))
 
     try:
         user = g.notebook.user(username)
@@ -331,5 +332,5 @@ def forgot_pass():
     else:
         g.notebook.user_manager().set_password(username, password)
 
-    return current_app.message(_("A new password has been sent to your e-mail address."), url_for('base.index'))
+    return templates.message(_("A new password has been sent to your e-mail address."), url_for('base.index'))
 

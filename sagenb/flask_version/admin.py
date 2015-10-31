@@ -16,6 +16,7 @@ from sagenb.misc.misc import SAGE_VERSION
 from sagenb.notebook.misc import is_valid_username
 from sagenb.notebook.themes import render_template
 
+from . import templates
 from .decorators import admin_required
 from .decorators import with_lock
 
@@ -107,7 +108,7 @@ def add_user():
 
         message = _('The temporary password for the new user <em>%(username)s</em> is <em>%(password)s</em>',
                           username=username, password=password)
-        return current_app.message(message, cont='/adduser', title=_('New User'))
+        return templates.message(message, cont='/adduser', title=_('New User'))
     else:
         return render_template(os.path.join('html', 'settings', 'admin_add_user.html'),
                                **template_dict)

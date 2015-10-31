@@ -34,9 +34,10 @@ from cgi import escape
 from time import strftime
 
 from docutils.core import publish_parts
-from flask import current_app
+from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
+from sagenb.flask_version import templates
 from sagenb.flask_version.decorators import global_lock
 from sagenb.interfaces import WorksheetProcess_ExpectImplementation
 from sagenb.interfaces import WorksheetProcess_ReferenceImplementation
@@ -1792,7 +1793,7 @@ class Notebook(object):
                 W = None
 
         if W is None:
-            return current_app.message(gettext("The worksheet does not exist"))
+            return templates.message(gettext("The worksheet does not exist"))
 
         if W.docbrowser() or W.is_published():
             if W.is_published() or self.user_manager().user_is_guest(username):

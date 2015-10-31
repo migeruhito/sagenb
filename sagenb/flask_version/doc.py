@@ -11,12 +11,12 @@ from __future__ import absolute_import
 import os
 from flask import Blueprint
 from flask import g
-from flask import current_app
 from flask.ext.babel import gettext
 from flask.helpers import send_from_directory
 
 from sagenb.misc.misc import SAGE_DOC
 
+from . import templates
 from .decorators import login_required
 from .worksheet import worksheet_file
 
@@ -54,7 +54,7 @@ def live(filename=None, manual=None, path_static=None):
     already been fixed upstream.
     """
     if filename is None:
-        return current_app.message(_('nothing to see.'), username=g.username)
+        return templates.message(_('nothing to see.'), username=g.username)
     if path_static is not None:
         path_static = os.path.join(DOC, manual, '_static')
         return send_from_directory(path_static, filename)

@@ -52,6 +52,7 @@ from sagenb.notebook.themes import render_template
 from sagenb.notebook.tutorial import notebook_help
 from sagenb.notebook.user import User
 
+from . import templates
 from .admin import admin
 from .authentication import authentication
 from .authentication import login
@@ -77,13 +78,7 @@ base = Module('sagenb.flask_version.base')
 mimetypes.add_type('text/plain','.jmol')
 
 class SageNBFlask(Flask):
-
-    def message(self, msg, cont='/', username=None, **kwds):
-        """Returns an error message to the user."""
-        template_dict = {'msg': msg, 'cont': cont, 'username': username}
-        template_dict.update(kwds)
-        return render_template(os.path.join('html', 'error_message.html'),
-                               **template_dict)
+    pass
 
 
 #############
@@ -394,7 +389,7 @@ def create_app(notebook, *args, **kwds):
     @app.errorhandler(Exception)
     def log_exception(error):
         logger.exception(error)
-        return app.message(
+        return templates.message(
             gettext('''500: Internal server error.'''),
             username=getattr(g, 'username', 'guest')), 500
 

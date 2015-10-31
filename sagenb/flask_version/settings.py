@@ -6,7 +6,6 @@ from flask import url_for
 from flask import request
 from flask import redirect
 from flask import g
-from flask import current_app
 from flask.ext.babel import gettext
 
 from sagenb.misc.misc import SAGE_VERSION
@@ -14,6 +13,7 @@ from sagenb.notebook.misc import is_valid_password
 from sagenb.notebook.misc import is_valid_email
 from sagenb.notebook.themes import render_template
 
+from . import templates
 from .decorators import login_required
 from .decorators import with_lock
 
@@ -70,7 +70,7 @@ def settings_page():
                 error = _('Invalid e-mail address.')
 
     if error:
-        return current_app.message(error, url_for('settings_page'))
+        return templates.message(error, url_for('settings_page'))
 
     if redirect_to_logout:
         return redirect(url_for('authentication.logout'))
