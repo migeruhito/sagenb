@@ -33,9 +33,9 @@ from ..notebook.themes import render_template
 from ..notebook.tutorial import notebook_help
 from ..notebook.user import User
 
-from ..flask_version.decorators import login_required
-from ..flask_version.decorators import guest_or_login_required
-from ..flask_version.decorators import with_lock
+from ..util.decorators import login_required
+from ..util.decorators import guest_or_login_required
+from ..util.decorators import with_lock
 from .worksheet import url_for_worksheet
 
 base = Blueprint('base', __name__)

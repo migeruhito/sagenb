@@ -37,8 +37,8 @@ from docutils.core import publish_parts
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
-from sagenb.flask_version import templates
-from sagenb.flask_version.decorators import global_lock
+from sagenb.util import templates
+from sagenb.util.decorators import global_lock
 from sagenb.interfaces import WorksheetProcess_ExpectImplementation
 from sagenb.interfaces import WorksheetProcess_ReferenceImplementation
 from sagenb.interfaces import WorksheetProcess_RemoteExpectImplementation

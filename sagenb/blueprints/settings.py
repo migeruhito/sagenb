@@ -13,9 +13,9 @@ from ..notebook.misc import is_valid_password
 from ..notebook.misc import is_valid_email
 from ..notebook.themes import render_template
 
-from ..flask_version import templates
-from ..flask_version.decorators import login_required
-from ..flask_version.decorators import with_lock
+from ..util import templates
+from ..util.decorators import login_required
+from ..util.decorators import with_lock
 
 _ = gettext
 

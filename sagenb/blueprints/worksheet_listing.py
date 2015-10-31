@@ -30,9 +30,9 @@ from ..notebook.misc import encode_response
 from ..notebook.themes import render_template
 
 
-from ..flask_version import templates
-from ..flask_version.decorators import login_required
-from ..flask_version.decorators import guest_or_login_required
+from ..util import templates
+from ..util.decorators import login_required
+from ..util.decorators import guest_or_login_required
 from .worksheet import pub_worksheet
 from .worksheet import url_for_worksheet
 from .worksheet import unconditional_download

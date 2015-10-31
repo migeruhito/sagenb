@@ -17,8 +17,8 @@ from flask.ext.babel import gettext
 from flask.ext.themes2 import Themes
 from flask.ext.themes2 import theme_paths_loader
 
-from .flask_version import templates
-from .flask_version.decorators import guest_or_login_required
+from .util import templates
+from .util.decorators import guest_or_login_required
 from .misc.misc import import_from
 from .misc.misc import default_theme
 from .misc.misc import theme_paths
@@ -45,8 +45,7 @@ from .blueprints.worksheet import worksheet
 
 # TODO: sage dependency
 SAGE_SRC = import_from('sage.env', 'SAGE_SRC', default=os.environ.get(
-        'SAGE_SRC',
-        os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')))
+        'SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')))
 SRC = os.path.join(SAGE_SRC, 'sage')
 
 #CLEAN THIS UP!

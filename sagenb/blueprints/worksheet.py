@@ -31,8 +31,8 @@ from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..notebook.misc import encode_response
 from ..notebook.themes import render_template
 
-from ..flask_version import templates
-from ..flask_version.decorators import login_required
+from ..util import templates
+from ..util.decorators import login_required
 
 _ = gettext
 

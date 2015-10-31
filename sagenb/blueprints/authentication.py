@@ -25,8 +25,8 @@ from ..notebook.register import build_password_msg
 from ..notebook.smtpsend import send_mail
 from ..notebook.themes import render_template
 
-from ..flask_version import templates
-from ..flask_version.decorators import with_lock
+from ..util import templates
+from ..util.decorators import with_lock
 
 _ = gettext
 

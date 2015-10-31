@@ -16,9 +16,9 @@ from ..misc.misc import SAGE_VERSION
 from ..notebook.misc import is_valid_username
 from ..notebook.themes import render_template
 
-from ..flask_version import templates
-from ..flask_version.decorators import admin_required
-from ..flask_version.decorators import with_lock
+from ..util import templates
+from ..util.decorators import admin_required
+from ..util.decorators import with_lock
 
 _ = gettext
 
@@ -125,7 +125,7 @@ def notebook_settings():
     if 'theme' in request.values:
         # Invalidate dynamic js and css caches so that all the themes can be
         # without restarting
-        from sagenb.flask_version import base
+        from sagenb.util import base
         from sagenb.notebook import js, css
         base._localization_cache = {}
         base._mathjax_js_cache = None
