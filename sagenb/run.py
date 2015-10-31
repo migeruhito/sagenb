@@ -20,17 +20,17 @@ import urllib
 import getpass
 import signal
 
-from . import create_app
-from .notebook import misc
-from .misc.misc import cmd_exists
-from .misc.misc import DOT_SAGENB
-from .misc.misc import get_module
-from .misc.misc import find_next_available_port
-from .misc.misc import min_password_length
-from .misc.misc import open_page
-from .misc.misc import print_open_msg
-from .misc.misc import system_command
-from .notebook import notebook
+from sagenb import create_app
+from sagenb.notebook import misc
+from sagenb.misc.misc import cmd_exists
+from sagenb.misc.misc import DOT_SAGENB
+from sagenb.misc.misc import get_module
+from sagenb.misc.misc import find_next_available_port
+from sagenb.misc.misc import min_password_length
+from sagenb.misc.misc import open_page
+from sagenb.misc.misc import print_open_msg
+from sagenb.misc.misc import system_command
+from sagenb.notebook import notebook
 
 
 class NotebookFrontend(object):
