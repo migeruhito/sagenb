@@ -76,28 +76,9 @@ SRC = os.path.join(SAGE_SRC, 'sage')
 oid = OpenID()
 base = Module('sagenb.flask_version.base')
 
+mimetypes.add_type('text/plain','.jmol')
+
 class SageNBFlask(Flask):
-    def __init__(self, *args, **kwds):
-        self.startup_token = kwds.pop('startup_token', None)
-        Flask.__init__(self, *args, **kwds)
-        self.session_interface = OldSecureCookieSessionInterface()
-
-        self.config['SESSION_COOKIE_HTTPONLY'] = False
-
-        mimetypes.add_type('text/plain','.jmol')
-
-
-        # Template globals
-        self.add_template_global(url_for)
-        # Template filters
-        self.add_template_filter(css_escape)
-        self.add_template_filter(number_of_rows)
-        self.add_template_filter(clean_name)
-        self.add_template_filter(prettify_time_ago)
-        self.add_template_filter(max)
-        self.add_template_filter(lambda x: repr(unicode_str(x))[1:],
-                                 name='repr_str')
-        self.add_template_filter(dumps, 'tojson')
 
     def message(self, msg, cont='/', username=None, **kwds):
         """Returns an error message to the user."""
@@ -405,9 +386,25 @@ def create_app(path_to_notebook, *args, **kwds):
     ##############
     # Create app #
     ##############
-    app = SageNBFlask('sagenb', startup_token=startup_token,
+    app = SageNBFlask('sagenb',
                       static_folder='data', static_url_path='/static',
                       template_folder=TEMPLATE_PATH)
+    app.startup_token = startup_token
+    app.session_interface = OldSecureCookieSessionInterface()
+    app.config['SESSION_COOKIE_HTTPONLY'] = False
+
+    # Template globals
+    app.add_template_global(url_for)
+    # Template filters
+    app.add_template_filter(css_escape)
+    app.add_template_filter(number_of_rows)
+    app.add_template_filter(clean_name)
+    app.add_template_filter(prettify_time_ago)
+    app.add_template_filter(max)
+    app.add_template_filter(lambda x: repr(unicode_str(x))[1:],
+                             name='repr_str')
+    app.add_template_filter(dumps, 'tojson')
+
     app.secret_key = os.urandom(24)
     oid.init_app(app)
     app.debug = True
