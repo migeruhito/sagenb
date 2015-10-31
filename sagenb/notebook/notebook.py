@@ -45,7 +45,7 @@ from sagenb.interfaces import WorksheetProcess_RemoteExpectImplementation
 from sagenb.interfaces import ProcessLimits
 from sagenb.misc.misc import unicode_str
 from sagenb.misc.misc import get_module
-from sage.misc.misc import walltime
+from sagenb.misc.misc import walltime
 from sagenb.storage import FilesystemDatastore
 
 # Sage Notebook
