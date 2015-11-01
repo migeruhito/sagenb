@@ -116,7 +116,7 @@ except Exception:
     raise
 
 
-## Fallback functions in case sage is not present
+# Fallback functions in case sage is not present
 # Not implemented
 @stub
 def session_init(*args, **kwds):
@@ -151,7 +151,8 @@ def InlineFortran(*args, **kwds):
 @stub
 def cython(*args, **kwds):
     # TODO
-    raise NotImplementedError, "Curently %cython mode requires Sage."
+    raise NotImplementedError("Curently %cython mode requires Sage.")
+
 
 @stub
 def is_Matrix(x):
@@ -200,15 +201,17 @@ def tmp_dir(name='dir'):
     return tempfile.mkdtemp()
 
 
-def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=False, endpoint_tolerance=1e-5):
+def srange(start, end=None, step=1, universe=None, check=True,
+           include_endpoint=False, endpoint_tolerance=1e-5):
     # TODO: need to put a really srange here!
     v = [start]
     while v[-1] <= end:
-        v.append(v[-1]+step)
+        v.append(v[-1] + step)
     return v
 
 
 class Color:
+
     def __init__(self, *args, **kwds):
         pass
 
@@ -249,8 +252,8 @@ def cputime(t=0):
         t = float(t)
     except TypeError:
         t = 0.0
-    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
-    return u+s - t
+    u, s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+    return u + s - t
 
 
 def walltime(t=0):
@@ -276,7 +279,7 @@ def word_wrap(s, ncols=85):
                 end = ''
             t.append(x[:k] + end)
             x = x[k:]
-            k=0
+            k = 0
             while k < len(x) and x[k] == ' ':
                 k += 1
             x = x[k:]
@@ -321,13 +324,13 @@ cython = import_from('sage.misc.cython', 'cython', default=cython)
 def set_restrictive_permissions(filename, allow_execute=False):
     x = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
     if allow_execute:
-        x = x | stat.S_IXGRP |  stat.S_IXOTH
+        x = x | stat.S_IXGRP | stat.S_IXOTH
     os.chmod(filename, x)
 
 
 def set_permissive_permissions(filename):
-    os.chmod(filename, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH | \
-             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | \
+    os.chmod(filename, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH |
+             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
              stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
 
 
@@ -338,7 +341,9 @@ def encoded_str(obj, encoding='utf-8'):
     EXAMPLES::
 
         sage: from sagenb.misc.misc import encoded_str
-        sage: encoded_str(u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e') == 'ěščřžýáíéďĎ'
+        sage: encoded_str(
+            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+            ) == 'ěščřžýáíéďĎ'
         True
         sage: encoded_str(u'abc')
         'abc'
@@ -357,7 +362,8 @@ def unicode_str(obj, encoding='utf-8'):
     EXAMPLES::
 
         sage: from sagenb.misc.misc import unicode_str
-        sage: unicode_str('ěščřžýáíéďĎ') == u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+        sage: unicode_str('ěščřžýáíéďĎ'
+            ) == u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         True
         sage: unicode_str('abc')
         u'abc'
@@ -406,7 +412,9 @@ def ignore_nonexistent_files(curdir, dirlist):
         sage: shutil.copytree(s, t)
         Traceback (most recent call last):
         ...
-        Error: [('.../src/bad.txt', '.../trg/bad.txt', "[Errno 2] No such file or directory: '.../src/bad.txt'")]
+        Error: [('.../src/bad.txt',
+                 '.../trg/bad.txt',
+                 "[Errno 2] No such file or directory: '.../src/bad.txt'")]
         sage: shutil.rmtree(t); ope(t)
         False
         sage: shutil.copytree(s, t, ignore = ignore_nonexistent_files)
@@ -431,7 +439,7 @@ def translations_path():
 def get_languages():
     langs = []
     dir_names = [lang for lang in os.listdir(translations_path())
-                       if lang != 'en_US']
+                 if lang != 'en_US']
     for name in dir_names:
         try:
             Locale.parse(name)
@@ -506,15 +514,16 @@ def print_open_msg(address, port, secure=False, path=""):
     if port == 80:
         port = ''
     else:
-        port = ':%s'%port
-    s = "Open your web browser to http%s://%s%s%s"%('s' if secure else '', address, port, path)
+        port = ':%s' % port
+    s = "Open your web browser to http%s://%s%s%s" % (
+        's' if secure else '', address, port, path)
     t = len(s)
-    if t%2:
+    if t % 2:
         t += 1
         s += ' '
-    n = max(t+4, 50)
-    k = n - t  - 1
-    j = k/2
+    n = max(t + 4, 50)
+    k = n - t - 1
+    j = k / 2
     msg = '┌' + '─' * (n - 2) + '┐\n'
     msg += '│' + ' ' * (n - 2) + '│\n'
     msg += '│' + ' ' * j + s + ' ' * j + '│\n'
@@ -547,31 +556,35 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
     EXAMPLES::
 
         sage: from sagenb.misc.misc import find_next_available_port
-        sage: find_next_available_port('127.0.0.1', 9000, verbose=False)   # random output -- depends on network
+        sage: find_next_available_port(
+            '127.0.0.1',
+            9000, verbose=False)   # random output -- depends on network
         9002
     """
     alarm_count = 0
-    for port in range(start, start+max_tries+1):
+    for port in range(start, start + max_tries + 1):
         try:
             alarm(5)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((interface, port))
         except socket.error, msg:
             if msg[1] == 'Connection refused':
-                if verbose: print "Using port = %s"%port
+                if verbose:
+                    print "Using port = %s" % port
                 return port
         except KeyboardInterrupt:
-            if verbose: print "alarm"
+            if verbose:
+                print "alarm"
             alarm_count += 1
             if alarm_count >= 10:
-                 break
+                break
             pass
         finally:
             cancel_alarm()
         if verbose:
-            print "Port %s is already in use."%port
+            print "Port %s is already in use." % port
             print "Trying next port..."
-    raise RuntimeError, "no available port."
+    raise RuntimeError("no available port.")
 
 
 def open_page(address, port, secure, path=""):
@@ -580,7 +593,8 @@ def open_page(address, port, secure, path=""):
     else:
         rsrc = 'http'
 
-    os.system('%s %s://%s:%s%s 1>&2 > /dev/null &'%(browser(), rsrc, address, port, path))
+    os.system('%s %s://%s:%s%s 1>&2 > /dev/null &' %
+              (browser(), rsrc, address, port, path))
 
 
 def pad_zeros(s, size=3):
@@ -598,7 +612,7 @@ def pad_zeros(s, size=3):
         sage: pad_zeros(389, 10)
         '0000000389'
     """
-    return "0"*(size-len(str(s))) + str(s)
+    return "0" * (size - len(str(s))) + str(s)
 
 
 def system_command(cmd, msg=None):
@@ -609,7 +623,7 @@ def system_command(cmd, msg=None):
 
 def theme_paths():
     """
-    Paths where notebook search themes at start up. Built-in 
+    Paths where notebook search themes at start up. Built-in
     themes are in SAGENB_ROOT/themes.
     If the user has a DOT_SAGE/themes directory, additional themes are searched
     in it

@@ -7,6 +7,7 @@ import urllib
 
 from .misc import tmp_filename
 
+
 def get_remote_file(filename, verbose=True):
     """
     INPUT:
@@ -19,7 +20,9 @@ def get_remote_file(filename, verbose=True):
         absolute path to that file.
 
     EXAMPLES:
-        sage: g = get_remote_file("http://sagemath.org/ack.html", verbose=False)   # optional -- requires the internet
+        sage: g = get_remote_file(
+            "http://sagemath.org/ack.html", verbose=False
+            )   # optional -- requires the internet
         sage: len(open(g).read())   # optional and randomly growing.
         10198
     """
@@ -40,11 +43,12 @@ def get_remote_file(filename, verbose=True):
     return temp_name
 
 cur = 0
-def report_hook(block, size, total):
-     global cur
-     n = block*size*50/total
-     if n > cur:
-          cur = n
-          sys.stdout.write('.')
-          sys.stdout.flush()
 
+
+def report_hook(block, size, total):
+    global cur
+    n = block * size * 50 / total
+    if n > cur:
+        cur = n
+        sys.stdout.write('.')
+        sys.stdout.flush()

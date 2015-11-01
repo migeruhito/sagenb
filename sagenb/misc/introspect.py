@@ -16,7 +16,6 @@ output format for docstring
 from __future__ import absolute_import
 
 
-
 def introspect(S, query, format='html'):
     """
     Return introspection from a given query string.
@@ -36,9 +35,9 @@ def introspect(S, query, format='html'):
     """
     if format != 'html':
         raise NotImplementedError
-    query = query.replace('\n','').strip()
+    query = query.replace('\n', '').strip()
     if query[:9] == '?__last__':
-        return get_docstring_last(S, int(query[9:])/15)
+        return get_docstring_last(S, int(query[9:]) / 15)
     if len(query) > 1:
         if query[:2] == '??':
             return get_source_code(S, query[2:])
@@ -52,23 +51,24 @@ def introspect(S, query, format='html'):
     return get_completions(S, query)
 
 
-
 def _get_docstring(S, query):
-    cmd = '_support_.docstring("%s", globals())'%query
+    cmd = '_support_.docstring("%s", globals())' % query
     z = S.eval(cmd)
-    z = z.replace('\\n','\n').replace('\\t','        ')[1:-1]
+    z = z.replace('\\n', '\n').replace('\\t', '        ')[1:-1]
     z = word_wrap(z, ncols=numcols)
     return z
 
+
 def _get_source_code(S, query):
-    cmd = '"".join(_support_.source_code("%s", globals()))'%query
+    cmd = '"".join(_support_.source_code("%s", globals()))' % query
     z = S.eval(cmd)
-    z = z.replace('\\n','\n').replace("\\","").replace('\\t','        ')[1:-1]
+    z = z.replace('\\n', '\n').replace(
+        "\\", "").replace('\\t', '        ')[1:-1]
     return z
 
+
 def _get_completions(S, query):
-    cmd = '"<br>".join(_support_.completions("%s", globals()))'%query
+    cmd = '"<br>".join(_support_.completions("%s", globals()))' % query
     z = S.eval(cmd)
     _last_ = z
     return z[1:-1]
-

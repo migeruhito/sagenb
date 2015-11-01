@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*
 #!/usr/bin/env python
+# -*- coding: utf-8 -*
 r"""
 Process docstrings with Sphinx
 
@@ -11,11 +11,11 @@ AUTHORS:
 
 - Tim Joseph Dumol (2009-09-29): initial version
 """
-#**************************************************
+# **************************************************
 # Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
 #
 # Distributed under the terms of the BSD License
-#**************************************************
+# **************************************************
 from __future__ import absolute_import
 
 import os
@@ -70,9 +70,11 @@ def sphinxify(docstring, format='html'):
         sage: sphinxify('A test')
         '...<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
         sage: sphinxify('**Testing**\n`monospace`')
-        '...<div class="docstring"...<strong>Testing</strong>\n<span class="math"...</p>\n\n\n</div>'
+        '...<div class="docstring"...<strong>Testing</strong>\n'\
+        '<span class="math"...</p>\n\n\n</div>'
         sage: sphinxify('`x=y`')
-        '...<div class="docstring">\n    \n  <p><span class="math">x=y</span></p>\n\n\n</div>'
+        '...<div class="docstring">\n    \n  <p><span class="math">'\
+        'x=y</span></p>\n\n\n</div>'
         sage: sphinxify('`x=y`', format='text')
         'x=y\n'
         sage: sphinxify(':math:`x=y`', format='text')
@@ -109,7 +111,8 @@ def sphinxify(docstring, format='html'):
     # TODO: sage dependency
     if not SAGE_DOC and not os.path.exists(confdir):
         # If we don't have Sage, we need to do our own configuration
-        # This may be inefficient or broken.  TODO: Find a faster way to do this.
+        # This may be inefficient or broken.  TODO: Find a faster way to do
+        # this.
         temp_confdir = True
         confdir = mkdtemp()
         generate_configuration(confdir)
@@ -123,7 +126,7 @@ def sphinxify(docstring, format='html'):
     sphinx_app.build(None, [rst_name])
     sys.path = old_sys_path
 
-    #We need to remove "_" from __builtin__ that the gettext module installs
+    # We need to remove "_" from __builtin__ that the gettext module installs
     import __builtin__
     __builtin__.__dict__.pop('_', None)
 
@@ -138,10 +141,11 @@ def sphinxify(docstring, format='html'):
         # to
         #    "/doc/static/reference/media/...path.../blah.png"
         output = re.sub("""src=['"](/?\.\.)*/?media/([^"']*)['"]""",
-                          'src="/doc/static/reference/media/\\2"',
-                          output)
+                        'src="/doc/static/reference/media/\\2"',
+                        output)
         # Remove spurious \(, \), \[, \].
-        output = output.replace('\\(', '').replace('\\)', '').replace('\\[', '').replace('\\]', '')
+        output = output.replace('\\(', '').replace(
+            '\\)', '').replace('\\[', '').replace('\\]', '')
     else:
         print "BUG -- Sphinx error"
         if format == 'html':
@@ -187,8 +191,8 @@ import sys, os, re
 # General configuration
 # ---------------------
 
-# Add any Sphinx extension module names here, as strings. They can be extensions
-# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sage_autodoc',  'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo']
 #, 'sphinx.ext.intersphinx', 'sphinx.ext.extlinks']
@@ -230,7 +234,8 @@ copyright = u'2005--2011, The Sage Development Team'
 # for source files.
 exclude_trees = ['.build']
 
-# The reST default role (used for this markup: `text`) to use for all documents.
+# The reST default role (used for this markup: `text`) to use for all
+# documents.
 default_role = 'math'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
@@ -314,13 +319,14 @@ if (os.environ.get('SAGE_DOC_MATHJAX', False)
     sagenb_path = working_set.find(Requirement.parse('sagenb')).location
     mathjax_relative = os.path.join('sagenb','data','mathjax')
 
-    # It would be really nice if sphinx would copy the entire mathjax directory,
-    # (so we could have a _static/mathjax directory), rather than the contents of the directory
+    # It would be really nice if sphinx would copy the entire mathjax
+    # directory, (so we could have a _static/mathjax directory), rather than
+    # the contents of the directory
 
     mathjax_static = os.path.join(sagenb_path, mathjax_relative)
     html_static_path.append(mathjax_static)
-    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
-                                                                        'unpacked', 'LICENSE')]
+    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in (
+        'docs', 'README*', 'test', 'unpacked', 'LICENSE')]
 else:
      extensions.append('sphinx.ext.pngmath')
 
@@ -386,8 +392,8 @@ latex_elements['utf8extra'] = ''
 # The font size ('10pt', '11pt' or '12pt').
 #latex_elements['pointsize'] = '10pt'
 
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, document class [howto/manual]).
+# Grouping the document tree into LaTeX files. List of tuples (source start
+# file, target name, title, author, document class [howto/manual]).
 latex_documents = []
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -459,7 +465,8 @@ def process_docstring_cython(app, what, name, obj, options, docstringlines):
         docstringlines.pop(0)
         docstringlines.pop(0)
 
-def process_docstring_module_title(app, what, name, obj, options, docstringlines):
+def process_docstring_module_title(app, what, name, obj, options,
+        docstringlines):
     """
     Removes the first line from the beginning of the module's docstring.  This
     corresponds to the title of the module's documentation page.
@@ -597,7 +604,6 @@ def setup(app):
     app.connect('autodoc-process-docstring', process_inherited)
     app.connect('autodoc-skip-member', skip_member)
     '''
-
 
     # From SAGE_DOC/en/introspect/templates/layout.html:
     layout = r"""

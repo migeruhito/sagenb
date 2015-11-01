@@ -59,7 +59,7 @@ def sagenb_getdoc(obj, obj_name=''):
         i = obj_name.find('.')
         if i != -1:
             obj_name = obj_name[:i]
-        s = s.replace('self.','%s.'%obj_name)
+        s = s.replace('self.', '%s.' % obj_name)
     return s
 
 

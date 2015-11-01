@@ -18,7 +18,10 @@ import re
 
 from .misc import unicode_str
 
-_futureimport_re = re.compile(r'((?:from __future__ import [^;\n]+)+)(?:;\s*)?(.*)')
+_futureimport_re = re.compile(
+    r'((?:from __future__ import [^;\n]+)+)(?:;\s*)?(.*)')
+
+
 def relocate_future_imports(string):
     """
     Relocates imports from __future__ to the beginning of the
@@ -37,29 +40,40 @@ def relocate_future_imports(string):
         '\n'
         sage: relocate_future_imports('foobar')
         '\nfoobar'
-        sage: relocate_future_imports('from __future__ import division\nprint "Hi!"')
+        sage: relocate_future_imports(
+            'from __future__ import division\nprint "Hi!"')
         'from __future__ import division\n\nprint "Hi!"'
-        sage: relocate_future_imports('from __future__ import division;print "Testing"')
+        sage: relocate_future_imports(
+            'from __future__ import division;print "Testing"')
         'from __future__ import division\nprint "Testing"'
-        sage: relocate_future_imports('from __future__ import division\nprint "Testing!" # from __future__ import division does Blah')
-        'from __future__ import division\n\nprint "Testing!" # from __future__ import division does Blah'
-        sage: relocate_future_imports('# -*- coding: utf-8 -*-\nprint "Testing!"\nfrom __future__ import division, operator\nprint "Hey!"')
-        'from __future__ import division,operator\n# -*- coding: utf-8 -*-\nprint "Testing!"\n\nprint "Hey!"'
+        sage: relocate_future_imports(
+            'from __future__ import division\nprint "Testing!" '
+            '# from __future__ import division does Blah')
+        'from __future__ import division\n\nprint "Testing!" '\
+        '# from __future__ import division does Blah'
+        sage: relocate_future_imports(
+            '# -*- coding: utf-8 -*-\nprint "Testing!"\n'
+            'from __future__ import division, operator\nprint "Hey!"')
+            'from __future__ import division,operator\n# -*- '\
+            'coding: utf-8 -*-\nprint "Testing!"\n\nprint "Hey!"'
     """
     lines = string.splitlines()
     import_lines = []
     parse_tree = ast.parse(string)
     future_imports = [x for x in parse_tree.body
-                        if x.__class__ == ast.ImportFrom and
-                           x.module == '__future__']
+                      if x.__class__ == ast.ImportFrom and
+                      x.module == '__future__']
     for imp in future_imports:
         line = lines[imp.lineno - 1]
-        lines[imp.lineno - 1] = line[:imp.col_offset] + re.sub(r'from\s+__future__\s+import\s+%s;?\s*' %
-                                              ''.join([r'\s*%s\s*,?\s*' % name.name for name in imp.names]),
-                                              '', line[imp.col_offset:], 1)
-        import_lines.append('from __future__ import %s' % ','.join([name.name for name in imp.names]))
+        lines[imp.lineno - 1] = line[:imp.col_offset] + re.sub(
+            r'from\s+__future__\s+import\s+%s;?\s*' % ''.join(
+                [r'\s*%s\s*,?\s*' % name.name for name in imp.names]), '',
+            line[imp.col_offset:], 1)
+        import_lines.append('from __future__ import %s' %
+                            ','.join([name.name for name in imp.names]))
 
     return '\n'.join(import_lines) + '\n' + '\n'.join(lines)
+
 
 def format_for_pexpect(string, prompt, number):
     """
@@ -85,7 +99,9 @@ def format_for_pexpect(string, prompt, number):
         sys.ps1 = "PROMPT"
         print "START1"
         exec compile(u'13' + '\n', '', 'single')
-        sage: print format_for_pexpect('class MyClass:\n    def __init__(self):\n        pass\na = MyClass()\na', 'PRMPT', 30)
+        sage: print format_for_pexpect(
+            'class MyClass:\n    def __init__(self):\n        pass\na = '
+            'MyClass()\na', 'PRMPT', 30)
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         <BLANKLINE>
@@ -97,15 +113,20 @@ def format_for_pexpect(string, prompt, number):
                 pass
         a = MyClass()
         exec compile(u'a' + '\n', '', 'single')
-        sage: print format_for_pexpect('class MyClass:\n    def __init__(self):\n        pass\n', 'PRMPT', 30)
+        sage: print format_for_pexpect(
+            'class MyClass:\n    def __init__(self):\n        pass\n',
+            'PRMPT', 30)
         # -*- coding: utf-8 -*-
         <BLANKLINE>
         <BLANKLINE>
         import sys
         sys.ps1 = "PRMPT"
         print "START30"
-        exec compile(u'class MyClass:\n    def __init__(self):\n        pass' + '\n', '', 'single')
-        sage: print format_for_pexpect('from __future__ import division\nprint "Hey!"', 'MYPROMPT', 25)
+        exec compile(
+            u'class MyClass:\n    def __init__(self):\n        pass' + '\n',
+            '', 'single')
+        sage: print format_for_pexpect(
+        'from __future__ import division\nprint "Hey!"', 'MYPROMPT', 25)
         # -*- coding: utf-8 -*-
         from __future__ import division
         <BLANKLINE>
@@ -114,7 +135,9 @@ def format_for_pexpect(string, prompt, number):
         print "START25"
         exec compile(u'print "Hey!"' + '\n', '', 'single')
         <BLANKLINE>
-        sage: print format_for_pexpect('from __future__ import division; print "Hello world!"\nprint "New line!"', 'MYPRMPT', 30)
+        sage: print format_for_pexpect(
+            'from __future__ import division;'
+            ' print "Hello world!"\nprint "New line!"', 'MYPRMPT', 30)
         # -*- coding: utf-8 -*-
         from __future__ import division
         <BLANKLINE>
@@ -124,7 +147,7 @@ def format_for_pexpect(string, prompt, number):
         print "Hello world!"
         exec compile(u'print "New line!"' + '\n', '', 'single')
     """
-    string =  """
+    string = """
 import sys
 sys.ps1 = "%s"
 print "START%s"
@@ -136,6 +159,7 @@ print "START%s"
         # Syntax error anyways, so no need to relocate future imports.
         string = '# -*- coding: utf-8 -*-\n' + string
     return string
+
 
 def displayhook_hack(string):
     """
@@ -158,7 +182,9 @@ def displayhook_hack(string):
         "\nexec compile(u'12' + '\\n', '', 'single')"
         sage: displayhook_hack('\ndef my_fun(foo):\n    print foo\n')
         '\ndef my_fun(foo):\n        print foo'
-        sage: print displayhook_hack('\nclass A:\n    def __init__(self, foo):\n        self.foo\nb = A(8)\nb')
+        sage: print displayhook_hack(
+            '\nclass A:\n    def __init__(self, foo):\n        self.foo\nb = '
+            'A(8)\nb')
         <BLANKLINE>
         class A:
             def __init__(self, foo):
@@ -170,7 +196,7 @@ def displayhook_hack(string):
     # implicitly print as they should, unless they are an assignment.
     # If anybody knows a better way to do this, please tell me!
     string = string.splitlines()
-    i = len(string)-1
+    i = len(string) - 1
     if i >= 0:
         while len(string[i]) > 0 and string[i][0] in ' \t':
             i -= 1
@@ -178,8 +204,9 @@ def displayhook_hack(string):
         if not final_lines.startswith('def '):
             try:
                 compile(final_lines + '\n', '', 'single')
-                string[i] = "exec compile(%r + '\\n', '', 'single')" % final_lines
-                string = string[:i+1]
+                string[
+                    i] = "exec compile(%r + '\\n', '', 'single')" % final_lines
+                string = string[:i + 1]
             except SyntaxError, msg:
                 pass
     return '\n'.join(string)
