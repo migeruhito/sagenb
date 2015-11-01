@@ -455,7 +455,7 @@ def parse_link_rel(url, fn):
 def upload_worksheet():
     # TODO: sage dependency
     from sage.misc.all import tmp_filename
-    from sagenb.misc.all import tmp_dir
+    from sage.misc.all import tmp_dir
 
     if g.notebook.readonly_user(g.username):
         return templates.message(
