@@ -16,22 +16,23 @@ if json is None:
     import json
 
 #####################################################
-## Global variables across the application
+# Global variables across the application
 #####################################################
-notebook   = None
-DIR        = None
+notebook = None
+DIR = None
 
-## Data
+# Data
 # The file to which the Sage code that will be evaluated is written.
 CODE_PY = "___code___.py"
 
 
-
 #####################################################
-## Utility functions
+# Utility functions
 #####################################################
 valid_username_chars = 'a-z|A-Z|0-9|_|.|@'
 re_valid_username = re.compile('[%s]*' % valid_username_chars)
+
+
 def is_valid_username(username):
     r"""
     Returns whether a candidate username is valid.  It must contain
@@ -78,6 +79,7 @@ def is_valid_username(username):
     m = re_valid_username.match(username)
     return m.start() == 0 and m.end() == len(username)
 
+
 def is_valid_password(password, username):
     r"""
     Return True if and only if ``password`` is valid, i.e.,
@@ -93,7 +95,8 @@ def is_valid_password(password, username):
         True
         sage: is_valid_password('8u7', None)
         False
-        sage: is_valid_password('fUmDagaz8LmtonAowjSe0Pvu9C5Gvr6eKcC6wsAT', None)
+        sage: is_valid_password(
+            'fUmDagaz8LmtonAowjSe0Pvu9C5Gvr6eKcC6wsAT', None)
         True
         sage: is_valid_password('rrcF !u78!', None)
         False
@@ -106,6 +109,7 @@ def is_valid_password(password, username):
         if string.lower(username) in string.lower(password):
             return False
     return True
+
 
 def do_passwords_match(pass1, pass2):
     """
@@ -124,7 +128,9 @@ re_valid_email = re.compile(r"""
     @                                   # at
     ([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+  # subdomains can't start or end with -
     [a-z]+$                             # top-level domain is at least 1 char
-""" % {'unquoted': r"[a-z0-9!#$%&'*+\-/=?^_`{|}~]"}, re.IGNORECASE | re.VERBOSE)
+""" % {'unquoted': r"[a-z0-9!#$%&'*+\-/=?^_`{|}~]"},
+    re.IGNORECASE | re.VERBOSE)
+
 
 def is_valid_email(email):
     """
@@ -170,7 +176,8 @@ def is_valid_email(email):
         True
         sage: is_valid_email('onlytld@com')         # missing subdomain
         False
-        sage: is_valid_email("we..are@the.borg")    # consecutive dots not allowed
+        sage: is_valid_email(
+            "we..are@the.borg")    # consecutive dots not allowed
         False
         sage: is_valid_email("abcd@[12.34.56.78]")  # legal, really
         False
@@ -223,7 +230,8 @@ def encode_response(obj, separators=(',', ':'), **kwargs):
         sage: encode_response(d, sort_keys = True)
         '{"null":"blah","11":"foo","AR":"MA","bar":1.0}'
         sage: d['archies'] = ['an', 'mon', 'hier']
-        sage: d['sub'] = {'shape': 'triangle', 'color': 'blue', 'sides': [int(3), int(4), int(5)]}
+        sage: d['sub'] = {'shape': 'triangle', 'color': 'blue',
+                          'sides': [int(3), int(4), int(5)]}
         sage: encode_response(d, sort_keys = True)
         '{"null":"blah","11":"foo","AR":"MA","archies":["an","mon","hier"],"bar":1.0,"sub":{"color":"blue","shape":"triangle","sides":[3,4,5]}}'
         sage: print encode_response(d, separators = (', ', ': '), indent = 4)
@@ -236,7 +244,8 @@ def encode_response(obj, separators=(',', ':'), **kwargs):
 
     # TODO: Use cjson, simplejson instead?  Serialize Sage types,
     # e.g., Integer, RealLiteral?
-    return json.dumps(obj, separators = separators, **kwargs)
+    return json.dumps(obj, separators=separators, **kwargs)
+
 
 def extract_title(html_page, username=None):
     h = html_page.lower()
@@ -244,4 +253,4 @@ def extract_title(html_page, username=None):
     if i == -1:
         return _("Untitled", username)
     j = h.find('</title>')
-    return html_page[i + len('<title>') : j]
+    return html_page[i + len('<title>'): j]

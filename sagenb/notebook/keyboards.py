@@ -45,25 +45,26 @@ and follow the directions you see there.  Copy the output, and email
 it to boothby@u.washington.edu
 """
 
+
 def get_keyboard(s):
     # keyboard_map is a dictionary defined at the bottom of this
     # file that maps os/browser codes to functions that give the
     # corresponding keymaps.
-    if keyboard_map.has_key(s):
+    if s in keyboard_map:
         codes = keyboard_map[s]()
     else:
         # Default in case something goes wrong.  This should
         # never get called.
         codes = keyboard_map['mm']()
 
-    defaults = {'KEY_CTRLENTER':'KEY_ENTER'}
+    defaults = {'KEY_CTRLENTER': 'KEY_ENTER'}
 
     # We now add in each default keycode if it isn't already present.
     # The point of this is that it allows us to easily alias keys to
     # predefined keys, but doesn't overwrite anything.
     for key, val in defaults.iteritems():
         if '%s =' % key not in codes:
-            codes += '\nvar %s = %s;' % (key,val)
+            codes += '\nvar %s = %s;' % (key, val)
 
     return codes.strip()
 
@@ -184,7 +185,6 @@ var KEY_DOWN = "40,0";
     """
 
 
-
 def keyboard_moz_lin():
     return """
 var KEY_SHIFT = "16,16";
@@ -299,7 +299,6 @@ var KEY_UP = "38,0";
 var KEY_RIGHT = "39,0";
 var KEY_DOWN = "40,0";
     """
-
 
 
 def keyboard_moz_mac():
@@ -418,6 +417,7 @@ var KEY_RIGHT = "39,0";
 var KEY_DOWN = "40,0";
     """
 
+
 def keyboard_op_win():
     return """
 var KEY_SHIFT = "16,16!";
@@ -532,8 +532,6 @@ var KEY_UP = "38,0";
 var KEY_RIGHT = "39,0";
 var KEY_DOWN = "40,0";
     """
-
-
 
 
 def keyboard_op_lin():
@@ -652,6 +650,8 @@ var KEY_DOWN = "40,0";
     """
 
 # You had var KEY_CTRL = "20,20";, but it"s ";0,0";
+
+
 def keyboard_op_mac():
     return """
 var KEY_SHIFT = "16,16";
@@ -767,6 +767,7 @@ var KEY_RIGHT = "39,0";
 var KEY_DOWN = "40,0";
     """
 
+
 def keyboard_saf_mac():
     return """
 var KEY_SHIFT = "";
@@ -881,6 +882,7 @@ var KEY_UP = "38,38";
 var KEY_RIGHT = "39,39";
 var KEY_DOWN = "40,40";
     """
+
 
 def keyboard_saf_win():
     return """
@@ -998,8 +1000,11 @@ var KEY_DOWN = "40,40";
 """
 
 # These are the same as of 12 August 2009.
+
+
 def keyboard_chr_win():
     return keyboard_saf_win()
+
 
 def keyboard_chr_lin():
     return """
@@ -1116,6 +1121,7 @@ var KEY_RIGHT = "39,39";
 var KEY_DOWN = "40,40";
 """
 
+
 def keyboard_konq():
     return """
 var KEY_SHIFT = "16,16";
@@ -1230,6 +1236,7 @@ var KEY_UP = "38,38";
 var KEY_RIGHT = "39,39";
 var KEY_DOWN = "40,40";
     """
+
 
 def keyboard_ie():
     return """
@@ -1351,14 +1358,14 @@ var KEY_DOWN = "40,undefined";
 
 # Note: The notebook identifies Chrome on Windows and Chromium on
 # Linux as Safari, so we use 's' instead of 'c'.
-keyboard_map = {'mw':keyboard_moz_win,
-                'ml':keyboard_moz_lin,
-                'mm':keyboard_moz_mac,
-                'ow':keyboard_op_win,
-                'ol':keyboard_op_lin,
-                'om':keyboard_op_mac,
-                'sw':keyboard_saf_win,
-                'sm':keyboard_saf_mac,
-                'sl':keyboard_chr_lin,
-                'kl':keyboard_konq,
-                'iw':keyboard_ie}
+keyboard_map = {'mw': keyboard_moz_win,
+                'ml': keyboard_moz_lin,
+                'mm': keyboard_moz_mac,
+                'ow': keyboard_op_win,
+                'ol': keyboard_op_lin,
+                'om': keyboard_op_mac,
+                'sw': keyboard_saf_win,
+                'sm': keyboard_saf_mac,
+                'sl': keyboard_chr_lin,
+                'kl': keyboard_konq,
+                'iw': keyboard_ie}

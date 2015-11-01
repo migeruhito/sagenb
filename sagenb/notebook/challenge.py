@@ -38,13 +38,15 @@ from ..notebook.template import template
 
 _ = lazy_gettext
 
+
 class ChallengeResponse(object):
     """
     A simple challenge response class that indicates whether a
     response is empty, correct, or incorrect, and, if it's incorrect,
     includes an optional error code.
     """
-    def __init__(self, is_valid, error_code = None):
+
+    def __init__(self, is_valid, error_code=None):
         """
         Instantiates a challenge response.
 
@@ -75,6 +77,7 @@ class AbstractChallenge(object):
     An abstract class with a suggested common interface for specific
     challenge-response schemes.
     """
+
     def __init__(self, conf, **kwargs):
         """
         Instantiates an abstract challenge.
@@ -158,6 +161,7 @@ class NotConfiguredChallenge(AbstractChallenge):
     A fallback challenge used when an administrator has not configured
     a specific method.
     """
+
     def html(self, **kwargs):
         """
         Returns a suggestion to inform the Notebook server's
@@ -185,7 +189,8 @@ class NotConfiguredChallenge(AbstractChallenge):
             Please ask the server administrator to configure a challenge!
 
         """
-        return _("Please ask the server administrator to configure a challenge!")
+        return _(
+            "Please ask the server administrator to configure a challenge!")
 
     def is_valid_response(self, **kwargs):
         """
@@ -216,33 +221,43 @@ class NotConfiguredChallenge(AbstractChallenge):
 
 
 # HTML template for :class:`SimpleChallenge`.
-SIMPLE_TEMPLATE = u"""<p>%(question)s</p>
-<input type="text" id="simple_response_field" name="simple_response_field" class="entry" tabindex="5" />
-<input type="hidden" value="%(untranslated_question)s" id="simple_challenge_field" name="simple_challenge_field" class="entry" />
-"""
+SIMPLE_TEMPLATE = (
+    u'<p>%(question)s</p>\n'
+    u'<input type="text" id="simple_response_field" '
+    u'name="simple_response_field" class="entry" tabindex="5" />\n'
+    u'<input type="hidden" value="%(untranslated_question)s" '
+    u'id="simple_challenge_field" name="simple_challenge_field" '
+    u'class="entry" />')
 
 old_tr = _
-_ = lambda s: s
+
+
+def _(s):
+    return s
 
 # A set of sample questions for :class:`SimpleChallenge`.
 QUESTIONS = {
-    _('Is pi > e?') : _('y|yes'),
-    _('What is 3 times 8?') : _('24|twenty-four'),
-    _('What is 2 plus 3?') : _('5|five'),
-    _('How many bits are in one byte?') : _('8|eight'),
-    _('What is the largest prime factor of 15?') : _('5|five'),
-#    'What is the smallest perfect number?' : r'6|six',
-#    'What is our class registration code?' : r'XYZ123',
-#    'What is the smallest integer expressible as the sum of two positive cubes in two distinct ways?' : r'1729',
-#    'How many permutations of ABCD agree with it in no position? For example, BDCA matches ABCD only in position 3.' : r'9|nine',
+    _('Is pi > e?'): _('y|yes'),
+    _('What is 3 times 8?'): _('24|twenty-four'),
+    _('What is 2 plus 3?'): _('5|five'),
+    _('How many bits are in one byte?'): _('8|eight'),
+    _('What is the largest prime factor of 15?'): _('5|five'),
+    #    'What is the smallest perfect number?' : r'6|six',
+    #    'What is our class registration code?' : r'XYZ123',
+    #    ('What is the smallest integer expressible as the sum of two '
+    #     'positive cubes in two distinct ways?' : r'1729'),
+    #    ('How many permutations of ABCD agree with it in no position? '
+    #     'For example, BDCA matches ABCD only in position 3.' : r'9|nine'),
 }
 
 # QUESTIONS is now dict of str->str
-#let's make answers lazy translated:
-for key in QUESTIONS: QUESTIONS[key] = old_tr(QUESTIONS[key])
+# let's make answers lazy translated:
+for key in QUESTIONS:
+    QUESTIONS[key] = old_tr(QUESTIONS[key])
 
 _ = old_tr
 del old_tr
+
 
 def agree(response, answer):
     """
@@ -280,6 +295,7 @@ class SimpleChallenge(AbstractChallenge):
     """
     A simple question and answer challenge.
     """
+
     def html(self, **kwargs):
         """
         Returns a HTML form posing a randomly chosen question.
@@ -304,10 +320,10 @@ class SimpleChallenge(AbstractChallenge):
 
         """
         question = random.choice([q for q in QUESTIONS])
-        return SIMPLE_TEMPLATE % { 'question' : gettext(question),
-                                   'untranslated_question': question }
+        return SIMPLE_TEMPLATE % {'question': gettext(question),
+                                  'untranslated_question': question}
 
-    def is_valid_response(self, req_args = {}, **kwargs):
+    def is_valid_response(self, req_args={}, **kwargs):
         """
         Returns the status of a user's answer to the challenge
         question.
@@ -370,6 +386,7 @@ RECAPTCHA_SERVER = "http://api.recaptcha.net"
 RECAPTCHA_SSL_SERVER = "https://api-secure.recaptcha.net"
 RECAPTCHA_VERIFY_SERVER = "api-verify.recaptcha.net"
 
+
 class reCAPTCHAChallenge(AbstractChallenge):
     """
     A reCAPTCHA_ challenge adapted from `this Python API`_, also
@@ -380,7 +397,8 @@ class reCAPTCHAChallenge(AbstractChallenge):
     .. _this Python API: http://pypi.python.org/pypi/recaptcha-client
     .. _here: http://code.google.com/p/recaptcha
     """
-    def __init__(self, conf, remote_ip = '', is_secure = False, lang = 'en',
+
+    def __init__(self, conf, remote_ip='', is_secure=False, lang='en',
                  **kwargs):
         """
         Instantiates a reCAPTCHA challenge.
@@ -436,7 +454,7 @@ class reCAPTCHAChallenge(AbstractChallenge):
         self.public_key = conf['recaptcha_public_key']
         self.private_key = conf['recaptcha_private_key']
 
-    def html(self, error_code = None, **kwargs):
+    def html(self, error_code=None, **kwargs):
         """
         Returns HTML and JavaScript for a reCAPTCHA challenge and
         response field.
@@ -471,15 +489,15 @@ class reCAPTCHAChallenge(AbstractChallenge):
         if error_code:
             error_param = '&error=%s' % error_code
 
-        template_dict = { 'api_server' : self.api_server,
-                          'public_key' : self.public_key,
-                          'error_param' : error_param,
-                          'lang' : self.lang }
+        template_dict = {'api_server': self.api_server,
+                         'public_key': self.public_key,
+                         'error_param': error_param,
+                         'lang': self.lang}
 
         return template(os.path.join('html', 'recaptcha.html'),
                         **template_dict)
 
-    def is_valid_response(self, req_args = {}, **kwargs):
+    def is_valid_response(self, req_args={}, **kwargs):
         """
         Submits a reCAPTCHA request for verification and returns its
         status.
@@ -534,24 +552,24 @@ class reCAPTCHAChallenge(AbstractChallenge):
             return s
 
         params = urllib.urlencode({
-                'privatekey': encode_if_necessary(self.private_key),
-                'remoteip' :  encode_if_necessary(self.remote_ip),
-                'challenge':  encode_if_necessary(challenge_field),
-                'response' :  encode_if_necessary(response_field)
-                })
+            'privatekey': encode_if_necessary(self.private_key),
+            'remoteip':  encode_if_necessary(self.remote_ip),
+            'challenge':  encode_if_necessary(challenge_field),
+            'response':  encode_if_necessary(response_field)
+        })
 
         request = urllib2.Request(
-            url = "http://%s/verify" % RECAPTCHA_VERIFY_SERVER,
-            data = params,
-            headers = {
+            url="http://%s/verify" % RECAPTCHA_VERIFY_SERVER,
+            data=params,
+            headers={
                 "Content-type": "application/x-www-form-urlencoded",
                 "User-agent": "reCAPTCHA Python"
-                }
-            )
+            }
+        )
 
         httpresp = urllib2.urlopen(request)
-        return_values = httpresp.read().splitlines();
-        httpresp.close();
+        return_values = httpresp.read().splitlines()
+        httpresp.close()
         return_code = return_values[0]
 
         if (return_code == "true"):
@@ -565,6 +583,7 @@ class ChallengeDispatcher(object):
     A simple dispatcher class that provides access to a specific
     challenge.
     """
+
     def __init__(self, conf, **kwargs):
         """
         Uses the server's configuration to select and set up a

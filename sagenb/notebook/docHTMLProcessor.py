@@ -64,7 +64,7 @@ Process the output of docutils ``rst2html`` command::
     sage: rst += "    x^2\n"
     sage: from docutils.core import publish_string
     sage: html = publish_string(rst, writer_name='html')
-    sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+    sage: from sagenb.notebook.docHTMLProcessor import (docutilsHTMLProcessor)
     sage: p = docutilsHTMLProcessor()
     sage: txt = p.process_doc_html(html)
     sage: len(txt)
@@ -110,12 +110,14 @@ from __future__ import absolute_import
 from sgmllib import SGMLParser
 from htmlentitydefs import entitydefs
 
+
 class genericHTMLProcessor(SGMLParser):
     r"""
     This class gathers the methods that are common to both classes
     :class:`sagenb.notebook.SphinxHTMLProcessor` and
     :class:`sagenb.notebook.docutilsHTMLProcessor` .
     """
+
     def process_doc_html(self, doc_in):
         r"""
         Returns processed HTML input as HTML output.  This is the only
@@ -138,7 +140,8 @@ class genericHTMLProcessor(SGMLParser):
             sage: rst += "Some text\n"
             sage: from docutils.core import publish_string
             sage: html = publish_string(rst, writer_name='html')
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: txt = p.process_doc_html(html)
             sage: len(txt)
@@ -150,11 +153,11 @@ class genericHTMLProcessor(SGMLParser):
         # self.feed() is a SGMLParser method and starts everything
         # off; Most of the functions here are extensions to
         # SGMLParser, and may never actually be visibly called here.
-        self.feed(doc_in) #SGMLParser call
-        self.close()     #SGMLParser call
+        self.feed(doc_in)  # SGMLParser call
+        self.close()  # SGMLParser call
         self.hand_off_temp_pieces('to_doc_pieces')
-        return self.all_pieces.replace('\\(', '').replace('\\)', '').replace('\\[', '').replace('\\]', '')
-
+        return self.all_pieces.replace('\\(', '').replace('\\)', '').replace(
+            '\\[', '').replace('\\]', '')
 
     def hand_off_temp_pieces(self, piece_type):
         r"""
@@ -178,7 +181,8 @@ class genericHTMLProcessor(SGMLParser):
 
         Move temporary pieces to all pieces::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -203,7 +207,8 @@ class genericHTMLProcessor(SGMLParser):
 
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
-            sage: p.temp_pieces = ['sage'+': 4+4\n', '8\n', 'sage'+': 9-4\n', '5\n']
+            sage: p.temp_pieces = [
+                'sage'+': 4+4\n', '8\n', 'sage'+': 9-4\n', '5\n']
             sage: p.hand_off_temp_pieces('to_cell_pieces')
             sage: print p.all_pieces
             a lot of stuff done
@@ -259,7 +264,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: d = docutilsHTMLProcessor()
             sage: d.get_cellcount()
             0
@@ -268,7 +274,8 @@ class genericHTMLProcessor(SGMLParser):
 
         ::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: d = SphinxHTMLProcessor()
             sage: d.get_cellcount()
             0
@@ -304,9 +311,11 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
-            sage: s = "s" + "age: 4 + 4\n8"    # avoid the doctest script to parse "sage:"
+            sage: s = ("s" +
+                "age: 4 + 4\n8")    # avoid the doctest script to parse "sage:"
             sage: p.process_cell_input_output(s)
             '\n{{{id=0|\n4 + 4\n///\n8\n}}}\n\n'
             sage: print p.process_cell_input_output(s)
@@ -351,26 +360,28 @@ class genericHTMLProcessor(SGMLParser):
             4
             }}}
         """
-        if cell_piece[:5] != 'sage:' and cell_piece[:12] != '&gt;'*3:
+        if cell_piece[:5] != 'sage:' and cell_piece[:12] != '&gt;' * 3:
             piece = self.false_positive_input_output_cell(cell_piece)
         else:
             # group and format inputs and outputs
             pieces = cell_piece.split('\n')
             output_flag = False
-            piece = '\n{{{id=%s|\n'%self.get_cellcount()
+            piece = '\n{{{id=%s|\n' % self.get_cellcount()
             for p in pieces:
 
                 if p[:6] == 'sage: ' and not output_flag:
                     piece += p[6:] + '\n'
                 elif p[:6] == 'sage: ' and output_flag:
-                    piece += '\n}}}\n\n{{{id=%s|\n'%self.get_cellcount() + p[6:] + '\n'
+                    piece += '\n}}}\n\n{{{id=%s|\n' % self.get_cellcount() + \
+                        p[6:] + '\n'
                     output_flag = False
                 elif p[:6] == '....: ':
                     piece += p[6:] + '\n'
-                elif p[:13] == '&gt;'*3+' ' and not output_flag:
+                elif p[:13] == '&gt;' * 3 + ' ' and not output_flag:
                     piece += p[13:] + '\n'
-                elif p[:13] == '&gt;'*3+' ' and output_flag:
-                    piece += '\n}}}\n\n{{{id=%s|\n'%self.get_cellcount() + p[13:] + '\n'
+                elif p[:13] == '&gt;' * 3 + ' ' and output_flag:
+                    piece += '\n}}}\n\n{{{id=%s|\n' % self.get_cellcount() + \
+                        p[13:] + '\n'
                     output_flag = False
                 elif p[:4] == '... ':
                     piece += p[4:] + '\n'
@@ -383,7 +394,7 @@ class genericHTMLProcessor(SGMLParser):
                     p = p.replace('&#39;', "'")
                     # first occurrence of an output string
                     # write /// denoting output
-                    if output_flag == False:
+                    if output_flag is False:
                         piece += '///'
                         if p:
                             piece += '\n' + p
@@ -395,8 +406,8 @@ class genericHTMLProcessor(SGMLParser):
         return piece
 
     ##############################################
-    ## General tag handlers
-    ## These just append their HTML to self.temp_pieces.
+    # General tag handlers
+    # These just append their HTML to self.temp_pieces.
     def unknown_starttag(self, tag, attrs):
         r"""
         INPUT:
@@ -406,7 +417,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -420,7 +432,8 @@ class genericHTMLProcessor(SGMLParser):
             ['bunch ', 'of ', 'tmp ', 'strings', '<style type="text/css">']
         """
         if self.keep_data:
-            strattrs = "".join([' %s="%s"' % (key, value) for key, value in attrs])
+            strattrs = "".join([' %s="%s"' % (key, value)
+                                for key, value in attrs])
             self.temp_pieces.append("<%(tag)s%(strattrs)s>" % locals())
 
     def unknown_endtag(self, tag):
@@ -431,7 +444,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -453,7 +467,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -466,6 +481,7 @@ class genericHTMLProcessor(SGMLParser):
         """
         if self.keep_data:
             self.temp_pieces.append(data)
+
     def handle_charref(self, ref):
         r"""
         INPUT:
@@ -474,7 +490,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -496,7 +513,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -509,8 +527,9 @@ class genericHTMLProcessor(SGMLParser):
         """
         if self.keep_data:
             self.temp_pieces.append("&%(ref)s" % locals())
-            if entitydefs.has_key(ref):
+            if ref in entitydefs:
                 self.temp_pieces.append(';')
+
     def handle_comment(self, data):
         r"""
         INPUT:
@@ -519,7 +538,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -532,6 +552,7 @@ class genericHTMLProcessor(SGMLParser):
         """
         if self.keep_data:
             self.temp_pieces.append("<!--%(data)s-->" % locals())
+
     def handle_pi(self, text):
         r"""
         Handle processing instructions
@@ -542,7 +563,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -564,7 +586,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -579,7 +602,7 @@ class genericHTMLProcessor(SGMLParser):
             self.temp_pieces.append("<!%(text)s>" % locals())
 
     ##############################################
-    ## Specific tag handlers
+    # Specific tag handlers
     def start_body(self, attrs):
         r"""
         Set ``self.keep_data`` to True upon finding the opening body tag.
@@ -591,7 +614,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: d = SphinxHTMLProcessor()
             sage: d.keep_data
             False
@@ -601,7 +625,8 @@ class genericHTMLProcessor(SGMLParser):
 
         ::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: d = docutilsHTMLProcessor()
             sage: d.keep_data
             False
@@ -615,7 +640,8 @@ class genericHTMLProcessor(SGMLParser):
         r"""
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -626,6 +652,7 @@ class genericHTMLProcessor(SGMLParser):
             ['bunch ', 'of ', 'tmp ', 'strings']
         """
         pass
+
     def end_html(self):
         r"""
         INPUT:
@@ -634,7 +661,8 @@ class genericHTMLProcessor(SGMLParser):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -646,7 +674,9 @@ class genericHTMLProcessor(SGMLParser):
         """
         pass
 
+
 class SphinxHTMLProcessor(genericHTMLProcessor):
+
     def reset(self):
         r"""
         Initialize necessary variables.  Called by
@@ -654,7 +684,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: d = SphinxHTMLProcessor()    #indirect doctest
             sage: d.keep_data
             False
@@ -668,7 +699,7 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
             0
         """
         # flags
-        self.keep_data = False #don't keep anything before the <body> tag
+        self.keep_data = False  # don't keep anything before the <body> tag
         self.in_highlight_div = False
 
         # lists of what the parser keeps
@@ -699,7 +730,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: s = "sage -rst2html -h"
             sage: print p.false_positive_input_output_cell(s)
@@ -710,13 +742,13 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
         """
         piece = '<div class="highlight"><pre>\n'
         piece += cell_piece
-        piece = piece.replace('{','{&nbsp;')
-        piece = piece.replace('}','}&nbsp;')
+        piece = piece.replace('{', '{&nbsp;')
+        piece = piece.replace('}', '}&nbsp;')
         piece += '\n</pre></div>'
         return piece
 
     #############################################
-    ## Specific tag handlers
+    # Specific tag handlers
     ##
     def start_div(self, attrs):
         r"""
@@ -732,7 +764,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -756,12 +789,13 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
             sage: p.all_pieces
             'a lot of stuff done '
             sage: p.temp_pieces
-            ['bunch ', 'of ', 'tmp ', 'strings', '<div class="something-else">']
+            ['bunch ', 'of ', 'tmp ', 'strings',
+             '<div class="something-else">']
             sage: p.in_highlight_div
             False
         """
         for name, value in attrs:
-            if name.lower()=='class' and value.lower()=='highlight':
+            if name.lower() == 'class' and value.lower() == 'highlight':
                 self.in_highlight_div = True
                 self.hand_off_temp_pieces('to_doc_pieces')
                 return
@@ -774,7 +808,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings\n']
@@ -782,7 +817,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
             sage: attrs = [('class', 'highlight')]
             sage: p.start_div(attrs)
             sage: p.start_pre([])
-            sage: sprompt = 'sa' + 'ge' + ': '    # to avoid problems with doctest script
+            sage: sprompt = (
+                'sa' + 'ge' + ': ')    # to avoid problems with doctest script
             sage: p.handle_data('%s4+4\n8\n%sx^2\nx^2\n' % (sprompt, sprompt))
             sage: p.end_pre()
             sage: p.end_div()
@@ -817,7 +853,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
             sage: print p.all_pieces
             a lot of stuff done
             sage: p.temp_pieces
-            ['bunch ', 'of ', 'tmp ', 'strings', '<div class="something-else">', 'some data', '</div>']
+            ['bunch ', 'of ', 'tmp ', 'strings',
+             '<div class="something-else">', 'some data', '</div>']
             sage: p.in_highlight_div
             False
 
@@ -838,7 +875,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -853,7 +891,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         ::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -868,7 +907,7 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
         """
         if self.in_highlight_div:
             return
-        self.unknown_starttag('pre',attrs)
+        self.unknown_starttag('pre', attrs)
 
     def end_pre(self):
         r"""
@@ -876,7 +915,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -904,7 +944,7 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
             return
         self.unknown_endtag('pre')
 
-    #Ignore forms
+    # Ignore forms
     def start_form(self, attrs):
         r"""
         Hand of everything we've accumulated so far.
@@ -917,7 +957,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -938,7 +979,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -961,7 +1003,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -976,7 +1019,8 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
 
         ::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -992,13 +1036,15 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
         if self.in_highlight_div:
             return
         self.unknown_starttag('span', attrs)
+
     def end_span(self):
         r"""
         Ignore all spans that occur within highlighted blocks
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import SphinxHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                SphinxHTMLProcessor)
             sage: p = SphinxHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1026,6 +1072,7 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
             return
         self.unknown_endtag('span')
 
+
 class docutilsHTMLProcessor(genericHTMLProcessor):
     r"""
     Translates output of the docutils parser rst2html into notebook text.
@@ -1049,7 +1096,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         sage: rst += "    x^2\n"
         sage: from docutils.core import publish_string
         sage: html = publish_string(rst, writer_name='html')
-        sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+        sage: from sagenb.notebook.docHTMLProcessor import (
+            docutilsHTMLProcessor)
         sage: p = docutilsHTMLProcessor()
         sage: txt = p.process_doc_html(html)
         sage: len(txt)
@@ -1084,6 +1132,7 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         <BLANKLINE>
 
     """
+
     def reset(self):
         r"""
         Initialize necessary variables.  Called by
@@ -1091,7 +1140,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: d = docutilsHTMLProcessor()    #indirect doctest
             sage: d.keep_data
             False
@@ -1107,7 +1157,7 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
             0
         """
         # flags
-        self.keep_data = False #don't keep anything before the <body> tag
+        self.keep_data = False  # don't keep anything before the <body> tag
         self.in_pre_litteral_block = False
         self.in_div_footer_block = False
 
@@ -1139,7 +1189,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: s = "sage -rst2html -h"
             sage: print p.false_positive_input_output_cell(s)
@@ -1150,13 +1201,13 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         """
         piece = '<pre class="literal-block">\n'
         piece += cell_piece
-        piece = piece.replace('{','{&nbsp;')
-        piece = piece.replace('}','}&nbsp;')
+        piece = piece.replace('{', '{&nbsp;')
+        piece = piece.replace('}', '}&nbsp;')
         piece += '\n</pre>'
         return piece
 
     #############################################
-    ## Specific tag handlers
+    # Specific tag handlers
     ##
     # sage blocks
     def start_pre(self, attrs):
@@ -1167,7 +1218,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1191,30 +1243,33 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
             sage: p.all_pieces
             'a lot of stuff done '
             sage: p.temp_pieces
-            ['bunch ', 'of ', 'tmp ', 'strings', '<pre class="something-else">']
+            ['bunch ', 'of ', 'tmp ', 'strings',
+             '<pre class="something-else">']
             sage: p.in_pre_litteral_block
             False
         """
-        #Find out if we are starting a pre litteral-block
+        # Find out if we are starting a pre litteral-block
         for name, value in attrs:
-            if name.lower()=='class' and value.lower()=='literal-block':
+            if name.lower() == 'class' and value.lower() == 'literal-block':
                 self.in_pre_litteral_block = True
                 self.hand_off_temp_pieces('to_doc_pieces')
                 return
-        self.unknown_starttag('pre',attrs)
+        self.unknown_starttag('pre', attrs)
 
     def end_pre(self):
         r"""
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
             sage: p.keep_data = True
             sage: attrs = [('class', 'literal-block')]
             sage: p.start_pre(attrs)
-            sage: sprompt = 'sa' + 'ge' + ': '    # to avoid problems with doctest script
+            sage: sprompt = (
+                'sa' + 'ge' + ': ')    # to avoid problems with doctest script
             sage: p.handle_data('%s4+4\n8\n%sx^2\nx^2\n' % (sprompt, sprompt))
             sage: p.end_pre()
             sage: print p.all_pieces
@@ -1237,7 +1292,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
 
         ::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1249,7 +1305,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
             sage: print p.all_pieces
             a lot of stuff done
             sage: p.temp_pieces
-            ['bunch ', 'of ', 'tmp ', 'strings', '<pre class="something-else">', 'some data', '</pre>']
+            ['bunch ', 'of ', 'tmp ', 'strings',
+             '<pre class="something-else">', 'some data', '</pre>']
             sage: p.in_pre_litteral_block
             False
         """
@@ -1268,7 +1325,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1279,9 +1337,9 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
             sage: p.temp_pieces
             ['bunch ', 'of ', 'tmp ', 'strings']
         """
-        #Find out if we are starting a div footer block
+        # Find out if we are starting a div footer block
         for name, value in attrs:
-            if name.lower()=='class' and value.lower()=='footer':
+            if name.lower() == 'class' and value.lower() == 'footer':
                 self.hand_off_temp_pieces('to_doc_pieces')
                 self.keep_data = False
                 self.in_div_footer_block = True
@@ -1292,7 +1350,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         r"""
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1316,7 +1375,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1335,7 +1395,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         r"""
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1360,7 +1421,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1380,7 +1442,8 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         r"""
         EXAMPLES::
 
-            sage: from sagenb.notebook.docHTMLProcessor import docutilsHTMLProcessor
+            sage: from sagenb.notebook.docHTMLProcessor import (
+                docutilsHTMLProcessor)
             sage: p = docutilsHTMLProcessor()
             sage: p.all_pieces = 'a lot of stuff done '
             sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
@@ -1394,4 +1457,3 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         """
         self.keep_data = True
         return
-

@@ -245,6 +245,7 @@ class NotebookObject:
     .. _this Sage wiki page:  http://wiki.sagemath.org/StartingTheNotebook
 
     """
+
     def __init__(self, *args, **kwargs):
         self.nb_frend = NotebookFrontend()
 
@@ -300,8 +301,8 @@ class NotebookObject:
             if val:
                 args.append('--{}'.format(arg))
                 args.append(str(val))
-        for arg in ['secure', 'reset', 'openid', 'no_automatic_login', 'fork', 'quiet',
-                    'profile']:
+        for arg in ['secure', 'reset', 'openid', 'no_automatic_login', 'fork',
+                    'quiet', 'profile']:
             if loc.get(arg):
                 args.append('--{}'.format(arg))
 

@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*
-"""nodoctest
-"""
 
-# -*- coding: utf-8 -*-
 #############################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -10,7 +7,7 @@
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-"""
+"""nodoctest
     Colorize - Python source formatter that outputs Python code in XHTML.
     This script is based on MoinMoin - The Python Source Parser.
 
@@ -28,9 +25,9 @@ import keyword
 import token
 import tokenize
 
-#Set up basic values.
+# Set up basic values.
 _KEYWORD = token.NT_OFFSET + 1
-_TEXT    = token.NT_OFFSET + 2
+_TEXT = token.NT_OFFSET + 2
 
 _classes = {
     token.NUMBER:       'token_number',
@@ -43,11 +40,12 @@ _classes = {
     _TEXT:              'text',
 }
 
+
 class Parser:
     """ Send colored python source.
     """
 
-    def __init__(self, raw, out = sys.stdout):
+    def __init__(self, raw, out=sys.stdout):
         """ Store the source text.
         """
         self.raw = string.strip(string.expandtabs(raw))
@@ -61,7 +59,8 @@ class Parser:
         pos = 0
         while 1:
             pos = string.find(self.raw, '\n', pos) + 1
-            if not pos: break
+            if not pos:
+                break
             self.lines.append(pos)
         self.lines.append(len(self.raw))
 
@@ -76,8 +75,7 @@ class Parser:
             self.out.write("<h3>ERROR: %s</h3>%s\n" % (
                 msg, self.raw[self.lines[line]:]))
 
-
-    def __call__(self, toktype, toktext, (srow,scol), (erow,ecol), line):
+    def __call__(self, toktype, toktext, (srow, scol), (erow, ecol), line):
         """ Token handler.
         """
         if 0:

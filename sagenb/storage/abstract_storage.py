@@ -10,6 +10,7 @@ class Datastore(object):
     The Sage Notebook storage abstraction layer abstract base class.
     Each storage abstraction layer derives from this.
     """
+
     def __repr__(self):
         """
         String representation of this abstract datastore.
@@ -41,7 +42,6 @@ class Datastore(object):
             - dictionary of user info
         """
         raise NotImplementedError
-
 
     def save_users(self, users):
         """
@@ -125,7 +125,6 @@ class Datastore(object):
         """
         raise NotImplementedError
 
-
     def export_worksheet(self, username, id_number, filename, title):
         """
         Export the worksheet with given username and id_number to the
@@ -161,7 +160,6 @@ class Datastore(object):
             NotImplementedError
         """
         raise NotImplementedError
-
 
     def delete(self):
         """

@@ -39,13 +39,14 @@ G_LDAP = lazy_gettext('LDAP')
 
 POS_DEFAULT = 100
 
+
 class Configuration(object):
 
     def __init__(self):
         self.confs = {}
 
     def __repr__(self):
-        return 'Configuration: %s'%self.confs
+        return 'Configuration: %s' % self.confs
 
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.confs == other.confs
@@ -66,12 +67,12 @@ class Configuration(object):
         try:
             return self.confs[key]
         except KeyError:
-            if self.defaults().has_key(key):
+            if key in self.defaults():
                 A = self.defaults()[key]
                 self.confs[key] = A
                 return A
             else:
-                raise KeyError("No key '%s' and no default for this key"%key)
+                raise KeyError("No key '%s' and no default for this key" % key)
 
     def __setitem__(self, key, value):
         self.confs[key] = value
@@ -83,7 +84,9 @@ class Configuration(object):
         K.sort()
         options = ''
         for key in K:
-            options += '<tr><td>%s</td><td><input type="text" name="%s" value="%s"></td></tr>\n'%(key, key, self[key])
+            options += ('<tr><td>%s</td><td><input type="text" name="%s" '
+                        'value="%s"></td></tr>\n' % (
+                            key, key, self[key]))
         s = """
         <form method="post" action="%s" enctype="multipart/form-data">
         <input type="submit" value="Submit">
@@ -91,7 +94,7 @@ class Configuration(object):
 %s
         </table>
         </form>
-        """%(action, options)
+        """ % (action, options)
         return s
 
     def update_from_form(self, form):
@@ -142,7 +145,7 @@ class Configuration(object):
 
         return updated
 
-    def html_table(self, updated = {}):
+    def html_table(self, updated={}):
 
         # check if LDAP can be used
         ldap_version = import_from('ldap', '__version__')
@@ -177,9 +180,11 @@ class Configuration(object):
         color_picker = 0
         special_init = u''
         for group in G:
-            s += u'<div class="section">\n  <h2>%s</h2>\n  <table>\n' % lazy_gettext(group)
+            s += (u'<div class="section">\n  <h2>%s</h2>\n  <table>\n' %
+                  lazy_gettext(group))
 
             opts = G[group]
+
             def sortf(x, y):
                 wx = DS[x].get(POS, POS_DEFAULT)
                 wy = DS[y].get(POS, POS_DEFAULT)
@@ -189,7 +194,8 @@ class Configuration(object):
                     return cmp(wx, wy)
             opts.sort(sortf)
             for o in opts:
-                s += u'    <tr>\n      <td>%s</td>\n      <td>\n' % lazy_gettext(DS[o][DESC])
+                s += (u'    <tr>\n      <td>%s</td>\n      <td>\n' %
+                      lazy_gettext(DS[o][DESC]))
                 input_type = 'text'
                 input_value = self[o]
 
@@ -209,25 +215,34 @@ class Configuration(object):
                         selected = ''
                         if c == input_value:
                             selected = u' selected="selected"'
-                        s += u'          <option value="%s"%s>%s</option>\n' % (c, selected, lazy_gettext(c))
+                        s += (u'          <option value="%s"%s>%s</option>\n' %
+                              (c, selected, lazy_gettext(c)))
                     s += u'        </select>\n'
 
                 elif DS[o][TYPE] == T_INFO:
-                    s += u'        <span>%s</span>'%input_value
+                    s += u'        <span>%s</span>' % input_value
 
                 else:
-                    s += u'        <input type="%s" name="%s" id="%s" value="%s" %s>\n' % (input_type, o, o, input_value, extra)
+                    s += (u'        <input type="%s" name="%s" id="%s" '
+                          u'value="%s" %s>\n' % (
+                              input_type, o, o, input_value, extra))
 
                     if DS[o][TYPE] == T_COLOR:
-                        s += u'        <div id="picker_%s"></div>\n' % color_picker
-                        special_init += u'    $("#picker_%s").farbtastic("#%s");\n' % (color_picker, o)
+                        s += (u'        <div id="picker_%s"></div>\n' %
+                              color_picker)
+                        special_init += (
+                            u'    $("#picker_%s").farbtastic("#%s");\n' % (
+                                color_picker, o))
                         color_picker += 1
 
-                s += u'      </td>\n      <td class="%s">%s</td>\n    </tr>\n' % updated.get(o, ('', ''))
+                s += (u'      </td>\n      <td class="%s">%s</td>\n'
+                      u'    </tr>\n' % updated.get(o, ('', '')))
 
             s += u'  </table>\n</div>\n'
 
-        s += u'<script type="text/javascript">\n$(document).ready(function() {\n' + special_init + '});\n</script>'
+        s += (u'<script type="text/javascript">\n'
+              u'$(document).ready(function() {\n' + special_init +
+              '});\n</script>')
 
         lines = s.split(u'\n')
         lines = map(lambda x: u'  ' + x, lines)

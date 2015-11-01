@@ -27,7 +27,7 @@ from ..misc.misc import SAGE_VERSION
 from ..misc.misc import DATA
 from ..notebook.themes import get_template
 
-if os.environ.has_key('SAGENB_TEMPLATE_PATH'):
+if 'SAGENB_TEMPLATE_PATH' in os.environ:
     if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):
         raise ValueError("Enviromental variable SAGENB_TEMPLATE_PATH points to\
                          a non-existant directory")
@@ -36,6 +36,7 @@ else:
     TEMPLATE_PATH = os.path.join(DATA, 'sage')
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
+
 
 def css_escape(string):
     r"""
@@ -62,6 +63,7 @@ def css_escape(string):
     """
     return css_illegal_re.sub('-', string)
 
+
 def prettify_time_ago(t):
     """
     Converts seconds to a meaningful string.
@@ -75,17 +77,19 @@ def prettify_time_ago(t):
         s = int(t)
         return ngettext('%(num)d second', '%(num)d seconds', s)
     if t < 3600:
-        m = int(t/60)
+        m = int(t / 60)
         return ngettext('%(num)d minute', '%(num)d minutes', m)
-    if t < 3600*24:
-        h = int(t/3600)
+    if t < 3600 * 24:
+        h = int(t / 3600)
         return ngettext('%(num)d hour', '%(num)d hours', h)
-    d = int(t/(3600*24))
+    d = int(t / (3600 * 24))
     return ngettext('%(num)d day', '%(num)d days', d)
+
 
 def clean_name(name):
     """
-    Converts a string to a safe/clean name by converting non-alphanumeric characters to underscores.
+    Converts a string to a safe/clean name by converting non-alphanumeric
+    characters to underscores.
 
     INPUT:
 
@@ -164,7 +168,7 @@ def template(filename, **user_context):
     """
     from sagenb.notebook.notebook import MATHJAX, JEDITABLE_TINYMCE
     from misc import notebook
-    #A dictionary containing the default context
+    # A dictionary containing the default context
     default_context = {'sitename': gettext('Sage Notebook'),
                        'sage_version': SAGE_VERSION,
                        'MATHJAX': MATHJAX,
@@ -174,7 +178,7 @@ def template(filename, **user_context):
     try:
         tmpl = get_template(filename)
     except jinja2.exceptions.TemplateNotFound:
-        return "Notebook Bug -- missing template %s"%filename
+        return "Notebook Bug -- missing template %s" % filename
 
     context = dict(default_context)
     context.update(user_context)

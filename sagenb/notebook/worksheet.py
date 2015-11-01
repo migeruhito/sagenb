@@ -44,7 +44,7 @@ from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
 # General sage library code
-import sagenb.misc.support  as support
+import sagenb.misc.support as support
 from ..misc.misc import cython
 from ..misc.misc import verbose
 from ..misc.misc import DOT_SAGENB
@@ -71,31 +71,33 @@ non_whitespace = re.compile('\S')
 
 # Constants that control the behavior of the worksheet.
 INTERRUPT_TRIES = 3    # number of times to send control-c to
-                       # subprocess before giving up
+# subprocess before giving up
 INITIAL_NUM_CELLS = 1  # number of empty cells in new worksheets
 WARN_THRESHOLD = 100   # The number of seconds, so if there was no
-                       # activity on this worksheet for this many
-                       # seconds, then editing is considered safe.
-                       # Used when multiple people are editing the
-                       # same worksheet.
+# activity on this worksheet for this many
+# seconds, then editing is considered safe.
+# Used when multiple people are editing the
+# same worksheet.
 
 # The strings used to synchronized the compute subprocesses.
 # WARNING:  If you make any changes to this, be sure to change the
 # error line below that looks like this:
 #         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
-SC         = '\x01'
+SC = '\x01'
 SAGE_BEGIN = SC + 'b'
-SAGE_END   = SC + 'e'
+SAGE_END = SC + 'e'
 SAGE_ERROR = SC + 'r'
 
 # Integers that define which folder this worksheet is in relative to a
 # given user.
 ARCHIVED = 0
-ACTIVE   = 1
-TRASH    = 2
+ACTIVE = 1
+TRASH = 2
 
 
 all_worksheet_processes = []
+
+
 def update_worksheets():
     """
     Iterate through and "update" all the worksheets.  This is needed
@@ -103,6 +105,7 @@ def update_worksheets():
     """
     for S in all_worksheet_processes:
         S.update()
+
 
 def worksheet_filename(name, owner):
     """
@@ -121,12 +124,15 @@ def worksheet_filename(name, owner):
 
     EXAMPLES::
 
-        sage: sagenb.notebook.worksheet.worksheet_filename('Example worksheet 3', 'sage10')
+        sage: sagenb.notebook.worksheet.worksheet_filename(
+            'Example worksheet 3', 'sage10')
         'sage10/Example_worksheet_3'
-        sage: sagenb.notebook.worksheet.worksheet_filename('Example#%&! work\\sheet 3', 'sage10')
+        sage: sagenb.notebook.worksheet.worksheet_filename(
+            'Example#%&! work\\sheet 3', 'sage10')
         'sage10/Example_____work_sheet_3'
     """
     return os.path.join(owner, clean_name(name))
+
 
 def Worksheet_from_basic(obj, notebook_worksheet_directory):
     """
@@ -146,9 +152,12 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
     EXAMPLES::
 
             sage: import sagenb.notebook.worksheet
-            sage: W = sagenb.notebook.worksheet.Worksheet('test', 0, tmp_dir(), system='gap', owner='sageuser', pretty_print=True, auto_publish=True)
+            sage: W = sagenb.notebook.worksheet.Worksheet(
+                'test', 0, tmp_dir(), system='gap', owner='sageuser',
+                pretty_print=True, auto_publish=True)
             sage: _=W.new_cell_after(0); B = W.basic()
-            sage: W0 = sagenb.notebook.worksheet.Worksheet_from_basic(B, tmp_dir())
+            sage: W0 = sagenb.notebook.worksheet.Worksheet_from_basic(
+                B, tmp_dir())
             sage: W0.basic() == B
             True
     """
@@ -158,6 +167,7 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
 
 
 class Worksheet(object):
+
     def __init__(self, name=None, id_number=None,
                  notebook_worksheet_directory=None, system=None,
                  owner=None, pretty_print=False,
@@ -196,11 +206,13 @@ class Worksheet(object):
 
         EXAMPLES: We test the constructor via an indirect doctest::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: import sagenb.notebook.misc
             sage: sagenb.notebook.misc.notebook = nb
-            sage: W = nb.create_new_worksheet('Test with unicode ěščřžýáíéďĎ', 'admin')
+            sage: W = nb.create_new_worksheet(
+                'Test with unicode ěščřžýáíéďĎ', 'admin')
             sage: W
             admin/0: [Cell 1: in=, out=]
         """
@@ -227,9 +239,9 @@ class Worksheet(object):
 
         self.set_name(name)
 
-        # set the directory in which the worksheet files will be stored.
-        # We also add the hash of the name, since the cleaned name loses info, e.g.,
-        # it could be all _'s if all characters are funny.
+        # set the directory in which the worksheet files will be stored.  We
+        # also add the hash of the name, since the cleaned name loses info,
+        # e.g., it could be all _'s if all characters are funny.
         self.__id_number = int(id_number)
         filename = os.path.join(owner, str(id_number))
         self.__filename = filename
@@ -258,7 +270,8 @@ class Worksheet(object):
             return 0
 
     def create_directories(self):
-        # creating directories should be a function of the storage backend, not here
+        # creating directories should be a function of the storage backend, not
+        # here
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
             set_restrictive_permissions(self.__dir, allow_execute=True)
@@ -354,46 +367,53 @@ class Worksheet(object):
         EXAMPLES::
 
             sage: import sagenb.notebook.worksheet
-            sage: W = sagenb.notebook.worksheet.Worksheet('test', 0, tmp_dir(), owner='sage')
+            sage: W = sagenb.notebook.worksheet.Worksheet(
+                'test', 0, tmp_dir(), owner='sage')
             sage: sorted((W.basic().items()))
-            [('auto_publish', False), ('collaborators', []), ('id_number', 0), ('last_change', ('sage', ...)), ('live_3D', False), ('name', u'test'), ('owner', 'sage'), ('pretty_print', False), ('published_id_number', None), ('ratings', []), ('saved_by_info', {}), ('system', None), ('tags', {'sage': [1]}), ('viewers', []), ('worksheet_that_was_published', ('sage', 0))]
+            [('auto_publish', False), ('collaborators', []),
+             ('id_number', 0), ('last_change', ('sage', ...)),
+             ('live_3D', False), ('name', u'test'), ('owner', 'sage'),
+             ('pretty_print', False), ('published_id_number', None),
+             ('ratings', []), ('saved_by_info', {}), ('system', None),
+             ('tags', {'sage': [1]}), ('viewers', []),
+             ('worksheet_that_was_published', ('sage', 0))]
         """
         d = {
-             'name': unicode(self.name()),
-             'id_number': int(self.id_number()),
-             'system': self.system(),
-             'owner': self.owner(),
-             'viewers': self.viewers(),
-             'collaborators': self.collaborators(),
-             'auto_publish': self.is_auto_publish(),
-             'pretty_print': self.pretty_print(),
-             'live_3D': self.live_3D(),
-             'ratings': self.ratings(),
-             'tags': self.tags(),
-             'last_change': self.last_change(),
-             'saved_by_info': getattr(self, '__saved_by_info', {}),
-             'worksheet_that_was_published': getattr(
-                 self, '__worksheet_came_from', (self.owner(),
-                                                 self.id_number())),
-             #New UI
-             'last_change_pretty': prettify_time_ago(
-                 time.time() - self.last_change()[1]),
-             'filename': self.filename(),
-             'running': self.compute_process_has_been_started(),
-             'attached_data_files': self.attached_data_files(),
-             'published': self.has_published_version(),
-             #New UI end
-             }
+            'name': unicode(self.name()),
+            'id_number': int(self.id_number()),
+            'system': self.system(),
+            'owner': self.owner(),
+            'viewers': self.viewers(),
+            'collaborators': self.collaborators(),
+            'auto_publish': self.is_auto_publish(),
+            'pretty_print': self.pretty_print(),
+            'live_3D': self.live_3D(),
+            'ratings': self.ratings(),
+            'tags': self.tags(),
+            'last_change': self.last_change(),
+            'saved_by_info': getattr(self, '__saved_by_info', {}),
+            'worksheet_that_was_published': getattr(
+                self, '__worksheet_came_from', (self.owner(),
+                                                self.id_number())),
+            # New UI
+            'last_change_pretty': prettify_time_ago(
+                time.time() - self.last_change()[1]),
+            'filename': self.filename(),
+            'running': self.compute_process_has_been_started(),
+            'attached_data_files': self.attached_data_files(),
+            'published': self.has_published_version(),
+            # New UI end
+        }
         try:
             d['published_id_number'] = int(os.path.split(
                 self.__published_version)[1])
         except AttributeError:
             d['published_id_number'] = None
-        #New UI
+        # New UI
         if d['published']:
             d['published_time'] = strftime(
                 "%B %d, %Y %I:%M %p", self.published_version().date_edited())
-        #New UI end
+        # New UI end
 
         return d
 
@@ -413,7 +433,9 @@ class Worksheet(object):
         EXAMPLES::
 
             sage: import sagenb.notebook.worksheet
-            sage: W = sagenb.notebook.worksheet.Worksheet('test', 0, tmp_dir(), system='gap', owner='sageuser', pretty_print=True, auto_publish=True)
+            sage: W = sagenb.notebook.worksheet.Worksheet(
+                'test', 0, tmp_dir(), system='gap', owner='sageuser',
+                pretty_print=True, auto_publish=True)
             sage: W.new_cell_after(0)
             Cell 1: in=, out=
             sage: b = W.basic()
@@ -438,7 +460,8 @@ class Worksheet(object):
                     self.__owner = owner
                     filename = os.path.join(owner, str(value))
                     self.__filename = filename
-                    self.__dir = os.path.join(notebook_worksheet_directory, str(value))
+                    self.__dir = os.path.join(
+                        notebook_worksheet_directory, str(value))
             elif key in ['system', 'owner', 'viewers', 'collaborators',
                          'pretty_print', 'ratings', 'live_3D']:
                 # ugly
@@ -470,7 +493,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(
+                ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W2 = nb.create_new_worksheet('test2', 'admin')
             sage: W1 = nb.create_new_worksheet('test1', 'admin')
@@ -493,16 +517,19 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.__repr__()
             'admin/0: [Cell 1: in=, out=]'
-            sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
+            sage: W.edit_save(
+                '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
             sage: W.__repr__()
             'admin/0: [Cell 0: in=2+3, out=\n5, Cell 10: in=2+8, out=\n10]'
         """
         return '%s/%s: %s' % (self.owner(), self.id_number(), self.cell_list())
+
     def __len__(self):
         r"""
         Return the number of cells in this worksheet.
@@ -511,12 +538,14 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: len(W)
             1
-            sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
+            sage: W.edit_save(
+                '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
             sage: len(W)
             2
         """
@@ -544,7 +573,8 @@ class Worksheet(object):
         EXAMPLES: We first create a standard worksheet for which docbrowser
         is of course False::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.docbrowser()
@@ -570,7 +600,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.collaborators(); C
@@ -596,7 +627,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.collaborators(); C
@@ -624,10 +656,13 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager().add_user('hilbert','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.set_collaborators(['sage', 'admin', 'hilbert', 'sage'])
 
@@ -652,10 +687,13 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager().add_user('hilbert','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.add_viewer('hilbert')
             sage: W.viewers()
@@ -681,7 +719,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.viewers(); C
@@ -706,9 +745,11 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user('hilbert','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.add_viewer('hilbert')
             sage: W.delete_notebook_specific_data()
@@ -733,7 +774,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.name()
@@ -758,7 +800,8 @@ class Worksheet(object):
 
         EXAMPLES: We create a worksheet and change the name::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_name('A renamed worksheet')
@@ -781,7 +824,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
@@ -803,7 +847,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
@@ -824,7 +869,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
@@ -841,7 +887,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename_without_owner()
@@ -860,7 +907,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.directory()
@@ -876,7 +924,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.data_directory()
@@ -896,7 +945,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.attached_data_files()
@@ -919,7 +969,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.cells_directory()
@@ -945,7 +996,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.notebook()
@@ -969,7 +1021,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.system()
@@ -1015,7 +1068,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_system('magma')
@@ -1034,7 +1088,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.pretty_print()
@@ -1070,7 +1125,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_pretty_print('false')
@@ -1094,7 +1150,8 @@ class Worksheet(object):
     ##########################################################
     def live_3D(self):
         """
-        Return True if the 3-D plots should be loaded live (interactive) by default.
+        Return True if the 3-D plots should be loaded live (interactive) by
+        default.
 
         OUTPUT:
 
@@ -1102,7 +1159,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.live_3D()
@@ -1118,8 +1176,8 @@ class Worksheet(object):
 
     def set_live_3D(self, check=False):
         """
-        Set whether or not 3-D plots should be live by default.  Not a good idea for
-        worksheets with more than 1 or 2 3-D plots.
+        Set whether or not 3-D plots should be live by default.  Not a good
+        idea for worksheets with more than 1 or 2 3-D plots.
 
         INPUT:
 
@@ -1127,7 +1185,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_live_3D(False)
@@ -1167,7 +1226,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.is_published()
@@ -1188,7 +1248,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.worksheet_that_was_published() is W
@@ -1200,10 +1261,11 @@ class Worksheet(object):
             True
         """
         try:
-            return self.notebook().get_worksheet_with_filename('%s/%s' % self.__worksheet_came_from)
-        except Exception:  # things can go wrong (especially with old migrated
-                           # Sage notebook servers!), but we don't want such
-                           # problems to crash the notebook server.
+            return self.notebook().get_worksheet_with_filename(
+                '%s/%s' % self.__worksheet_came_from)
+        except Exception:   # things can go wrong (especially with old migrated
+                            # Sage notebook servers!), but we don't want such
+                            # problems to crash the notebook server.
             return self
 
     def publisher(self):
@@ -1214,7 +1276,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: S = nb.publish_worksheet(W, 'admin')
@@ -1234,7 +1297,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
@@ -1253,7 +1317,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
@@ -1279,7 +1344,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')  # indirect test
@@ -1300,7 +1366,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
@@ -1329,7 +1396,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
@@ -1365,7 +1433,8 @@ class Worksheet(object):
 
         ::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(3, 'this is great', 'hilbert')
@@ -1377,7 +1446,8 @@ class Worksheet(object):
             sage: W.rate(1, 'this lacks content', 'riemann')
             sage: W.rate(0, 'this lacks content', 'riemann')
             sage: W.ratings()
-            [('hilbert', 3, 'this is great'), ('riemann', 0, 'this lacks content')]
+            [('hilbert', 3, 'this is great'),
+             ('riemann', 0, 'this lacks content')]
         """
         r = self.ratings()
         x = int(x)
@@ -1401,7 +1471,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(0, 'this lacks content', 'riemann')
@@ -1425,7 +1496,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.ratings()
@@ -1433,7 +1505,8 @@ class Worksheet(object):
             sage: W.rate(0, 'this lacks content', 'riemann')
             sage: W.rate(3, 'this is great', 'hilbert')
             sage: W.ratings()
-            [('riemann', 0, 'this lacks content'), ('hilbert', 3, 'this is great')]
+            [('riemann', 0, 'this lacks content'),
+             ('hilbert', 3, 'this is great')]
         """
         try:
             return self.__ratings
@@ -1453,7 +1526,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(0, 'this lacks content', 'riemann')
@@ -1462,7 +1536,7 @@ class Worksheet(object):
             u'...hilbert...3...this is great...this lacks content...'
         """
         return template(os.path.join('html', 'worksheet', 'ratings_info.html'),
-                        worksheet = self, username = username)
+                        worksheet=self, username=username)
 
     def rating(self):
         """
@@ -1472,7 +1546,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rating()
@@ -1501,7 +1576,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.everyone_has_deleted_this_worksheet()
@@ -1536,7 +1612,8 @@ class Worksheet(object):
         EXAMPLES: We create a new worksheet and get the view, which is
         ACTIVE::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.user_view('admin')
@@ -1602,7 +1679,7 @@ class Worksheet(object):
         for user, v in tags.iteritems():
             if len(v) >= 1:
                 d[user] = v[0]  # must be a single int for now, until
-                                # the tag system is implemented
+                # the tag system is implemented
         self.__user_view = d
 
     def set_user_view(self, user, x):
@@ -1618,7 +1695,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.set_user_view('admin', sagenb.notebook.worksheet.ARCHIVED)
@@ -1651,7 +1729,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.user_view_is('admin', sagenb.notebook.worksheet.ARCHIVED)
@@ -1673,7 +1752,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Archived Test', 'admin')
             sage: W.is_archived('admin')
@@ -1696,7 +1776,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.is_active('admin')
@@ -1719,7 +1800,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Trash Test', 'admin')
             sage: W.is_trashed('admin')
@@ -1740,7 +1822,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Archive Test', 'admin')
             sage: W.move_to_archive('admin')
@@ -1761,7 +1844,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.move_to_archive('admin')
@@ -1783,7 +1867,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Trash Test', 'admin')
             sage: W.move_to_trash('admin')
@@ -1804,7 +1889,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.move_to_trash('admin')
@@ -1822,18 +1908,22 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\n3^20\n}}}')
             sage: W.cell_list()[0].evaluate()
-            sage: W.check_comp()    # random output -- depends on computer speed
+            sage: W.check_comp(
+                )    # random output -- depends on computer speed
             sage: sorted(os.listdir(W.directory()))
             ['cells', 'data', 'worksheet.html', 'worksheet_conf.pickle']
             sage: W.save_snapshot('admin')
             sage: sorted(os.listdir(W.directory()))
-            ['cells', 'data', 'snapshots', 'worksheet.html', 'worksheet_conf.pickle']
+            ['cells', 'data', 'snapshots', 'worksheet.html',
+             'worksheet_conf.pickle']
             sage: W.delete_cells_directory()
             sage: sorted(os.listdir(W.directory()))
             ['data', 'snapshots', 'worksheet.html', 'worksheet_conf.pickle']
@@ -1859,7 +1949,7 @@ class Worksheet(object):
 
     def set_owner(self, owner):
         self.__owner = owner
-        if not owner in self.collaborators():
+        if owner not in self.collaborators():
             self.__collaborators.append(owner)
 
     def is_only_viewer(self, user):
@@ -1870,7 +1960,8 @@ class Worksheet(object):
 
     def is_viewer(self, user):
         try:
-            return user in self.__viewers or user in self.__collaborators or user == self.publisher()
+            return (user in self.__viewers or user in self.__collaborators or
+                    user == self.publisher())
         except AttributeError:
             return True
 
@@ -1892,9 +1983,12 @@ class Worksheet(object):
 
         ::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager().add_user('william', 'william', 'wstein@sagemath.org', force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'william', 'william', 'wstein@sagemath.org', force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.user_can_edit('sage')
             True
@@ -1932,10 +2026,14 @@ class Worksheet(object):
 
         ::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('wstein','sage','wstein@sagemath.org',force=True)
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'wstein','sage','wstein@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.new_worksheet_with_title_from_text(
+                'Sage', owner='sage')
             sage: W.add_viewer('wstein')
             sage: W.owner()
             'sage'
@@ -1994,16 +2092,18 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user('diophantus','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Viewer test', 'admin')
             sage: W.add_viewer('diophantus')
             sage: W.viewers()
             ['diophantus']
         """
         try:
-            if not user in self.__viewers:
+            if user not in self.__viewers:
                 self.__viewers.append(user)
         except AttributeError:
             self.__viewers = [user]
@@ -2018,9 +2118,11 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user('diophantus','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Collaborator test', 'admin')
             sage: W.collaborators()
             []
@@ -2029,7 +2131,7 @@ class Worksheet(object):
             ['diophantus']
         """
         try:
-            if not user in self.__collaborators:
+            if user not in self.__collaborators:
                 self.__collaborators.append(user)
         except AttributeError:
             self.__collaborators = [user]
@@ -2060,7 +2162,9 @@ class Worksheet(object):
             contents = u' '
 
         try:
-            r = [unicode(x.lower()) for x in [self.owner(), self.publisher(), self.name(), contents]]
+            r = [unicode(x.lower()) for x in [self.owner(),
+                                              self.publisher(),
+                                              self.name(), contents]]
             r = u" ".join(r)
         except UnicodeDecodeError as e:
             return False
@@ -2145,12 +2249,12 @@ class Worksheet(object):
             base = os.path.splitext(x)[0]
             if self._saved_by_info(x):
                 v.append((_('%(t)s ago by %(le)s',) %
-                            {'t': prettify_time_ago(t - float(base)),
-                             'le': self._saved_by_info(base)},
+                          {'t': prettify_time_ago(t - float(base)),
+                           'le': self._saved_by_info(base)},
                           x))
             else:
-                v.append((_('%(seconds)s ago', seconds=prettify_time_ago(t - float(base))),
-                          x))
+                v.append((_('%(seconds)s ago',
+                            seconds=prettify_time_ago(t - float(base))), x))
         return v
 
     def uncache_snapshot_data(self):
@@ -2189,7 +2293,8 @@ class Worksheet(object):
 
         # This should be user-configurable with an option like 'max_snapshots'
         max_snaps = 30
-        amnesty = int(calendar.timegm(time.strptime("01 May 2009", "%d %b %Y")))
+        amnesty = int(calendar.timegm(
+            time.strptime("01 May 2009", "%d %b %Y")))
 
         path = self.snapshot_directory()
         snapshots = os.listdir(path)
@@ -2316,8 +2421,10 @@ class Worksheet(object):
 
         ::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test Edit Save', 'sage')
 
         We set the contents of the worksheet using the edit_save command.
@@ -2340,8 +2447,10 @@ class Worksheet(object):
 
         ::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage', 'sage', 'sage@sagemath.org', force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage', 'sage', 'sage@sagemath.org', force=True)
             sage: W = nb.create_new_worksheet('Test trac #8443', 'sage')
             sage: W.edit_save('{{{\n1+1\n///\n}}}')
             sage: W.cell_id_list()
@@ -2376,13 +2485,14 @@ class Worksheet(object):
                 meta, input, output, i = extract_first_compute_cell(text)
                 data.append(('compute', (meta, input, output)))
             except EOFError, msg:
-                #print msg # -- don't print msg, just outputs a blank
+                # print msg # -- don't print msg, just outputs a blank
                 #                 line every time, which makes for an
                 #                 ugly and unprofessional log.
                 break
             text = text[i:]
 
-        ids = set([x[0]['id'] for typ, x in data if typ == 'compute' and  'id' in x[0]])
+        ids = set([x[0]['id']
+                   for typ, x in data if typ == 'compute' and 'id' in x[0]])
         used_ids = set([])
 
         cells = []
@@ -2409,7 +2519,7 @@ class Worksheet(object):
                 used_ids.add(id)
                 try:
                     self.__cells
-                    C = self.get_cell_with_id(id = id)
+                    C = self.get_cell_with_id(id=id)
                     if C.is_text_cell():
                         C = self._new_cell(id)
                 except AttributeError:
@@ -2434,7 +2544,6 @@ class Worksheet(object):
                 if c.is_interactive_cell():
                     c.delete_output()
 
-
     ##########################################################
     # HTML rendering of the whole worksheet
     ##########################################################
@@ -2455,20 +2564,23 @@ class Worksheet(object):
                 return self.__html
             except AttributeError:
                 for cell in self.cell_list():
-                    cells_html += cell.html(ncols, do_print=True, username=self.username) + '\n'
-                s = template(os.path.join('html', 'worksheet', 'published_worksheet.html'),
-                             ncols = ncols, cells_html = cells_html,
-                             username=username)
+                    cells_html += cell.html(ncols, do_print=True,
+                                            username=self.username) + '\n'
+                s = template(
+                    os.path.join('html', 'worksheet',
+                                 'published_worksheet.html'),
+                    ncols=ncols, cells_html=cells_html, username=username)
                 self.__html = s
                 return s
         for cell in self.cell_list():
             try:
-                cells_html += cell.html(ncols, do_print=do_print, username=self.username) + '\n'
+                cells_html += cell.html(ncols, do_print=do_print,
+                                        username=self.username) + '\n'
             except Exception, msg:
                 # catch any exception, since this exception is raised
                 # sometimes, at least for some worksheets:
-                # exceptions.UnicodeDecodeError: 'ascii' codec can't decode byte
-                #         0xc2 in position 825: ordinal not in range(128)
+                # exceptions.UnicodeDecodeError: 'ascii' codec can't decode
+                #         byte 0xc2 in position 825: ordinal not in range(128)
                 # and this causes the entire worksheet to fail to
                 # save/render, which is obviously *not* good (much
                 # worse than a weird issue with one cell).
@@ -2489,11 +2601,13 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test', 'admin')
             sage: W.html()
-            u'...cell_input_active...worksheet_cell_list...cell_1...cell_output_html_1...'
+            u'...cell_input_active...worksheet_cell_list...cell_1...'
+            u'cell_output_html_1...'
         """
         if self.is_published():
             try:
@@ -2546,7 +2660,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: W = sagenb.notebook.worksheet.Worksheet('test', 0, tmp_dir(), owner='sage')
+            sage: W = sagenb.notebook.worksheet.Worksheet(
+                'test', 0, tmp_dir(), owner='sage')
             sage: W.last_change()
             ('sage', ...)
             sage: W.set_last_change('john', 1255029800)
@@ -2606,9 +2721,8 @@ class Worksheet(object):
     def time_since_last_edited(self):
         return time.time() - self.last_edited()
 
-
     def warn_about_other_person_editing(self, username,
-                                        threshold = WARN_THRESHOLD):
+                                        threshold=WARN_THRESHOLD):
         r"""
         Check to see if another user besides username was the last to edit
         this worksheet during the last ``threshold`` seconds.
@@ -2632,16 +2746,15 @@ class Worksheet(object):
     def html_time_since_last_edited(self, username=None):
         t = self.time_since_last_edited()
         tm = prettify_time_ago(t)
-        return template(os.path.join("html", "worksheet", "time_since_last_edited.html"),
-                        last_editor = self.last_to_edit(),
-                        time = tm,
-                        username=username)
+        return template(
+            os.path.join("html", "worksheet", "time_since_last_edited.html"),
+            last_editor=self.last_to_edit(), time=tm, username=username)
 
     def html_time_last_edited(self, username=None):
-        return template(os.path.join("html", "worksheet", "time_last_edited.html"),
-                        time = convert_time_to_string(self.last_edited()),
-                        last_editor = self.last_to_edit(),
-                        username=username)
+        return template(
+            os.path.join("html", "worksheet", "time_last_edited.html"),
+            time=convert_time_to_string(self.last_edited()),
+            last_editor=self.last_to_edit(), username=username)
 
     def html_time_nice_edited(self, username=None):
         """
@@ -2652,7 +2765,7 @@ class Worksheet(object):
         """
 
         t = self.time_since_last_edited()
-        if t < 3600*24:
+        if t < 3600 * 24:
             return self.html_time_since_last_edited(username=username)
         else:
             return self.html_time_last_edited(username=username)
@@ -2670,7 +2783,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
 
@@ -2679,7 +2793,8 @@ class Worksheet(object):
 
         ::
 
-            sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
+            sage: W.edit_save(
+                '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
             sage: W.cell_id_list()
             [0, 10]
         """
@@ -2725,7 +2840,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
@@ -2758,10 +2874,12 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test', 'admin')
-            sage: W.edit_save('foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
+            sage: W.edit_save(
+                'foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
             sage: v = W.compute_cell_list(); v
             [Cell 1: in=2+3, out=
             5, Cell 3: in=2+8, out=
@@ -2783,7 +2901,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W
@@ -2917,10 +3036,13 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Delete Cell', 'admin')
-            sage: W.edit_save('{{{id=foo|\n2+3\n///\n5\n}}}\n{{{id=9|\n2+8\n///\n10\n}}}{{{id=dont_delete_me|\n2*3\n///\n6\n}}}\n')
+            sage: W.edit_save(
+                '{{{id=foo|\n2+3\n///\n5\n}}}\n{{{id=9|\n2+8\n///\n10\n}}}'
+                '{{{id=dont_delete_me|\n2*3\n///\n6\n}}}\n')
             sage: W.cell_id_list()
             ['foo', 9, 'dont_delete_me']
             sage: C = W.cell_list()[1]           # save a reference to the cell
@@ -2930,7 +3052,8 @@ class Worksheet(object):
             sage: C.files()
             ['bar']
             sage: C.files_html('')
-            u'<a target="_new" href=".../cells/9/bar" class="file_link">bar</a>'
+            u'<a target="_new" href=".../cells/9/bar" class="file_link">bar'
+            u'</a>'
             sage: W.delete_cell_with_id(C.id())
             'foo'
             sage: C.output_text(raw=True)
@@ -3056,7 +3179,8 @@ DIR = %r
 import sys; sys.path.append(DATA)
 _support_.init(None, globals())
 
-# The following is Sage-specific -- this immediately bombs out if sage isn't installed.
+# The following is Sage-specific -- this immediately bombs out if sage isn't
+# installed.
 from sage.all_notebook import *
 sage.plot.plot.EMBEDDED_MODE=True
 sage.misc.latex.EMBEDDED_MODE=True
@@ -3064,10 +3188,11 @@ sage.misc.latex.EMBEDDED_MODE=True
 # gets removed from the sage library.
 from ..notebook.all import *
 try:
-    load(os.path.join(os.environ['DOT_SAGE'], 'init.sage'), globals(),attach=True)
+    load(os.path.join(os.environ['DOT_SAGE'], 'init.sage'), globals(
+        ), attach=True)
 except (KeyError, IOError):
     pass
-    """ % (os.path.join(os.path.abspath(self.data_directory()),''), misc.DIR)
+    """ % (os.path.join(os.path.abspath(self.data_directory()), ''), misc.DIR)
             S.execute(cmd)
             S.output_status()
 
@@ -3075,7 +3200,7 @@ except (KeyError, IOError):
             print "ERROR initializing compute process:\n"
             print msg
             del self.__sage
-            raise RuntimeError, msg
+            raise RuntimeError(msg)
 
         # make sure we have a __sage attribute
         # We do this to diagnose google issue 81; once we
@@ -3152,7 +3277,7 @@ except (KeyError, IOError):
             return
 
         if self.__comp_is_running:
-            #self._record_that_we_are_computing()
+            # self._record_that_we_are_computing()
             return
 
         C = self.__queue[0]
@@ -3173,10 +3298,10 @@ except (KeyError, IOError):
                 S = self.system()
                 if S is None:
                     S = 'sage'
-                C.set_output_text('Exited %s process' % S,'')
+                C.set_output_text('Exited %s process' % S, '')
                 return
 
-        #Handle any percent directives
+        # Handle any percent directives
         if 'save_server' in percent_directives:
             self.notebook().save()
 
@@ -3188,7 +3313,9 @@ except (KeyError, IOError):
 
         # This is useful mainly for interact -- it allows a cell to
         # know its ID.
-        input += '_interact_.SAGE_CELL_ID=%r\n__SAGE_TMP_DIR__=os.getcwd()\n' % C.id()
+        input += (
+            '_interact_.SAGE_CELL_ID=%r\n__SAGE_TMP_DIR__=os.getcwd()\n' %
+            C.id())
 
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
@@ -3196,15 +3323,15 @@ except (KeyError, IOError):
         # If the input ends in a question mark and is *not* a comment
         # line, then we introspect on it.
         if cell_system == 'sage' and len(I) != 0:
-            #Get the last line of a possible multiline input
+            # Get the last line of a possible multiline input
             Istrip = I.strip().split('\n').pop()
             if Istrip.endswith('?') and not Istrip.startswith('#'):
                 C.set_introspect(I, '')
 
-        #Handle line continuations: join lines that end in a backslash
-        #_except_ in LaTeX mode.
+        # Handle line continuations: join lines that end in a backslash
+        # _except_ in LaTeX mode.
         if cell_system not in ['latex', 'sage', 'python']:
-            I = I.replace('\\\n','')
+            I = I.replace('\\\n', '')
 
         C._before_preparse = input + I
         input += self.preparse_input(I, C)
@@ -3216,12 +3343,13 @@ except (KeyError, IOError):
             s = 'File "<unknown>",'
             i = t.find(s)
             if i != -1:
-                t = t[i+len(s):]
+                t = t[i + len(s):]
             i = t.find('\n')
             try:
                 n = int(t[t[:i].rfind(' '):i])  # line number of the exception
                 try:
-                    t = 'Syntax Error:\n    %s'%C._before_preparse.split('\n')[n-1]
+                    t = 'Syntax Error:\n    %s' % C._before_preparse.split(
+                        '\n')[n - 1]
                 except IndexError:
                     pass
                 if False:
@@ -3236,7 +3364,8 @@ except (KeyError, IOError):
                 pass
 
         if C.time() and not C.introspect():
-            input += '; print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
+            input += ('; print "CPU time: %.2f s,  Wall time: %.2f '
+                      's"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n')
         self.__comp_is_running = True
         self.sage().execute(input, os.path.abspath(self.data_directory()))
 
@@ -3251,12 +3380,15 @@ except (KeyError, IOError):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\n3^20\n}}}')
             sage: W.cell_list()[0].evaluate()
-            sage: W.check_comp()     # random output -- depends on computer speed
+            sage: W.check_comp(
+                )     # random output -- depends on computer speed
             ('d', Cell 0: in=3^20, out=
             3486784401
             )
@@ -3277,7 +3409,8 @@ except (KeyError, IOError):
         try:
             output_status = S.output_status()
         except RuntimeError, msg:
-            verbose("Computation was interrupted or failed. Restarting.\n%s" % msg)
+            verbose(
+                "Computation was interrupted or failed. Restarting.\n%s" % msg)
             self.__comp_is_running = False
             self.start_next_comp()
             return 'w', C
@@ -3386,7 +3519,7 @@ except (KeyError, IOError):
 
         return 'd', C
 
-    def interrupt(self, callback = None, timeout = 1):
+    def interrupt(self, callback=None, timeout=1):
         r"""
         Interrupt all currently queued up calculations.
 
@@ -3399,13 +3532,16 @@ except (KeyError, IOError):
 
         OUTPUT:
 
-        -  ``deferred`` - a Deferred object with the given callbacks and errbacks
+        -  ``deferred`` - a Deferred object with the given callbacks and
+           errbacks
 
         EXAMPLES: We create a worksheet and start a large factorization
         going::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\nfactor(2^997-1)\n}}}')
             sage: W.cell_list()[0].evaluate()
@@ -3419,14 +3555,16 @@ except (KeyError, IOError):
 
         ::
 
-            sage: W.interrupt()         # not tested -- needs running reactor
+            sage: W.interrupt(
+                )         # not tested -- needs running reactor
             True
 
         Now we check and nothing is computing.
 
         ::
 
-            sage: W.check_comp()        # random -- could fail on heavily loaded machine
+            sage: W.check_comp(
+                )        # random -- could fail on heavily loaded machine
             ('e', None)
 
         Clean up.
@@ -3572,7 +3710,9 @@ except (KeyError, IOError):
             return self.__next_id
 
     def set_cell_counter(self):
-        self.__next_id = 1 + max([C.id() for C in self.cell_list() if isinstance(C.id(), int)] + [-1])
+        self.__next_id = 1 + \
+            max([C.id() for C in self.cell_list()
+                 if isinstance(C.id(), int)] + [-1])
 
     def _new_text_cell(self, plain_text, id=None):
         if id is None:
@@ -3621,11 +3761,12 @@ except (KeyError, IOError):
 
     def synchronize(self, s):
         try:
-            i = (self.__synchro + 1)%65536
+            i = (self.__synchro + 1) % 65536
         except AttributeError:
             i = 0
         self.__synchro = i
-        return 'print "%s%s"\n'%(SAGE_BEGIN,i) + s + '\nprint "%s%s"\n'%(SAGE_END,i)
+        return 'print "%s%s"\n' % (
+            SAGE_BEGIN, i) + s + '\nprint "%s%s"\n' % (SAGE_END, i)
 
     def synchro(self):
         try:
@@ -3678,7 +3819,7 @@ except (KeyError, IOError):
             word = completions[0][:i]
             for w in completions[1:]:
                 if w[:i] != word:
-                    return w[n:i-1]
+                    return w[n:i - 1]
             i += 1
         return completions[0][n:m]
 
@@ -3692,7 +3833,7 @@ except (KeyError, IOError):
         l = n / cols + n % cols
 
         if n == 1:
-            return '' # don't show a window, just replace it
+            return ''  # don't show a window, just replace it
 
         rows = []
         for r in range(0, l):
@@ -3725,7 +3866,7 @@ except (KeyError, IOError):
         i = 0
         while i < len(after_prompt):
             if after_prompt[i] == '?':
-                if i < len(after_prompt)-1 and after_prompt[i + 1] == '?':
+                if i < len(after_prompt) - 1 and after_prompt[i + 1] == '?':
                     i += 1
                 before_prompt += after_prompt[:i + 1]
                 after_prompt = after_prompt[i + 1:]
@@ -3736,14 +3877,19 @@ except (KeyError, IOError):
             i += 1
         if before_prompt.endswith('??'):
             input = self._get_last_identifier(before_prompt[:-2])
-            input = 'print _support_.source_code("%s", globals(), system="%s")' % (input, self.system())
+            input = (
+                'print _support_.source_code("%s", globals(), system="%s")' % (
+                    input, self.system()))
         elif before_prompt.endswith('?'):
             input = self._get_last_identifier(before_prompt[:-1])
-            input = 'print _support_.docstring("%s", globals(), system="%s")' % (input, self.system())
+            input = (
+                'print _support_.docstring("%s", globals(), system="%s")' % (
+                    input, self.system()))
         else:
             input = self._get_last_identifier(before_prompt)
             C._word_being_completed = input
-            input = 'print "\\n".join(_support_.completions("%s", globals(), system="%s"))' % (input, self.system())
+            input = ('print "\\n".join(_support_.completions("%s", '
+                     'globals(), system="%s"))' % (input, self.system()))
         return input
 
     def preparse_nonswitched_input(self, input):
@@ -3783,7 +3929,11 @@ except (KeyError, IOError):
         if C.introspect():
             return out
 
-        out = out.replace("NameError: name 'os' is not defined", "NameError: name 'os' is not defined\nTHERE WAS AN ERROR LOADING THE SAGE LIBRARIES.  Try starting Sage from the command line to see what the error is.")
+        out = out.replace("NameError: name 'os' is not defined",
+                          "NameError: name 'os' is not defined\n"
+                          "THERE WAS AN ERROR LOADING THE SAGE LIBRARIES.  "
+                          "Try starting Sage from the command line to see "
+                          "what the error is.")
 
         # Todo: what does this do?  document this
         try:
@@ -3792,16 +3942,17 @@ except (KeyError, IOError):
             if i != -1:
                 t = '.py", line'
                 j = out.find(t)
-                z = out[j+5:].find(',')
-                n = int(out[j+len(t):z + j+5])
+                z = out[j + 5:].find(',')
+                n = int(out[j + len(t):z + j + 5])
                 k = out[j:].find('\n')
                 if k != -1:
                     k += j
-                    l = out[k+1:].find('\n')
+                    l = out[k + 1:].find('\n')
                     if l != -1:
-                        l += k+1
+                        l += k + 1
                         I = C._before_preparse.split('\n')
-                        out = out[:i + len(tb)+1] + '    ' + I[n-2] + out[l:]
+                        out = out[:i + len(tb) + 1] + \
+                            '    ' + I[n - 2] + out[l:]
         except (ValueError, IndexError) as msg:
             pass
         return out
@@ -3825,7 +3976,11 @@ except (KeyError, IOError):
         """
         # The extra newline below is necessary, since otherwise source
         # code introspection doesn't include the last line.
-        return 'open("%s","w").write("# -*- coding: utf-8 -*-\\n" + _support_.preparse_worksheet_cell(base64.b64decode("%s"),globals())+"\\n"); execfile(os.path.abspath("%s"))'%(CODE_PY, base64.b64encode(s.encode('utf-8', 'ignore')), CODE_PY)
+        return ('open("%s","w").write("# -*- coding: utf-8 -*-\\n" + '
+                '_support_.preparse_worksheet_cell(base64.b64decode("%s"),'
+                'globals())+"\\n"); execfile(os.path.abspath("%s"))' % (
+                    CODE_PY, base64.b64encode(s.encode('utf-8', 'ignore')),
+                    CODE_PY))
 
     ##########################################################
     # Loading and attaching files
@@ -3837,7 +3992,7 @@ except (KeyError, IOError):
         """
         A = self.attached_files()
         init_sage = DOT_SAGENB + 'init.sage'
-        if not init_sage in A.keys() and os.path.exists(init_sage):
+        if init_sage not in A.keys() and os.path.exists(init_sage):
             A[init_sage] = 0
 
         # important that this is A.items() and not A.iteritems()
@@ -3883,8 +4038,10 @@ except (KeyError, IOError):
         a = []
         for filename in L.split():
             filename = filename.strip('"\'')
-            if not filename.endswith('.py') and not filename.endswith('.sage') and \
-                   not filename.endswith('.sobj') and not os.path.exists(filename):
+            if not filename.endswith('.py') and \
+                    not filename.endswith('.sage') and \
+                    not filename.endswith('.sobj') and \
+                    not os.path.exists(filename):
                 if os.path.exists(filename + '.sage'):
                     filename = filename + '.sage'
                 elif os.path.exists(filename + '.py'):
@@ -3896,7 +4053,8 @@ except (KeyError, IOError):
 
     def load_path(self):
         D = self.cells_directory()
-        return [os.path.join(self.directory(), 'data')] + [D + x for x in os.listdir(D)]
+        return [os.path.join(self.directory(), 'data')] + [
+            D + x for x in os.listdir(D)]
 
     def hunt_file(self, filename):
         if filename.lower().startswith('http://'):
@@ -3917,15 +4075,16 @@ except (KeyError, IOError):
         if filename.endswith('.sobj'):
             name = os.path.splitext(filename)[0]
             name = os.path.split(name)[-1]
-            return '%s = load("%s");'%(name, filename)
+            return '%s = load("%s");' % (name, filename)
 
         if filename in files_seen_so_far:
-            t = "print 'WARNING: Not loading %s -- would create recursive load'"%filename
+            t = ("print 'WARNING: Not loading %s -- would create recursive "
+                 "load'" % filename)
 
         try:
             F = open(filename).read()
         except IOError:
-            return "print 'Error loading %s -- file not found'"%filename
+            return "print 'Error loading %s -- file not found'" % filename
         else:
             filename_orig = filename
             filename = filename.rstrip('.txt')
@@ -3934,29 +4093,32 @@ except (KeyError, IOError):
             elif filename.endswith('.spyx') or filename.endswith('.pyx'):
                 cur = os.path.abspath(os.curdir)
                 try:
-                    mod, dir  = cython.cython(filename_orig, compile_message=True, use_cache=True)
+                    mod, dir = cython.cython(
+                        filename_orig, compile_message=True, use_cache=True)
                 except (IOError, OSError, RuntimeError) as msg:
-                    return "print r'''Error compiling cython file:\n%s'''"%msg
-                t  = "import sys\n"
-                t += "sys.path.append('%s')\n"%dir
-                t += "from %s import *\n"%mod
+                    return "print r'Error compiling cython file:\n%s'" % msg
+                t = "import sys\n"
+                t += "sys.path.append('%s')\n" % dir
+                t += "from %s import *\n" % mod
                 return t
             elif filename.endswith('.sage'):
                 t = self.preparse(F)
             else:
-                t = "print 'Loading of file \"%s\" has type not implemented.'"%filename
+                t = ("print 'Loading of file \"%s\" has type not "
+                     "implemented.'" % filename)
 
-        t = self.do_sage_extensions_preparsing(t,
-                          files_seen_so_far + [this_file], filename)
+        t = self.do_sage_extensions_preparsing(
+            t, files_seen_so_far + [this_file], filename)
         return t
 
     def _save_objects(self, s):
-        s = s.replace(',',' ').replace('(',' ').replace(')',' ')
+        s = s.replace(',', ' ').replace('(', ' ').replace(')', ' ')
         v = s.split()
-        return ';'.join(['save(%s,"%s")'%(x,x) for x in v])
+        return ';'.join(['save(%s,"%s")' % (x, x) for x in v])
 
     def _eval_cmd(self, system, cmd):
-        return u"print _support_.syseval(%s, %r, __SAGE_TMP_DIR__)"%(system, cmd)
+        return u"print _support_.syseval(%s, %r, __SAGE_TMP_DIR__)" % (
+            system, cmd)
 
     ##########################################################
     # Parsing the %cython, %mathjax, %python, etc., extension.
@@ -3969,16 +4131,20 @@ except (KeyError, IOError):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: W.edit_save('{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
+            sage: W.edit_save(
+                '{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cell_list()
             sage: W.get_cell_system(c0)
             'sage'
             sage: W.get_cell_system(c1)
             u'gap'
-            sage: W.edit_save('{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
+            sage: W.edit_save(
+                '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: W.set_system('gap')
             sage: c0, c1 = W.cell_list()
             sage: W.get_cell_system(c0)
@@ -4007,10 +4173,10 @@ except (KeyError, IOError):
         code = os.path.join(self.directory(), 'code')
         if not os.path.exists(code):
             os.makedirs(code)
-        spyx = os.path.abspath(os.path.join(code, 'sage%s.spyx'%id))
+        spyx = os.path.abspath(os.path.join(code, 'sage%s.spyx' % id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
-            open(spyx,'w').write(cmd.encode('utf-8', 'ignore'))
-        return '_support_.cython_import_all("%s", globals())'%spyx
+            open(spyx, 'w').write(cmd.encode('utf-8', 'ignore'))
+        return '_support_.cython_import_all("%s", globals())' % spyx
 
     def check_for_system_switching(self, input, cell):
         r"""
@@ -4028,8 +4194,10 @@ except (KeyError, IOError):
 
         ::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
 
         We first test running a native command in 'sage' mode and then a
@@ -4037,22 +4205,26 @@ except (KeyError, IOError):
 
         ::
 
-            sage: W.edit_save('{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
+            sage: W.edit_save(
+                '{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cell_list()
             sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, u'2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
-            (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)', __SAGE_TMP_DIR__)")
+            (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)',
+             __SAGE_TMP_DIR__)")
 
         ::
 
             sage: c0.evaluate()
-            sage: W.check_comp()  #random output -- depends on the computer's speed
+            sage: W.check_comp(
+                )  #random output -- depends on the computer's speed
             ('d', Cell 0: in=2+3, out=
             5
             )
             sage: c1.evaluate()
-            sage: W.check_comp()  #random output -- depends on the computer's speed
+            sage: W.check_comp(
+                )  #random output -- depends on the computer's speed
             ('d', Cell 1: in=%gap
             SymmetricGroup(5), out=
             Sym( [ 1 .. 5 ] )
@@ -4062,21 +4234,25 @@ except (KeyError, IOError):
 
         ::
 
-            sage: W.edit_save('{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
+            sage: W.edit_save(
+                '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: W.set_system('gap')
             sage: c0, c1 = W.cell_list()
             sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, u'2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
-            (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)', __SAGE_TMP_DIR__)")
+            (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)',
+             __SAGE_TMP_DIR__)")
             sage: c0.evaluate()
-            sage: W.check_comp()  #random output -- depends on the computer's speed
+            sage: W.check_comp(
+                )  #random output -- depends on the computer's speed
             ('d', Cell 0: in=%sage
             2+3, out=
             5
             )
             sage: c1.evaluate()
-            sage: W.check_comp()  #random output -- depends on the computer's speed
+            sage: W.check_comp(
+                )  #random output -- depends on the computer's speed
             ('d', Cell 1: in=SymmetricGroup(5), out=
             Sym( [ 1 .. 5 ] )
             )
@@ -4097,7 +4273,7 @@ except (KeyError, IOError):
     ##########################################################
     def attached_html(self, username=None):
         return template(os.path.join("html", "worksheet", "attached.html"),
-                        attached_files = self.attached_files(),
+                        attached_files=self.attached_files(),
                         username=username)
 
     ##########################################################
@@ -4128,10 +4304,14 @@ except (KeyError, IOError):
 
         EXAMPLES: We create a new notebook, user, and a worksheet::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: W.edit_save("{{{\n2+3\n///\n5\n}}}\n{{{\nopen('afile', 'w').write('some text')\nprint 'hello'\n///\n\n}}}")
+            sage: W.edit_save(
+                "{{{\n2+3\n///\n5\n}}}\n{{{\nopen('afile', 'w').write(
+                    'some text')\nprint 'hello'\n///\n\n}}}")
 
         We have two cells::
 
@@ -4146,24 +4326,29 @@ except (KeyError, IOError):
             ['xyz']
             sage: C1 = W.cell_list()[1]
             sage: C1.evaluate()
-            sage: W.check_comp()     # random output -- depends on computer speed
+            sage: W.check_comp(
+                )     # random output -- depends on computer speed
             ('w', Cell 1: in=open('afile', 'w').write('some text')
             print 'hello', out=)
-            sage: W.check_comp()     # random output -- depends on computer speed
+            sage: W.check_comp(
+                )     # random output -- depends on computer speed
             ('d', Cell 1: in=open('afile', 'w').write('some text')
             print 'hello', out=
             hello
             )
-            sage: W.check_comp()     # random output -- depends on computer speed
+            sage: W.check_comp(
+                )     # random output -- depends on computer speed
             ('e', None)
-            sage: C1.files()         # random output -- depends on computer speed
+            sage: C1.files(
+                )         # random output -- depends on computer speed
             ['afile']
 
         We now delete the output, observe that it is gone::
 
             sage: W.delete_all_output('sage')
             sage: W.cell_list()
-            [Cell 0: in=2+3, out=, Cell 1: in=open('afile', 'w').write('some text')
+            [Cell 0: in=2+3, out=,
+             Cell 1: in=open('afile', 'w').write('some text')
             print 'hello', out=]
             sage: C0.files(), C1.files()
             ([], [])
@@ -4182,17 +4367,20 @@ except (KeyError, IOError):
             sage: nb.delete()
         """
         if not self.user_can_edit(username):
-            raise ValueError("user '%s' not allowed to edit this worksheet" % username)
+            raise ValueError(
+                "user '%s' not allowed to edit this worksheet" % username)
         for C in self.cell_list():
             C.delete_output()
 
 
-__internal_test1 = 'def foo(x):\n    """\n    EXAMPLES:\n        sage: 2+2\n        4\n    """\n    return x\n'.lstrip()
+__internal_test1 = ('def foo(x):\n    """\n    EXAMPLES:\n        sage: 2+2\n'
+                    '        4\n    """\n    return x\n'.lstrip())
 
 __internal_test2 = '''
 sage: 2 + 2
 4
 '''.lstrip()
+
 
 def ignore_prompts_and_output(aString):
     r"""
@@ -4205,7 +4393,8 @@ def ignore_prompts_and_output(aString):
     TESTS::
 
         sage: test1 = sagenb.notebook.worksheet.__internal_test1
-        sage: test1 == sagenb.notebook.worksheet.ignore_prompts_and_output(test1)
+        sage: test1 == sagenb.notebook.worksheet.ignore_prompts_and_output(
+            test1)
         True
         sage: test2 = sagenb.notebook.worksheet.__internal_test2
         sage: sagenb.notebook.worksheet.ignore_prompts_and_output(test2)
@@ -4214,7 +4403,7 @@ def ignore_prompts_and_output(aString):
     s = aString.lstrip()
     is_example = s.startswith('sage:') or s.startswith('>>>')
     if not is_example:
-        return aString # return original, not stripped copy
+        return aString  # return original, not stripped copy
     new = ''
     lines = s.split('\n')
     for line in lines:
@@ -4227,6 +4416,7 @@ def ignore_prompts_and_output(aString):
             new += after_first_word(line) + '\n'
     return new
 
+
 def extract_text_before_first_compute_cell(text):
     """
     OUTPUT: Everything in text up to the first {{{.
@@ -4235,6 +4425,7 @@ def extract_text_before_first_compute_cell(text):
     if i == -1:
         return text
     return text[:i]
+
 
 def extract_first_compute_cell(text):
     """
@@ -4284,6 +4475,7 @@ def extract_first_compute_cell(text):
 
     return meta, input.strip(), output, j + 4
 
+
 def after_first_word(s):
     r"""
     Return everything after the first whitespace in the string s.
@@ -4309,6 +4501,7 @@ def after_first_word(s):
         return ''
     return s[i.start() + 1:]
 
+
 def first_word(s):
     r"""
     Returns everything before the first whitespace in the string s. If
@@ -4326,6 +4519,7 @@ def first_word(s):
     if i is None:
         return s
     return s[:i.start()]
+
 
 def format_completions_as_html(cell_id, completions, username=None):
     """
@@ -4345,10 +4539,12 @@ def format_completions_as_html(cell_id, completions, username=None):
     if len(completions) == 0:
         return ''
 
-    return template(os.path.join("html", "worksheet", "completions.html"),
-                    cell_id = cell_id,
-                    # Transpose and enumerate completions to column-major
-                    completions_enumerated = enumerate(map(list, zip(*completions))))
+    return template(
+        os.path.join("html", "worksheet", "completions.html"),
+        cell_id=cell_id,
+        # Transpose and enumerate completions to column-major
+        completions_enumerated=enumerate(map(list, zip(*completions))))
+
 
 def extract_name(text):
     # The first line is the title
@@ -4367,8 +4563,10 @@ def extract_name(text):
             n = len(text) - 1
     return name.strip(), n
 
+
 def extract_system(text):
-    # If the first line is "system: ..." , then it is the system.  Otherwise the system is Sage.
+    # If the first line is "system: ..." , then it is the system.  Otherwise
+    # the system is Sage.
     i = non_whitespace.search(text)
     if i is None:
         return 'sage', 0
@@ -4384,6 +4582,7 @@ def extract_system(text):
             system = text[i:][7:].strip()
             n = len(text) - 1
         return system, n
+
 
 def dictify(s):
     """
@@ -4408,6 +4607,7 @@ def dictify(s):
         return {}
     return dict(w)
 
+
 def next_available_id(v):
     """
     Return smallest nonnegative integer not in v.
@@ -4417,6 +4617,7 @@ def next_available_id(v):
         i += 1
     return i
 
+
 def convert_time_to_string(t):
     """
     Converts ``t`` (in Unix time) to a locale-specific string
@@ -4424,7 +4625,7 @@ def convert_time_to_string(t):
     """
     try:
         return format_datetime(datetime.datetime.fromtimestamp(float(t)))
-    except AttributeError: #testing as opposed to within the Flask app
+    except AttributeError:  # testing as opposed to within the Flask app
         return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))
 
 # For pybabel
@@ -4440,6 +4641,7 @@ lazy_gettext('September')
 lazy_gettext('October')
 lazy_gettext('November')
 lazy_gettext('December')
+
 
 def split_search_string_into_keywords(s):
     r"""
@@ -4472,6 +4674,7 @@ def split_search_string_into_keywords(s):
             break
     ans.extend(s.split())
     return ans
+
 
 def _get_next(s, quote='"'):
     i = s.find(quote)

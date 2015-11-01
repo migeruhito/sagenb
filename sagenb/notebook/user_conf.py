@@ -16,9 +16,9 @@ from .conf import TYPE
 from .conf import CHOICES
 from .conf import T_CHOICE
 
-defaults = {'max_history_length':1000,
-            'default_system':'sage',
-            'autosave_interval':60*60,   # 1 hour in seconds
+defaults = {'max_history_length': 1000,
+            'default_system': 'sage',
+            'autosave_interval': 60 * 60,   # 1 hour in seconds
             'default_pretty_print': False,
             'next_worksheet_id_number': -1,  # not yet initialized
             'language': 'default'
@@ -26,12 +26,12 @@ defaults = {'max_history_length':1000,
 
 defaults_descriptions = {
     'language': {
-        DESC : lazy_gettext('Language'),
-        GROUP : lazy_gettext('Appearance'),
-        TYPE : T_CHOICE,
-        CHOICES : ['default'] + get_languages(),
-        },
-    }
+        DESC: lazy_gettext('Language'),
+        GROUP: lazy_gettext('Appearance'),
+        TYPE: T_CHOICE,
+        CHOICES: ['default'] + get_languages(),
+    },
+}
 
 
 def UserConfiguration_from_basic(basic):
@@ -39,7 +39,9 @@ def UserConfiguration_from_basic(basic):
     c.confs = copy.copy(basic)
     return c
 
+
 class UserConfiguration(Configuration):
+
     def defaults(self):
         return defaults
 

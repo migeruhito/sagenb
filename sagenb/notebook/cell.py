@@ -64,6 +64,7 @@ JEDITABLE_TINYMCE = True
 # Generic (abstract) cell #
 ###########################
 class Cell_generic(object):
+
     def __init__(self, id, worksheet):
         """
         Creates a new generic cell.
@@ -236,8 +237,10 @@ class Cell_generic(object):
             sage: C = sagenb.notebook.cell.Cell_generic(0, 'worksheet object')
             sage: C.worksheet()
             'worksheet object'
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.worksheet() is W
@@ -286,8 +289,10 @@ class Cell_generic(object):
         EXAMPLES::
 
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.worksheet_filename()
@@ -306,8 +311,10 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.notebook() is nb
@@ -327,8 +334,10 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2"); C
             Cell 2: in=2^2, out=
@@ -354,8 +363,10 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = W.new_cell_after(1, "2^2")
             sage: C = W.get_cell_with_id(1)
@@ -453,19 +464,20 @@ class Cell_generic(object):
         """
         return False
 
-    #New UI
+    # New UI
     def basic(self):
         """
         Returns the cell as a python object
         """
         return {}
-    #New UI
+    # New UI
 
 
 #############
 # Text cell #
 #############
 class TextCell(Cell_generic):
+
     def __init__(self, id, text, worksheet):
         """
         Creates a new text cell.
@@ -521,7 +533,7 @@ class TextCell(Cell_generic):
             sage: C
             TextCell 0: 2+3
         """
-        pass # nothing to do -- text cells have no output
+        pass  # nothing to do -- text cells have no output
 
     def set_input_text(self, input_text):
         """
@@ -543,7 +555,7 @@ class TextCell(Cell_generic):
         input_text = unicode_str(input_text)
         self._text = input_text
 
-    #New UI
+    # New UI
     def basic(self):
         """
         Returns the cell as a python object
@@ -555,7 +567,7 @@ class TextCell(Cell_generic):
         r['input'] = self._text
 
         return r
-    #New UI end
+    # New UI end
 
     def html(self, wrap=None, div_wrap=True, do_print=False,
              editing=False, publish=False):
@@ -583,8 +595,10 @@ class TextCell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', W)
             sage: C.html()
@@ -592,10 +606,9 @@ class TextCell(Cell_generic):
             sage: C.set_input_text("$2+3$")
         """
         return template(os.path.join('html', 'notebook', 'text_cell.html'),
-                        cell = self, wrap = wrap, div_wrap = div_wrap,
-                        do_print = do_print,
-                        editing = editing, publish = publish)
-
+                        cell=self, wrap=wrap, div_wrap=div_wrap,
+                        do_print=do_print,
+                        editing=editing, publish=publish)
 
     def plain_text(self, prompts=False):
         ur"""
@@ -652,13 +665,14 @@ class TextCell(Cell_generic):
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', None)
             sage: C.set_cell_output_type("wrap")
         """
-        pass # ignored
+        pass  # ignored
 
 
 ################
 # Compute cell #
 ################
 class Cell(Cell_generic):
+
     def __init__(self, id, input, out, worksheet):
         """
         Creates a new compute cell.
@@ -686,7 +700,7 @@ class Cell(Cell_generic):
 
         super(Cell, self).__init__(id, worksheet)
 
-        self._out   = out.replace('\r', '')
+        self._out = out.replace('\r', '')
         self._interrupted = False
         self.has_new_output = False
         self._asap = False
@@ -694,7 +708,7 @@ class Cell(Cell_generic):
 
         # start with a random integer so that evaluations of the cell
         # from different runs have different version numbers.
-        self._version = randint(0,maxint)
+        self._version = randint(0, maxint)
 
     def __repr__(self):
         """
@@ -768,17 +782,22 @@ class Cell(Cell_generic):
             sage: C
             Cell 0: in=2+3, out=
 
-        When output is deleted, any files in the cell directory are deleted as well::
+        When output is deleted, any files in the cell directory are deleted as
+        well::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\nplot(sin(x),(x,0,5))\n///\n20\n}}}')
             sage: C = W.cell_list()[0]
             sage: C.evaluate()
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('d', Cell 0; in=plot(sin(x),(x,0,5)), out=
-            <html><font color='black'><img src='cell://sage0.png'></font></html>
+            <html><font color='black'><img src='cell://sage0.png'></font>
+            </html>
             <BLANKLINE>
             )
             sage: C.files()     # random output -- depends on computer speed
@@ -806,8 +825,10 @@ class Cell(Cell_generic):
 
         EXAMPLES: We create a worksheet with a cell that has wrong output::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\n2+3\n///\n20\n}}}')
             sage: C = W.cell_list()[0]
@@ -818,7 +839,8 @@ class Cell(Cell_generic):
         We re-evaluate that input cell::
 
             sage: C.evaluate()
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('w', Cell 0: in=2+3, out=)
 
         Now the output is right::
@@ -830,7 +852,8 @@ class Cell(Cell_generic):
 
         ::
 
-            sage: C.evaluated()     # random output -- depends on computer speed
+            sage: C.evaluated(
+                )     # random output -- depends on computer speed
             True
 
         ::
@@ -960,18 +983,23 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=plot(sin(x),0,5), out=
-            <html><font color='black'><img src='cell://sage0.png'></font></html>
+            <html><font color='black'><img src='cell://sage0.png'></font>
+            </html>
             <BLANKLINE>
             )
             sage: C.update_html_output()
-            sage: C.output_html()     # random output -- depends on computer speed
+            sage: C.output_html(
+                )     # random output -- depends on computer speed
             '<img src="/home/sage/0/cells/0/sage0.png?...">'
             sage: W.quit()
             sage: nb.delete()
@@ -992,8 +1020,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.directory()
@@ -1016,8 +1046,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C._directory_name()
@@ -1042,8 +1074,10 @@ class Cell(Cell_generic):
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
             sage: C.word_wrap_cols()
             70
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.word_wrap_cols()
@@ -1141,7 +1175,7 @@ class Cell(Cell_generic):
                                    allow_interact=False)
             out = '///\n' + out.strip('\n')
 
-        if not max_out is None and len(out) > max_out:
+        if max_out is not None and len(out) > max_out:
             out = out[:max_out] + '...'
 
         # Get rid of spurious carriage returns
@@ -1178,7 +1212,8 @@ class Cell(Cell_generic):
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
             sage: C.edit_text()
             u'{{{id=0|\n2+3\n///\n5\n}}}'
-            sage: C = sagenb.notebook.cell.Cell(0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', None)
+            sage: C = sagenb.notebook.cell.Cell(
+                0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', None)
             sage: C.edit_text()
             u'{{{id=0|\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e\n///\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e\n}}}'
         """
@@ -1199,10 +1234,13 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: W.edit_save('foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
+            sage: W.edit_save(
+                'foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
             sage: W.new_cell_after(1, "2^2")
             Cell 4: in=2^2, out=
             sage: [W.get_cell_with_id(i).next_compute_id() for i in [1, 4, 3]]
@@ -1226,8 +1264,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.interrupt()
@@ -1251,8 +1291,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.interrupt()
@@ -1273,8 +1315,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.computing()
@@ -1295,10 +1339,13 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: C = W.new_cell_after(0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
+            sage: C = W.new_cell_after(
+                0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
             sage: C.is_interactive_cell()
             True
             sage: C = W.new_cell_after(C.id(), "2+2")
@@ -1325,10 +1372,13 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: C = W.new_cell_after(0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
+            sage: C = W.new_cell_after(0, "@interact\ndef f(
+                a=slider(0,10,1,5):\n    print a^2")
             sage: C.is_interacting()
             False
         """
@@ -1356,12 +1406,15 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.evaluate()
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('d', Cell 1: in=2^2, out=
             4
             )
@@ -1380,7 +1433,7 @@ class Cell(Cell_generic):
         input = unicode_str(input)
 
         if input.startswith(INTERACT_UPDATE_PREFIX):
-            self.interact = input[len(INTERACT_UPDATE_PREFIX)+1:]
+            self.interact = input[len(INTERACT_UPDATE_PREFIX) + 1:]
             self._version = self.version() + 1
             return
         elif self.is_interacting():
@@ -1398,8 +1451,8 @@ class Cell(Cell_generic):
         if hasattr(self, '_html_cache'):
             del self._html_cache
 
-        #Run get the input text with all of the percent
-        #directives parsed
+        # Run get the input text with all of the percent
+        # directives parsed
         self._cleaned_input = self.parse_percent_directives()
 
     def input_text(self):
@@ -1430,7 +1483,8 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C = sagenb.notebook.cell.Cell(
+                0, '%hide\n%maxima\n2+3', '5', None)
             sage: C.cleaned_input_text()
             u'2+3'
         """
@@ -1450,7 +1504,8 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '%hide\n%maxima\n%pi+3', '5', None)
+            sage: C = sagenb.notebook.cell.Cell(
+                0, '%hide\n%maxima\n%pi+3', '5', None)
             sage: C.parse_percent_directives()
             u'%pi+3'
             sage: C.percent_directives()
@@ -1463,7 +1518,7 @@ class Cell(Cell_generic):
         for i, line in enumerate(text):
             line = line.strip()
             if not line.startswith('%'):
-                #Handle the #auto case here for now
+                # Handle the #auto case here for now
                 if line == "#auto":
                     directives.append(line[1:])
                 else:
@@ -1494,7 +1549,8 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C = sagenb.notebook.cell.Cell(
+                0, '%hide\n%maxima\n2+3', '5', None)
             sage: C.percent_directives()
             [u'hide', u'maxima']
         """
@@ -1524,7 +1580,8 @@ class Cell(Cell_generic):
             sage: C.system()
             u'maxima'
             sage: prefixes = ['%hide', '%time', '']
-            sage: cells = [sagenb.notebook.cell.Cell(0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
+            sage: cells = [sagenb.notebook.cell.Cell(
+                0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
             sage: [(C, C.system()) for C in cells if C.system() is not None]
             []
         """
@@ -1632,7 +1689,8 @@ class Cell(Cell_generic):
         output = unicode_str(output)
         html = unicode_str(html)
         if output.count(INTERACT_TEXT) > 1:
-            html = u'<h3><font color="red">WARNING: multiple @interacts in one cell disabled (not yet implemented).</font></h3>'
+            html = (u'<h3><font color="red">WARNING: multiple @interacts in '
+                    u'one cell disabled (not yet implemented).</font></h3>')
             output = u''
 
         # In interacting mode, we just save the computed output
@@ -1654,22 +1712,23 @@ class Cell(Cell_generic):
         output = output.replace('\r', '')
         # We do not truncate if "notruncate" or "Output truncated!" already
         # appears in the output.  This notruncate tag is used right now
-        # in sagenb.notebook.interact, sage.misc.html, and sage.database.sql_db.
+        # in sagenb.notebook.interact, sage.misc.html, and
+        # sage.database.sql_db.
         if ('notruncate' not in output and
-            'Output truncated!' not in output
-            and
+            'Output truncated!' not in output and
             (len(output) > MAX_OUTPUT or
              output.count('\n') > MAX_OUTPUT_LINES)):
             url = ""
             if not self.computing():
                 file = os.path.join(self.directory(), "full_output.txt")
                 open(file, "w").write(encoded_str(output))
-                url = "<a target='_new' href='%s/full_output.txt' class='file_link'>full_output.txt</a>" % (
-                    self.url_to_self())
+                url = ("<a target='_new' href='%s/full_output.txt' "
+                       "class='file_link'>full_output.txt</a>" % (
+                           self.url_to_self()))
                 html += "<br>" + url
             lines = output.splitlines()
-            start = '\n'.join(lines[:MAX_OUTPUT_LINES/2])[:MAX_OUTPUT/2]
-            end = '\n'.join(lines[-MAX_OUTPUT_LINES/2:])[-MAX_OUTPUT/2:]
+            start = '\n'.join(lines[:MAX_OUTPUT_LINES / 2])[:MAX_OUTPUT / 2]
+            end = '\n'.join(lines[-MAX_OUTPUT_LINES / 2:])[-MAX_OUTPUT / 2:]
             warning = 'WARNING: Output truncated!  '
             if url:
                 # make the link to the full output appear at the top too.
@@ -1699,7 +1758,7 @@ class Cell(Cell_generic):
         except AttributeError:
             return None
 
-    #New UI
+    # New UI
     def basic(self):
         """
         Returns the cell as a python object
@@ -1712,13 +1771,13 @@ class Cell(Cell_generic):
         r['output'] = self.output_text()
         r['output_html'] = self.output_html()
         r['output_wrapped'] = self.output_text(
-                self.notebook().conf()['word_wrap_cols'])
+            self.notebook().conf()['word_wrap_cols'])
         r['percent_directives'] = self.percent_directives()
         r['system'] = self.system()
         r['auto'] = self.is_auto_cell()
         r['introspect_output'] = self.introspect_output()
         return r
-    #New UI end
+    # New UI end
 
     def output_html(self):
         """
@@ -1759,8 +1818,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.process_cell_urls('"cell://foobar"')
@@ -1795,8 +1856,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.output_text()
@@ -1805,7 +1868,8 @@ class Cell(Cell_generic):
             u'<pre class="shrunk">5</pre>'
             sage: C.output_text(raw=True)
             u'5'
-            sage: C = sagenb.notebook.cell.Cell(0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', W)
+            sage: C = sagenb.notebook.cell.Cell(
+                0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', W)
             sage: C.output_text()
             u'<pre class="shrunk">\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e</pre>'
             sage: C.output_text(raw=True)
@@ -1814,7 +1878,7 @@ class Cell(Cell_generic):
         if allow_interact and hasattr(self, '_interact_output'):
             # Get the input template
             z = self.output_text(ncols, html, raw, allow_interact=False)
-            if not INTERACT_TEXT in z or not INTERACT_HTML in z:
+            if INTERACT_TEXT not in z or INTERACT_HTML not in z:
                 return z
             if ncols:
                 # Get the output template
@@ -1841,7 +1905,8 @@ class Cell(Cell_generic):
                 s = self._out.replace('cell-interact', '')
                 is_interact = False
             else:
-                return u'<h2>Click to the left again to hide and once more to show the dynamic interactive window</h2>'
+                return (u'<h2>Click to the left again to hide and once more '
+                        u'to show the dynamic interactive window</h2>')
         else:
             s = self._out
 
@@ -1852,7 +1917,7 @@ class Cell(Cell_generic):
             s = self.parse_html(s, ncols)
 
         if (not is_interact and not self.is_html() and len(s.strip()) > 0 and
-            '<div class="docstring">' not in s):
+                '<div class="docstring">' not in s):
             s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
 
         return s.strip('\n')
@@ -1874,11 +1939,15 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
-            sage: C.parse_html('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">\n<html><head></head><body>Test</body></html>', 80)
+            sage: C.parse_html(
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">\n<html>'
+                '<head></head><body>Test</body></html>', 80)
             '&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0...Test</body>'
         """
         def format(x):
@@ -1914,14 +1983,18 @@ class Cell(Cell_generic):
         if ncols == 0:
             t = re_script.sub('', t)
         #  This is a temporary hack
-        #re_inline = re.compile('<script type="math/tex">(.*?)</script>')
-        #re_display = re.compile('<script type="math/tex; mode=display">(.*?)</script>')
-        #t = re_inline.sub('<span class="math">\1</span>', t)
-        #t = re_display.sub('<div class="math">\1</div>', t)
-        #t = t.replace('<script type="math/tex">(.*?)</script>', '<span class="math">\1</span>')
-        #t = t.replace('<script type="math/tex; mode=display">(.*?)</script>', '<div class="math">\1</div>')
-        ####t = t.replace('<script type="math/tex">', '<span class="math">')
-        ####t = t.replace('</script>', '</span>')
+        # re_inline = re.compile('<script type="math/tex">(.*?)</script>')
+        # re_display = re.compile(
+        #     '<script type="math/tex; mode=display">(.*?)</script>')
+        # t = re_inline.sub('<span class="math">\1</span>', t)
+        # t = re_display.sub('<div class="math">\1</div>', t)
+        # t = t.replace(
+        #     '<script type="math/tex">(.*?)</script>',
+        #     '<span class="math">\1</span>')
+        # t = t.replace('<script type="math/tex; mode=display">(.*?)</script>',
+        #               '<div class="math">\1</div>')
+        # t = t.replace('<script type="math/tex">', '<span class="math">')
+        # t = t.replace('</script>', '</span>')
         return t
 
     def has_output(self):
@@ -1955,7 +2028,8 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, "%html\nTest HTML", None, None)
+            sage: C = sagenb.notebook.cell.Cell(
+                0, "%html\nTest HTML", None, None)
             sage: C.system()
             u'html'
             sage: C.is_html()
@@ -1969,7 +2043,7 @@ class Cell(Cell_generic):
     #################
     # Introspection #
     #################
-    #newUI
+    # newUI
     def set_introspect_output(self, output, completing=False, raw=False):
         ur"""
         Sets this compute cell's introspection text.
@@ -1986,13 +2060,15 @@ class Cell(Cell_generic):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
-            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
             sage: C.set_introspect_output('foobar')
             sage: C.introspect_output()
@@ -2020,15 +2096,18 @@ class Cell(Cell_generic):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
-            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
-            sage: C.introspect_output()     # random output -- depends on computer speed
+            sage: C.introspect_output(
+                )     # random output -- depends on computer speed
             u'...<div class="docstring">...sage...</pre></div>...'
             sage: W.quit()
             sage: nb.delete()
@@ -2040,7 +2119,7 @@ class Cell(Cell_generic):
         except AttributeError:
             self._introspect_output = u''
             return u''
-    #newUI end
+    # newUI end
 
     def set_introspect_html(self, html, completing=False, raw=False):
         ur"""
@@ -2057,14 +2136,17 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
-            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
             sage: C.set_introspect_html('foobar')
             sage: C.introspect_html()
@@ -2092,16 +2174,20 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
-            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
-            sage: C.introspect_html()     # random output -- depends on computer speed
+            sage: C.introspect_html(
+                )     # random output -- depends on computer speed
             u'...<div class="docstring">...sage...</pre></div>...'
             sage: W.quit()
             sage: nb.delete()
@@ -2125,14 +2211,17 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
-            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
             sage: C.introspect()
             [u'sage?', '']
@@ -2150,14 +2239,17 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
-            sage: W.check_comp(9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
             sage: C.introspect()
             [u'sage?', '']
@@ -2208,14 +2300,17 @@ class Cell(Cell_generic):
         We create a notebook, worksheet, and cell and evaluate it
         in order to compute `3^5`::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\n3^5\n}}}')
             sage: C = W.cell_list()[0]; C
             Cell 0: in=3^5, out=
             sage: C.evaluate(username='sage')
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=3^5, out=
             243
             )
@@ -2226,9 +2321,10 @@ class Cell(Cell_generic):
             sage: nb.delete()
         """
         if introspect:
-            self.eval_method = 'introspect' # Run through TAB-introspection
+            self.eval_method = 'introspect'  # Run through TAB-introspection
         else:
-            self.eval_method = 'eval' # Run through S-Enter, evaluate link, etc.
+            # Run through S-Enter, evaluate link, etc.
+            self.eval_method = 'eval'
         self._interrupted = False
         self._evaluated = True
         if time is not None:
@@ -2268,7 +2364,7 @@ class Cell(Cell_generic):
         except AttributeError:
             # start with a random integer so that evaluations of the cell
             # from different runs have different version numbers.
-            self._version = randint(0,maxint)
+            self._version = randint(0, maxint)
             return self._version
 
     def time(self):
@@ -2317,8 +2413,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.load_notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.html()
@@ -2341,8 +2439,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.url_to_self()
@@ -2365,8 +2465,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.url_to_worksheet()
@@ -2385,14 +2487,18 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=plot(sin(x),0,5), out=
-            <html><font color='black'><img src='cell://sage0.png'></font></html>
+            <html><font color='black'><img src='cell://sage0.png'></font>
+            </html>
             <BLANKLINE>
             )
             sage: C.files()     # random output -- depends on computer speed
@@ -2410,14 +2516,18 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=plot(sin(x),0,5), out=
-            <html><font color='black'><img src='cell://sage0.png'></font></html>
+            <html><font color='black'><img src='cell://sage0.png'></font>
+            </html>
             <BLANKLINE>
             )
             sage: C.files()     # random output -- depends on computer speed
@@ -2464,24 +2574,28 @@ class Cell(Cell_generic):
             with open(jmol_name, 'w') as f:
                 f.write(jmol_script)
 
-        image_name = os.path.join(self.url_to_self(),'.jmol_images',F)
+        image_name = os.path.join(self.url_to_self(), '.jmol_images', F)
         script_name = os.path.join(self.url_to_self(), F)
-        return textwrap.dedent("""
-        <div id="sage_jmol_{id}" class="3DPlotDiv">
-            <div id="loadJmol" style="display:none;">{id}</div>
-            <div id="sage_jmol_size_{id}" style="display:none;">{size}</div>
-            <div id="sage_jmol_img_{id}" style="display:none;">{image_name}.png?{timestamp}</div>
-            <div id="sage_jmol_script_{id}" style="display:none;">{filename}?{timestamp}</div>
-            <div id="sage_jmol_server_url_{id}" style="display:none;">{callback}</div>
-            <div id="sage_jmol_status_{id}" style="display:none;">notActivated</div>
-        </div>
-        """).format(
-            id=self._id,
-            size=size,
-            image_name=image_name,
-            timestamp=time.time(),
-            filename=script_name,
-            callback=os.path.join(self.url_to_worksheet(), 'jsmol'),
+        return textwrap.dedent(
+            '<div id="sage_jmol_{id}" class="3DPlotDiv">\n'
+            '    <div id="loadJmol" style="display:none;">{id}</div>\n'
+            '    <div id="sage_jmol_size_{id}" style="display:none;">'
+            '{size}</div>\n'
+            '    <div id="sage_jmol_img_{id}" style="display:none;">'
+            '{image_name}.png?{timestamp}</div>\n'
+            '    <div id="sage_jmol_script_{id}" style="display:none;">'
+            '{filename}?{timestamp}</div>\n'
+            '    <div id="sage_jmol_server_url_{id}" style="display:none;">'
+            '{callback}</div>\n'
+            '    <div id="sage_jmol_status_{id}" style="display:none;">'
+            'notActivated</div>\n'
+            '</div>').format(
+                id=self._id,
+                size=size,
+                image_name=image_name,
+                timestamp=time.time(),
+                filename=script_name,
+                callback=os.path.join(self.url_to_worksheet(), 'jsmol'),
         )
 
     def files_html(self, out):
@@ -2500,17 +2614,22 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager().add_user(
+                'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
-            sage: W.check_comp(wait=9999)     # random output -- depends on computer speed
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=plot(sin(x),0,5), out=
-            <html><font color='black'><img src='cell://sage0.png'></font></html>
+            <html><font color='black'><img src='cell://sage0.png'></font>
+            </html>
             <BLANKLINE>
             )
-            sage: C.files_html('')     # random output -- depends on computer speed
+            sage: C.files_html(
+                '')     # random output -- depends on computer speed
             '<img src="/home/sage/0/cells/0/sage0.png?...">'
             sage: W.quit()
             sage: nb.delete()
@@ -2521,11 +2640,11 @@ class Cell(Cell_generic):
             return ''
         images = []
         files = []
-        #Flags to allow processing of old worksheets that include Jmol
+        # Flags to allow processing of old worksheets that include Jmol
         hasjmol = False
-        jmoldatafile=''
+        jmoldatafile = ''
         hasjmolimages = False
-        jmolimagebase=''
+        jmolimagebase = ''
         # The question mark trick here is so that images will be
         # reloaded when the async request requests the output text for
         # a computation.  This is inspired by
@@ -2535,68 +2654,81 @@ class Cell(Cell_generic):
                 continue
             url = os.path.join(self.url_to_self(), F)
             if (F.endswith('.png') or F.endswith('.bmp') or
-                F.endswith('.jpg') or F.endswith('.gif')):
+                    F.endswith('.jpg') or F.endswith('.gif')):
                 images.append('<img src="%s?%d">' % (url, time.time()))
             elif F.endswith('.obj'):
-                images.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>""" % (url, self._id, F, F[:-4]))
+                images.append(
+                    '<a href="javascript:sage3d_show(\'%s\', \'%s_%s\', '
+                    '\'%s\');">Click for interactive view.</a>' % (
+                        url, self._id, F, F[:-4]))
             elif F.endswith('.mtl') or F.endswith(".objmeta"):
-                pass # obj data
+                pass  # obj data
             elif F.endswith('.svg'):
-                images.append('<embed src="%s" type="image/svg+xml" name="emap">' % url)
+                images.append(
+                    '<embed src="%s" type="image/svg+xml" name="emap">' % url)
             elif F.endswith('.jmol'):
                 images.append(self._jmol_files_html(F))
                 jmolimagebase = F
-                hasjmol=True
+                hasjmol = True
             elif F.endswith('.jmol.zip'):
                 # jmol data
-                jmoldatafile=os.path.join(self.directory(),F)
+                jmoldatafile = os.path.join(self.directory(), F)
             elif F.endswith('.canvas3d'):
-                script = '<div><script>canvas3d.viewer("%s?%s");</script></div>' %(url,time.time())
+                script = (
+                    '<div><script>canvas3d.viewer("%s?%s");</script></div>' % (
+                        url, time.time()))
                 images.append(script)
             elif F.startswith('.jmol_'):
                 # static jmol data and images
-                hasjmolimages=True
+                hasjmolimages = True
             else:
                 link_text = str(F)
                 if len(link_text) > 40:
                     link_text = link_text[:10] + '...' + link_text[-20:]
-                files.append('<a target="_new" href="%s" class="file_link">%s</a>' % (url, link_text))
+                files.append(
+                    '<a target="_new" href="%s" class="file_link">%s</a>' % (
+                        url, link_text))
 
         # TODO: remove this fugly in-place upgrading of worksheets
         # and all the associated variables. If the worksheet is old
         # just require a reevaluation.
         if(hasjmol and not hasjmolimages):
-            # This is probably an old worksheet. Generate the missing jmol static image(s)
-            # Note: this is problematic in the notebook as it uses tools from Sage to
-            # generate the images.
-            head,tail = os.path.split(jmoldatafile)
+            # This is probably an old worksheet. Generate the missing jmol
+            # static image(s) Note: this is problematic in the notebook as it
+            # uses tools from Sage to generate the images.
+            head, tail = os.path.split(jmoldatafile)
             # The path in the launch script file needs to be fixed.
-            worksheet, cellnum=os.path.split(head)
-            path = "cells/%s/%s"  %(cellnum, tail)
-            f = open(os.path.join(head,jmolimagebase),'w')
-            f.write('set defaultdirectory "%s"\n' %path)
+            worksheet, cellnum = os.path.split(head)
+            path = "cells/%s/%s" % (cellnum, tail)
+            f = open(os.path.join(head, jmolimagebase), 'w')
+            f.write('set defaultdirectory "%s"\n' % path)
             f.write('script SCRIPT\n')
             f.close()
 
-            #name image file
-            png_path = os.path.realpath(os.path.join(head,'.jmol_images'))
-            if  not os.path.exists(png_path):
+            # name image file
+            png_path = os.path.realpath(os.path.join(head, '.jmol_images'))
+            if not os.path.exists(png_path):
                 os.mkdir(png_path)
-            png_name = os.path.join(png_path,jmolimagebase)
-            #test for JavaVM
+            png_name = os.path.join(png_path, jmolimagebase)
+            # test for JavaVM
 
             # TODO: sage dependency
             from sage.interfaces.jmoldata import JmolData
             jdata = JmolData()
             if (jdata.is_jvm_available()):
                 # make the image with Jmol
-                png_fullpath=png_name+".png"
-                #print png_fullpath
-                script = 'set defaultdirectory \"'+jmoldatafile+'\"\n script SCRIPT\n'
-                #print script
-                jdata.export_image(targetfile = png_fullpath,datafile=script,image_type="PNG", figsize = 4)
+                png_fullpath = png_name + ".png"
+                # print png_fullpath
+                script = ('set defaultdirectory \"' +
+                          jmoldatafile + '\"\n script SCRIPT\n')
+                # print script
+                jdata.export_image(targetfile=png_fullpath,
+                                   datafile=script, image_type="PNG",
+                                   figsize=4)
             else:
-                images.append('Java Virtual Machine Unavailable.  Cannot make image from old data.  Please reevaluate cell.')
+                images.append(
+                    'Java Virtual Machine Unavailable.  Cannot make image '
+                    'from old data.  Please reevaluate cell.')
 
         if len(images) == 0:
             images = ''
@@ -2605,7 +2737,7 @@ class Cell(Cell_generic):
         if len(files) == 0:
             files = ''
         else:
-            files = ('&nbsp'*3).join(files)
+            files = ('&nbsp' * 3).join(files)
 
         files = unicode_str(files)
         images = unicode_str(images)
@@ -2638,9 +2770,12 @@ def format_exception(s0, ncols):
 
     EXAMPLES::
 
-        sage: sagenb.notebook.cell.format_exception(sagenb.notebook.cell.TRACEBACK,80)
-        '\nTraceback (click to the left of this block for traceback)\n...\nTraceback (most recent call last):'
-        sage: sagenb.notebook.cell.format_exception(sagenb.notebook.cell.TRACEBACK + "notracebacks",80)
+        sage: sagenb.notebook.cell.format_exception(
+            sagenb.notebook.cell.TRACEBACK,80)
+        '\nTraceback (click to the left of this block for traceback)\n...\n
+        Traceback (most recent call last):'
+        sage: sagenb.notebook.cell.format_exception(
+            sagenb.notebook.cell.TRACEBACK + "notracebacks",80)
         'Traceback (most recent call last):notracebacks'
     """
     s = s0.lstrip()

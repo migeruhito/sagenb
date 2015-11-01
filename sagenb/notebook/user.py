@@ -15,6 +15,7 @@ from . import user_conf
 
 SALT = 'aa'
 
+
 def User_from_basic(basic):
     """
     Create a user from a basic data structure.
@@ -24,6 +25,7 @@ def User_from_basic(basic):
     user._conf = user_conf.UserConfiguration_from_basic(user._conf)
     return user
 
+
 def generate_salt():
     """
     Returns a salt for use in hashing.
@@ -32,13 +34,16 @@ def generate_salt():
 
 
 class User(object):
-    def __init__(self, username, password='', email='', account_type='admin', external_auth=None):
+
+    def __init__(self, username, password='', email='', account_type='admin',
+                 external_auth=None):
         self._username = username
         self.set_password(password)
         self._email = email
         self._email_confirmed = False
-        if not account_type in ['admin', 'user', 'guest']:
-            raise ValueError("account type must be one of admin, user, or guest")
+        if account_type not in ['admin', 'user', 'guest']:
+            raise ValueError(
+                "account type must be one of admin, user, or guest")
         self._account_type = account_type
         self._external_auth = external_auth
         self._conf = user_conf.UserConfiguration()
@@ -63,14 +68,16 @@ class User(object):
     def __getstate__(self):
         d = copy.copy(self.__dict__)
 
-        # Some old worksheets have this attribute, which we do *not* want to save.
-        if d.has_key('history'):
+        # Some old worksheets have this attribute, which we do *not* want to
+        # save.
+        if 'history' in d:
             try:
                 self.save_history()
                 del d['history']
             except Exception, msg:
                 print msg
-                print "Unable to dump history of user %s to disk yet."%self._username
+                print("Unable to dump history of user %s to disk yet." %
+                      self._username)
         return d
 
     def basic(self):
@@ -78,7 +85,8 @@ class User(object):
         Return a basic Python data structure from which self can be
         reconstructed.
         """
-        d = dict([ (x[1:],y) for x,y in self.__dict__.iteritems() if x[0]=='_'])
+        d = dict([(x[1:], y)
+                  for x, y in self.__dict__.iteritems() if x[0] == '_'])
         d['conf'] = self._conf.basic()
         return d
 
@@ -86,13 +94,15 @@ class User(object):
         try:
             return self.history
         except AttributeError:
-            if misc.notebook is None: return []
-            history_file = "%s/worksheets/%s/history.sobj"%(misc.notebook.directory(), self._username)
+            if misc.notebook is None:
+                return []
+            history_file = "%s/worksheets/%s/history.sobj" % (
+                misc.notebook.directory(), self._username)
             if os.path.exists(history_file):
                 try:
                     self.history = cPickle.load(open(history_file))
                 except:
-                    print "Error loading history for user %s"%self._username
+                    print "Error loading history for user %s" % self._username
                     self.history = []
             else:
                 self.history = []
@@ -101,10 +111,13 @@ class User(object):
     def save_history(self):
         if not hasattr(self, 'history'):
             return
-        if misc.notebook is None: return
-        history_file = "%s/worksheets/%s/history.sobj"%(misc.notebook.directory(), self._username)
+        if misc.notebook is None:
+            return
+        history_file = "%s/worksheets/%s/history.sobj" % (
+            misc.notebook.directory(), self._username)
         try:
-            #print "Dumping %s history to '%s'"%(self.__username, history_file)
+            # print "Dumping %s history to '%s'"%(self.__username,
+            # history_file)
             his = cPickle.dumps(self.history)
         except AttributeError:
             his = cPickle.dumps([])
@@ -116,11 +129,14 @@ class User(object):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: User('andrew', 'tEir&tiwk!', 'andrew@matrixstuff.com', 'user').username()
+            sage: User('andrew', 'tEir&tiwk!', 'andrew@matrixstuff.com',
+                       'user').username()
             'andrew'
-            sage: User('sarah', 'Miaasc!', 'sarah@ellipticcurves.org', 'user').username()
+            sage: User('sarah', 'Miaasc!', 'sarah@ellipticcurves.org',
+                       'user').username()
             'sarah'
-            sage: User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin').username()
+            sage: User('bob', 'Aisfa!!', 'bob@sagemath.net',
+                       'admin').username()
             'bob'
         """
         return self._username
@@ -131,7 +147,8 @@ class User(object):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: User('andrew', 'tEir&tiwk!', 'andrew@matrixstuff.com', 'user').password() #random
+            sage: User('andrew', 'tEir&tiwk!', 'andrew@matrixstuff.com',
+                       'user').password() #random
         """
         return self._password
 
@@ -143,7 +160,8 @@ class User(object):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: config = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin').conf(); config
+            sage: config = User('bob', 'Aisfa!!', 'bob@sagemath.net',
+                                'admin').conf(); config
             Configuration: {}
             sage: config['max_history_length']
             1000
@@ -174,12 +192,13 @@ class User(object):
             True
         """
         if password == '':
-            self._password = 'x'   # won't get as a password -- i.e., this account is closed.
+            # won't get as a password -- i.e., this account is closed.
+            self._password = 'x'
         else:
             if encrypt:
                 salt = generate_salt()
-                self._password = 'sha256${0}${1}'.format(salt,
-                                                         hashlib.sha256(salt + password).hexdigest())
+                self._password = 'sha256${0}${1}'.format(
+                    salt, hashlib.sha256(salt + password).hexdigest())
             else:
                 self._password = password
             self._temporary_password = ''

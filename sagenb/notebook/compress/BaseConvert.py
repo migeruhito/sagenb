@@ -22,34 +22,36 @@
 # @License              GNU General Public License (GPL)
 from __future__ import absolute_import
 
+
 class BaseConvert:
 
-	__base = ""
-	__baseLength = 0
+    __base = ""
+    __baseLength = 0
 
-	def __init__(self, __base):
-		self.__base = __base
-		self.__baseLength = len(__base)
+    def __init__(self, __base):
+        self.__base = __base
+        self.__baseLength = len(__base)
 
-	def toBase(self, num):
-		module = 0
-		result = ""
-		while num != 0:
-			module = num % self.__baseLength
-			result = self.__base[module] + result
-			num = int((num - module) / self.__baseLength)
-		if result == "":
-			result = self.__base[0]
-		return result
+    def toBase(self, num):
+        module = 0
+        result = ""
+        while num != 0:
+            module = num % self.__baseLength
+            result = self.__base[module] + result
+            num = int((num - module) / self.__baseLength)
+        if result == "":
+            result = self.__base[0]
+        return result
 
-
-	def fromBase(self, str):
-		pos = 0
-		strLen = len(str) - 1
-		result = 0
-		while pos < strLen:
-			result = result + (pow(self.__baseLength, strLen - pos) * self.__base.find(str[pos]))
-			pos = pos + 1
-		if strLen >= 0:
-			result = result + self.__base.find(str[pos])
-		return result;
+    def fromBase(self, str):
+        pos = 0
+        strLen = len(str) - 1
+        result = 0
+        while pos < strLen:
+            result = result + \
+                (pow(self.__baseLength, strLen - pos)
+                 * self.__base.find(str[pos]))
+            pos = pos + 1
+        if strLen >= 0:
+            result = result + self.__base.find(str[pos])
+        return result

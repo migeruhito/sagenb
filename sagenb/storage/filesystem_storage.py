@@ -58,6 +58,7 @@ from sagenb.notebook.worksheet import Worksheet_from_basic
 
 from .abstract_storage import Datastore
 
+
 def is_safe(a):
     """
     Used when importing contents of various directories from Sage
@@ -72,6 +73,7 @@ def is_safe(a):
 
 
 class FilesystemDatastore(Datastore):
+
     def __init__(self, path):
         """
         INPUT:
@@ -95,14 +97,15 @@ class FilesystemDatastore(Datastore):
         self._readonly = None
 
     def __repr__(self):
-        return "Filesystem Sage Notebook Datastore at %s"%self._path
+        return "Filesystem Sage Notebook Datastore at %s" % self._path
 
     #########################################################################
     # Paths
     #########################################################################
     def _makepath(self, path):
         p = self._abspath(path)
-        if not os.path.exists(p): os.makedirs(p)
+        if not os.path.exists(p):
+            os.makedirs(p)
         return path
 
     def _deep_user_path(self, username):
@@ -117,7 +120,8 @@ class FilesystemDatastore(Datastore):
         # where username is None, and if we don't string it here,
         # saving can be broken (at a bad moment!).
 
-        # There are also some cases where the username could have unicode in it.
+        # There are also some cases where the username could have unicode in
+        # it.
         username = str(username)
         path = self._abspath(os.path.join(self._home_path, username))
         if not os.path.islink(path):
@@ -128,10 +132,10 @@ class FilesystemDatastore(Datastore):
             os.chdir(self._abspath(self._home_path))
             new_path = self._deep_user_path(username)
 
-            #Move the directory to the __store__ directory
+            # Move the directory to the __store__ directory
             os.rename(path, new_path)
 
-            #new_path now points to the actual directory
+            # new_path now points to the actual directory
             os.symlink(new_path, username)
             os.chdir(old_dir)
 
@@ -146,10 +150,12 @@ class FilesystemDatastore(Datastore):
         return self._makepath(self._worksheet_pathname(username, id_number))
 
     def _worksheet_conf_filename(self, username, id_number):
-        return os.path.join(self._worksheet_path(username, id_number), 'worksheet_conf.pickle')
+        return os.path.join(
+            self._worksheet_path(username, id_number), 'worksheet_conf.pickle')
 
     def _worksheet_html_filename(self, username, id_number):
-        return os.path.join(self._worksheet_path(username, id_number), 'worksheet.html')
+        return os.path.join(
+            self._worksheet_path(username, id_number), 'worksheet.html')
 
     def _history_filename(self, username):
         return os.path.join(self._user_path(username), 'history.pickle')
@@ -186,7 +192,8 @@ class FilesystemDatastore(Datastore):
 
         Check that interrupting ``_save`` is safe::
 
-            sage: from sagenb.storage.filesystem_storage import FilesystemDatastore
+            sage: from sagenb.storage.filesystem_storage import (
+                FilesystemDatastore)
             sage: D = FilesystemDatastore("")
             sage: fn = tmp_filename()
             sage: s = "X" * 100000
@@ -221,7 +228,8 @@ class FilesystemDatastore(Datastore):
         return dict([(name, User_from_basic(basic)) for name, basic in obj])
 
     def _users_to_basic(self, users):
-        new = list(sorted([[name, U.basic()] for name, U in users.iteritems()]))
+        new = list(sorted([[name, U.basic()]
+                           for name, U in users.iteritems()]))
         return new
 
     def _basic_to_server_conf(self, obj):
@@ -285,7 +293,8 @@ class FilesystemDatastore(Datastore):
             sage: from sagenb.notebook.user import User
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
-            sage: users = {'admin':User('admin','abc','a@b.c','admin'), 'wstein':User('wstein','xyz','b@c.d','user')}
+            sage: users = {'admin':User('admin','abc','a@b.c','admin'),
+                           'wstein':User('wstein','xyz','b@c.d','user')}
             sage: from sagenb.storage import FilesystemDatastore
             sage: ds = FilesystemDatastore(tmp_dir())
             sage: ds.save_users(users)
@@ -295,9 +304,11 @@ class FilesystemDatastore(Datastore):
             sage: U.users()
             {'admin': admin, 'wstein': wstein}
         """
-        for user in self._basic_to_users(self._load('users.pickle')).itervalues():
+        for user in self._basic_to_users(
+                self._load('users.pickle')).itervalues():
             user_manager.add_user_object(user, force=True)
-            user_manager.set_password(user.username(), user.password(), encrypt = False)
+            user_manager.set_password(
+                user.username(), user.password(), encrypt=False)
         return user_manager
 
     def save_users(self, users):
@@ -311,7 +322,8 @@ class FilesystemDatastore(Datastore):
             sage: from sagenb.notebook.user import User
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
-            sage: users = {'admin':User('admin','abc','a@b.c','admin'), 'wstein':User('wstein','xyz','b@c.d','user')}
+            sage: users = {'admin':User('admin','abc','a@b.c','admin'),
+                           'wstein':User('wstein','xyz','b@c.d','user')}
             sage: from sagenb.storage import FilesystemDatastore
             sage: ds = FilesystemDatastore(tmp_dir())
             sage: ds.save_users(users)
@@ -373,11 +385,14 @@ class FilesystemDatastore(Datastore):
             sage: DS = FilesystemDatastore(tmp)
             sage: DS.save_worksheet(W)
         """
-        username = worksheet.owner(); id_number = worksheet.id_number()
+        username = worksheet.owner()
+        id_number = worksheet.id_number()
         basic = self._worksheet_to_basic(worksheet)
-        if not hasattr(worksheet, '_last_basic') or worksheet._last_basic != basic:
+        if not hasattr(
+                worksheet, '_last_basic') or worksheet._last_basic != basic:
             # only save if changed
-            self._save(basic, self._worksheet_conf_filename(username, id_number))
+            self._save(basic, self._worksheet_conf_filename(
+                username, id_number))
             worksheet._last_basic = basic
         if not conf_only and worksheet.body_is_loaded():
             # only save if loaded
@@ -405,10 +420,12 @@ class FilesystemDatastore(Datastore):
         filename = self._worksheet_html_filename(username, id_number)
         html_file = self._abspath(filename)
         if os.path.exists(html_file):
-            raise ValueError("Worksheet %s/%s already exists"%(username, id_number))
+            raise ValueError("Worksheet %s/%s already exists" %
+                             (username, id_number))
 
         # We create the worksheet
-        W = self._basic_to_worksheet({'owner':username, 'id_number':id_number})
+        W = self._basic_to_worksheet(
+            {'owner': username, 'id_number': id_number})
         W.clear()
         return W
 
@@ -433,30 +450,37 @@ class FilesystemDatastore(Datastore):
         # self.__worksheet_html_filename
         dirname = self._worksheet_pathname(username, id_number)
         if not os.path.exists(dirname):
-            raise ValueError("Worksheet %s/%s does not exist"%(username, id_number))
+            raise ValueError("Worksheet %s/%s does not exist" %
+                             (username, id_number))
 
         filename = self._worksheet_html_filename(username, id_number)
         html_file = self._abspath(filename)
         if not os.path.exists(html_file):
-            raise ValueError("Worksheet %s/%s does not exist"%(username, id_number))
+            raise ValueError("Worksheet %s/%s does not exist" %
+                             (username, id_number))
 
         try:
-            basic = self._load(self._worksheet_conf_filename(username, id_number))
+            basic = self._load(
+                self._worksheet_conf_filename(username, id_number))
             basic['owner'] = username
             basic['id_number'] = id_number
             W = self._basic_to_worksheet(basic)
             W._last_basic = basic   # cache
         except Exception:
-            #the worksheet conf loading didn't work, so we make up one
-            print "Warning: problem loading config for %s/%s; using default config: %s"%(username, id_number, traceback.format_exc())
-            W = self._basic_to_worksheet({'owner':username, 'id_number': id_number})
-            if username=='_sage_':
-                # save the default configuration, since this may be loaded by a random other user
-                # since *anyone* looking at docs will load all _sage_ worksheets
-                print "Saving default configuration (overwriting corrupt configuration) for %s/%s"%(username, id_number)
+            # the worksheet conf loading didn't work, so we make up one
+            print("Warning: problem loading config for %s/%s; using default "
+                  "config: %s" % (
+                      username, id_number, traceback.format_exc()))
+            W = self._basic_to_worksheet(
+                {'owner': username, 'id_number': id_number})
+            if username == '_sage_':
+                # save the default configuration, since this may be loaded by a
+                # random other user since *anyone* looking at docs will load
+                # all _sage_ worksheets
+                print("Saving default configuration (overwriting corrupt "
+                      "configuration) for %s/%s" % (username, id_number))
                 self.save_worksheet(W, conf_only=True)
         return W
-
 
     def export_worksheet(self, username, id_number, filename, title):
         """
@@ -476,84 +500,94 @@ class FilesystemDatastore(Datastore):
             basic['name'] = title
         basic['name'] = encoded_str(basic['name'])
         # Remove metainformation that perhaps shouldn't be distributed
-        for k in ['owner', 'ratings', 'worksheet_that_was_published', 'viewers', 'tags', 'published_id_number',
+        for k in ['owner', 'ratings', 'worksheet_that_was_published',
+                  'viewers', 'tags', 'published_id_number',
                   'collaborators', 'auto_publish']:
-            if basic.has_key(k):
+            if k in basic:
                 del basic[k]
 
-        self._save(basic, self._worksheet_conf_filename(username, id_number) + '2')
-        tmp = self._abspath(self._worksheet_conf_filename(username, id_number) + '2')
-        T.add(tmp, os.path.join('sage_worksheet','worksheet_conf.pickle'))
+        self._save(basic, self._worksheet_conf_filename(
+            username, id_number) + '2')
+        tmp = self._abspath(self._worksheet_conf_filename(
+            username, id_number) + '2')
+        T.add(tmp, os.path.join('sage_worksheet', 'worksheet_conf.pickle'))
         os.unlink(tmp)
 
-        worksheet_html = self._abspath(self._worksheet_html_filename(username, id_number))
-        T.add(worksheet_html, os.path.join('sage_worksheet','worksheet.html'))
+        worksheet_html = self._abspath(
+            self._worksheet_html_filename(username, id_number))
+        T.add(worksheet_html, os.path.join('sage_worksheet', 'worksheet.html'))
 
         # The following is purely for backwards compatibility with old
         # notebook servers prior to sage-4.1.2.
-        fd, worksheet_txt =  tempfile.mkstemp()
-        old_heading = "%s\nsystem:%s\n"%(basic['name'], basic['system'])
-        with open(worksheet_txt,'w') as f:
+        fd, worksheet_txt = tempfile.mkstemp()
+        old_heading = "%s\nsystem:%s\n" % (basic['name'], basic['system'])
+        with open(worksheet_txt, 'w') as f:
             with open(worksheet_html) as g:
                 f.write(old_heading + g.read())
         T.add(worksheet_txt,
-              os.path.join('sage_worksheet','worksheet.txt'))
+              os.path.join('sage_worksheet', 'worksheet.txt'))
         os.unlink(worksheet_txt)
         # important, so we don't leave an open file handle!
         os.close(fd)
         # end backwards compat block.
-
 
         # Add the contents of the DATA directory
         path = self._abspath(self._worksheet_pathname(username, id_number))
         data = os.path.join(path, 'data')
         if os.path.exists(data):
             for X in os.listdir(data):
-                T.add(os.path.join(data, X), os.path.join('sage_worksheet','data',X))
+                T.add(os.path.join(data, X), os.path.join(
+                    'sage_worksheet', 'data', X))
 
         # Add the contents of each of the cell directories.
         cells = os.path.join(path, 'cells')
         if os.path.exists(cells):
             for X in os.listdir(cells):
-                T.add(os.path.join(cells, X), os.path.join('sage_worksheet','cells',X))
+                T.add(os.path.join(cells, X), os.path.join(
+                    'sage_worksheet', 'cells', X))
 
         # NOTE: We do not export the snapshot/undo data.  People
         # frequently *complain* about Sage exporting a record of their
         # mistakes anyways.
         T.close()
 
-
     def _import_old_worksheet(self, username, id_number, filename):
         """
         Import a worksheet from an old version of Sage.
         """
         T = tarfile.open(filename, 'r:bz2')
-        members = [a for a in T.getmembers() if 'worksheet.txt' in a.name and is_safe(a.name)]
+        members = [a for a in T.getmembers(
+        ) if 'worksheet.txt' in a.name and is_safe(a.name)]
         if len(members) == 0:
-            raise RuntimeError, "unable to import worksheet"
+            raise RuntimeError("unable to import worksheet")
 
         worksheet_txt = members[0].name
         W = self.load_worksheet(username, id_number)
-        W.edit_save_old_format(T.extractfile(worksheet_txt).read().decode('utf-8', 'ignore'))
+        W.edit_save_old_format(T.extractfile(
+            worksheet_txt).read().decode('utf-8', 'ignore'))
         # '/' is right, since old worksheets always unix
         dir = worksheet_txt.split('/')[0]
 
         path = self._abspath(self._worksheet_pathname(username, id_number))
 
-        base = os.path.join(dir,'data')
-        members = [a for a in T.getmembers() if a.name.startswith(base) and is_safe(a.name)]
+        base = os.path.join(dir, 'data')
+        members = [a for a in T.getmembers() if a.name.startswith(base) and
+                   is_safe(a.name)]
         if len(members) > 0:
             T.extractall(path, members)
             dest = os.path.join(path, 'data')
-            if os.path.exists(dest): shutil.rmtree(dest)
-            shutil.move(os.path.join(path,base), path)
+            if os.path.exists(dest):
+                shutil.rmtree(dest)
+            shutil.move(os.path.join(path, base), path)
 
-        base = os.path.join(dir,'cells')
-        members = [a for a in T.getmembers() if a.name.startswith(base) and is_safe(a.name)]
+        base = os.path.join(dir, 'cells')
+        members = [a for a in T.getmembers() if a.name.startswith(base) and
+                   is_safe(a.name)]
         if len(members) > 0:
             T.extractall(path, members)
             dest = os.path.join(path, 'cells')
-            if os.path.exists(dest): shutil.rmtree(dest)
+            if os.path.exists(dest):
+                shutil.rmtree(dest)
             shutil.move(os.path.join(path, base), path)
 
         tmp = os.path.join(path, dir)
@@ -563,7 +597,6 @@ class FilesystemDatastore(Datastore):
         T.close()
 
         return W
-
 
     def import_worksheet(self, username, id_number, filename):
         """
@@ -576,24 +609,30 @@ class FilesystemDatastore(Datastore):
         os.makedirs(path)
         T = tarfile.open(filename, 'r:bz2')
         try:
-            with open(self._abspath(self._worksheet_conf_filename(username, id_number)),'w') as f:
-                f.write(T.extractfile(os.path.join('sage_worksheet','worksheet_conf.pickle')).read())
+            with open(self._abspath(self._worksheet_conf_filename(
+                    username, id_number)), 'w') as f:
+                f.write(T.extractfile(os.path.join(
+                    'sage_worksheet', 'worksheet_conf.pickle')).read())
         except KeyError:
             # Not a valid worksheet.  This might mean it is an old
             # worksheet from a previous version of Sage.
             return self._import_old_worksheet(username, id_number, filename)
 
-        with open(self._abspath(self._worksheet_html_filename(username, id_number)),'w') as f:
-            f.write(T.extractfile(os.path.join('sage_worksheet','worksheet.html')).read())
+        with open(self._abspath(self._worksheet_html_filename(
+                username, id_number)), 'w') as f:
+            f.write(T.extractfile(os.path.join(
+                'sage_worksheet', 'worksheet.html')).read())
 
-        base = os.path.join('sage_worksheet','data')
-        members = [a for a in T.getmembers() if a.name.startswith(base) and is_safe(a.name)]
+        base = os.path.join('sage_worksheet', 'data')
+        members = [a for a in T.getmembers() if a.name.startswith(base) and
+                   is_safe(a.name)]
         if len(members) > 0:
             T.extractall(path, members)
-            shutil.move(os.path.join(path,base), path)
+            shutil.move(os.path.join(path, base), path)
 
-        base = os.path.join('sage_worksheet','cells')
-        members = [a for a in T.getmembers() if a.name.startswith(base) and is_safe(a.name)]
+        base = os.path.join('sage_worksheet', 'cells')
+        members = [a for a in T.getmembers() if a.name.startswith(base) and
+                   is_safe(a.name)]
         if len(members) > 0:
             T.extractall(path, members)
             shutil.move(os.path.join(path, base), path)
@@ -628,14 +667,16 @@ class FilesystemDatastore(Datastore):
             [sageuser/2: [Cell 0: in=, out=]]
         """
         path = self._abspath(self._user_path(username))
-        if not os.path.exists(path): return []
+        if not os.path.exists(path):
+            return []
         v = []
         for id_number in os.listdir(path):
             if id_number.isdigit():
                 try:
                     v.append(self.load_worksheet(username, int(id_number)))
                 except Exception:
-                    print "Warning: problem loading %s/%s: %s"%(username, id_number, traceback.format_exc())
+                    print("Warning: problem loading %s/%s: %s" % (
+                        username, id_number, traceback.format_exc()))
         return v
 
     def readonly_user(self, username):
@@ -648,7 +689,8 @@ class FilesystemDatastore(Datastore):
         mtime = os.path.getmtime(filename)
         if mtime > self._readonly_mtime:
             with open(filename) as f:
-                self._readonly = set(line for line in (l.strip() for l in f) if len(line)>0)
+                self._readonly = set(
+                    line for line in (l.strip() for l in f) if len(line) > 0)
             self._readonly_mtime = mtime
         return username in self._readonly
 
@@ -658,7 +700,6 @@ class FilesystemDatastore(Datastore):
         This is only here because it is useful for doctesting.
         """
         shutil.rmtree(self._path, ignore_errors=True)
-
 
 
 ##############################################################################
@@ -695,15 +736,16 @@ class FilesystemDatastore(Datastore):
 # sage: from yaml import load, dump
 # sage: from yaml import CLoader as Loader
 # sage: from yaml import CDumper as Dumper
-# sage: timeit('yaml.load(yaml.dump(b,Dumper=Dumper),Loader=Loader)')   # c++ yaml
+# sage: timeit(
+#           'yaml.load(yaml.dump(b,Dumper=Dumper),Loader=Loader)')   # c++ yaml
 # 125 loops, best of 3: 1.77 ms per loop
 #
 # Other problems: json.load(json.dump(b)) != b, because of unicode and
 # all kinds of weirdness
-# Yaml C library is hard to install; and yaml itself is not included in python (json is).
-# Anyway, the difference between 2-13ms and 52 microseconds is significant.
-# At 2ms, 100,000 worksheets takes 200 seconds, versus only 5 seconds
-# at 52 microseconds.  cPickle just can't be beat.
+# Yaml C library is hard to install; and yaml itself is not included in python
+# (json is).  Anyway, the difference between 2-13ms and 52 microseconds is
+# significant.  At 2ms, 100,000 worksheets takes 200 seconds, versus only 5
+# seconds at 52 microseconds.  cPickle just can't be beat.
 #
 # NOTE!  Actually simplejson does just as well at cPickle for this benchmark.
 #        Thanks to Mitesh Patel for pointing this out.

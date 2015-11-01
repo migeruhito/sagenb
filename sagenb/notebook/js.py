@@ -48,6 +48,8 @@ SAGE_ROOT = import_from('sage.env', 'SAGE_ROOT')
 debug_mode = SAGE_ROOT is None or not sagenb_path.startswith(SAGE_ROOT)
 
 _cache_javascript = None
+
+
 def javascript():
     """
     Return javascript library for the Sage Notebook.  This is done by
@@ -111,7 +113,7 @@ class JSKeyHandler:
     """
 
     def __init__(self):
-        self.key_codes = {};
+        self.key_codes = {}
 
     def set(self, name, key='', alt=False, ctrl=False, shift=False):
         """
@@ -121,7 +123,7 @@ class JSKeyHandler:
         true if the keycode numbered by the ``key`` parameter was
         pressed with the appropriate modifier keys, false otherwise.
         """
-        self.key_codes.setdefault(name,[])
+        self.key_codes.setdefault(name, [])
         self.key_codes[name] = [JSKeyCode(key, alt, ctrl, shift)]
 
     def add(self, name, key='', alt=False, ctrl=False, shift=False):
@@ -135,8 +137,8 @@ class JSKeyHandler:
         try:
             self.key_codes[name]
         except KeyError:
-            self.key_codes.setdefault(name,[])
-        self.key_codes[name].append(JSKeyCode(key,alt,ctrl,shift))
+            self.key_codes.setdefault(name, [])
+        self.key_codes[name].append(JSKeyCode(key, alt, ctrl, shift))
 
     def all_tests(self):
         """
@@ -146,11 +148,12 @@ class JSKeyHandler:
         tests = ''
         for name, keys in self.key_codes.items():
             value = "\n||".join([k.js_test() for k in keys])
-            tests += " function key_%s(e) {\n  return %s;\n}"%(name, value)
+            tests += " function key_%s(e) {\n  return %s;\n}" % (name, value)
         return tests
 
 
 class JSKeyCode:
+
     def __init__(self, key, alt, ctrl, shift):
         global key_codes
         self.key = key
@@ -161,19 +164,10 @@ class JSKeyCode:
     def js_test(self):
         v = 0
         if self.alt:
-            v+=1
+            v += 1
         if self.ctrl:
-            v+=2
+            v += 2
         if self.shift:
-            v+=4
-        t = "((e.m==%s)&&(e.v==%s))"%(self.key,v)
+            v += 4
+        t = "((e.m==%s)&&(e.v==%s))" % (self.key, v)
         return t
-
-
-
-
-
-
-
-
-

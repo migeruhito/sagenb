@@ -4,7 +4,8 @@ from __future__ import absolute_import
 
 class Applet:
 
-    def __init__(self, id, code, archive, codebase="", width=400, height=400, params={}):
+    def __init__(self, id, code, archive, codebase="", width=400, height=400,
+                 params={}):
         self.id = id
         self.code = code
         self.archive = archive
@@ -14,17 +15,16 @@ class Applet:
         self.codebase = "/java/" + codebase
 
     def html_tag(self):
-        params_text = "\n".join(["""<param name="%s" value="%s"/>""" % x for x in self.params.iteritems()])
-        tag = """
-        <applet id="%s", code="%s" width="%s" height="%s" codebase="%s" archive="%s" MAYSCRIPT>
-          %s
-        </applet>
-        """ % (self.id,
-               self.code,
-               self.width,
-               self.height,
-               self.codebase,
-               ",".join(self.archive),
-               params_text)
+        params_text = "\n".join(
+            ["""<param name="%s" value="%s"/>""" % x
+                for x in self.params.iteritems()])
+        tag = ('<applet id="%s", code="%s" width="%s" height="%s" '
+               'codebase="%s" archive="%s" MAYSCRIPT>\n%s\n </applet>' % (
+                   self.id,
+                   self.code,
+                   self.width,
+                   self.height,
+                   self.codebase,
+                   ','.join(self.archive),
+                   params_text))
         return tag
-

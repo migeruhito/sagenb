@@ -7,7 +7,9 @@ from . import user
 
 SALT = 'aa'
 
+
 class UserManager(object):
+
     def __init__(self, accounts=False):
         """
         EXAMPLES:
@@ -62,18 +64,19 @@ class UserManager(object):
 
     def users(self):
         """
-        Returns a dictionary whose keys are the usernames and whose values are the
-        corresponding users.
+        Returns a dictionary whose keys are the usernames and whose values are
+        the corresponding users.
 
-        Note that these are just the users that have logged into the notebook and are
-        note necessarily all of the valid users.
+        Note that these are just the users that have logged into the notebook
+        and are note necessarily all of the valid users.
 
         EXAMPLES:
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
             sage: U.create_default_users('password')
             sage: list(sorted(U.users().items()))
-            [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
+            [('_sage_', _sage_), ('admin', admin), ('guest', guest),
+             ('pub', pub)]
         """
         return self._users
 
@@ -81,10 +84,11 @@ class UserManager(object):
         """
         Returns a user object for the user username.
 
-        This first checks to see if a user with username has been seen before and is in
-        the users dictionary.  If such a user is found, then that object is returned.
-        Otherwise, the underscore _user method is tried.  This is the method that subclasses
-        should override to provide custom user functionality.
+        This first checks to see if a user with username has been seen before
+        and is in the users dictionary.  If such a user is found, then that
+        object is returned.  Otherwise, the underscore _user method is tried.
+        This is the method that subclasses should override to provide custom
+        user functionality.
 
         EXAMPLES::
 
@@ -107,7 +111,7 @@ class UserManager(object):
             ValueError: no user 'hello/'
         """
         if not isinstance(username, (str, unicode)) or '/' in username:
-            raise ValueError, "no user '%s'"%username
+            raise ValueError("no user '%s'" % username)
         if username in self.users():
             return self.users()[username]
 
@@ -122,15 +126,18 @@ class UserManager(object):
         """
         Return a list of users that can log in.
         """
-        return [x for x in self.usernames() if not x in ['guest', '_sage_', 'pub']]
+        return [x for x in self.usernames() if x not in ['guest', '_sage_',
+                                                         'pub']]
 
     def user_exists(self, username):
         """
-        Returns True if and only if the user \emph{username} has signed in before.
+        Returns True if and only if the user \emph{username} has signed in
+        before.
 
-        Note that this should not be used to check to see if a username is valid since
-        there are UserManager backends (such as LDAP) where we could have many valid usernames, but
-        not all of them will have actually logged into the notebook.
+        Note that this should not be used to check to see if a username is
+        valid since there are UserManager backends (such as LDAP) where we
+        could have many valid usernames, but not all of them will have actually
+        logged into the notebook.
 
         EXAMPLES:
             sage: from sagenb.notebook.user_manager import SimpleUserManager
@@ -190,8 +197,8 @@ class UserManager(object):
 
     def create_default_users(self, passwd, verbose=False):
         """
-        Creates the default users (pub, _sage_, guest, and admin) in the current
-        notebook.
+        Creates the default users (pub, _sage_, guest, and admin) in the
+        current notebook.
 
         EXAMPLES:
             sage: from sagenb.notebook.user_manager import SimpleUserManager
@@ -255,7 +262,7 @@ class UserManager(object):
             False
         """
         if value not in [True, False]:
-            raise ValueError, "accounts must be True or False"
+            raise ValueError("accounts must be True or False")
         self._accounts = value
 
     def get_accounts(self):
@@ -274,8 +281,8 @@ class UserManager(object):
         """
         return self._accounts
 
-
-    def add_user(self, username, password, email, account_type="user", external_auth=None, force=False):
+    def add_user(self, username, password, email, account_type="user",
+                 external_auth=None, force=False):
         """
         Adds a new user to the user dictionary.
 
@@ -288,19 +295,22 @@ class UserManager(object):
         EXAMPLES:
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
-            sage: U.add_user('william', 'password', 'email@address.com', account_type='admin')
+            sage: U.add_user(
+            'william', 'password', 'email@address.com', account_type='admin')
             sage: U.set_accounts(True)
-            sage: U.add_user('william', 'password', 'email@address.com', account_type='admin')
-            WARNING: User 'william' already exists -- and is now being replaced.
+            sage: U.add_user(
+            'william', 'password', 'email@address.com', account_type='admin')
+           WARNING: User 'william' already exists -- and is now being replaced.
             sage: U.user('william')
             william
         """
         if not self.get_accounts() and not force:
-            raise ValueError, "creating new accounts disabled."
+            raise ValueError("creating new accounts disabled.")
 
         us = self.users()
-        if us.has_key(username):
-            print "WARNING: User '%s' already exists -- and is now being replaced."%username
+        if username in us:
+            print("WARNING: User '%s' already exists -- and is now being "
+                  "replaced." % username)
         U = user.User(username, password, email, account_type, external_auth)
         us[username] = U
         self.set_password(username, password)
@@ -316,23 +326,28 @@ class UserManager(object):
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: from sagenb.notebook.user import User
             sage: U = SimpleUserManager()
-            sage: user = User('william', 'password', 'email@address.com', account_type='admin')
+            sage: user = User(
+                'william', 'password', 'email@address.com',
+                account_type='admin')
             sage: U.add_user_object(user)
             sage: U.set_accounts(True)
             sage: U.add_user_object(user)
-            WARNING: User 'william' already exists -- and is now being replaced.
+           WARNING: User 'william' already exists -- and is now being replaced.
             sage: U.user('william')
             william
         """
         if not self.get_accounts() and not force:
-            raise ValueError, "creating new accounts disabled."
+            raise ValueError("creating new accounts disabled.")
         us = self.users()
-        if us.has_key(user.username()):
-            print "WARNING: User '%s' already exists -- and is now being replaced."%user.username()
+        if user.username() in us:
+            print("WARNING: User '%s' already exists -- and is now being "
+                  "replaced." % user.username())
 
         self._users[user.username()] = user
 
+
 class SimpleUserManager(UserManager):
+
     def __init__(self, accounts=True, conf=None):
         """
         EXAMPLES:
@@ -421,8 +436,7 @@ class SimpleUserManager(UserManager):
             return self.users()[username]
         raise LookupError("no user '{}'".format(username))
 
-
-    def set_password(self, username, new_password, encrypt = True):
+    def set_password(self, username, new_password, encrypt=True):
         """
         EXAMPLES:
             sage: from sagenb.notebook.user_manager import SimpleUserManager
@@ -433,19 +447,22 @@ class SimpleUserManager(UserManager):
             sage: U.set_password('admin', 'password')
             sage: U.check_password('admin','password')
             True
-            sage: U.set_password('admin', 'test'); U.check_password('admin','test')
+            sage: U.set_password(
+                'admin', 'test'); U.check_password('admin','test')
             True
-            sage: U.set_password('admin', 'test', encrypt=False); U.password('admin')
+            sage: U.set_password(
+                'admin', 'test', encrypt=False); U.password('admin')
             'test'
         """
         if encrypt:
             salt = user.generate_salt()
-            new_password = 'sha256${0}${1}'.format(salt,
-                                                   hashlib.sha256(salt + new_password).hexdigest())
+            new_password = 'sha256${0}${1}'.format(
+                salt, hashlib.sha256(salt + new_password).hexdigest())
         self._passwords[username] = new_password
         # need to make sure password in the user object is synced
-        # for compatibility only the user object data is stored in the 'users.pickle'
-        self.user(username).set_password(new_password, encrypt = False)
+        # for compatibility only the user object data is stored in the
+        # 'users.pickle'
+        self.user(username).set_password(new_password, encrypt=False)
 
     def passwords(self):
         """
@@ -465,7 +482,8 @@ class SimpleUserManager(UserManager):
             4
 
         """
-        return dict([(user.username(), self.password(user.username())) for user in self.user_list()])
+        return dict([(user.username(), self.password(user.username()))
+                     for user in self.user_list()])
 
     def password(self, username):
         """
@@ -485,7 +503,7 @@ class SimpleUserManager(UserManager):
             return False
         user_password = self.password(username)
         if user_password is None and not self.user(username).is_external():
-            print "User %s has None password"%username
+            print "User %s has None password" % username
             return False
         if user_password.find('$') == -1:
             if user_password == crypt.crypt(password, user.SALT):
@@ -500,7 +518,7 @@ class SimpleUserManager(UserManager):
         try:
             return self._check_password(username, password)
         except AttributeError:
-            return False;
+            return False
 
     def get_accounts(self):
         # need to use notebook's conf because those are already serialized
@@ -509,13 +527,13 @@ class SimpleUserManager(UserManager):
 
     def set_accounts(self, value):
         if value not in [True, False]:
-            raise ValueError, "accounts must be True or False"
+            raise ValueError("accounts must be True or False")
         self._accounts = value
         self._conf['accounts'] = value
 
 
-
 class ExtAuthUserManager(SimpleUserManager):
+
     def __init__(self, accounts=None, conf=None):
         SimpleUserManager.__init__(self, accounts=accounts, conf=conf)
 
@@ -537,11 +555,14 @@ class ExtAuthUserManager(SimpleUserManager):
                 u = self._auth_methods[a].check_user(username)
                 if u:
                     try:
-                        email = self._auth_methods[a].get_attrib(username, 'email')
+                        email = self._auth_methods[
+                            a].get_attrib(username, 'email')
                     except KeyError:
                         email = None
 
-                    self.add_user(username, password='', email=email, account_type='user', external_auth=a, force=True)
+                    self.add_user(username, password='', email=email,
+                                  account_type='user', external_auth=a,
+                                  force=True)
                     return self.users()[username]
 
         raise LookupError("no user '{}'".format(username))
@@ -562,7 +583,9 @@ class ExtAuthUserManager(SimpleUserManager):
 
         return False
 
+
 class OpenIDUserManager(ExtAuthUserManager):
+
     def __init__(self, accounts=True, conf=None):
         """
         Creates an user_manager that supports OpenID identities
@@ -595,8 +618,12 @@ class OpenIDUserManager(ExtAuthUserManager):
             sage: from sagenb.notebook.user_manager import OpenIDUserManager
             sage: UM = OpenIDUserManager()
             sage: UM.create_default_users('passpass')
-            sage: UM.create_new_openid('https://www.google.com/accounts/o8/id?id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14', 'thedude')
-            sage: UM.get_username_from_openid('https://www.google.com/accounts/o8/id?id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14')
+            sage: UM.create_new_openid(
+                'https://www.google.com/accounts/o8/id?'
+                'id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14', 'thedude')
+            sage: UM.get_username_from_openid(
+                'https://www.google.com/accounts/o8/id?'
+                'id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14')
             'thedude'
         """
         try:
@@ -611,8 +638,11 @@ class OpenIDUserManager(ExtAuthUserManager):
             sage: from sagenb.notebook.user_manager import OpenIDUserManager
             sage: UM = OpenIDUserManager()
             sage: UM.create_default_users('passpass')
-            sage: UM.create_new_openid('https://www.google.com/accounts/o8/id?id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14', 'thedude')
-            sage: UM.get_username_from_openid('https://www.google.com/accounts/o8/id?id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14')
+            sage: UM.create_new_openid('https://www.google.com/accounts/o8/id?'
+            'id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14', 'thedude')
+            sage: UM.get_username_from_openid(
+                'https://www.google.com/accounts/o8/id?'
+                'id=AItdaWgzjV1HJTa552549o1csTDdfeH6_bPxF14')
             'thedude'
         """
         self._openid[identity_url] = username

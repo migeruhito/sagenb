@@ -25,6 +25,7 @@ class MailMessage(MIMEMultipart):
     """
     Represents an email's data.
     """
+
     def __init__(self, fromaddr, toaddr, subject, body):
         MIMEMultipart.__init__(self)
         self['From'] = fromaddr
@@ -35,6 +36,8 @@ class MailMessage(MIMEMultipart):
         self.attach(text_part)
 
 # Make an instance of this class if you need to send an email
+
+
 class SMTPInput:
     """
     A message to be sent off to an SMTP server.
@@ -47,6 +50,7 @@ class SMTPInput:
                        Sage email sender's IP must resolve to this address.
         secret      -- Dunno?
     """
+
     def __init__(self, mail_from, rcpt, data, identity, secret=None):
 
         self._mail_from = mail_from
@@ -59,7 +63,7 @@ class SMTPInput:
         try:
             self._rcpt_domain = [(r.split('@'))[1] for r in rcpt]
         except ValueError:
-            raise ValueError, "mal-formed recipient email address"
+            raise ValueError("mal-formed recipient email address")
 
         print self._rcpt_domain
 
@@ -68,24 +72,31 @@ class SMTPInput:
         smtp_client.setServiceParent(self._app)
 
     def get_mx(self, host):
-        on_found_record = lambda rec: str(rec.name)
+        def on_found_record(rec):
+            return str(rec.name)
         # return a deffered that will call on_found_record when it's done.
         # on_found_record's return value gets passed to exchange_mail
-        return relaymanager.MXCalculator().getMX(host).addCallback(on_found_record)
+        return relaymanager.MXCalculator().getMX(host).addCallback(
+            on_found_record)
 
     def run_from(self, app):
         self._app = app
         self.get_mx(self._rcpt_domain[0]).addCallback(self.exchange_mail)
 
+
 class MailClient(smtp.ESMTPClient):
+
     def __init__(self, mesg, **kwds):
-        smtp.ESMTPClient.__init__(self,**kwds)
+        smtp.ESMTPClient.__init__(self, **kwds)
         self._mesg = mesg
 
-    # these are all overridden from the super class, and called by Twisted to do
-    # the real work
-    getMailFrom = lambda self: self._mesg._mail_from
-    getMailTo = lambda self: self._mesg._rcpt
+    # these are all overridden from the super class, and called by Twisted to
+    # do the real work
+    def getMailFrom(self):
+        return self._mesg._mail_from
+
+    def getMailTo(self):
+        return self._mesg._rcpt
 
     def getMailData(self):
         return StringIO(self._mesg._data)
@@ -95,7 +106,9 @@ class MailClient(smtp.ESMTPClient):
         print 'Sent %s messages.' % numOk
         reactor.stop()
 
+
 class SMTPClientFactory(protocol.ClientFactory):
+
     def __init__(self, mesg):
         self._mesg = mesg
         self._protocol = MailClient
@@ -106,11 +119,11 @@ class SMTPClientFactory(protocol.ClientFactory):
 
 application = service.Application("SAGE SMTP Client")
 _from = "moretti@u.math.washington.edu"
-_to =  ["wstein@gmail.com"]
+_to = ["wstein@gmail.com"]
 _id = "sage.math.washington.edu"
 subject = "Progress"
 body = \
-"""
+    """
 William,
 
 I'm sending this to you from Twisted. I think I'm ready to try to plug this in

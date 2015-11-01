@@ -12,6 +12,7 @@ logger = logging.getLogger('notification')
 
 class TwistedEmailHandler(logging.Handler):
     """Sends log messages via SMTP using a running twisted reactor."""
+
     def __init__(self, conf, level=logging.NOTSET):
         logging.Handler.__init__(self, level)
         self.conf = conf

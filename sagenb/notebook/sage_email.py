@@ -9,7 +9,8 @@ a sophisticated email server (which is part of Twisted).
 
 EXAMPLES::
 
-    sage: email('xxxsageuser@gmail.com', 'The calculation finished!')  # not tested
+    sage: email(
+        'xxxsageuser@gmail.com', 'The calculation finished!')  # not tested
     Child process ... is sending email to xxxsageuser@gmail.com
 
 AUTHOR:
@@ -28,6 +29,7 @@ import getpass
 import os
 import socket
 
+
 def default_email_address():
     """
     Get the hostname and username of the user running this
@@ -43,9 +45,11 @@ def default_email_address():
     """
     hostname = socket.gethostname()
     username = getpass.getuser()
-    return '%s@%s'%(username, hostname)
+    return '%s@%s' % (username, hostname)
 
-def email(to, subject, body = '', from_address = None, verbose = True, block = False, kill_on_exit = False):
+
+def email(to, subject, body='', from_address=None, verbose=True, block=False,
+          kill_on_exit=False):
     """
     Send an email message.
 
@@ -55,7 +59,8 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
         body         -- string (default: ''); body of the email
         from_address -- string (default: username@hostname); address
                         email will appear to be from
-        verbose      -- whether to print status information when the email is sent
+        verbose      -- whether to print status information when the email is
+                        sent
         block        -- bool (default: False); if True this function doesn't
                         return until the email is actually sent.  if
                         False, the email gets sent in a background
@@ -70,7 +75,8 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
 
     EXAMPLES::
 
-        sage: email('xxxsageuser@gmail.com', 'The calculation finished!')  # not tested
+        sage: email(
+            'xxxsageuser@gmail.com', 'The calculation finished!')  # not tested
         Child process ... is sending email to xxxsageuser@gmail.com
 
     NOTE: This function does not require configuring an email server
@@ -92,36 +98,40 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
     try:
         pid = os.fork()
     except:
-        print "Fork not possible -- the email command is not supported on this platform."
+        print("Fork not possible -- the email command is not supported on "
+              "this platform.")
         return
 
     if from_address is None:
         # Use a default email address as the from: line.
         from_address = default_email_address()
 
-    if pid: # We're the parent process
+    if pid:  # We're the parent process
         if kill_on_exit:
-            # Tell the Sage cleaner about this subprocess, just in case somehow it fails
-            # to properly quit (e.g., smtp is taking a long time), so it will get killed
-            # no matter what when sage exits.  Zombies are bad bad bad, no matter what!
+            # Tell the Sage cleaner about this subprocess, just in case somehow
+            # it fails to properly quit (e.g., smtp is taking a long time), so
+            # it will get killed no matter what when sage exits.  Zombies are
+            # bad bad bad, no matter what!
             from sagenb.misc.misc import register_with_cleaner
-            register_with_cleaner(pid)  # register pid of forked process with cleaner
+            # register pid of forked process with cleaner
+            register_with_cleaner(pid)
         if verbose:
-            print "Child process %s is sending email to %s..."%(pid,to)
+            print "Child process %s is sending email to %s..." % (pid, to)
         # Now wait for the fake subprocess to finish.
-        os.waitpid(pid,0)
+        os.waitpid(pid, 0)
         return
 
     if not block:
-        # Do a non-block sendmail, which is typically what a user wants, since it can take
-        # a while to send an email.
+        # Do a non-block sendmail, which is typically what a user wants, since
+        # it can take a while to send an email.
 
-        # Use the old "double fork" trick -- otherwise there would *definitely* be a zombie
-        # every time.  Here's a description from the web of this trick:
-        # "If you can't stand zombies, you can get rid of them with a double fork().
-        #  The forked child immediately forks again while its parent calls waitpid().
-        #  The first forked process exits, and the parent's waitpid() returns, right
-        #  away.  That leaves an orphaned process whose parent reverts to 1 ("init")."
+        # Use the old "double fork" trick -- otherwise there would *definitely*
+        # be a zombie every time.  Here's a description from the web of this
+        # trick: "If you can't stand zombies, you can get rid of them with a
+        # double fork().  The forked child immediately forks again while its
+        # parent calls waitpid().  The first forked process exits, and the
+        # parent's waitpid() returns, right away.  That leaves an orphaned
+        # process whose parent reverts to 1 ("init")."
         pid = os.fork()
         if pid:
             # OK, we're in the subprocess of the subprocess -- we
@@ -130,8 +140,9 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
             # explained above.
             if kill_on_exit:
                 from sagenb.misc.misc import register_with_cleaner
-                register_with_cleaner(pid)  # register pid of forked process with cleaner
-            os.kill(os.getpid(),9)                 # suicide
+                # register pid of forked process with cleaner
+                register_with_cleaner(pid)
+            os.kill(os.getpid(), 9)                 # suicide
 
     # Now we're the child process.  Let's do stuff with Twisetd!
     from smtpsend import send_mail, reactor
@@ -143,21 +154,21 @@ def email(to, subject, body = '', from_address = None, verbose = True, block = F
         Callback in case of a successfully sent email.
         """
         if verbose:
-            print "Successfully sent an email to %s."%to
+            print "Successfully sent an email to %s." % to
         reactor.stop()
-        os.kill(os.getpid(),9)                     # suicide
+        os.kill(os.getpid(), 9)                     # suicide
 
     def on_failure(error):
         """
         Callback in case of a failure sending an email.
         """
         if verbose:
-            print "Failed to send email to %s."%to
-            print "-"*70
+            print "Failed to send email to %s." % to
+            print "-" * 70
             print error.getErrorMessage()
-            print "-"*70
+            print "-" * 70
         reactor.stop()
-        os.kill(os.getpid(),9)                    # suicide
+        os.kill(os.getpid(), 9)                    # suicide
 
     # Finally, call the send_mail function.  This is code that sets up
     # a twisted deferred, which actually happens when we run the

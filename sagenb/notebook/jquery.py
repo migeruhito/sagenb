@@ -3,11 +3,14 @@ from __future__ import absolute_import
 
 from . import interact
 
+
 def javascript(s):
-    print '<html><script>%s</script></html>'%s
+    print '<html><script>%s</script></html>' % s
+
 
 def cell_id():
     return interact.SAGE_CELL_ID
+
 
 def draggable(option=''):
     """
@@ -17,10 +20,10 @@ def draggable(option=''):
             "enable" -- Enable the draggable functionality.
             "disable" -- Temporarily disable the draggable functionality.
     """
-    s = '$("#cell_outer_%s").draggable("%s")'%(cell_id(), option)
+    s = '$("#cell_outer_%s").draggable("%s")' % (cell_id(), option)
     javascript(s)
+
 
 def resizable():
-    s = '$("#cell_outer_%s").resizable()'%cell_id()
+    s = '$("#cell_outer_%s").resizable()' % cell_id()
     javascript(s)
-
