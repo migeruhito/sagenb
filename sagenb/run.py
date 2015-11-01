@@ -422,8 +422,7 @@ class NotebookFrontend(object):
         os.chdir(self.conf['cwd'])
 
     def werkzeug(self, flask_app):
-        with open(self.conf['pidfile'], "w") as pidfile:
-            pidfile.write(str(os.getpid()))
+        self.write_pid()
 
         if self.conf['secure']:
             try:
@@ -531,8 +530,7 @@ class NotebookFrontend(object):
         from tornado.httpserver import HTTPServer
         from tornado.ioloop import IOLoop
 
-        with open(self.conf['pidfile'], "w") as pidfile:
-            pidfile.write(str(os.getpid()))
+        self.write_pid()
 
         ssl_options = {
             'certfile': self.conf['public_pem'],
@@ -562,6 +560,10 @@ class NotebookFrontend(object):
                       self.conf['secure'],
                       '/upload_worksheet?url=file://{}'.format(
                           urllib.quote(self.conf['upload'])))
+
+    def write_pid(self):
+        with open(self.conf['pidfile'], "w") as pidfile:
+            pidfile.write(str(os.getpid()))
 
     def save_notebook(self):
         print('Quitting all running worksheets...')
