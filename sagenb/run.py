@@ -266,7 +266,7 @@ class NotebookFrontend(object):
         # First change to the directory that contains the notebook directory
         wd, directory = os.path.split(directory)
         if not wd:
-            wd = self.conf['cdw']
+            wd = self.conf['cwd']
         os.chdir(wd)
         self.conf['wd'] = wd
         self.conf['directory'] = directory
