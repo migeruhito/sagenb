@@ -402,7 +402,7 @@ class NotebookFrontend(object):
             print(
                 'There is an admin account. If you do not remember the '
                 'password,',
-                'quit the notebook and type notebook(reset=True).',
+                'quit the notebook and type `sagenb --reset`.',
                 sep='\n')
         print('Executing Sage Notebook with {} server'.format(
             self.conf['server']))
