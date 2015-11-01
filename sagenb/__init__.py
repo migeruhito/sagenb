@@ -51,19 +51,21 @@ SRC = os.path.join(SAGE_SRC, 'sage')
 # CLEAN THIS UP!
 
 
-def create_app(notebook, *args, **kwds):
+def create_app(notebook, startup_token=None, debug=False):
     """
     This is the main method to create a running notebook. This is
     called from the process spawned in run.py
     """
-    startup_token = kwds.pop('startup_token', None)
     # Create app
     app = Flask('sagenb',
                 static_folder='data', static_url_path='/static',
                 template_folder=TEMPLATE_PATH)
     app.startup_token = startup_token
     app.session_interface = OldSecureCookieSessionInterface()
+
     app.config['SESSION_COOKIE_HTTPONLY'] = False
+    app.config['PROPAGATE_EXCEPTIONS'] = debug
+    app.config['DEBUG'] = debug
 
     # Template globals
     app.add_template_global(url_for)
@@ -79,7 +81,6 @@ def create_app(notebook, *args, **kwds):
 
     app.secret_key = os.urandom(24)
     oid.init_app(app)
-    app.debug = True
 
     @app.before_request
     def set_notebook_object():
@@ -131,11 +132,13 @@ def create_app(notebook, *args, **kwds):
 
     # Handles all uncaught exceptions by sending an e-mail to the
     # administrator(s) and displaying an error page.
-    @app.errorhandler(Exception)
+    @app.errorhandler(500)
     def log_exception(error):
         logger.exception(error)
         return templates.message(
+            '{}, {}, {}'.format(
             gettext('''500: Internal server error.'''),
+            app.debug, app.propagate_exceptions),
             username=getattr(g, 'username', 'guest')), 500
 
     # autoindex v0.3 doesnt seem to work with modules

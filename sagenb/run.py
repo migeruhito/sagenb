@@ -45,7 +45,7 @@ class NotebookFrontend(object):
         self.conf = {
             # Not parsed configuration parameters
             'cwd': os.getcwd(),
-            'startup_token': '{0:x}'.format(random.randint(0, 2**128)),
+            'startup_token': None,
             'conf_path': os.path.join(DOT_SAGENB, 'notebook'),
             }
 
@@ -376,6 +376,8 @@ class NotebookFrontend(object):
         if self.conf['automatic_login']:
             print("Automatic login isn't fully implemented. You have to "
                   'manually open your web browser to the above URL.')
+            self.conf['startup_token'] = '{0:x}'.format(
+                    random.randint(0, 2**128))
         if self.conf['secure']:
             if (not os.path.exists(self.conf['private_pem']) or
                     not os.path.exists(self.conf['public_pem'])):
@@ -408,15 +410,10 @@ class NotebookFrontend(object):
         misc.DIR = self.conf['cwd']  # We should really get rid
                                                      # of this!
 
-        opts = {}
-        if self.conf['automatic_login']:
-            opts['startup_token'] = self.conf['startup_token']
-
         flask_app = create_app(self.notebook,
-                                          interface=self.conf['interface'],
-                                          port=self.conf['port'],
-                                          secure=self.conf['secure'],
-                                          **opts)
+                               startup_token=self.conf['startup_token'],
+                               debug=self.conf['debug'],
+                               )
         self.servers[self.conf['server']](flask_app)
 
     def exit(self):
@@ -451,8 +448,7 @@ class NotebookFrontend(object):
 
         try:
             flask_app.run(host=self.conf['interface'], port=self.conf['port'],
-                          threaded=True, ssl_context=ssl_context,
-                          debug=self.conf['debug'])
+                          threaded=True, ssl_context=ssl_context)
         finally:
             self.exit()
 
