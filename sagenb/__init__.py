@@ -23,7 +23,6 @@ from .misc.misc import import_from
 from .misc.misc import default_theme
 from .misc.misc import theme_paths
 from .misc.misc import unicode_str
-from .notebook.notification import logger
 from .notebook.template import css_escape
 from .notebook.template import clean_name
 from .notebook.template import prettify_time_ago
@@ -134,11 +133,8 @@ def create_app(notebook, startup_token=None, debug=False):
     # administrator(s) and displaying an error page.
     @app.errorhandler(500)
     def log_exception(error):
-        logger.exception(error)
         return templates.message(
-            '{}, {}, {}'.format(
             gettext('''500: Internal server error.'''),
-            app.debug, app.propagate_exceptions),
             username=getattr(g, 'username', 'guest')), 500
 
     # autoindex v0.3 doesnt seem to work with modules
