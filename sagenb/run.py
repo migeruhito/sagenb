@@ -542,7 +542,7 @@ class NotebookFrontend(object):
         self.open_page()
         wsgi_app = WSGIContainer(flask_app)
         http_server = HTTPServer(wsgi_app, ssl_options=ssl_options)
-        http_server.listen(self.conf['port'])
+        http_server.listen(self.conf['port'], address=self.conf['interface'])
         try:
             IOLoop.instance().start()
         except KeyboardInterrupt:
