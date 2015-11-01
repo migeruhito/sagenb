@@ -85,7 +85,7 @@ def url_for_worksheet(worksheet):
     """
     Returns the url for a given worksheet.
     """
-    return url_for('worksheet.worksheet', username=worksheet.owner(),
+    return url_for('worksheet.worksheet_v', username=worksheet.owner(),
                    id=worksheet.filename_without_owner())
 
 
