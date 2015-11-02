@@ -47,8 +47,6 @@ SAGE_SRC = import_from('sage.env', 'SAGE_SRC', default=os.environ.get(
     'SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')))
 SRC = os.path.join(SAGE_SRC, 'sage')
 
-# CLEAN THIS UP!
-
 
 def create_app(notebook, startup_token=None, debug=False):
     """
@@ -56,15 +54,29 @@ def create_app(notebook, startup_token=None, debug=False):
     called from the process spawned in run.py
     """
     # Create app
-    app = Flask('sagenb',
+    app = Flask(__name__,
                 static_folder='data', static_url_path='/static',
                 template_folder=TEMPLATE_PATH)
     app.startup_token = startup_token
     app.session_interface = OldSecureCookieSessionInterface()
 
-    app.config['SESSION_COOKIE_HTTPONLY'] = False
-    app.config['PROPAGATE_EXCEPTIONS'] = debug
-    app.config['DEBUG'] = debug
+    app.config.update({
+        'SESSION_COOKIE_HTTPONLY': False,
+        'PROPAGATE_EXCEPTIONS': debug,
+        'DEBUG': debug,
+        'SECRET_KEY': os.urandom(24),
+        })
+
+    @app.before_request
+    def set_notebook_object():
+        g.notebook = notebook
+
+    # Handles all uncaught exceptions if not debug activated
+    @app.errorhandler(500)
+    def log_exception(error):
+        return templates.message(
+            gettext('''500: Internal server error.'''),
+            username=getattr(g, 'username', 'guest')), 500
 
     # Template globals
     app.add_template_global(url_for)
@@ -78,16 +90,21 @@ def create_app(notebook, startup_token=None, debug=False):
                             name='repr_str')
     app.add_template_filter(dumps, 'tojson')
 
-    app.secret_key = os.urandom(24)
+    # Register the Blueprints
+    app.register_blueprint(admin)
+    app.register_blueprint(authentication)
+    app.register_blueprint(base)
+    app.register_blueprint(doc, url_prefix='/doc')
+    app.register_blueprint(settings)
+    app.register_blueprint(static_paths)
+    app.register_blueprint(worksheet)
+    app.register_blueprint(worksheet_listing)
+
+    # # Extensions
+    #Open id
     oid.init_app(app)
 
-    @app.before_request
-    def set_notebook_object():
-        g.notebook = notebook
-
-    ####################################
-    # create Babel translation manager #
-    ####################################
+    # Babel 
     babel = Babel(app, default_locale='en_US')
 
     # Check if saved default language exists. If not fallback to default
@@ -104,38 +121,13 @@ def create_app(notebook, startup_token=None, debug=False):
     def get_locale():
         return g.notebook.conf()['default_language']
 
-    #################
-    # Set up themes #
-    #################
-    # A new conf entry, 'themes', was added to notebook
+    # Themes
     app.config['THEME_PATHS'] = theme_paths()
     app.config['DEFAULT_THEME'] = default_theme()
-    Themes(app, loaders=[theme_paths_loader], app_identifier='sagenb')
+    Themes(app, loaders=[theme_paths_loader])
     name = notebook.conf()['theme']
     if name not in app.theme_manager.themes:
         notebook.conf()['theme'] = app.config['DEFAULT_THEME']
-    # app.theme_manager.refresh()
-
-    ########################
-    # Register the modules #
-    ########################
-    app.register_blueprint(doc, url_prefix='/doc')
-    app.register_blueprint(static_paths)
-
-    app.register_blueprint(base)
-    app.register_blueprint(worksheet_listing)
-    app.register_blueprint(admin)
-    app.register_blueprint(authentication)
-    app.register_blueprint(worksheet)
-    app.register_blueprint(settings)
-
-    # Handles all uncaught exceptions by sending an e-mail to the
-    # administrator(s) and displaying an error page.
-    @app.errorhandler(500)
-    def log_exception(error):
-        return templates.message(
-            gettext('''500: Internal server error.'''),
-            username=getattr(g, 'username', 'guest')), 500
 
     # autoindex v0.3 doesnt seem to work with modules
     # routing with app directly does the trick

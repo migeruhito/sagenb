@@ -12,6 +12,10 @@ from flask import g
 from flask import current_app
 from flask.ext.babel import gettext
 
+from . import base
+from ..notebook import js
+from ..notebook import css
+
 from ..misc.misc import SAGE_VERSION
 from ..notebook.misc import is_valid_username
 from ..notebook.themes import render_template
@@ -150,8 +154,6 @@ def notebook_settings():
     if 'theme' in request.values:
         # Invalidate dynamic js and css caches so that all the themes can be
         # without restarting
-        from sagenb.util import base
-        from sagenb.notebook import js, css
         base._localization_cache = {}
         base._mathjax_js_cache = None
         js._cache_javascript = None
@@ -162,7 +164,8 @@ def notebook_settings():
             g.notebook.conf()['theme'] = current_app.config['DEFAULT_THEME']
         else:
             g.notebook.conf()['theme'] = new_theme
-        current_app.theme_manager.refresh()
+        # Call this to search for new themes
+        # current_app.theme_manager.refresh()
 
     template_dict = {}
     template_dict['sage_version'] = SAGE_VERSION
