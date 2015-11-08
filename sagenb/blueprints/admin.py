@@ -39,11 +39,11 @@ def users(reset=None):
         chara = string.letters + string.digits
         password = ''.join([choice(chara) for i in range(8)])
         try:
-            U = g.notebook.user_manager().user(reset)
             g.notebook.user_manager().set_password(reset, password)
-        except KeyError:
+        except LookupError:
             pass
-        template_dict['reset'] = [reset, password]
+        else:
+            template_dict['reset'] = [reset, password]
 
     template_dict['number_of_users'] = len(
         g.notebook.user_manager().valid_login_names(
@@ -69,7 +69,7 @@ def suspend_user(user):
         U.set_suspension()
     except KeyError:
         pass
-    return redirect(url_for("users"))
+    return redirect(url_for("admin.users"))
 
 
 @admin.route('/users/delete/<user>')
@@ -81,7 +81,7 @@ def del_user(user):
             g.notebook.user_manager().delete_user(user)
         except KeyError:
             pass
-    return redirect(url_for("users"))
+    return redirect(url_for("admin.sers"))
 
 
 @admin.route('/users/toggleadmin/<user>')
@@ -96,7 +96,7 @@ def toggle_admin(user):
             U.grant_admin()
     except KeyError:
         pass
-    return redirect(url_for("users"))
+    return redirect(url_for("admin.users"))
 
 
 @admin.route('/adduser', methods=['GET', 'POST'])
@@ -109,7 +109,7 @@ def add_user():
         'sage_version': SAGE_VERSION}
     if 'username' in request.values:
         if request.values['cancel']:
-            return redirect(url_for('users'))
+            return redirect(url_for('admin.users'))
         username = request.values['username']
         if not is_valid_username(username):
             return render_template(os.path.join('html',
