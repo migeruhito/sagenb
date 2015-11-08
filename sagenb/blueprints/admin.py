@@ -14,7 +14,6 @@ from flask.ext.babel import gettext
 
 from . import base
 from ..notebook import js
-from ..notebook import css
 
 from ..misc.misc import SAGE_VERSION
 from ..notebook.misc import is_valid_username
@@ -152,12 +151,11 @@ def notebook_settings():
 
     # Changes theme
     if 'theme' in request.values:
-        # Invalidate dynamic js and css caches so that all the themes can be
+        # Invalidate dynamic js caches so that all the themes can be
         # without restarting
         base._localization_cache = {}
         base._mathjax_js_cache = None
         js._cache_javascript = None
-        css._css_cache = None
         # TODO: Implement a better and uniform cache system.
         new_theme = request.values['theme']
         if new_theme not in current_app.theme_manager.themes:
