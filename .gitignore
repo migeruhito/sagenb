@@ -21,3 +21,4 @@ release_notes.txt
 /sagenb.egg-info
 sagenb/data/jsmath/fonts
 /setup.cfg
+.ropeproject
