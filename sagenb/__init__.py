@@ -43,7 +43,7 @@ from .blueprints.worksheet import worksheet
 
 # TODO: sage dependency
 SAGE_SRC = import_from('sage.env', 'SAGE_SRC', default=os.environ.get(
-    'SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage')))
+    'SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'src')))
 SRC = os.path.join(SAGE_SRC, 'sage')
 
 
