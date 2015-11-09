@@ -27,7 +27,6 @@ from ..misc.misc import SAGE_VERSION
 from ..misc.misc import DATA
 from ..notebook.themes import get_template
 
-TEMPLATE_PATH = os.path.join(DATA, 'sage')
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
 

@@ -26,7 +26,6 @@ from .misc.misc import unicode_str
 from .notebook.template import css_escape
 from .notebook.template import clean_name
 from .notebook.template import prettify_time_ago
-from .notebook.template import TEMPLATE_PATH
 from .notebook.template import number_of_rows
 from .notebook.themes import render_template
 
@@ -55,8 +54,7 @@ def create_app(notebook, startup_token=None, debug=False):
     """
     # Create app
     app = Flask(__name__,
-                static_folder='data', static_url_path='/static',
-                template_folder=TEMPLATE_PATH)
+                static_folder='data', static_url_path='/static')
     app.startup_token = startup_token
     app.session_interface = OldSecureCookieSessionInterface()
 

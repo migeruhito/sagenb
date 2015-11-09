@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*
+#TODO: Test must be adapted to run with request context (see flask docs)
+#TODO: DATA is no longer available. This will be the static path for flask app
 """
 HTML Test Runner
 
