@@ -27,13 +27,7 @@ from ..misc.misc import SAGE_VERSION
 from ..misc.misc import DATA
 from ..notebook.themes import get_template
 
-if 'SAGENB_TEMPLATE_PATH' in os.environ:
-    if not os.path.isdir(os.environ['SAGENB_TEMPLATE_PATH']):
-        raise ValueError("Enviromental variable SAGENB_TEMPLATE_PATH points to\
-                         a non-existant directory")
-    TEMPLATE_PATH = os.environ['SAGENB_TEMPLATE_PATH']
-else:
-    TEMPLATE_PATH = os.path.join(DATA, 'sage')
+TEMPLATE_PATH = os.path.join(DATA, 'sage')
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
 
