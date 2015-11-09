@@ -71,7 +71,6 @@ def stub(f):
 # Globals
 min_password_length = 6
 SAGENB_ROOT = os.path.split(resource_filename(__name__, ''))[0]
-DATA = os.path.join(SAGENB_ROOT, 'data')
 try:
     DOT_SAGENB = os.environ['DOT_SAGENB']
 except KeyError:

@@ -14,17 +14,17 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import absolute_import
+
 
 import jinja2
 
-import os
 import re
 
 from flask.ext.babel import gettext
 from flask.ext.babel import ngettext
 
 from ..misc.misc import SAGE_VERSION
-from ..misc.misc import DATA
 from ..notebook.themes import get_template
 
 
@@ -159,8 +159,8 @@ def template(filename, **user_context):
         sage: 'Gr\xc3\xb6bner' in s.encode('utf-8')
         True
     """
-    from sagenb.notebook.notebook import MATHJAX, JEDITABLE_TINYMCE
-    from misc import notebook
+    from .notebook import MATHJAX, JEDITABLE_TINYMCE
+    from .misc import notebook
     # A dictionary containing the default context
     default_context = {'sitename': gettext('Sage Notebook'),
                        'sage_version': SAGE_VERSION,

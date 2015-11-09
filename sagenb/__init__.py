@@ -53,8 +53,7 @@ def create_app(notebook, startup_token=None, debug=False):
     called from the process spawned in run.py
     """
     # Create app
-    app = Flask(__name__,
-                static_folder='data', static_url_path='/static')
+    app = Flask(__name__)
     app.startup_token = startup_token
     app.session_interface = OldSecureCookieSessionInterface()
 
@@ -102,7 +101,7 @@ def create_app(notebook, startup_token=None, debug=False):
     #Open id
     oid.init_app(app)
 
-    # Babel 
+    # Babel
     babel = Babel(app, default_locale='en_US')
 
     # Check if saved default language exists. If not fallback to default
