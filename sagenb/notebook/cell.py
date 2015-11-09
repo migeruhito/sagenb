@@ -60,11 +60,10 @@ re_script = re.compile(r'<script[^>]*?>.*?</script>', re.DOTALL | re.I)
 JEDITABLE_TINYMCE = True
 
 
-###########################
-# Generic (abstract) cell #
-###########################
 class Cell_generic(object):
-
+    """
+    Generic (abstract) cell
+    """
     def __init__(self, id, worksheet):
         """
         Creates a new generic cell.
@@ -473,11 +472,10 @@ class Cell_generic(object):
     # New UI
 
 
-#############
-# Text cell #
-#############
 class TextCell(Cell_generic):
-
+    """
+    Text cell
+    """
     def __init__(self, id, text, worksheet):
         """
         Creates a new text cell.
@@ -668,11 +666,10 @@ class TextCell(Cell_generic):
         pass  # ignored
 
 
-################
-# Compute cell #
-################
 class Cell(Cell_generic):
-
+    """
+    Compute cell
+    """
     def __init__(self, id, input, out, worksheet):
         """
         Creates a new compute cell.
@@ -1871,7 +1868,8 @@ class Cell(Cell_generic):
             sage: C = sagenb.notebook.cell.Cell(
                 0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', W)
             sage: C.output_text()
-            u'<pre class="shrunk">\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e</pre>'
+            u'<pre class="shrunk">'
+            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e</pre>'
             sage: C.output_text(raw=True)
             u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
