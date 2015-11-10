@@ -108,7 +108,6 @@ def sphinxify(docstring, format='html'):
     # buildername, confoverrides, status, warning, freshenv).
     temp_confdir = False
     confdir = os.path.join(SAGE_DOC, 'en', 'introspect')
-    # TODO: sage dependency
     if not SAGE_DOC and not os.path.exists(confdir):
         # If we don't have Sage, we need to do our own configuration
         # This may be inefficient or broken.  TODO: Find a faster way to do

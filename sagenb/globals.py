@@ -1,15 +1,16 @@
 from __future__ import absolute_import
 
 import os
+import re
 from babel import Locale
 from babel.core import UnknownLocaleError
 from pkg_resources import Requirement
 from pkg_resources import resource_filename
 from pkg_resources import working_set
+from subprocess import check_output
 
 from .util import sage_var  # if py3, from shutil import which
 from .util import which  # if py3, from shutil import which
-from .misc.misc import import_from
 
 
 # Sage path fallbacks
@@ -20,7 +21,7 @@ def _sage_root_fb():
 
 
 def _sage_version_fb():
-    return re.findall( 
+    return re.findall(
         r'ersion\s*(.*),', check_output(['sage', '--version']))[0]
 
 
@@ -35,8 +36,9 @@ def _sage_share_fb():
 def _sage_src_fb():
     return os.path.join(SAGE_ROOT, 'src')
 
+
 def _dot_sage_fb():
-    return os.path.join( 
+    return os.path.join(
         os.path.realpath(os.environ.get('HOME', '/tmp')), '.sage')
 
 

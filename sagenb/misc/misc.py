@@ -65,7 +65,6 @@ def stub(f):
 # Globals
 min_password_length = 6
 
-# TODO: sage dependency
 # TODO: Get macros from server and user settings.
 try:
     mathjax_macros = import_from(

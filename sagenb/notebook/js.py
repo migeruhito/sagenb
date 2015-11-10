@@ -30,10 +30,9 @@ from __future__ import absolute_import
 import os
 from hashlib import sha1
 
-from pkg_resources import Requirement, working_set
-
 from ..globals import SAGE_ROOT
 from ..globals import SAGE_URL
+from ..globals import SAGENB_ROOT
 
 from .compress.JavaScriptCompressor import JavaScriptCompressor
 from .config import KEYS
@@ -41,10 +40,7 @@ from .template import template
 
 # Debug mode?  If sagenb lives under SAGE_ROOT/, we minify/pack and cache
 # the Notebook JS library.
-sagenb_path = os.path.realpath(
-    working_set.find(Requirement.parse('sagenb')).location)
-# TODO: sage dependency
-debug_mode = SAGE_ROOT is None or not sagenb_path.startswith(SAGE_ROOT)
+debug_mode = SAGE_ROOT is None or not SAGENB_ROOT.startswith(SAGE_ROOT)
 
 _cache_javascript = None
 

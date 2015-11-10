@@ -3166,7 +3166,6 @@ class Worksheet(object):
             return False
 
     def initialize_sage(self):
-        # TODO: sage dependency
         S = self.__sage
         try:
             cmd = """
