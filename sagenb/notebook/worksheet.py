@@ -47,7 +47,7 @@ from flask.ext.babel import lazy_gettext
 import sagenb.misc.support as support
 from ..misc.misc import cython
 from ..misc.misc import verbose
-from ..misc.misc import DOT_SAGENB
+from ..globals import DOT_SAGENB
 from ..misc.misc import walltime
 from ..misc.misc import ignore_nonexistent_files
 from ..misc.misc import set_restrictive_permissions

@@ -8,7 +8,7 @@ from flask import redirect
 from flask import g
 from flask.ext.babel import gettext
 
-from ..misc.misc import SAGE_VERSION
+from ..globals import SAGE_VERSION
 from ..notebook.misc import is_valid_password
 from ..notebook.misc import is_valid_email
 from ..notebook.themes import render_template

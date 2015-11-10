@@ -14,7 +14,7 @@ from flask import g
 from flask.ext.babel import gettext
 from flask.helpers import send_from_directory
 
-from ..misc.misc import SAGE_DOC
+from ..globals import SAGE_DOC
 
 from ..util import templates
 from ..util.decorators import login_required

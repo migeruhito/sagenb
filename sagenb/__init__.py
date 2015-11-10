@@ -17,11 +17,11 @@ from flask.ext.babel import gettext
 from flask.ext.themes2 import Themes
 from flask.ext.themes2 import theme_paths_loader
 
+from .globals import DEFAULT_THEME
+from .globals import SRC
+from .globals import THEME_PATHS
 from .util import templates
 from .util.decorators import guest_or_login_required
-from .misc.misc import import_from
-from .misc.misc import default_theme
-from .misc.misc import theme_paths
 from .misc.misc import unicode_str
 from .notebook.template import css_escape
 from .notebook.template import clean_name
@@ -39,12 +39,6 @@ from .blueprints.settings import settings
 from .blueprints.static_paths import static_paths
 from .blueprints.worksheet_listing import worksheet_listing
 from .blueprints.worksheet import worksheet
-
-
-# TODO: sage dependency
-SAGE_SRC = import_from('sage.env', 'SAGE_SRC', default=os.environ.get(
-    'SAGE_SRC', os.path.join(os.environ['SAGE_ROOT'], 'src')))
-SRC = os.path.join(SAGE_SRC, 'sage')
 
 
 def create_app(notebook, startup_token=None, debug=False):
@@ -119,8 +113,8 @@ def create_app(notebook, startup_token=None, debug=False):
         return g.notebook.conf()['default_language']
 
     # Themes
-    app.config['THEME_PATHS'] = theme_paths()
-    app.config['DEFAULT_THEME'] = default_theme()
+    app.config['THEME_PATHS'] = THEME_PATHS
+    app.config['DEFAULT_THEME'] = DEFAULT_THEME
     Themes(app, loaders=[theme_paths_loader])
     name = notebook.conf()['theme']
     if name not in app.theme_manager.themes:

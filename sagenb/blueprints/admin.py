@@ -15,7 +15,7 @@ from flask.ext.babel import gettext
 from . import base
 from ..notebook import js
 
-from ..misc.misc import SAGE_VERSION
+from ..globals import SAGE_VERSION
 from ..notebook.misc import encode_response
 from ..notebook.misc import is_valid_username
 from ..notebook.themes import render_template

@@ -7,7 +7,7 @@ import copy
 
 from flask.ext.babel import lazy_gettext
 
-from ..misc.misc import get_languages
+from ..globals import TRANSLATIONS
 
 from .conf import Configuration
 from .conf import DESC
@@ -29,7 +29,7 @@ defaults_descriptions = {
         DESC: lazy_gettext('Language'),
         GROUP: lazy_gettext('Appearance'),
         TYPE: T_CHOICE,
-        CHOICES: ['default'] + get_languages(),
+        CHOICES: ['default'] + TRANSLATIONS,
     },
 }
 

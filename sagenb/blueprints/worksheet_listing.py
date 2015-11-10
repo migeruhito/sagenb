@@ -22,7 +22,7 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
-from ..misc.misc import SAGE_VERSION
+from ..globals import SAGE_VERSION
 from ..misc.misc import unicode_str
 from ..misc.misc import tmp_filename
 from ..misc.misc import walltime

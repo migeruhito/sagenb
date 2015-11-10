@@ -24,7 +24,7 @@ import re
 from flask.ext.babel import gettext
 from flask.ext.babel import ngettext
 
-from ..misc.misc import SAGE_VERSION
+from ..globals import SAGE_VERSION
 from ..notebook.themes import get_template
 
 

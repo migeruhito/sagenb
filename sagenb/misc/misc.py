@@ -30,12 +30,7 @@ import stat
 import subprocess
 import tempfile
 import time
-from babel import Locale
-from babel.core import UnknownLocaleError
 from importlib import import_module
-from pkg_resources import Requirement
-from pkg_resources import resource_filename
-from pkg_resources import working_set
 
 
 def get_module(module, pkg=None, default=None):
@@ -67,27 +62,9 @@ def stub(f):
         return f(*args, **kwds)
     return g
 
-
 # Globals
 min_password_length = 6
-SAGENB_ROOT = os.path.split(resource_filename(__name__, ''))[0]
-try:
-    DOT_SAGENB = os.environ['DOT_SAGENB']
-except KeyError:
-    try:
-        DOT_SAGENB = os.environ['DOT_SAGE']
-    except KeyError:
-        DOT_SAGENB = os.path.join(os.environ['HOME'], '.sagenb')
-try:
-    SAGENB_VERSION = working_set.find(Requirement.parse('sagenb')).version
-except AttributeError:
-    SAGENB_VERSION = ''
-# TODO: sage dependency
-SAGE_VERSION = import_from('sage.version', 'version', default='')
-# TODO: sage dependency
-SAGE_URL = import_from('sage.env', 'SAGE_URL', default='http://sagemath.org')
-# TODO: sage dependency
-SAGE_DOC = import_from('sage.env', 'SAGE_DOC', default='')
+
 # TODO: sage dependency
 # TODO: Get macros from server and user settings.
 try:
@@ -431,26 +408,6 @@ def ignore_nonexistent_files(curdir, dirlist):
     return ignore
 
 
-def translations_path():
-    return os.path.join(SAGENB_ROOT, 'translations')
-
-
-def get_languages():
-    langs = []
-    dir_names = [lang for lang in os.listdir(translations_path())
-                 if lang != 'en_US']
-    for name in dir_names:
-        try:
-            Locale.parse(name)
-        except UnknownLocaleError:
-            pass
-        else:
-            langs.append(name)
-    langs.sort()
-    langs.insert(0, 'en_US')
-    return langs
-
-
 def N_(message):
     return message
 
@@ -618,39 +575,3 @@ def system_command(cmd, msg=None):
     msg = cmd if msg is None else '\n'.join((msg, cmd))
     print(msg)
     subprocess.call([cmd], shell=True)
-
-
-def theme_paths():
-    """
-    Paths where notebook search themes at start up. Built-in
-    themes are in SAGENB_ROOT/themes.
-    If the user has a DOT_SAGE/themes directory, additional themes are searched
-    in it
-    """
-    paths = [os.path.join(SAGENB_ROOT, 'themes')]
-    user_path = os.path.join(DOT_SAGENB, 'themes')
-    if os.path.isdir(user_path):
-        paths.append(user_path)
-    return paths
-
-
-def default_theme():
-    """
-    Returns the name of the default theme.
-    A valid Default then must exit in some of the theme_paths().
-    """
-    return 'Default'
-
-
-def get_themes():
-    """
-    Returns o sorted list of themes for the notebook settings page.
-    """
-    themes = []
-    for path in theme_paths():
-        themes.extend([
-            theme
-            for theme in os.listdir(path)
-            if os.path.isdir(os.path.join(path, theme))])
-    themes.sort()
-    return themes

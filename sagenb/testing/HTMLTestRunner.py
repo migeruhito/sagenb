@@ -112,10 +112,15 @@ CHANGES
  * Fix missing scroll bars in detail log. Thank you Podi.
 """
 
-import datetime, os, StringIO, sys, unittest
+import datetime
+import os
+import StringIO
+import sys
+import unittest
 
 import jinja2
-from sagenb.misc.misc import DATA, SAGENB_VERSION
+from sagenb.misc.misc import DATA
+from ..globals import SAGENB_VERSION
 from sagenb.notebook.template import template
 
 from pygments import highlight

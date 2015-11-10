@@ -13,7 +13,7 @@ from flask import g
 from flask import current_app
 from flask.ext.babel import gettext
 
-from ..misc.misc import SAGE_VERSION
+from ..globals import SAGE_VERSION
 from ..notebook.challenge import challenge
 from ..notebook.misc import is_valid_username
 from ..notebook.misc import is_valid_password

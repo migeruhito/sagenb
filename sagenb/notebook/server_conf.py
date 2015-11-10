@@ -8,8 +8,8 @@ import copy
 
 from flask.ext.babel import lazy_gettext
 
-from ..misc.misc import get_languages
-from ..misc.misc import get_themes
+from ..globals import THEMES
+from ..globals import TRANSLATIONS
 from ..misc.misc import N_
 
 from . import conf
@@ -171,7 +171,7 @@ defaults_descriptions = {
         DESC: _('Default Language'),
         GROUP: G_APPEARANCE,
         TYPE: T_CHOICE,
-        CHOICES: get_languages(),
+        CHOICES: TRANSLATIONS,
     },
 
 
@@ -284,7 +284,7 @@ defaults_descriptions = {
         DESC: _('Theme'),
         GROUP: G_APPEARANCE,
         TYPE: T_CHOICE,
-        CHOICES: get_themes(),
+        CHOICES: THEMES,
     },
 }
 

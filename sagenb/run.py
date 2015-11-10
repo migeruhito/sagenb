@@ -23,7 +23,7 @@ import signal
 from sagenb import create_app
 from sagenb.notebook import misc
 from sagenb.misc.misc import cmd_exists
-from sagenb.misc.misc import DOT_SAGENB
+from sagenb.globals import DOT_SAGENB
 from sagenb.misc.misc import get_module
 from sagenb.misc.misc import find_next_available_port
 from sagenb.misc.misc import min_password_length
