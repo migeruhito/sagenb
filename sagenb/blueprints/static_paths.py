@@ -10,17 +10,12 @@ from flask import Blueprint
 from flask import current_app as app
 from flask.helpers import send_from_directory
 
+from ..globals import JMOL
+from ..globals import JSMOL
+from ..globals import J2S
+
 
 static_paths = Blueprint('static_paths', __name__)
-
-
-# TODO: sage dependency
-SAGE_ROOT = os.environ['SAGE_ROOT']
-SAGE_ROOT_SHARE = os.path.join(SAGE_ROOT, 'local', 'share')
-
-JMOL = os.path.join(SAGE_ROOT_SHARE, 'jmol')
-JSMOL = os.path.join(SAGE_ROOT_SHARE, 'jsmol')
-J2S = os.path.join(JSMOL, 'j2s')
 
 
 @static_paths.route('/css/<path:filename>')

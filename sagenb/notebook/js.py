@@ -32,7 +32,7 @@ from hashlib import sha1
 
 from pkg_resources import Requirement, working_set
 
-from ..misc.misc import import_from
+from ..globals import SAGE_ROOT
 from ..globals import SAGE_URL
 
 from .compress.JavaScriptCompressor import JavaScriptCompressor
@@ -44,7 +44,6 @@ from .template import template
 sagenb_path = os.path.realpath(
     working_set.find(Requirement.parse('sagenb')).location)
 # TODO: sage dependency
-SAGE_ROOT = import_from('sage.env', 'SAGE_ROOT')
 debug_mode = SAGE_ROOT is None or not sagenb_path.startswith(SAGE_ROOT)
 
 _cache_javascript = None
