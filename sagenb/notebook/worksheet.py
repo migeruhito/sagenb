@@ -3187,7 +3187,7 @@ sage.misc.latex.EMBEDDED_MODE=True
 # TODO: For now we take back sagenb interact; do this until the sage notebook
 # gets removed from the sage library.
 from ..notebook.all import *
-from ..globals import impor DOT_SAGE
+from ..globals import DOT_SAGE
 try:
     load(os.path.join(DOT_SAGE, 'init.sage'), globals(
         ), attach=True)
