@@ -10,9 +10,9 @@ from flask import Blueprint
 from flask import current_app as app
 from flask.helpers import send_from_directory
 
-from ..globals import JMOL
-from ..globals import JSMOL
-from ..globals import J2S
+from ..config import JMOL
+from ..config import JSMOL
+from ..config import J2S
 
 
 static_paths = Blueprint('static_paths', __name__)

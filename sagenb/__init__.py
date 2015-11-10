@@ -17,9 +17,9 @@ from flask.ext.babel import gettext
 from flask.ext.themes2 import Themes
 from flask.ext.themes2 import theme_paths_loader
 
-from .globals import DEFAULT_THEME
-from .globals import SRC
-from .globals import THEME_PATHS
+from .config import DEFAULT_THEME
+from .config import SRC
+from .config import THEME_PATHS
 from .util import templates
 from .util.decorators import guest_or_login_required
 from .misc.misc import unicode_str

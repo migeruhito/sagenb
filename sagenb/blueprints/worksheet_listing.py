@@ -10,6 +10,7 @@ import urllib
 import urlparse
 import zipfile
 from HTMLParser import HTMLParser
+from HTMLParser import HTMLParseError
 
 from flask import current_app
 from flask import g
@@ -22,7 +23,7 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
-from ..globals import SAGE_VERSION
+from ..config import SAGE_VERSION
 from ..misc.misc import unicode_str
 from ..misc.misc import tmp_filename
 from ..misc.misc import walltime

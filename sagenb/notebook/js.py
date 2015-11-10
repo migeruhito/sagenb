@@ -30,9 +30,9 @@ from __future__ import absolute_import
 import os
 from hashlib import sha1
 
-from ..globals import SAGE_ROOT
-from ..globals import SAGE_URL
-from ..globals import SAGENB_ROOT
+from ..config import SAGE_ROOT
+from ..config import SAGE_URL
+from ..config import SAGENB_ROOT
 
 from .compress.JavaScriptCompressor import JavaScriptCompressor
 from .config import KEYS

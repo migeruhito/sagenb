@@ -120,7 +120,7 @@ import unittest
 
 import jinja2
 from sagenb.misc.misc import DATA
-from ..globals import SAGENB_VERSION
+from ..config import SAGENB_VERSION
 from sagenb.notebook.template import template
 
 from pygments import highlight

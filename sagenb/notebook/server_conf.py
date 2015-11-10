@@ -8,8 +8,8 @@ import copy
 
 from flask.ext.babel import lazy_gettext
 
-from ..globals import THEMES
-from ..globals import TRANSLATIONS
+from ..config import THEMES
+from ..config import TRANSLATIONS
 from ..misc.misc import N_
 
 from . import conf

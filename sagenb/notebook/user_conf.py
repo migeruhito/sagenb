@@ -7,7 +7,7 @@ import copy
 
 from flask.ext.babel import lazy_gettext
 
-from ..globals import TRANSLATIONS
+from ..config import TRANSLATIONS
 
 from .conf import Configuration
 from .conf import DESC
