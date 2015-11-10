@@ -7,46 +7,65 @@ from pkg_resources import Requirement
 from pkg_resources import resource_filename
 from pkg_resources import working_set
 
+from .util import sage_var  # if py3, from shutil import which
+from .util import which  # if py3, from shutil import which
 from .misc.misc import import_from
 
-# TODO: sage dependency
-SAGE_ROOT = os.environ['SAGE_ROOT']
-# TODO: sage dependency
-SAGE_ROOT_SHARE = os.path.join(SAGE_ROOT, 'local', 'share')
 
-# TODO: sage dependency
-SAGE_VERSION = import_from('sage.version', 'version', default='')
-# TODO: sage dependency
-SAGE_URL = import_from('sage.env', 'SAGE_URL', default='http://sagemath.org')
-# TODO: sage dependency
-SAGE_DOC = import_from('sage.env', 'SAGE_DOC', default='')
-# TODO: sage dependency
-SAGE_SRC = import_from('sage.env', 'SAGE_SRC', default=os.environ.get(
-    'SAGE_SRC', os.path.join(SAGE_ROOT, 'src')))
-SRC = os.path.join(SAGE_SRC, 'sage')
+# Sage path fallbacks
+def _sage_root_fb():
+    path = which('sage')  # This works if sage_root is in PATH or if
+    if path is not None:  # sage is a symlink of sage_root/sage
+        return os.path.split(os.path.realpath(path))[0]
 
+
+def _sage_version_fb():
+    return re.findall( 
+        r'ersion\s*(.*),', check_output(['sage', '--version']))[0]
+
+
+def _sage_doc_fb():
+    return os.path.join(SAGE_ROOT, 'src', 'doc')
+
+
+def _sage_share_fb():
+    return os.path.join(SAGE_ROOT, 'local', 'share')
+
+
+def _sage_src_fb():
+    return os.path.join(SAGE_ROOT, 'src')
+
+def _dot_sage_fb():
+    return os.path.join( 
+        os.path.realpath(os.environ.get('HOME', '/tmp')), '.sage')
+
+
+# sage paths
+SAGE_ROOT = sage_var('SAGE_ROOT', _sage_root_fb)
+SAGE_VERSION = sage_var('SAGE_VERSION', _sage_version_fb)
+SAGE_DOC = sage_var('SAGE_DOC', _sage_doc_fb)
+SAGE_SHARE = sage_var('SAGE_SHARE', _sage_share_fb)
+SAGE_URL = 'http://sagemath.org'  # SAGE_URL is broken in sage.env (ver 6.8)
+SAGE_SRC = sage_var('SAGE_SRC', _sage_src_fb)
+DOT_SAGE = sage_var('DOT_SAGE', _dot_sage_fb)
+
+# sagenb paths
 # TODO: This must be in sync with flask app base path. Should be removed from
 # here
 SAGENB_ROOT = resource_filename(__name__, '')
-try:
-    DOT_SAGENB = os.environ['DOT_SAGENB']
-except KeyError:
-    try:
-        DOT_SAGENB = os.environ['DOT_SAGE']
-    except KeyError:
-        DOT_SAGENB = os.path.join(os.environ['HOME'], '.sagenb')
+DOT_SAGENB = os.environ.get('DOT_SAGENB', DOT_SAGE)
 try:
     SAGENB_VERSION = working_set.find(Requirement.parse('sagenb')).version
 except AttributeError:
     SAGENB_VERSION = ''
 
-# TODO: sage dependency
-JMOL = os.path.join(SAGE_ROOT_SHARE, 'jmol')
-# TODO: sage dependency
-JSMOL = os.path.join(SAGE_ROOT_SHARE, 'jsmol')
-# TODO: sage dependency
+# paths for static urls
+SRC = os.path.join(SAGE_SRC, 'sage')
+JMOL = os.path.join(SAGE_SHARE, 'jmol')
+JSMOL = os.path.join(SAGE_SHARE, 'jsmol')
 J2S = os.path.join(JSMOL, 'j2s')
 
+# themes
 system_themes_path = os.path.join(SAGENB_ROOT, 'themes')
 user_themes_path = os.path.join(DOT_SAGENB, 'themes')
 THEME_PATHS = [p for p in [system_themes_path, user_themes_path]
@@ -65,6 +84,7 @@ DEFAULT_THEME = 'Default'
 # should be removed when sagenb.notebook.server_conf, sagenb.notebook.user_conf
 # be refactored.
 
+# translations
 TRANSLATIONS_PATH = os.path.join(SAGENB_ROOT, 'translations')
 # TODO: Only needed by sagenb.notebook.server_conf, sagenb.notebook.user_conf
 TRANSLATIONS = []

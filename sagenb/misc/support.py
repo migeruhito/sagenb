@@ -29,26 +29,30 @@ from .format import displayhook_hack
 
 
 # Fallback functions in case sage is not present
-def format_src(s, *args, **kwds):
+def format_src_fb(s, *args, **kwds):
     return s
 
 
 # TODO: sage dependency
-format_src = import_from('sage.misc.sagedoc', 'format_src', default=format_src)
+format_src = import_from(
+    'sage.misc.sagedoc', 'format_src', default=lambda: format_src_fb)
 
 # Fallback functions in case sagenb.misc.sphinxify is not present
 
 
-def sphinxify(s):
+def sphinxify_fb(s):
     return s
 
 
-def is_sphinx_markup(s):
+def is_sphinx_markup_fb(s):
     return False
+
+
 sphinxify = import_from('sagenb.misc.sphinxify',
-                        'sphinxify', default=sphinxify)
+                        'sphinxify', default=lambda: sphinxify_fb)
 is_sphinx_markup = import_from(
-    'sagenb.misc.sphinxify', 'is_sphinx_markup', default=is_sphinx_markup)
+    'sagenb.misc.sphinxify', 'is_sphinx_markup',
+    default=lambda: is_sphinx_markup_fb)
 # TODO: sage dependency
 try:
     from sage.misc.displayhook import DisplayHook
@@ -509,17 +513,20 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
 ###################################################
 
 # Fallback functions in case sage is not present
-def preparse(line, *args, **kwds):
+def preparse_fb(line, *args, **kwds):
     return line
 
 
-def preparse_file(contents, *args, **kwds):
+def preparse_file_fb(contents, *args, **kwds):
     return contents
+
+
 # TODO: sage dependency
-preparse = import_from('sage.repl.preparse', 'preparse', default=preparse)
+preparse = import_from(
+    'sage.repl.preparse', 'preparse', default=lambda: preparse_fb)
 # TODO: sage dependency
 preparse_file = import_from(
-    'sage.repl.preparse', 'preparse_file', default=preparse_file)
+    'sage.repl.preparse', 'preparse_file', default=lambda: preparse_file_fb)
 
 
 def do_preparse():
@@ -528,7 +535,7 @@ def do_preparse():
     """
     # TODO: sage dependency
     return import_from(
-        'sage.repl.interpreter', '_do_preparse', default=False)
+        'sage.repl.interpreter', '_do_preparse', default=lambda: False)
 
 
 ########################################################################

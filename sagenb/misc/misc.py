@@ -33,7 +33,7 @@ import time
 from importlib import import_module
 
 
-def get_module(module, pkg=None, default=None):
+def get_module(module, pkg=None, default=lambda: None):
     """
     Returns the module if the given module exists, else 'default' parameter.
     The module is not assigned to the caller's namespace
@@ -41,10 +41,10 @@ def get_module(module, pkg=None, default=None):
     try:
         return import_module(module, pkg)
     except ImportError:
-        return default
+        return default()
 
 
-def import_from(mod, obj, default=None):
+def import_from(mod, obj, default=lambda: None):
     """
     Returns the object from module mod if the given module exists and has such
     object, else 'default' parameter.
@@ -53,7 +53,7 @@ def import_from(mod, obj, default=None):
     try:
         return getattr(get_module(mod), obj)
     except AttributeError:
-        return default
+        return default()
 
 
 def stub(f):
@@ -69,24 +69,25 @@ min_password_length = 6
 # TODO: Get macros from server and user settings.
 try:
     mathjax_macros = import_from(
-        'sage.misc.latex_macros', 'sage_mathjax_macros', default=lambda: [
-            "ZZ : '{\\\\Bold{Z}}'",
-            "NN : '{\\\\Bold{N}}'",
-            "RR : '{\\\\Bold{R}}'",
-            "CC : '{\\\\Bold{C}}'",
-            "QQ : '{\\\\Bold{Q}}'",
-            "QQbar : '{\\\\overline{\\\\QQ}}'",
-            "GF : ['{\\\\Bold{F}_{#1}}', 1]",
-            "Zp : ['{\\\\ZZ_{#1}}', 1]",
-            "Qp : ['{\\\\QQ_{#1}}', 1]",
-            "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
-            "CIF : '{\\\\Bold{C}}'",
-            "CLF : '{\\\\Bold{C}}'",
-            "RDF : '{\\\\Bold{R}}'",
-            "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
-            "RLF : '{\\\\Bold{R}}'",
-            "CFF : '{\\\\Bold{CFF}}'",
-            "Bold : ['{\\\\mathbf{#1}}', 1]"])()
+            'sage.misc.latex_macros', 'sage_mathjax_macros',
+            default=lambda: lambda: [
+                "ZZ : '{\\\\Bold{Z}}'",
+                "NN : '{\\\\Bold{N}}'",
+                "RR : '{\\\\Bold{R}}'",
+                "CC : '{\\\\Bold{C}}'",
+                "QQ : '{\\\\Bold{Q}}'",
+                "QQbar : '{\\\\overline{\\\\QQ}}'",
+                "GF : ['{\\\\Bold{F}_{#1}}', 1]",
+                "Zp : ['{\\\\ZZ_{#1}}', 1]",
+                "Qp : ['{\\\\QQ_{#1}}', 1]",
+                "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
+                "CIF : '{\\\\Bold{C}}'",
+                "CLF : '{\\\\Bold{C}}'",
+                "RDF : '{\\\\Bold{R}}'",
+                "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
+                "RLF : '{\\\\Bold{R}}'",
+                "CFF : '{\\\\Bold{CFF}}'",
+                "Bold : ['{\\\\mathbf{#1}}', 1]"])()
 except Exception:
     sage_mathjax_macros_easy = []
     raise
@@ -95,90 +96,90 @@ except Exception:
 # Fallback functions in case sage is not present
 # Not implemented
 @stub
-def session_init(*args, **kwds):
+def session_init_fb(*args, **kwds):
     pass
 
 
 @stub
-def browser():
+def browser_fb():
     return "open"
 
 
 @stub
-def alarm(*args, **kwds):
+def alarm_fb(*args, **kwds):
     pass
 
 
 @stub
-def cancel_alarm(*args, **kwds):
+def cancel_alarm_fb(*args, **kwds):
     pass
 
 
 @stub
-def verbose(*args, **kwds):
+def verbose_fb(*args, **kwds):
     pass
 
 
 @stub
-def InlineFortran(*args, **kwds):
+def InlineFortran_fb(*args, **kwds):
     pass
 
 
 @stub
-def cython(*args, **kwds):
+def cython_fb(*args, **kwds):
     # TODO
     raise NotImplementedError("Curently %cython mode requires Sage.")
 
 
 @stub
-def is_Matrix(x):
+def is_Matrix_fb(x):
     return False
 
 
 @stub
-def register_with_cleaner(pid):
+def register_with_cleaner_fb(pid):
     print('generic cleaner needs to be written')
 
 
 # Implemented
-def sage_eval(value, globs):
+def sage_eval_fb(value, globs):
     # worry about ^ and preparser -- this gets used in interact.py,
     # which is a bit weird, but heh.
     return eval(value, globs)
 
 
-def is_package_installed(name, *args, **kwds):
+def is_package_installed_fb(name, *args, **kwds):
     return False
 
 
-def load(filename):
+def load_fb(filename):
     return cPickle.loads(open(filename).read())
 
 
-def save(obj, filename):
+def save_fb(obj, filename):
     s = cPickle.dumps(obj, protocol=2)
     open(filename, 'wb').write(s)
 
 
-def strip_string_literals(code, state=None):
+def strip_string_literals_fb(code, state=None):
     # todo -- do we need this?
     return code
 
 
-def tmp_filename(name='tmp'):
+def tmp_filename_fb(name='tmp'):
     # We use mktemp instead of mkstemp since the semantics of the
     # tmp_filename function simply don't allow for what mkstemp
     # provides.
     return tempfile.mktemp()
 
 
-def tmp_dir(name='dir'):
+def tmp_dir_fb(name='dir'):
     import tempfile
     return tempfile.mkdtemp()
 
 
-def srange(start, end=None, step=1, universe=None, check=True,
-           include_endpoint=False, endpoint_tolerance=1e-5):
+def srange_fb(start, end=None, step=1, universe=None, check=True,
+              include_endpoint=False, endpoint_tolerance=1e-5):
     # TODO: need to put a really srange here!
     v = [start]
     while v[-1] <= end:
@@ -186,38 +187,44 @@ def srange(start, end=None, step=1, universe=None, check=True,
     return v
 
 
-class Color:
+class Color_fb:
 
     def __init__(self, *args, **kwds):
         pass
 
 
 # TODO: sage dependency
-session_init = import_from('sage.misc.session', 'init', default=session_init)
+session_init = import_from(
+    'sage.misc.session', 'init', default=lambda: session_init_fb)
 # TODO: sage dependency
-sage_eval = import_from('sage.misc.sage_eval', 'sage_eval', default=sage_eval)
+sage_eval = import_from(
+    'sage.misc.sage_eval', 'sage_eval', default=lambda: sage_eval_fb)
 # TODO: sage dependency
 is_package_installed = import_from(
-    'sage.misc.package', 'is_package_installed', default=is_package_installed)
+    'sage.misc.package', 'is_package_installed',
+    default=lambda: is_package_installed_fb)
 # TODO: sage dependency
-browser = import_from('sage.misc.viewer', 'browser', default=browser)
+browser = import_from(
+    'sage.misc.viewer', 'browser', default=lambda: browser_fb)
 # TODO: sage dependency
 loads = import_from(
-    'sage.structure.sage_object', 'loads', default=cPickle.loads)
+    'sage.structure.sage_object', 'loads', default=lambda: cPickle.loads)
 # TODO: sage dependency
 dumps = import_from(
-    'sage.structure.sage_object', 'dumps', default=cPickle.dumps)
+    'sage.structure.sage_object', 'dumps', default=lambda: cPickle.dumps)
 # TODO: sage dependency
-load = import_from('sage.structure.sage_object', 'load', default=load)
+load = import_from(
+    'sage.structure.sage_object', 'load', default=lambda: load_fb)
 # TODO: sage dependency
-save = import_from('sage.structure.sage_object', 'save', default=save)
+save = import_from(
+    'sage.structure.sage_object', 'save', default=lambda: save_fb)
 # TODO: sage dependency
-alarm = import_from('sage.misc.all', 'alarm', default=alarm)
+alarm = import_from('sage.misc.all', 'alarm', default=lambda: alarm_fb)
 # TODO: sage dependency
 cancel_alarm = import_from(
-    'sage.misc.all', 'cancel_alarm', default=cancel_alarm)
+    'sage.misc.all', 'cancel_alarm', default=lambda: cancel_alarm_fb)
 # TODO: sage dependency
-verbose = import_from('sage.misc.all', 'verbose', default=verbose)
+verbose = import_from('sage.misc.all', 'verbose', default=lambda: verbose_fb)
 
 
 ################################
@@ -266,31 +273,33 @@ def word_wrap(s, ncols=85):
 # TODO: sage dependency
 strip_string_literals = import_from(
     'sage.repl.preparse', 'strip_string_literals',
-    default=strip_string_literals)
+    default=lambda: strip_string_literals_fb)
 # TODO: sage dependency
-Color = import_from('sage.plot.colors', 'Color', default=Color)
+Color = import_from('sage.plot.colors', 'Color', default=lambda: Color_fb)
 
 ########################################
 # this is needed for @interact
 ########################################
 # TODO: sage dependency
 is_Matrix = import_from(
-    'sage.structure.element', 'is_Matrix', default=is_Matrix)
+    'sage.structure.element', 'is_Matrix', default=lambda: is_Matrix_fb)
 # TODO: sage dependency
-srange = import_from('sage.misc.all', 'srange', default=srange)
+srange = import_from('sage.misc.all', 'srange', default=lambda: srange_fb)
 # TODO: sage dependency
 register_with_cleaner = import_from(
-    'sage.interfaces.cleaner', 'cleaner', default=register_with_cleaner)
+    'sage.interfaces.cleaner', 'cleaner',
+    default=lambda: register_with_cleaner_fb)
 # TODO: sage dependency
 tmp_filename = import_from(
-    'sage.misc.all', 'tmp_filename', default=tmp_filename)
+    'sage.misc.all', 'tmp_filename', default=lambda: tmp_filename_fb)
 # TODO: sage dependency
-tmp_dir = import_from('sage.misc.all', 'tmp_dir', default=tmp_dir)
+tmp_dir = import_from('sage.misc.all', 'tmp_dir', default=lambda: tmp_dir_fb)
 # TODO: sage dependency
 InlineFortran = import_from(
-    'sage.misc.inline_fortran', 'InlineFortran', default=InlineFortran)
+    'sage.misc.inline_fortran', 'InlineFortran',
+    default=lambda: InlineFortran_fb)
 # TODO: sage dependency
-cython = import_from('sage.misc.cython', 'cython', default=cython)
+cython = import_from('sage.misc.cython', 'cython', default=lambda: cython_fb)
 
 
 #############################################################

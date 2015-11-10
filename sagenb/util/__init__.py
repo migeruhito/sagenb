@@ -2,6 +2,19 @@ from __future__ import absolute_import
 
 import os
 import sys
+from sagenb.misc.misc import import_from
+
+
+def sage_var(name, fallback=lambda: None, sage_mod='env'):
+    try:
+        fb_value = os.environ[name]
+    except KeyError:
+        pass
+    else:
+        def fallback():
+            return fb_value
+
+    return import_from('sage.{}'.format(sage_mod), name, default=fallback)
 
 
 def which(cmd, mode=os.F_OK | os.X_OK, path=None):
@@ -50,7 +63,7 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
         if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
             files = [cmd]
         else:
-            files = [cmd + ext for ext in pathextplit
+            files = [cmd + ext for ext in pathext]
     else:
         # On other platforms you don't have things like PATHEXT to tell you
         # what file suffixes are executable, so just pass on cmd as-is.

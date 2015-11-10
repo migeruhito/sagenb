@@ -64,13 +64,14 @@ def sagenb_getdoc(obj, obj_name=''):
 
 
 sage_getargspec = import_from(
-    'sage.misc.sageinspect', 'sage_getargspec', default=inspect.getargspec)
+        'sage.misc.sageinspect', 'sage_getargspec',
+        default=lambda: inspect.getargspec)
 sage_getdef = import_from(
-    'sage.misc.sageinspect', 'sage_getdef', default=sagenb_getdef)
+    'sage.misc.sageinspect', 'sage_getdef', default=lambda: sagenb_getdef)
 sage_getdoc = import_from(
-    'sage.misc.sageinspect', 'sage_getdoc', default=sagenb_getdoc)
+    'sage.misc.sageinspect', 'sage_getdoc', default=lambda: sagenb_getdoc)
 sage_getfile = import_from(
-    'sage.misc.sageinspect', 'sage_getfile', default=inspect.getfile)
+    'sage.misc.sageinspect', 'sage_getfile', default=lambda: inspect.getfile)
 sage_getsourcelines = import_from(
     'sage.misc.sageinspect', 'sage_getsourcelines',
-    default=inspect.getsourcelines)
+    default=lambda: inspect.getsourcelines)
