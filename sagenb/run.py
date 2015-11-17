@@ -309,8 +309,8 @@ class NotebookFrontend(object):
         else:
             nb.user_manager().set_accounts(nb.conf()['accounts'])
 
-        if (nb.user_manager().user_exists('root')
-                and not nb.user_manager().user_exists('admin')):
+        if (nb.user_manager().user_exists('root') and
+                not nb.user_manager().user_exists('admin')):
             # This is here only for backward compatibility with one
             # version of the notebook.
             nb.create_user_with_same_password('admin', 'root')
@@ -337,7 +337,7 @@ class NotebookFrontend(object):
                 if self.conf['secure']:
                     print('Login to the Sage notebook as admin with the '
                           'password you specified above.')
-            #nb.del_user('root')
+            # nb.del_user('root')
 
         # For old notebooks, make sure that default users are always created.
         # This fixes issue #175 (https://github.com/sagemath/sagenb/issues/175)
@@ -407,8 +407,7 @@ class NotebookFrontend(object):
         print('Executing Sage Notebook with {} server'.format(
             self.conf['server']))
 
-        misc.DIR = self.conf['cwd']  # We should really get rid
-                                                     # of this!
+        misc.DIR = self.conf['cwd']  # We should really get rid of this!
 
         flask_app = create_app(self.notebook,
                                startup_token=self.conf['startup_token'],
@@ -440,7 +439,7 @@ class NotebookFrontend(object):
         logger = logging.getLogger('werkzeug')
         logger.setLevel(
             logging.DEBUG if self.conf['debug'] else logging.WARNING)
-        #logger.setLevel(logging.INFO) # to see page requests
+        # logger.setLevel(logging.INFO) # to see page requests
         logger.addHandler(logging.StreamHandler())
 
         self.open_page()
@@ -468,12 +467,12 @@ class NotebookFrontend(object):
         else:
             self.conf['strport'] = 'tcp:{port}:'\
                                    'interface={interface}'.format(**self.conf)
-        #Options as in twistd command line utility
+        # Options as in twistd command line utility
         self.conf['twisted_opts'] = '--pidfile={pidfile} -no'.format(
             **self.conf).split()
         ####################################################################
         # See
-        #http://twistedmatrix.com/documents/current/web/howto/
+        # http://twistedmatrix.com/documents/current/web/howto/
         #       using-twistedweb.html
         #  (Serving WSGI Applications) for the basic ideas of the below code
         ####################################################################
@@ -496,14 +495,14 @@ class NotebookFrontend(object):
         # Log only errors, not every page hit
         site = QuietSite(resource)
         # To log every single page hit, uncomment the following line
-        #site = server.Site(resource)
+        # site = server.Site(resource)
 
         application = service.Application("Sage Notebook")
         s = strports.service(self.conf['strport'], site)
         self.open_page()
         s.setServiceParent(application)
 
-        #This has to be done after sagenb.create_app is run
+        # This has to be done after sagenb.create_app is run
         reactor.addSystemEventTrigger('before', 'shutdown', self.save_notebook)
 
         # Run the application without .tac file
@@ -614,7 +613,7 @@ class NotebookFrontend(object):
             print('Using default localhost')
             dn = 'localhost'
 
-        #Key and certificate data
+        # Key and certificate data
         bits = 2048
         days = 10000
         distinguished_name = "'/{}/'".format('/'.join((
