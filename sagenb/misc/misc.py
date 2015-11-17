@@ -81,10 +81,6 @@ def sage_eval_fb(value, globs):
     return eval(value, globs)
 
 
-def is_package_installed_fb(name, *args, **kwds):
-    return False
-
-
 def load_fb(filename):
     return cPickle.loads(open(filename).read())
 
@@ -132,10 +128,6 @@ session_init = import_from(
 # TODO: sage dependency
 sage_eval = import_from(
     'sage.misc.sage_eval', 'sage_eval', default=lambda: sage_eval_fb)
-# TODO: sage dependency
-is_package_installed = import_from(
-    'sage.misc.package', 'is_package_installed',
-    default=lambda: is_package_installed_fb)
 # TODO: sage dependency
 loads = import_from(
     'sage.structure.sage_object', 'loads', default=lambda: cPickle.loads)
