@@ -94,7 +94,6 @@ def tmp_filename_fb(name='tmp'):
 
 
 def tmp_dir_fb(name='dir'):
-    import tempfile
     return tempfile.mkdtemp()
 
 
