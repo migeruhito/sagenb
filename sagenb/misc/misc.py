@@ -68,25 +68,25 @@ min_password_length = 6
 # TODO: Get macros from server and user settings.
 try:
     mathjax_macros = import_from(
-            'sage.misc.latex_macros', 'sage_mathjax_macros',
-            default=lambda: lambda: [
-                "ZZ : '{\\\\Bold{Z}}'",
-                "NN : '{\\\\Bold{N}}'",
-                "RR : '{\\\\Bold{R}}'",
-                "CC : '{\\\\Bold{C}}'",
-                "QQ : '{\\\\Bold{Q}}'",
-                "QQbar : '{\\\\overline{\\\\QQ}}'",
-                "GF : ['{\\\\Bold{F}_{#1}}', 1]",
-                "Zp : ['{\\\\ZZ_{#1}}', 1]",
-                "Qp : ['{\\\\QQ_{#1}}', 1]",
-                "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
-                "CIF : '{\\\\Bold{C}}'",
-                "CLF : '{\\\\Bold{C}}'",
-                "RDF : '{\\\\Bold{R}}'",
-                "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
-                "RLF : '{\\\\Bold{R}}'",
-                "CFF : '{\\\\Bold{CFF}}'",
-                "Bold : ['{\\\\mathbf{#1}}', 1]"])()
+        'sage.misc.latex_macros', 'sage_mathjax_macros',
+        default=lambda: lambda: [
+            "ZZ : '{\\\\Bold{Z}}'",
+            "NN : '{\\\\Bold{N}}'",
+            "RR : '{\\\\Bold{R}}'",
+            "CC : '{\\\\Bold{C}}'",
+            "QQ : '{\\\\Bold{Q}}'",
+            "QQbar : '{\\\\overline{\\\\QQ}}'",
+            "GF : ['{\\\\Bold{F}_{#1}}', 1]",
+            "Zp : ['{\\\\ZZ_{#1}}', 1]",
+            "Qp : ['{\\\\QQ_{#1}}', 1]",
+            "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
+            "CIF : '{\\\\Bold{C}}'",
+            "CLF : '{\\\\Bold{C}}'",
+            "RDF : '{\\\\Bold{R}}'",
+            "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
+            "RLF : '{\\\\Bold{R}}'",
+            "CFF : '{\\\\Bold{CFF}}'",
+            "Bold : ['{\\\\mathbf{#1}}', 1]"])()
 except Exception:
     sage_mathjax_macros_easy = []
     raise
