@@ -1,6 +1,5 @@
 from __future__ import absolute_import
-
-from ..misc.misc import get_module
+from ..util import get_module
 
 
 class AuthMethod():

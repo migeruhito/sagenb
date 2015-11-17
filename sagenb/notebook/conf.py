@@ -14,7 +14,7 @@ from __future__ import absolute_import
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
-from ..misc.misc import import_from
+from ..util import import_from
 
 
 POS = 'pos'

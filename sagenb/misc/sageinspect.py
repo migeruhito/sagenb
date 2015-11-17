@@ -15,7 +15,7 @@ MODIFIED BY:
 from __future__ import absolute_import
 
 import inspect
-from .misc import import_from
+from ..util import import_from
 
 
 def sagenb_getdef(obj, obj_name=''):
@@ -64,8 +64,8 @@ def sagenb_getdoc(obj, obj_name=''):
 
 
 sage_getargspec = import_from(
-        'sage.misc.sageinspect', 'sage_getargspec',
-        default=lambda: inspect.getargspec)
+    'sage.misc.sageinspect', 'sage_getargspec',
+    default=lambda: inspect.getargspec)
 sage_getdef = import_from(
     'sage.misc.sageinspect', 'sage_getdef', default=lambda: sagenb_getdef)
 sage_getdoc = import_from(

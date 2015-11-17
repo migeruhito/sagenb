@@ -2,7 +2,31 @@ from __future__ import absolute_import
 
 import os
 import sys
-from sagenb.misc.misc import import_from
+from importlib import import_module
+import sagenb.util
+
+
+def import_from(mod, obj, default=lambda: None):
+    """
+    Returns the object from module mod if the given module exists and has such
+    object, else 'default' parameter.
+    The object is not assigned to the caller's namespace
+    """
+    try:
+        return getattr(sagenb.util.get_module(mod), obj)
+    except AttributeError:
+        return default()
+
+
+def get_module(module, pkg=None, default=lambda: None):
+    """
+    Returns the module if the given module exists, else 'default' parameter.
+    The module is not assigned to the caller's namespace
+    """
+    try:
+        return import_module(module, pkg)
+    except ImportError:
+        return default()
 
 
 def sage_var(name, fallback=lambda: None, sage_mod='env'):

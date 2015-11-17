@@ -8,7 +8,6 @@ AUTHORS:
 
 - Nick Alexander
 """
-
 from __future__ import absolute_import
 
 import base64
@@ -19,10 +18,10 @@ from pydoc import describe
 from pydoc import html
 from pydoc import resolve
 
+from ..util import get_module
+from ..util import import_from
 from . import sageinspect
 from .misc import cython
-from .misc import get_module
-from .misc import import_from
 from .misc import InlineFortran
 from .misc import session_init
 from .format import displayhook_hack

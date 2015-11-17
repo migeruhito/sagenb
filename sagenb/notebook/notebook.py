@@ -18,8 +18,6 @@ AUTHORS:
 
 # For debugging sometimes it is handy to use only the reference implementation.
 from __future__ import absolute_import
-
-# System libraries
 import bz2
 import cPickle
 import logging
@@ -44,11 +42,9 @@ from ..interfaces import WorksheetProcess_ReferenceImplementation
 from ..interfaces import WorksheetProcess_RemoteExpectImplementation
 from ..interfaces import ProcessLimits
 from ..misc.misc import unicode_str
-from ..misc.misc import get_module
 from ..misc.misc import walltime
 from ..storage import FilesystemDatastore
-
-# Sage Notebook
+from ..util import get_module
 import sagenb.notebook.misc
 from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
@@ -62,6 +58,12 @@ from .template import template
 from .template import prettify_time_ago
 from .user_manager import OpenIDUserManager
 from .worksheet import extract_name
+
+# System libraries
+
+
+
+# Sage Notebook
 
 USE_REFERENCE_WORKSHEET_PROCESSES = False
 

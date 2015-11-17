@@ -19,10 +19,10 @@ from flask.ext.openid import OpenID
 from flask.ext.babel import gettext
 from flask.ext.babel import get_locale
 
-from ..misc.misc import mathjax_macros
 from ..misc.misc import N_
 from ..misc.misc import nN_
 from ..config import SAGE_VERSION
+from ..config import mathjax_macros
 from ..notebook.challenge import challenge
 from ..notebook.js import javascript
 from ..notebook.keyboards import get_keyboard

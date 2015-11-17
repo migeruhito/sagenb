@@ -19,7 +19,6 @@ Check that github issue #195 is fixed::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-
 from __future__ import absolute_import
 
 import cPickle
@@ -30,30 +29,8 @@ import stat
 import subprocess
 import tempfile
 import time
-from importlib import import_module
 
-
-def get_module(module, pkg=None, default=lambda: None):
-    """
-    Returns the module if the given module exists, else 'default' parameter.
-    The module is not assigned to the caller's namespace
-    """
-    try:
-        return import_module(module, pkg)
-    except ImportError:
-        return default()
-
-
-def import_from(mod, obj, default=lambda: None):
-    """
-    Returns the object from module mod if the given module exists and has such
-    object, else 'default' parameter.
-    The object is not assigned to the caller's namespace
-    """
-    try:
-        return getattr(get_module(mod), obj)
-    except AttributeError:
-        return default()
+from ..util import import_from
 
 
 def stub(f):
@@ -63,33 +40,6 @@ def stub(f):
     return g
 
 # Globals
-min_password_length = 6
-
-# TODO: Get macros from server and user settings.
-try:
-    mathjax_macros = import_from(
-        'sage.misc.latex_macros', 'sage_mathjax_macros',
-        default=lambda: lambda: [
-            "ZZ : '{\\\\Bold{Z}}'",
-            "NN : '{\\\\Bold{N}}'",
-            "RR : '{\\\\Bold{R}}'",
-            "CC : '{\\\\Bold{C}}'",
-            "QQ : '{\\\\Bold{Q}}'",
-            "QQbar : '{\\\\overline{\\\\QQ}}'",
-            "GF : ['{\\\\Bold{F}_{#1}}', 1]",
-            "Zp : ['{\\\\ZZ_{#1}}', 1]",
-            "Qp : ['{\\\\QQ_{#1}}', 1]",
-            "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
-            "CIF : '{\\\\Bold{C}}'",
-            "CLF : '{\\\\Bold{C}}'",
-            "RDF : '{\\\\Bold{R}}'",
-            "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
-            "RLF : '{\\\\Bold{R}}'",
-            "CFF : '{\\\\Bold{CFF}}'",
-            "Bold : ['{\\\\mathbf{#1}}', 1]"])()
-except Exception:
-    sage_mathjax_macros_easy = []
-    raise
 
 
 # Fallback functions in case sage is not present

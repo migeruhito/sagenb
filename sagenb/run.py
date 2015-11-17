@@ -10,7 +10,6 @@ Script to start the notebook form the command line
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-
 from __future__ import division, absolute_import, print_function
 import os
 import random
@@ -24,13 +23,13 @@ from sagenb import create_app
 from sagenb.notebook import misc
 from sagenb.misc.misc import cmd_exists
 from sagenb.config import DOT_SAGENB
-from sagenb.misc.misc import get_module
+from sagenb.config import min_password_length
 from sagenb.misc.misc import find_next_available_port
-from sagenb.misc.misc import min_password_length
 from sagenb.misc.misc import open_page
 from sagenb.misc.misc import print_open_msg
 from sagenb.misc.misc import system_command
 from sagenb.notebook import notebook
+from sagenb.util import get_module
 
 
 class NotebookFrontend(object):
@@ -377,7 +376,7 @@ class NotebookFrontend(object):
             print("Automatic login isn't fully implemented. You have to "
                   'manually open your web browser to the above URL.')
             self.conf['startup_token'] = '{0:x}'.format(
-                    random.randint(0, 2**128))
+                random.randint(0, 2**128))
         if self.conf['secure']:
             if (not os.path.exists(self.conf['private_pem']) or
                     not os.path.exists(self.conf['public_pem'])):

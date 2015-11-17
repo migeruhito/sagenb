@@ -9,6 +9,7 @@ from pkg_resources import resource_filename
 from pkg_resources import working_set
 from subprocess import check_output
 
+from .util import import_from
 from .util import sage_var  # if py3, from shutil import which
 from .util import which  # if py3, from shutil import which
 
@@ -99,3 +100,28 @@ for name in (l for l in os.listdir(TRANSLATIONS_PATH) if l != 'en_US'):
         TRANSLATIONS.append(name)
 TRANSLATIONS.sort()
 TRANSLATIONS.insert(0, 'en_US')
+
+# password
+min_password_length = 6
+
+# TODO: Get macros from server and user settings.
+mathjax_macros = import_from(
+    'sage.misc.latex_macros', 'sage_mathjax_macros',
+    default=lambda: lambda: [
+        "ZZ : '{\\\\Bold{Z}}'",
+        "NN : '{\\\\Bold{N}}'",
+        "RR : '{\\\\Bold{R}}'",
+        "CC : '{\\\\Bold{C}}'",
+        "QQ : '{\\\\Bold{Q}}'",
+        "QQbar : '{\\\\overline{\\\\QQ}}'",
+        "GF : ['{\\\\Bold{F}_{#1}}', 1]",
+        "Zp : ['{\\\\ZZ_{#1}}', 1]",
+        "Qp : ['{\\\\QQ_{#1}}', 1]",
+        "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
+        "CIF : '{\\\\Bold{C}}'",
+        "CLF : '{\\\\Bold{C}}'",
+        "RDF : '{\\\\Bold{R}}'",
+        "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
+        "RLF : '{\\\\Bold{R}}'",
+        "CFF : '{\\\\Bold{CFF}}'",
+        "Bold : ['{\\\\mathbf{#1}}', 1]"])()
