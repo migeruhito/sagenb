@@ -81,15 +81,6 @@ def sage_eval_fb(value, globs):
     return eval(value, globs)
 
 
-def load_fb(filename):
-    return cPickle.loads(open(filename).read())
-
-
-def save_fb(obj, filename):
-    s = cPickle.dumps(obj, protocol=2)
-    open(filename, 'wb').write(s)
-
-
 def strip_string_literals_fb(code, state=None):
     # todo -- do we need this?
     return code
@@ -128,18 +119,6 @@ session_init = import_from(
 # TODO: sage dependency
 sage_eval = import_from(
     'sage.misc.sage_eval', 'sage_eval', default=lambda: sage_eval_fb)
-# TODO: sage dependency
-loads = import_from(
-    'sage.structure.sage_object', 'loads', default=lambda: cPickle.loads)
-# TODO: sage dependency
-dumps = import_from(
-    'sage.structure.sage_object', 'dumps', default=lambda: cPickle.dumps)
-# TODO: sage dependency
-load = import_from(
-    'sage.structure.sage_object', 'load', default=lambda: load_fb)
-# TODO: sage dependency
-save = import_from(
-    'sage.structure.sage_object', 'save', default=lambda: save_fb)
 # TODO: sage dependency
 verbose = import_from('sage.misc.all', 'verbose', default=lambda: verbose_fb)
 
