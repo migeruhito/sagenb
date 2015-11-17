@@ -24,6 +24,7 @@ from __future__ import absolute_import
 import cPickle
 import os
 import resource
+import signal
 import socket
 import stat
 import subprocess
@@ -44,16 +45,6 @@ def stub(f):
 # Not implemented
 @stub
 def session_init_fb(*args, **kwds):
-    pass
-
-
-@stub
-def alarm_fb(*args, **kwds):
-    pass
-
-
-@stub
-def cancel_alarm_fb(*args, **kwds):
     pass
 
 
@@ -157,11 +148,6 @@ load = import_from(
 # TODO: sage dependency
 save = import_from(
     'sage.structure.sage_object', 'save', default=lambda: save_fb)
-# TODO: sage dependency
-alarm = import_from('sage.misc.all', 'alarm', default=lambda: alarm_fb)
-# TODO: sage dependency
-cancel_alarm = import_from(
-    'sage.misc.all', 'cancel_alarm', default=lambda: cancel_alarm_fb)
 # TODO: sage dependency
 verbose = import_from('sage.misc.all', 'verbose', default=lambda: verbose_fb)
 
@@ -465,26 +451,35 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
             9000, verbose=False)   # random output -- depends on network
         9002
     """
+    def handler(signum, frame):
+        raise UserWarning('timed out')
+
     alarm_count = 0
     for port in range(start, start + max_tries + 1):
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(5)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            alarm(5)
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((interface, port))
         except socket.error, msg:
             if msg[1] == 'Connection refused':
                 if verbose:
                     print "Using port = %s" % port
                 return port
+        except UserWarning:
+            if verbose:
+                print "Port %s timed out." % port
+                print "Trying next port..."
+            continue
         except KeyboardInterrupt:
             if verbose:
                 print "alarm"
             alarm_count += 1
             if alarm_count >= 10:
                 break
-            pass
         finally:
-            cancel_alarm()
+            signal.signal(signal.SIGALRM, signal.SIG_DFL)
+            signal.alarm(0)
         if verbose:
             print "Port %s is already in use." % port
             print "Trying next port..."
