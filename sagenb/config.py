@@ -43,6 +43,51 @@ def _dot_sage_fb():
         os.path.realpath(os.environ.get('HOME', '/tmp')), '.sage')
 
 
+def _sage_browser_fb():
+    """
+    Set up default programs for opening web pages.
+
+    INPUT:
+
+
+    EXAMPLES::
+
+        sage: from sagenb.config import _sage_browser_fb
+        sage: _sage_browser_fb() # random -- depends on OS, etc.
+        'sage-open'
+
+    NOTE:
+        Extracted from sage.misc.viewer.default_viewer
+    """
+    if os.uname()[0] == 'Darwin':
+        browser = os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-open')
+    elif os.uname()[0][:6] == 'CYGWIN':
+        # Bobby Moreti provided the following.
+        if not 'BROWSER' in os.environ:
+            browser = (
+                '/cygdrive/{}/system32/rundll32.exe '
+                'url.dll,FileProtocolHandler'.format(
+                    os.environ['SYSTEMROOT'].replace(':', '/').replace('\\',
+                                                                       '')))
+        else:
+            browser = os.environ['BROWSER']
+    else:
+        browser = which('xdg-open')
+
+    if browser is None:
+        # If all fails try to get something from the environment.
+        try:
+            browser = os.environ['BROWSER']
+        except KeyError:
+            browser = 'less'  # silly default
+            for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
+                brows = which(cmd)
+                if brows is not None:
+                    browser = brows
+                    break
+    return browser
+
+
 # sage paths
 SAGE_ROOT = sage_var('SAGE_ROOT', _sage_root_fb)
 SAGE_VERSION = sage_var('SAGE_VERSION', _sage_version_fb)
@@ -51,6 +96,9 @@ SAGE_SHARE = sage_var('SAGE_SHARE', _sage_share_fb)
 SAGE_URL = 'http://sagemath.org'  # SAGE_URL is broken in sage.env (ver 6.8)
 SAGE_SRC = sage_var('SAGE_SRC', _sage_src_fb)
 DOT_SAGE = sage_var('DOT_SAGE', _dot_sage_fb)
+SAGE_BROWSER = os.path.join(
+    SAGE_ROOT, 'local', 'bin', 'sage-native-execute {}'.format(
+        sage_var('SAGE_BROWSER', _sage_browser_fb)))
 
 # sagenb paths
 # TODO: This must be in sync with flask app base path. Should be removed from

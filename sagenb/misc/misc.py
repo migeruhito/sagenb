@@ -39,19 +39,12 @@ def stub(f):
         return f(*args, **kwds)
     return g
 
-# Globals
-
 
 # Fallback functions in case sage is not present
 # Not implemented
 @stub
 def session_init_fb(*args, **kwds):
     pass
-
-
-@stub
-def browser_fb():
-    return "open"
 
 
 @stub
@@ -142,6 +135,16 @@ class Color_fb:
         pass
 
 
+@stub
+def browser_fb():
+    pass
+
+
+# TODO: sage dependency
+browser = import_from(
+    'sage.misc.viewer', 'browser', default=lambda: browser_fb)
+
+
 # TODO: sage dependency
 session_init = import_from(
     'sage.misc.session', 'init', default=lambda: session_init_fb)
@@ -152,9 +155,6 @@ sage_eval = import_from(
 is_package_installed = import_from(
     'sage.misc.package', 'is_package_installed',
     default=lambda: is_package_installed_fb)
-# TODO: sage dependency
-browser = import_from(
-    'sage.misc.viewer', 'browser', default=lambda: browser_fb)
 # TODO: sage dependency
 loads = import_from(
     'sage.structure.sage_object', 'loads', default=lambda: cPickle.loads)
