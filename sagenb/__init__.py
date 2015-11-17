@@ -92,7 +92,7 @@ def create_app(notebook, startup_token=None, debug=False):
     app.register_blueprint(worksheet_listing)
 
     # # Extensions
-    #Open id
+    # Open id
     oid.init_app(app)
 
     # Babel

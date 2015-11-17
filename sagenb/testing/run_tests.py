@@ -33,8 +33,7 @@ TODO:
 import unittest
 
 import notebook_test_case
-# TODO: 
-from sagenb.misc.misc import browser
+from ..config import SAGE_BROWSER
 from tests import test_accounts, test_worksheet, test_worksheet_list
 
 CASES = {
@@ -239,7 +238,7 @@ def run_and_report(suite=all_tests, verbosity=2, report_filename='report.html',
 
     if open_viewer:
         import os, subprocess
-        subprocess.Popen(browser() + ' ' + os.path.abspath(report_filename),
+        subprocess.Popen(SAGE_BROWSER + ' ' + os.path.abspath(report_filename),
                          shell=True)
 
 

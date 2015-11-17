@@ -63,7 +63,7 @@ def _sage_browser_fb():
         browser = os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-open')
     elif os.uname()[0][:6] == 'CYGWIN':
         # Bobby Moreti provided the following.
-        if not 'BROWSER' in os.environ:
+        if 'BROWSER' not in os.environ:
             browser = (
                 '/cygdrive/{}/system32/rundll32.exe '
                 'url.dll,FileProtocolHandler'.format(
@@ -96,9 +96,9 @@ SAGE_SHARE = sage_var('SAGE_SHARE', _sage_share_fb)
 SAGE_URL = 'http://sagemath.org'  # SAGE_URL is broken in sage.env (ver 6.8)
 SAGE_SRC = sage_var('SAGE_SRC', _sage_src_fb)
 DOT_SAGE = sage_var('DOT_SAGE', _dot_sage_fb)
-SAGE_BROWSER = os.path.join(
-    SAGE_ROOT, 'local', 'bin', 'sage-native-execute {}'.format(
-        sage_var('SAGE_BROWSER', _sage_browser_fb)))
+SAGE_BROWSER = '{} {}'.format(
+    os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-native-execute'),
+    sage_var('SAGE_BROWSER', _sage_browser_fb))
 
 # sagenb paths
 # TODO: This must be in sync with flask app base path. Should be removed from

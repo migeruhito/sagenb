@@ -135,16 +135,6 @@ class Color_fb:
         pass
 
 
-@stub
-def browser_fb():
-    pass
-
-
-# TODO: sage dependency
-browser = import_from(
-    'sage.misc.viewer', 'browser', default=lambda: browser_fb)
-
-
 # TODO: sage dependency
 session_init = import_from(
     'sage.misc.session', 'init', default=lambda: session_init_fb)
@@ -501,14 +491,11 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
     raise RuntimeError("no available port.")
 
 
-def open_page(address, port, secure, path=""):
-    if secure:
-        rsrc = 'https'
-    else:
-        rsrc = 'http'
+def open_page(browser, address, port, secure, path=""):
+    rsrc = 'https' if secure else 'http'
 
     os.system('%s %s://%s:%s%s 1>&2 > /dev/null &' %
-              (browser(), rsrc, address, port, path))
+              (browser, rsrc, address, port, path))
 
 
 def pad_zeros(s, size=3):

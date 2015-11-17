@@ -23,6 +23,7 @@ from sagenb import create_app
 from sagenb.notebook import misc
 from sagenb.misc.misc import cmd_exists
 from sagenb.config import DOT_SAGENB
+from sagenb.config import SAGE_BROWSER
 from sagenb.config import min_password_length
 from sagenb.misc.misc import find_next_available_port
 from sagenb.misc.misc import open_page
@@ -551,14 +552,14 @@ class NotebookFrontend(object):
         # If we have to login and upload a file, then we do them
         # in that order and hope that the login is fast enough.
         if self.conf['automatic_login']:
-            open_page(self.conf['interface'], self.conf['port'],
+            open_page(SAGE_BROWSER, self.conf['interface'], self.conf['port'],
                       self.conf['secure'],
                       '/?startup_token={}'.format(self.conf['startup_token']))
         if self.conf['upload']:
-            open_page(self.conf['interface'], self.conf['port'],
+            open_page(SAGE_BROWSER, self.conf['interface'], self.conf['port'],
                       self.conf['secure'],
                       '/upload_worksheet?url=file://{}'.format(
-                          urllib.quote(self.conf['upload'])))
+                       urllib.quote(self.conf['upload'])))
 
     def write_pid(self):
         with open(self.conf['pidfile'], "w") as pidfile:
