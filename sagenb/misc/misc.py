@@ -21,7 +21,6 @@ Check that github issue #195 is fixed::
 #############################################################################
 from __future__ import absolute_import
 
-import cPickle
 import os
 import resource
 import signal
