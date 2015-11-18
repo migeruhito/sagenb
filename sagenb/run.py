@@ -21,7 +21,6 @@ import signal
 
 from sagenb import create_app
 from sagenb.notebook import misc
-from sagenb.misc.misc import cmd_exists
 from sagenb.config import DOT_SAGENB
 from sagenb.config import SAGE_BROWSER
 from sagenb.config import min_password_length
@@ -31,6 +30,7 @@ from sagenb.misc.misc import print_open_msg
 from sagenb.misc.misc import system_command
 from sagenb.notebook import notebook
 from sagenb.util import get_module
+from sagenb.util import which
 
 
 class NotebookFrontend(object):
@@ -604,7 +604,7 @@ class NotebookFrontend(object):
         if not os.path.exists(self.conf['conf_path']):
             os.makedirs(self.conf['conf_path'])
 
-        if not cmd_exists('openssl'):
+        if which('openssl') is None:
             raise RuntimeError('You must install openssl to use the secure'
                                'notebook server.')
 
