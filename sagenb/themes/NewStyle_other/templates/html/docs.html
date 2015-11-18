@@ -37,7 +37,7 @@
         {% for x, y in notebook_help %}
         <tr><td class="help_window_sub", colspan="2">{{ x }}</td></tr>
         {% for z, w in y %}
-        <tr><td class="help_window_cmd">{{ z }}</td><td class="help_window_how">{{ w }}</td></tr>
+        <tr><td class="help_window_cmd">{{ z }}</td><td class="help_window_how">{{ w |safe }}</td></tr>
         {% endfor %}
         {% endfor %}
     </table>
