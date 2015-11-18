@@ -455,24 +455,6 @@ def open_page(browser, address, port, secure, path=""):
               (browser, rsrc, address, port, path))
 
 
-def pad_zeros(s, size=3):
-    """
-    EXAMPLES::
-
-        sage: pad_zeros(100)
-        '100'
-        sage: pad_zeros(10)
-        '010'
-        sage: pad_zeros(10, 5)
-        '00010'
-        sage: pad_zeros(389, 5)
-        '00389'
-        sage: pad_zeros(389, 10)
-        '0000000389'
-    """
-    return "0" * (size - len(str(s))) + str(s)
-
-
 def system_command(cmd, msg=None):
     msg = cmd if msg is None else '\n'.join((msg, cmd))
     print(msg)
