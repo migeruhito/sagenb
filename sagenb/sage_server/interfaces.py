@@ -35,7 +35,7 @@ from ..misc.misc import set_restrictive_permissions
 from ..misc.misc import walltime
 
 
-class WorksheetProcess(object):
+class SageServerABC(object):
     """
     A controlled Python process that executes code.  This is a
     reference implementation.
@@ -136,7 +136,7 @@ class WorksheetProcess(object):
         raise NotImplementedError
 
 
-class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
+class SageServerReference(SageServerABC):
     """
     A controlled Python process that executes code.  This is a reference
     implementation.
@@ -174,7 +174,7 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
     def __init__(self, **kwds):
         for key in kwds.keys():
             print(
-                "WorksheetProcess_ReferenceImplementation: does not support "
+                "SageServerReference: does not support "
                 "'%s' option.  Ignored." % key)
         self._output_status = OutputStatus('', [], True, None)
         self._state = {}
@@ -257,7 +257,7 @@ class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
         return OS
 
 
-class WorksheetProcess_ExpectImplementation(WorksheetProcess):
+class SageServerExpect(SageServerABC):
     """
     A controlled Python process that executes code using expect.
 
@@ -547,8 +547,8 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         return OutputStatus(s, files, not self._is_computing)
 
 
-class WorksheetProcess_RemoteExpectImplementation(
-        WorksheetProcess_ExpectImplementation):
+class SageServerExpectRemote(
+        SageServerExpect):
     """
     This worksheet process class implements computation of worksheet
     code as another user possibly on another machine, with the
@@ -599,7 +599,7 @@ class WorksheetProcess_RemoteExpectImplementation(
                  remote_directory=None,
                  process_limits=None,
                  timeout=0.05):
-        WorksheetProcess_ExpectImplementation.__init__(
+        SageServerExpect.__init__(
             self, process_limits, timeout=timeout)
         self._user_at_host = user_at_host
 
