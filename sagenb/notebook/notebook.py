@@ -22,7 +22,6 @@ import bz2
 import cPickle
 import logging
 import os
-import random
 import re
 import shutil
 import time
@@ -37,12 +36,9 @@ from flask.ext.babel import lazy_gettext
 
 from ..util import templates
 from ..util.decorators import global_lock
-from ..interfaces import WorksheetProcess_ExpectImplementation
-from ..interfaces import WorksheetProcess_ReferenceImplementation
-from ..interfaces import WorksheetProcess_RemoteExpectImplementation
-from ..interfaces import ProcessLimits
 from ..misc.misc import unicode_str
 from ..misc.misc import walltime
+from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
 from ..util import get_module
 import sagenb.notebook.misc
@@ -60,7 +56,6 @@ from .user_manager import OpenIDUserManager
 from .worksheet import extract_name
 
 # System libraries
-
 
 
 # Sage Notebook
@@ -701,10 +696,6 @@ class Notebook(object):
         Return a new worksheet process object with parameters determined by
         configuration of this notebook server.
         """
-
-        if USE_REFERENCE_WORKSHEET_PROCESSES:
-            return WorksheetProcess_ReferenceImplementation()
-
         ulimit = self.get_ulimit()
         # We have to parse the ulimit format to our ProcessLimits.
         # The typical format is.
@@ -716,7 +707,6 @@ class Notebook(object):
         #    -v --> max_vmem (but we divide by 1000)
         #    -t -- > max_walltime
 
-        max_vmem = max_cputime = max_walltime = None
         tbl = {'v': None, 'u': None, 't': None}
         for x in ulimit.split('-'):
             for k in tbl.keys():
@@ -725,22 +715,13 @@ class Notebook(object):
         if tbl['v'] is not None:
             tbl['v'] = tbl['v'] / 1000.0
 
-        process_limits = ProcessLimits(max_vmem=tbl['v'],
-                                       max_walltime=tbl['t'],
-                                       max_processes=tbl['u'])
-
-        server_pool = self.server_pool()
-        if not server_pool or len(server_pool) == 0:
-            return WorksheetProcess_ExpectImplementation(
-                process_limits=process_limits)
-        else:
-            user_at_host = random.choice(server_pool)
-            python_command = os.path.join(
-                os.environ['SAGE_ROOT'], 'sage -python')
-            return WorksheetProcess_RemoteExpectImplementation(
-                user_at_host=user_at_host,
-                process_limits=process_limits,
-                remote_python=python_command)
+        return sage(
+            server_pool=self.server_pool(),
+            max_vmem=tbl['v'],
+            max_walltime=tbl['t'],
+            max_processes=tbl['u'],
+            use_reference=USE_REFERENCE_WORKSHEET_PROCESSES,
+            python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'))
 
     def _python_command(self):
         """

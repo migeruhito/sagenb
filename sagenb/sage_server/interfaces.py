@@ -1,25 +1,262 @@
 # -*- coding: utf-8 -*
+"""
+Worksheet process base clase
+
+AUTHORS:
+
+  - William Stein
+"""
+
+#############################################################################
+#
+#       Copyright (C) 2009 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#
+#############################################################################
+
 from __future__ import absolute_import
 
 import os
 import re
 import shutil
+import StringIO
+import sys
+import traceback
 import tempfile
 
 import pexpect
 
+from ..misc.format import displayhook_hack
 from ..misc.format import format_for_pexpect
 from ..misc.misc import set_permissive_permissions
 from ..misc.misc import set_restrictive_permissions
 from ..misc.misc import walltime
 
-from .status import OutputStatus
-from .worksheet_process import WorksheetProcess
+
+class WorksheetProcess(object):
+    """
+    A controlled Python process that executes code.  This is a
+    reference implementation.
+    """
+
+    def __init__(self, **kwds):
+        """
+        Initialize this worksheet process.
+        """
+        raise NotImplementedError
+
+    def __repr__(self):
+        """
+        Return string representation of this worksheet process.
+        """
+        return "Worksheet process"
+
+    def __getstate__(self):
+        """
+        Used for pickling.  We return an empty state otherwise
+        this could not be pickled.
+        """
+        return {}
+
+    def interrupt(self):
+        """
+        Send an interrupt signal to the currently running computation
+        in the controlled process.  This may or may not succeed.  Call
+        ``self.is_computing()`` to find out if it did.
+        """
+        raise NotImplementedError
+
+    def quit(self):
+        """
+        Quit this worksheet process.
+        """
+        raise NotImplementedError
+
+    def start(self):
+        """
+        Start this worksheet process running.
+        """
+        raise NotImplementedError
+
+    def update(self):
+        """
+        Update this worksheet process
+        """
+        # default implementation is to do nothing.
+
+    def is_computing(self):
+        """
+        Return True if a computation is currently running in this worksheet
+        subprocess.
+
+        OUTPUT:
+
+            - ``bool``
+        """
+        raise NotImplementedError
+
+    def is_started(self):
+        """
+        Return true if this worksheet subprocess has already been started.
+
+        OUTPUT:
+
+            - ``bool``
+        """
+        raise NotImplementedError
+
+    def execute(self, string, data=None):
+        """
+        Start executing the given string in this subprocess.
+
+        INPUT:
+
+            - ``string`` -- a string containing code to be executed.
+
+            - ``data`` -- a string or None; if given, must specify an
+              absolute path on the server host filesystem.   This may
+              be ignored by some worksheet process implementations.
+
+        """
+        raise NotImplementedError
+
+    def output_status(self):
+        """
+        Return OutputStatus object, which includes output from the
+        subprocess from the last executed command up until now,
+        information about files that were created, and whether
+        computing is now done.
+
+        OUTPUT:
+
+            - ``OutputStatus`` object.
+        """
+        raise NotImplementedError
 
 
-###################################################################
-# Expect-based implementation
-###################################################################
+class WorksheetProcess_ReferenceImplementation(WorksheetProcess):
+    """
+    A controlled Python process that executes code.  This is a reference
+    implementation.
+    """
+    @staticmethod
+    def execute_code(string, state, data=None):
+        # print "execute: '''%s'''"%string
+        string = displayhook_hack(string)
+
+        # Now execute the code capturing the output and files that are
+        # generated.
+        back = os.path.abspath('.')
+        tempdir = tempfile.mkdtemp()
+        if data is not None:
+            # make a symbolic link from the data directory into local tmp
+            # directory
+            os.symlink(data, os.path.join(tempdir, os.path.split(data)[1]))
+
+        s = StringIO.StringIO()
+        saved_stream = sys.stdout
+        sys.stdout = s
+        try:
+            os.chdir(tempdir)
+            exec string in state
+        except Exception:
+            traceback.print_exc(file=s)
+        finally:
+            sys.stdout = saved_stream
+            os.chdir(back)
+        s.seek(0)
+        out = str(s.read())
+        files = [os.path.join(tempdir, x) for x in os.listdir(tempdir)]
+        return out, files, tempdir
+
+    def __init__(self, **kwds):
+        for key in kwds.keys():
+            print(
+                "WorksheetProcess_ReferenceImplementation: does not support "
+                "'%s' option.  Ignored." % key)
+        self._output_status = OutputStatus('', [], True, None)
+        self._state = {}
+
+    def __repr__(self):
+        """
+        Return string representation of this worksheet process.
+        """
+        return "Reference implementation of worksheet process"
+
+    def interrupt(self):
+        """
+        Send an interrupt signal to the currently running computation
+        in the controlled process.  This may or may not succeed.  Call
+        ``self.is_computing()`` to find out if it did.
+        """
+        pass
+
+    def quit(self):
+        """
+        Quit this worksheet process.
+        """
+        self._state = {}
+
+    def start(self):
+        """
+        Start this worksheet process running.
+        """
+        pass
+
+    def is_computing(self):
+        """
+        Return True if a computation is currently running in this worksheet
+        subprocess.
+
+        OUTPUT:
+
+            - ``bool``
+        """
+        return False
+
+    def is_started(self):
+        """
+        Return true if this worksheet subprocess has already been started.
+
+        OUTPUT:
+
+            - ``bool``
+        """
+        return True
+
+    def execute(self, string, data=None):
+        """
+        Start executing the given string in this subprocess.
+
+        INPUT:
+
+            ``string`` -- a string containing code to be executed.
+
+            - ``data`` -- a string or None; if given, must specify an
+              absolute path on the server host filesystem.   This may
+              be ignored by some worksheet process implementations.
+        """
+        out, files, tempdir = self.execute_code(string, self._state, data)
+        self._output_status = OutputStatus(out, files, True, tempdir)
+
+    def output_status(self):
+        """
+        Return OutputStatus object, which includes output from the
+        subprocess from the last executed command up until now,
+        information about files that were created, and whether
+        computing is now done.
+
+        OUTPUT:
+
+            - ``OutputStatus`` object.
+        """
+        OS = self._output_status
+        self._output_status = OutputStatus('', [], True)
+        return OS
+
+
 class WorksheetProcess_ExpectImplementation(WorksheetProcess):
     """
     A controlled Python process that executes code using expect.
@@ -103,9 +340,6 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         """
         return "Pexpect implementation of worksheet process"
 
-    ###########################################################
-    # Control the state of the subprocess
-    ###########################################################
     def interrupt(self):
         """
         Send an interrupt signal to the currently running computation
@@ -171,9 +405,6 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
                 walltime() - self._start_walltime > self._max_walltime):
             self.quit()
 
-    ###########################################################
-    # Query the state of the subprocess
-    ###########################################################
     def is_computing(self):
         """
         Return True if a computation is currently running in this worksheet
@@ -195,9 +426,6 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         """
         return self._is_started
 
-    ###########################################################
-    # Sending a string to be executed in the subprocess
-    ###########################################################
     def get_tmpdir(self):
         """
         Return two strings (local, remote), where local is the name
@@ -278,9 +506,6 @@ class WorksheetProcess_ExpectImplementation(WorksheetProcess):
         except:
             pass
 
-    ###########################################################
-    # Getting the output so far from a subprocess
-    ###########################################################
     def output_status(self):
         """
         Return OutputStatus object, which includes output from the
@@ -416,3 +641,86 @@ class WorksheetProcess_RemoteExpectImplementation(
         # worksheet process can write to it.
         set_permissive_permissions(local)
         return (local, remote)
+
+
+class OutputStatus:
+    """
+    Object that records current status of output from executing some
+    code in a worksheet process.  An OutputStatus object has three
+    attributes:
+
+            - ``output`` - a string, the output so far
+
+            - ``filenames`` -- list of names of files created by this execution
+
+            - ``done`` -- bool; whether or not the computation is now done
+
+    """
+
+    def __init__(self, output, filenames, done, tempdir=None):
+        """
+        INPUT:
+
+           - ``output`` -- a string
+
+           - ``filenames`` -- a list of filenames
+
+           - ``done`` -- bool, if True then computation is done, so ``output``
+             is complete.
+
+           - ``tempdir`` -- (default: None) a filename of a directory; after
+             computation is done, the caller is responsible for
+             deleting this directory.
+        """
+        self.output = output
+        self.filenames = filenames
+        self.done = done
+        self.tempdir = tempdir
+
+    def __repr__(self):
+        """
+        Return string representation of this output status.
+        """
+        return (
+            "Output Status:\n\toutput: '%s'\n\tfilenames: %s\n\tdone: %s" % (
+                self.output, self.filenames, self.done))
+
+
+class ProcessLimits:
+    """
+    INPUT:
+
+        - ``max_vmem`` -- maximum virtual memory available to worksheet
+          process in megabytes, e.g., 500 would limit worksheet to
+          use 500 megabytes.
+
+        - ``max_cputime`` -- maximum cpu time in seconds available to
+          worksheet process.  After this amount of cputime is used,
+          the worksheet process is killed.
+
+        - ``max_walltime`` -- maximum wall time in seconds available
+          to worksheet process. After this amount of time elapses, the
+          worksheet subprocess is killed.
+
+        - ``max_processes`` -- maximum number of processes the
+          worksheet process can create
+    """
+
+    def __init__(self,
+                 max_vmem=None,     # maximum amount of virtual memory
+                                    # available to the shell in megabytes
+                 max_cputime=None,  # maximum cpu time in seconds
+                 max_walltime=None,  # maximum wall time in seconds
+                 max_processes=None,
+                 ):
+        self.max_vmem = max_vmem
+        self.max_cputime = max_cputime
+        self.max_walltime = max_walltime
+        self.max_processes = max_processes
+
+    def __repr__(self):
+        return 'Process limit object:' + \
+               '\n\tmax_vmem = %s MB' % self.max_vmem +  \
+               '\n\tmax_cputime = %s' % self.max_cputime + \
+               '\n\tmax_walltime = %s' % self.max_walltime + \
+               '\n\tmax_processes = %s' % self.max_processes
