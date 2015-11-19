@@ -3185,11 +3185,9 @@ sage.plot.plot.EMBEDDED_MODE=True
 sage.misc.latex.EMBEDDED_MODE=True
 # TODO: For now we take back sagenb interact; do this until the sage notebook
 # gets removed from the sage library.
-from ..notebook.all import *
-from ..globals import DOT_SAGE
+from sagenb.notebook.all import *
 try:
-    load(os.path.join(DOT_SAGE, 'init.sage'), globals(
-        ), attach=True)
+    load(os.path.join(os.environ['DOT_SAGE'], 'init.sage'), globals(),attach=True)
 except (KeyError, IOError):
     pass
     """ % (os.path.join(os.path.abspath(self.data_directory()), ''), misc.DIR)
