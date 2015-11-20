@@ -104,7 +104,7 @@ def get_cell_id():
         return request.values['id']
 
 
-def ws_template(ws=None, username='guest', admin=False, do_print=False):
+def render_ws_template(ws=None, username='guest', admin=False, do_print=False):
     r"""
     Return the HTML evaluated for a worksheet.
 
@@ -128,7 +128,7 @@ def ws_template(ws=None, username='guest', admin=False, do_print=False):
             tmp_dir(ext='.sagenb'))
         sage: nb.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
-        sage: ws_template(W, 'admin')
+        sage: render_ws_template(W, 'admin')
         u'...Test...cell_input...if (e.shiftKey)...state_number...'
     """
     if ws is None:
@@ -153,7 +153,7 @@ def ws_template(ws=None, username='guest', admin=False, do_print=False):
     else:
         template_name = 'worksheet_page.html'
 
-    return template(os.path.join('html', 'notebook', template_name), 
+    return template(os.path.join('html', 'notebook', template_name),
                     worksheet=ws,
                     notebook=nb, do_print=do_print,
                     username=username)
@@ -199,7 +199,7 @@ def worksheet_v(username, id, worksheet=None):
     """
     if worksheet is not None:
         worksheet.sage()
-    return ws_template(ws=worksheet, username=g.username)
+    return render_ws_template(ws=worksheet, username=g.username)
 
 
 # Public Worksheets
@@ -218,10 +218,10 @@ def public_worksheet(id):
         worksheet = pub_worksheet(original_worksheet)
         owner = worksheet.owner()
         worksheet.set_owner('pub')
-        s = ws_template(ws=worksheet, username=g.username)
+        s = render_ws_template(ws=worksheet, username=g.username)
         worksheet.set_owner(owner)
     else:
-        s = ws_template(ws=original_worksheet, username=g.username)
+        s = render_ws_template(ws=original_worksheet, username=g.username)
     return s
 
 
@@ -1283,7 +1283,7 @@ def worksheet_delete_all_output(worksheet):
 def worksheet_print(worksheet):
     # XXX: We might want to separate the printing template from the
     # regular html template.
-    return ws_template(ws=worksheet, do_print=True)
+    return render_ws_template(ws=worksheet, do_print=True)
 
 
 #######################################################
@@ -1345,4 +1345,4 @@ def worksheet_file(path):
     # remove it here.
     W.cell_list().pop()
 
-    return ws_template(ws=W, username=g.username)
+    return render_ws_template(ws=W, username=g.username)
