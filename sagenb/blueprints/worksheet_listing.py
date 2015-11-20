@@ -19,7 +19,6 @@ from flask import redirect
 from flask import request
 from flask import url_for
 from flask.ext.babel import gettext
-from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
@@ -34,9 +33,7 @@ from ..notebook.themes import render_template
 from ..util import templates
 from ..util.decorators import login_required
 from ..util.decorators import guest_or_login_required
-from .worksheet import pub_worksheet
 from .worksheet import url_for_worksheet
-from .worksheet import unconditional_download
 
 # Globals
 _ = gettext
@@ -250,50 +247,6 @@ def empty_trash():
 @guest_or_login_required
 def pub():
     return render_worksheet_list(request.args, pub=True, username=g.username)
-
-
-@worksheet_listing.route('/home/pub/<id>/')
-@guest_or_login_required
-def public_worksheet(id):
-    filename = 'pub/%s' % id
-    if g.notebook.conf()['pub_interact']:
-        try:
-            original_worksheet = g.notebook.get_worksheet_with_filename(
-                filename)
-        except KeyError:
-            return _("Requested public worksheet does not exist"), 404
-        worksheet = pub_worksheet(original_worksheet)
-
-        owner = worksheet.owner()
-        worksheet.set_owner('pub')
-        s = g.notebook.html(worksheet_filename=worksheet.filename(),
-                            username=g.username)
-        worksheet.set_owner(owner)
-    else:
-        s = g.notebook.html(worksheet_filename=filename, username=g.username)
-    return s
-
-
-@worksheet_listing.route('/home/pub/<id>/download/<path:title>')
-def public_worksheet_download(id, title):
-    worksheet_filename = "pub" + "/" + id
-    try:
-        worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
-    except KeyError:
-        return templates.message(
-            _("You do not have permission to access this worksheet"))
-    return unconditional_download(worksheet, title)
-
-
-@worksheet_listing.route('/home/pub/<id>/cells/<path:filename>')
-def public_worksheet_cells(id, filename):
-    worksheet_filename = "pub" + "/" + id
-    try:
-        worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
-    except KeyError:
-        return templates.message(
-            _("You do not have permission to access this worksheet"))
-    return send_from_directory(worksheet.cells_directory(), filename)
 
 #######################
 # Download Worksheets #

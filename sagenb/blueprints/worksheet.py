@@ -32,6 +32,7 @@ from ..notebook.misc import encode_response
 from ..notebook.themes import render_template
 
 from ..util import templates
+from ..util.decorators import guest_or_login_required
 from ..util.decorators import login_required
 
 _ = gettext
@@ -101,6 +102,21 @@ def get_cell_id():
     except ValueError:
         return request.values['id']
 
+
+# Public Worksheets
+
+def pub_worksheet(source):
+    # TODO: Independent pub pool and server settings.
+    proxy = doc_worksheet()
+    proxy.set_name(source.name())
+    proxy.set_last_change(*source.last_change())
+    proxy.set_worksheet_that_was_published(
+        source.worksheet_that_was_published())
+    g.notebook._initialize_worksheet(source, proxy)
+    proxy.set_tags({'_pub_': [True]})
+    proxy.save()
+    return proxy
+
 ##############################
 # Views
 ##############################
@@ -136,6 +152,53 @@ def worksheet_v(username, id, worksheet=None):
         s = g.notebook.html(worksheet_filename=worksheet.filename(),
                             username=g.username)
         return s
+
+
+# Public Worksheets
+
+@worksheet.route('/home/pub/<id>/')
+@guest_or_login_required
+def public_worksheet(id):
+    filename = 'pub/%s' % id
+    if g.notebook.conf()['pub_interact']:
+        try:
+            original_worksheet = g.notebook.get_worksheet_with_filename(
+                filename)
+        except KeyError:
+            return _("Requested public worksheet does not exist"), 404
+        worksheet = pub_worksheet(original_worksheet)
+
+        owner = worksheet.owner()
+        worksheet.set_owner('pub')
+        s = g.notebook.html(worksheet_filename=worksheet.filename(),
+                            username=g.username)
+        worksheet.set_owner(owner)
+    else:
+        s = g.notebook.html(worksheet_filename=filename, username=g.username)
+    return s
+
+
+@worksheet.route('/home/pub/<id>/download/<path:title>')
+def public_worksheet_download(id, title):
+    worksheet_filename = "pub" + "/" + id
+    try:
+        worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
+    except KeyError:
+        return templates.message(
+            _("You do not have permission to access this worksheet"))
+    return unconditional_download(worksheet, title)
+
+
+@worksheet.route('/home/pub/<id>/cells/<path:filename>')
+def public_worksheet_cells(id, filename):
+    worksheet_filename = "pub" + "/" + id
+    try:
+        worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
+    except KeyError:
+        return templates.message(
+            _("You do not have permission to access this worksheet"))
+    return send_from_directory(worksheet.cells_directory(), filename)
+
 
 published_commands_allowed = set([
     'alive', 'cells', 'cell_update', 'data', 'download', 'edit_published_page',
@@ -1239,19 +1302,3 @@ def worksheet_file(path):
 
     return g.notebook.html(worksheet_filename=W.filename(),
                            username=g.username)
-
-
-####################
-# Public Worksheets
-####################
-def pub_worksheet(source):
-    # TODO: Independent pub pool and server settings.
-    proxy = doc_worksheet()
-    proxy.set_name(source.name())
-    proxy.set_last_change(*source.last_change())
-    proxy.set_worksheet_that_was_published(
-        source.worksheet_that_was_published())
-    g.notebook._initialize_worksheet(source, proxy)
-    proxy.set_tags({'_pub_': [True]})
-    proxy.save()
-    return proxy
