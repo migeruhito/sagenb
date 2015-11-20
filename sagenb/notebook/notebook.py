@@ -30,10 +30,8 @@ from cgi import escape
 from time import strftime
 
 from docutils.core import publish_parts
-from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
-from ..util import templates
 from ..util.decorators import global_lock
 from ..misc.misc import unicode_str
 from ..misc.misc import walltime
@@ -1788,62 +1786,6 @@ class Notebook(object):
         return template(
             os.path.join("html", "notebook", "upload_data_window.html"),
             worksheet=ws, username=username)
-
-    def html(self, worksheet_filename=None, username='guest', admin=False,
-             do_print=False):
-        r"""
-        Return the HTML for a worksheet's index page.
-
-        INPUT:
-
-        - ``worksheet_filename`` - a string (default: None)
-
-        - ``username`` - a string (default: 'guest')
-
-        - ``admin`` - a bool (default: False)
-
-        OUTPUT:
-
-        - a string - the worksheet rendered as HTML
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: W = nb.create_new_worksheet('Test', 'admin')
-            sage: nb.html(W.filename(), 'admin')
-            u'...Test...cell_input...if (e.shiftKey)...state_number...'
-        """
-        if worksheet_filename is None or worksheet_filename == '':
-            worksheet_filename = None
-            W = None
-        else:
-            try:
-                W = self.get_worksheet_with_filename(worksheet_filename)
-            except KeyError:
-                W = None
-
-        if W is None:
-            return templates.message(gettext("The worksheet does not exist"))
-
-        if W.docbrowser() or W.is_published():
-            if W.is_published() or self.user_manager().user_is_guest(username):
-                template_page = os.path.join(
-                    'html', 'notebook', 'guest_worksheet_page.html')
-            else:
-                template_page = os.path.join(
-                    "html", "notebook", "doc_page.html")
-        elif do_print:
-            template_page = os.path.join(
-                'html', 'notebook', 'print_worksheet.html')
-        else:
-            template_page = os.path.join(
-                "html", "notebook", "worksheet_page.html")
-
-        return template(template_page, worksheet=W,
-                        notebook=self, do_print=do_print,
-                        username=username)
 
     def upgrade_model(self):
         """

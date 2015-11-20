@@ -29,6 +29,7 @@ from ..misc.misc import unicode_str
 from ..notebook.docHTMLProcessor import SphinxHTMLProcessor
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..notebook.misc import encode_response
+from ..notebook.template import template
 from ..notebook.themes import render_template
 
 from ..util import templates
@@ -103,6 +104,61 @@ def get_cell_id():
         return request.values['id']
 
 
+def ws_template(ws=None, username='guest', admin=False, do_print=False):
+    r"""
+    Return the HTML evaluated for a worksheet.
+
+    INPUT:
+
+    - ``ws`` - a Worksheet (default: None)
+
+    - ``username`` - a string (default: 'guest')
+
+    - ``admin`` - a bool (default: False)
+
+    - ``do_print`` - a bool (default: False)
+
+    OUTPUT:
+
+    - a string - the worksheet rendered as HTML
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: ws_template(W, 'admin')
+        u'...Test...cell_input...if (e.shiftKey)...state_number...'
+    """
+    if ws is None:
+        return templates.message(_("The worksheet does not exist"))
+
+    # New UI
+    try:
+        return render_template(os.path.join('html', 'worksheet.html'))
+    except TemplateNotFound:
+        pass
+    # New UI end
+
+    nb = g.notebook
+
+    if ws.docbrowser() or ws.is_published():
+        if ws.is_published() or nb.user_manager().user_is_guest(username):
+            template_name = 'guest_worksheet_page.html'
+        else:
+            template_name = 'doc_page.html'
+    elif do_print:
+        template_name = 'print_worksheet.html'
+    else:
+        template_name = 'worksheet_page.html'
+
+    return template(os.path.join('html', 'notebook', template_name), 
+                    worksheet=ws,
+                    notebook=nb, do_print=do_print,
+                    username=username)
+
+
 # Public Worksheets
 
 def pub_worksheet(source):
@@ -141,17 +197,9 @@ def worksheet_v(username, id, worksheet=None):
     username is the owner of the worksheet
     id is the id of the worksheet
     """
-    # /home/pub/* is handled in worksheet_listing.py
-    assert worksheet is not None
-    worksheet.sage()
-    # New UI
-    try:
-        return render_template(os.path.join('html', 'worksheet.html'))
-    except TemplateNotFound:
-        # New UI end
-        s = g.notebook.html(worksheet_filename=worksheet.filename(),
-                            username=g.username)
-        return s
+    if worksheet is not None:
+        worksheet.sage()
+    return ws_template(ws=worksheet, username=g.username)
 
 
 # Public Worksheets
@@ -160,21 +208,20 @@ def worksheet_v(username, id, worksheet=None):
 @guest_or_login_required
 def public_worksheet(id):
     filename = 'pub/%s' % id
-    if g.notebook.conf()['pub_interact']:
-        try:
-            original_worksheet = g.notebook.get_worksheet_with_filename(
-                filename)
-        except KeyError:
-            return _("Requested public worksheet does not exist"), 404
-        worksheet = pub_worksheet(original_worksheet)
+    try:
+        original_worksheet = g.notebook.get_worksheet_with_filename(filename)
+    except KeyError:
+        return templates.message(
+            _("Requested public worksheet does not exist"))
 
+    if g.notebook.conf()['pub_interact']:
+        worksheet = pub_worksheet(original_worksheet)
         owner = worksheet.owner()
         worksheet.set_owner('pub')
-        s = g.notebook.html(worksheet_filename=worksheet.filename(),
-                            username=g.username)
+        s = ws_template(ws=worksheet, username=g.username)
         worksheet.set_owner(owner)
     else:
-        s = g.notebook.html(worksheet_filename=filename, username=g.username)
+        s = ws_template(ws=original_worksheet, username=g.username)
     return s
 
 
@@ -1236,7 +1283,7 @@ def worksheet_delete_all_output(worksheet):
 def worksheet_print(worksheet):
     # XXX: We might want to separate the printing template from the
     # regular html template.
-    return g.notebook.html(worksheet.filename(), do_print=True)
+    return ws_template(ws=worksheet, do_print=True)
 
 
 #######################################################
@@ -1298,5 +1345,4 @@ def worksheet_file(path):
     # remove it here.
     W.cell_list().pop()
 
-    return g.notebook.html(worksheet_filename=W.filename(),
-                           username=g.username)
+    return ws_template(ws=W, username=g.username)
