@@ -24,8 +24,6 @@ import re
 import shutil
 import traceback
 import sys
-from cgi import escape
-from time import strftime
 
 from docutils.core import publish_parts
 from flask.ext.babel import lazy_gettext
@@ -45,7 +43,6 @@ from .docHTMLProcessor import docutilsHTMLProcessor
 from .misc import extract_title
 from .notification import logger
 from .notification import TwistedEmailHandler
-from .template import template
 from .user_manager import OpenIDUserManager
 from .worksheet import extract_name
 
@@ -1477,43 +1474,6 @@ class Notebook(object):
         for w in self.users_worksheets('_sage_'):
             if w.name().startswith('doc_browser'):
                 self.delete_worksheet(w.filename())
-
-    ###########################################################
-    # HTML -- generate most html related to the whole notebook page
-    ###########################################################
-    def html_plain_text_window(self, worksheet, username):
-        r"""
-        Return HTML for the window that displays a plain text version
-        of the worksheet.
-
-        INPUT:
-
-        -  ``worksheet`` - a Worksheet instance
-
-        -  ``username`` - a string
-
-        OUTPUT:
-
-        - a string - the plain text window rendered as HTML
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: W = nb.create_new_worksheet('Test', 'admin')
-            sage: nb.html_plain_text_window(W, 'admin')
-            u'...pre class="plaintext"...cell_intext...textfield...'
-        """
-        plain_text = worksheet.plain_text(prompts=True, banner=False)
-        plain_text = escape(plain_text).strip()
-
-        return template(
-            os.path.join("html", "notebook", "plain_text_window.html"),
-            worksheet=worksheet,
-            notebook=self,
-            username=username, plain_text=plain_text,
-            MATHJAX=MATHJAX, JEDITABLE_TINYMCE=JEDITABLE_TINYMCE)
 
     def upgrade_model(self):
         """

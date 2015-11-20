@@ -2,11 +2,12 @@ from __future__ import absolute_import
 
 import base64
 import bz2
-import re
 import os
+import re
 import threading
 import time
 import urllib2
+from cgi import escape
 from collections import defaultdict
 from functools import wraps
 from urlparse import urlparse
@@ -29,6 +30,8 @@ from ..misc.misc import unicode_str
 from ..notebook.docHTMLProcessor import SphinxHTMLProcessor
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..notebook.misc import encode_response
+from ..notebook.notebook import MATHJAX
+from ..notebook.notebook import JEDITABLE_TINYMCE
 from ..notebook.template import template
 from ..notebook.template import prettify_time_ago
 from ..notebook.themes import render_template
@@ -436,6 +439,41 @@ def html_upload_data_window(ws, username):
 
 # Public Worksheets
 
+def html_plain_text_window(worksheet, username):
+    r"""
+    Return HTML for the window that displays a plain text version
+    of the worksheet.
+
+    INPUT:
+
+    -  ``worksheet`` - a Worksheet instance
+
+    -  ``username`` - a string
+
+    OUTPUT:
+
+    - a string - the plain text window rendered as HTML
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: nb.html_plain_text_window(W, 'admin')
+        u'...pre class="plaintext"...cell_intext...textfield...'
+    """
+    plain_text = worksheet.plain_text(prompts=True, banner=False)
+    plain_text = escape(plain_text).strip()
+
+    return template(
+        os.path.join("html", "notebook", "plain_text_window.html"),
+        worksheet=worksheet,
+        notebook=g.notebook,
+        username=username, plain_text=plain_text,
+        MATHJAX=MATHJAX, JEDITABLE_TINYMCE=JEDITABLE_TINYMCE)
+
+
 def pub_worksheet(source):
     # TODO: Independent pub pool and server settings.
     proxy = doc_worksheet()
@@ -447,6 +485,7 @@ def pub_worksheet(source):
     proxy.set_tags({'_pub_': [True]})
     proxy.save()
     return proxy
+
 
 ##############################
 # Views
@@ -1026,7 +1065,7 @@ def worksheet_edit(worksheet):
     Return a window that allows the user to edit the text of the
     worksheet with the given filename.
     """
-    return g.notebook.html_edit_window(worksheet, g.username)
+    return html_edit_window(worksheet, g.username)
 
 
 ########################################################
@@ -1038,7 +1077,7 @@ def worksheet_text(worksheet):
     Return a window that allows the user to edit the text of the
     worksheet with the given filename.
     """
-    return g.notebook.html_plain_text_window(worksheet, g.username)
+    return html_plain_text_window(worksheet, g.username)
 
 ########################################################
 # Copy a worksheet
@@ -1311,7 +1350,7 @@ def worksheet_link_datafile(worksheet):
 
 @worksheet_command('upload_data')
 def worksheet_upload_data(worksheet):
-    return g.notebook.html_upload_data_window(worksheet, g.username)
+    return html_upload_data_window(worksheet, g.username)
 
 
 @worksheet_command('do_upload_data')
@@ -1448,11 +1487,11 @@ def worksheet_publish(worksheet):
                 hostname,
                 worksheet.published_version().filename())
             dtime = worksheet.published_version().date_edited()
-            return g.notebook.html_afterpublish_window(
+            return html_afterpublish_window(
                 worksheet, g.username, addr, dtime)
         # Page for when worksheet is not already published
         else:
-            return g.notebook.html_beforepublish_window(worksheet, g.username)
+            return html_beforepublish_window(worksheet, g.username)
 
 ############################################
 # Ratings
