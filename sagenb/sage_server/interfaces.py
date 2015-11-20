@@ -269,10 +269,12 @@ class SageServerExpect(SageServerABC):
     def __init__(self,
                  process_limits=None,
                  timeout=0.05,
-                 python='python'):
+                 python='python',
+                 init_code=None):
         """
         Initialize this worksheet process.
         """
+        self._init_code = init_code
         self._output_status = OutputStatus('', [], True)
         self._expect = None
         self._is_started = False
@@ -387,6 +389,37 @@ class SageServerExpect(SageServerABC):
         self._number = 0
         self._read()
         self._start_walltime = walltime()
+        self._sage_init()
+
+    def _sage_init(self):
+        cmd = '\n'.join((
+            'import base64',
+            'import sagenb.misc.support as _support_',
+            'import sagenb.notebook.interact as _interact_ '
+            '# for setting current cell id',
+            '',
+            '{}'.format(
+                self._init_code) if self._init_code is not None else '',
+            'import sys; sys.path.append(DATA)',
+            '_support_.init(None, globals())',
+            '',
+            '# The following is Sage-specific -- this immediately bombs out '
+            'if sage isn\'t',
+            '# installed.',
+            'from sage.all_notebook import *',
+            'sage.plot.plot.EMBEDDED_MODE=True',
+            'sage.misc.latex.EMBEDDED_MODE=True',
+            '# TODO: For now we take back sagenb interact; do this until the '
+            'sage notebook',
+            '# gets removed from the sage library.',
+            'from sagenb.notebook.all import *',
+            'try:',
+            '    load(os.path.join(os.environ["DOT_SAGE"], "init.sage"),',
+            '         globals(), attach=True)',
+            'except (KeyError, IOError):',
+            '    pass',))
+        self.execute(cmd)
+        self.output_status()
 
     def update(self):
         """
@@ -547,8 +580,7 @@ class SageServerExpect(SageServerABC):
         return OutputStatus(s, files, not self._is_computing)
 
 
-class SageServerExpectRemote(
-        SageServerExpect):
+class SageServerExpectRemote(SageServerExpect):
     """
     This worksheet process class implements computation of worksheet
     code as another user possibly on another machine, with the
@@ -598,9 +630,10 @@ class SageServerExpectRemote(
                  local_directory=None,
                  remote_directory=None,
                  process_limits=None,
-                 timeout=0.05):
+                 timeout=0.05,
+                 **kwargs):
         SageServerExpect.__init__(
-            self, process_limits, timeout=timeout)
+            self, process_limits, timeout=timeout, **kwargs)
         self._user_at_host = user_at_host
 
         if local_directory is None:

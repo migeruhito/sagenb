@@ -3165,66 +3165,6 @@ class Worksheet(object):
         except AttributeError:
             return False
 
-    def initialize_sage(self):
-        S = self.__sage
-        try:
-            cmd = """
-import base64
-import sagenb.misc.support as _support_
-import sagenb.notebook.interact as _interact_ # for setting current cell id
-
-DATA = %r
-DIR = %r
-import sys; sys.path.append(DATA)
-_support_.init(None, globals())
-
-# The following is Sage-specific -- this immediately bombs out if sage isn't
-# installed.
-from sage.all_notebook import *
-sage.plot.plot.EMBEDDED_MODE=True
-sage.misc.latex.EMBEDDED_MODE=True
-# TODO: For now we take back sagenb interact; do this until the sage notebook
-# gets removed from the sage library.
-from sagenb.notebook.all import *
-try:
-    load(os.path.join(os.environ['DOT_SAGE'], 'init.sage'), globals(),attach=True)
-except (KeyError, IOError):
-    pass
-    """ % (os.path.join(os.path.abspath(self.data_directory()), ''), misc.DIR)
-            S.execute(cmd)
-            S.output_status()
-
-        except Exception, msg:
-            print "ERROR initializing compute process:\n"
-            print msg
-            del self.__sage
-            raise RuntimeError(msg)
-
-        # make sure we have a __sage attribute
-        # We do this to diagnose google issue 81; once we
-        # have fixed that issue, we can remove this next statement
-        T = self.__sage
-
-        A = self.attached_files()
-        for F in A.iterkeys():
-            A[F] = 0  # expire all
-
-        # Check to see if the typeset/pretty print button is checked.
-        # If so, send code to initialize the worksheet to have the
-        # right pretty printing mode.
-        if self.pretty_print():
-            S.execute('pretty_print_default(True);')
-
-        if not self.is_published():
-            self._enqueue_auto_cells()
-
-        # make sure we have a __sage attribute
-        # We do this to diagnose google issue 81; once we
-        # have fixed that issue, we can remove this next statement
-        T = self.__sage
-
-        return S
-
     def sage(self):
         """
         Return a started up copy of Sage initialized for computations.
@@ -3242,22 +3182,30 @@ except (KeyError, IOError):
                 return S
         except AttributeError:
             pass
-        self.__sage = self.notebook().new_worksheet_process()
+        try:
+            self.__sage = self.notebook().new_worksheet_process(
+                init_code="DATA = '{}'".format(
+                    os.path.join(os.path.abspath(self.data_directory()))))
+        except Exception as msg:
+            print "ERROR initializing compute process:\n"
+            print msg
+            del self.__sage
+            raise RuntimeError(msg)
         all_worksheet_processes.append(self.__sage)
         self.__next_block_id = 0
-
-        # make sure we have a __sage attribute
-        # We do this to diagnose google issue 81; once we
-        # have fixed that issue, we can remove this next statement
         S = self.__sage
+        A = self.attached_files()
+        for F in A.iterkeys():
+            A[F] = 0  # expire all
 
-        self.initialize_sage()
+        # Check to see if the typeset/pretty print button is checked.
+        # If so, send code to initialize the worksheet to have the
+        # right pretty printing mode.
+        if self.pretty_print():
+            S.execute('pretty_print_default(True);')
 
-        # make sure we have a __sage attribute
-        # We do this to diagnose google issue 81; once we
-        # have fixed that issue, we can remove this next statement
-        S = self.__sage
-
+        if not self.is_published():
+            self._enqueue_auto_cells()
         return self.__sage
 
     def eval_asap_no_output(self, cmd, username=None):

@@ -41,7 +41,7 @@ from ..misc.misc import walltime
 from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
 from ..util import get_module
-import sagenb.notebook.misc
+from . import misc
 from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
 from . import user         # users
@@ -691,7 +691,7 @@ class Notebook(object):
             i = 0
         return P[i]
 
-    def new_worksheet_process(self):
+    def new_worksheet_process(self, init_code=None):
         """
         Return a new worksheet process object with parameters determined by
         configuration of this notebook server.
@@ -714,14 +714,14 @@ class Notebook(object):
                     tbl[k] = int(x.split()[1].strip())
         if tbl['v'] is not None:
             tbl['v'] = tbl['v'] / 1000.0
-
         return sage(
             server_pool=self.server_pool(),
             max_vmem=tbl['v'],
             max_walltime=tbl['t'],
             max_processes=tbl['u'],
             use_reference=USE_REFERENCE_WORKSHEET_PROCESSES,
-            python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'))
+            python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),
+            init_code='\n'.join((init_code, "DIR = '{}'".format(misc.DIR))))
 
     def _python_command(self):
         """
@@ -1953,7 +1953,7 @@ def load_notebook(dir, interface=None, port=None, secure=None,
     # global notebook object used for computations.  This is
     # mainly to avoid circular references, etc.  This also means
     # only one notebook can actually be used at any point.
-    sagenb.notebook.misc.notebook = nb
+    misc.notebook = nb
 
     return nb
 
