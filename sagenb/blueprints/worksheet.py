@@ -190,7 +190,7 @@ def worksheet_command(target, **route_kwds):
         def wc_url_for(worksheet, *args, **kwds):
             kwds['username'] = g.username
             kwds['id'] = worksheet.filename_without_owner()
-            return url_for(f.__name__, *args, **kwds)
+            return url_for('.{}'.format(f.__name__), *args, **kwds)
 
         wrapper.url_for = wc_url_for
 
