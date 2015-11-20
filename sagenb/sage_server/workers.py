@@ -7,6 +7,32 @@ from .interfaces import SageServerExpect
 from .interfaces import SageServerExpectRemote
 from .interfaces import ProcessLimits
 
+sage_init_code_tpt = '\n'.join((
+    'import base64',
+    'import sagenb.misc.support as _support_',
+    'import sagenb.notebook.interact as _interact_ '
+    '# for setting current cell id',
+    '',
+    '{}',
+    'import sys; sys.path.append(DATA)',
+    '_support_.init(None, globals())',
+    '',
+    '# The following is Sage-specific -- this immediately bombs out if sage '
+    'isn\'t',
+    '# installed.',
+    'from sage.all_notebook import *',
+    'sage.plot.plot.EMBEDDED_MODE=True',
+    'sage.misc.latex.EMBEDDED_MODE=True',
+    '# TODO: For now we take back sagenb interact; do this until the sage '
+    'notebook',
+    '# gets removed from the sage library.',
+    'from sagenb.notebook.all import *',
+    'try:',
+    '    load(os.path.join(os.environ["DOT_SAGE"], "init.sage"),',
+    '         globals(), attach=True)',
+    'except (KeyError, IOError):',
+    '    pass',))
+
 
 def sage(server_pool=None, max_vmem=None, max_walltime=None,
          max_processes=None, use_reference=False, python='sage -python',
@@ -14,6 +40,8 @@ def sage(server_pool=None, max_vmem=None, max_walltime=None,
     """
     sage process factory
     """
+    init_code = sage_init_code_tpt.format(
+        '' if init_code is None else init_code)
     if use_reference:
         return SageServerReference()
 
