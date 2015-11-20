@@ -1728,20 +1728,6 @@ class Notebook(object):
             sage: nb.html_beforepublish_window(W, 'admin')
             u'...want to publish this worksheet?...re-publish when changes...'
         """
-        msg = (
-            'You can publish your worksheet to the Internet, where anyone '
-            'will be able to access and view it online.\n'
-            'Your worksheet will be assigned a unique address (URL) that you '
-            'can send to your friends and colleagues.<br/><br/>\n'
-            'Do you want to publish this worksheet?<br/><br/>\n'
-            '<form method="get" action=".">\n'
-            '<input type="hidden" name="yes" value="" />\n'
-            '<input type="submit" value="Yes" style="margin-left:10px" />\n'
-            '<input type="button" value="No" style="margin-left:5px" '
-            'onClick="parent.location=\'../\'"><br/><br/>\n'
-            '<input type="checkbox" name="auto" style="margin-left:13px" /> '
-            'Automatically re-publish when changes are made and saved\n'
-            '</form>')
         return template(
             os.path.join("html", "notebook", "beforepublish_window.html"),
             worksheet=worksheet,
@@ -2037,12 +2023,12 @@ def migrate_old_notebook_v1(dir):
         # some ugly creation of new attributes from what used to be stored
         tags = {}
         try:
-            for user, val in old_ws._Worksheet__user_view.iteritems():
-                if isinstance(user, str):
+            for user_, val in old_ws._Worksheet__user_view.iteritems():
+                if isinstance(user_, str):
                     # There was a bug in the old notebook where sometimes the
                     # user was the *module* "user", so we don't include that
                     # invalid data.
-                    tags[user] = [val]
+                    tags[user_] = [val]
         except AttributeError:
             pass
         last_change = (old_ws.last_to_edit(), old_ws.last_edited())

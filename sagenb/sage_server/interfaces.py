@@ -390,7 +390,7 @@ class SageServerExpect(SageServerABC):
         self._number = 0
         self._read()
         self._start_walltime = walltime()
-        
+
     def update(self):
         """
         This should be called periodically by the server processes.
@@ -489,8 +489,7 @@ class SageServerExpect(SageServerABC):
 
         self._all_tempdirs.append(self._tempdir)
         open(self._filename, 'w').write(
-                format_for_pexpect(string, self._prompt,
-                                   self._number))
+            format_for_pexpect(string, self._prompt, self._number))
         try:
             self._expect.sendline(
                 '\nimport os;os.chdir("%s");\nexecfile("%s")' % (

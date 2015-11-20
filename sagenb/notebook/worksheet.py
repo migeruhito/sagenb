@@ -2166,7 +2166,7 @@ class Worksheet(object):
                                               self.publisher(),
                                               self.name(), contents]]
             r = u" ".join(r)
-        except UnicodeDecodeError as e:
+        except UnicodeDecodeError:
             return False
 
         # Check that every single word is in the file from disk.
@@ -2484,7 +2484,7 @@ class Worksheet(object):
             try:
                 meta, input, output, i = extract_first_compute_cell(text)
                 data.append(('compute', (meta, input, output)))
-            except EOFError, msg:
+            except EOFError:
                 # print msg # -- don't print msg, just outputs a blank
                 #                 line every time, which makes for an
                 #                 ugly and unprofessional log.
@@ -3124,11 +3124,6 @@ class Worksheet(object):
             print msg
             print "WARNING: Error deleting Sage object!"
 
-        try:
-            os.kill(pid, 9)
-        except:
-            pass
-
         del self.__sage
 
         # We do this to avoid getting a stale Sage that uses old code.
@@ -3284,7 +3279,7 @@ class Worksheet(object):
 
         try:
             input = relocate_future_imports(input)
-        except SyntaxError as msg:
+        except SyntaxError:
             t = traceback.format_exc()
             s = 'File "<unknown>",'
             i = t.find(s)
@@ -3899,7 +3894,7 @@ class Worksheet(object):
                         I = C._before_preparse.split('\n')
                         out = out[:i + len(tb) + 1] + \
                             '    ' + I[n - 2] + out[l:]
-        except (ValueError, IndexError) as msg:
+        except (ValueError, IndexError):
             pass
         return out
 
@@ -4037,7 +4032,6 @@ class Worksheet(object):
             if filename.endswith('.py'):
                 t = F
             elif filename.endswith('.spyx') or filename.endswith('.pyx'):
-                cur = os.path.abspath(os.curdir)
                 try:
                     mod, dir = cython.cython(
                         filename_orig, compile_message=True, use_cache=True)

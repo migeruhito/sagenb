@@ -517,7 +517,6 @@ def worksheet_delete_cell(worksheet):
     if len(worksheet.compute_cell_id_list()) <= 1:
         r['command'] = 'ignore'
     else:
-        prev_id = worksheet.delete_cell_with_id(id)
         r['command'] = 'delete'
         r['prev_id'] = worksheet.delete_cell_with_id(id)
         r['cell_id_list'] = worksheet.cell_id_list()
@@ -859,7 +858,6 @@ def worksheet_jsmol_data(worksheet):
         "http://cactus.nci.nih.gov/chemical/structure/ethanol/"
         "file?format=sdf&get3d=True")
     call = request.values.get('call', u'getRawDataFromDatabase')
-    database = request.values.get('database', '_')
     encoding = request.values.get('encoding', None)
 
     current_app.logger.debug('JSmol call:  %s', call)
@@ -1054,7 +1052,7 @@ def worksheet_do_upload_data(worksheet):
             return templates.message(
                 _('Suspicious filename "%(filename)s" encountered uploading '
                   'file.%(backlinks)s',
-                  filename=filename, backlinks=backlinks), worksheet_url)
+                  filename=name, backlinks=backlinks), worksheet_url)
         os.unlink(dest)
 
     response = redirect(worksheet_datafile.url_for(worksheet, name=name))
@@ -1106,7 +1104,7 @@ def worksheet_publish(worksheet):
         return redirect(worksheet_publish.url_for(worksheet))
     # Re-publishes worksheet
     elif 're' in request.values:
-        W = g.notebook.publish_worksheet(worksheet, g.username)
+        g.notebook.publish_worksheet(worksheet, g.username)
         return redirect(worksheet_publish.url_for(worksheet))
     # Sets worksheet to be published automatically when saved
     elif 'auto' in request.values:

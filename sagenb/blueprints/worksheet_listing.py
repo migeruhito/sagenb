@@ -112,7 +112,7 @@ def worksheet_list():
     r = {}
 
     pub = 'pub' in request.args
-    readonly = g.notebook.readonly_user(g.username)
+    g.notebook.readonly_user(g.username)
     typ = request.args['type'] if 'type' in request.args else 'active'
     search = unicode_str(
         request.args['search']) if 'search' in request.args else None
@@ -176,7 +176,8 @@ def bare_home():
 
 
 def get_worksheets_from_request():
-    U = g.notebook.user_manager().user(g.username)
+    # TODO: Is this neccessary?
+    g.notebook.user_manager().user(g.username)
 
     if 'filename' in request.form:
         filenames = [request.form['filename']]
