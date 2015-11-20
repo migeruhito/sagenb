@@ -40,7 +40,7 @@ _ = gettext
 worksheet_listing = Blueprint('worksheet_listing', __name__)
 
 
-def render_worksheet_list(args, pub, username):
+def render_ws_list_template(args, pub, username):
     """
     Returns a rendered worksheet listing.
 
@@ -161,7 +161,7 @@ def home(username):
             return render_template('html/worksheet_list.html')
         except TemplateNotFound:
             # New UI end
-            return render_worksheet_list(
+            return render_ws_list_template(
                 request.args, pub=False, username=username)
 
 
@@ -247,7 +247,7 @@ def empty_trash():
 @worksheet_listing.route('/pub/')
 @guest_or_login_required
 def pub():
-    return render_worksheet_list(request.args, pub=True, username=g.username)
+    return render_ws_list_template(request.args, pub=True, username=g.username)
 
 #######################
 # Download Worksheets #
