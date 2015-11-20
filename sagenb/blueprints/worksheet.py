@@ -30,6 +30,7 @@ from ..notebook.docHTMLProcessor import SphinxHTMLProcessor
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..notebook.misc import encode_response
 from ..notebook.template import template
+from ..notebook.template import prettify_time_ago
 from ..notebook.themes import render_template
 
 from ..util import templates
@@ -157,6 +158,280 @@ def render_ws_template(ws=None, username='guest', admin=False, do_print=False):
                     worksheet=ws,
                     notebook=nb, do_print=do_print,
                     username=username)
+
+
+def html_worksheet_revision_list(username, worksheet):
+    r"""
+    Return HTML for the revision list of a worksheet.
+
+    INPUT:
+
+    - ``username`` - a string
+
+    - ``worksheet`` - an instance of Worksheet
+
+    OUTPUT:
+
+    - a string - the HTML for the revision list
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W.body()
+        u'\n\n{{{id=1|\n\n///\n}}}'
+        sage: W.save_snapshot('admin')
+        sage: nb.html_worksheet_revision_list('admin', W)
+        u'...Revision...Last Edited...ago...'
+    """
+    data = worksheet.snapshot_data()  # pairs ('how long ago', key)
+
+    return template(
+        os.path.join("html", "notebook", "worksheet_revision_list.html"),
+        data=data, worksheet=worksheet,
+        notebook=g.notebook,
+        username=username)
+
+
+def html_specific_revision_(username, ws, rev):
+    r"""
+    Return the HTML for a specific revision of a worksheet.
+
+    INPUT:
+
+    - ``username`` - a string
+
+    - ``ws`` - an instance of Worksheet
+
+    - ``rev`` - a string containing the key of the revision
+
+    OUTPUT:
+
+    - a string - the revision rendered as HTML
+    """
+    nb = g.notebook
+    t = time.time() - float(rev[:-4])
+    time_ago = prettify_time_ago(t)
+
+    filename = ws.get_snapshot_text_filename(rev)
+    txt = bz2.decompress(open(filename).read())
+    W = nb.scratch_worksheet()
+    W.set_name('Revision of ' + ws.name())
+    W.delete_cells_directory()
+    W.edit_save(txt)
+
+    data = ws.snapshot_data()  # pairs ('how long ago', key)
+    prev_rev = None
+    next_rev = None
+    for i in range(len(data)):
+        if data[i][1] == rev:
+            if i > 0:
+                prev_rev = data[i - 1][1]
+            if i < len(data) - 1:
+                next_rev = data[i + 1][1]
+            break
+
+    return template(os.path.join("html", "notebook", "specific_revision.html"),
+                    worksheet=W,  # the revision, not the original!
+                    username=username, rev=rev, prev_rev=prev_rev,
+                    next_rev=next_rev, time_ago=time_ago)
+
+
+def html_share(worksheet, username):
+    r"""
+    Return the HTML for the "share" page of a worksheet.
+
+    INPUT:
+
+    - ``username`` - a string
+
+    - ``worksheet`` - an instance of Worksheet
+
+    OUTPUT:
+
+    - string - the share page's HTML representation
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: nb.html_share(W, 'admin')
+        u'...currently shared...add or remove collaborators...'
+    """
+    return template(
+        os.path.join("html", "notebook", "worksheet_share.html"),
+        worksheet=worksheet,
+        notebook=g.notebook,
+        username=username)
+
+
+def html_download_or_delete_datafile(ws, username, filename):
+    r"""
+    Return the HTML for the download or delete datafile page.
+
+    INPUT:
+
+    - ``username`` - a string
+
+    - ``ws`` - an instance of Worksheet
+
+    - ``filename`` - a string; the name of the file
+
+    OUTPUT:
+
+    - a string - the page rendered as HTML
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: nb.html_download_or_delete_datafile(W, 'admin', 'bar')
+        u'...Data file: bar...DATA is a special variable...uploaded...'
+    """
+    ext = os.path.splitext(filename)[1].lower()
+    file_is_image, file_is_text = False, False
+    text_file_content = ""
+
+    if ext in ['.png', '.jpg', '.gif']:
+        file_is_image = True
+    if ext in ['.txt', '.tex', '.sage', '.spyx', '.py', '.f', '.f90',
+               '.c']:
+        file_is_text = True
+        text_file_content = open(os.path.join(
+            ws.data_directory(), filename)).read()
+
+    return template(os.path.join("html", "notebook",
+                                 "download_or_delete_datafile.html"),
+                    worksheet=ws, notebook=g.notebook,
+                    username=username,
+                    filename_=filename,
+                    file_is_image=file_is_image,
+                    file_is_text=file_is_text,
+                    text_file_content=text_file_content)
+
+
+def html_edit_window(worksheet, username):
+    r"""
+    Return HTML for a window for editing ``worksheet``.
+
+    INPUT:
+
+    - ``username`` - a string containing the username
+
+    - ``worksheet`` - a Worksheet instance
+
+    OUTPUT:
+
+    - a string - the editing window's HTML representation
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: nb.html_edit_window(W, 'admin')
+        u'...textarea class="plaintextedit"...{{{id=1|...//...}}}...'
+    """
+
+    return template(os.path.join("html", "notebook", "edit_window.html"),
+                    worksheet=worksheet,
+                    notebook=g.notebook,
+                    username=username)
+
+
+def html_beforepublish_window(worksheet, username):
+    r"""
+    Return HTML for the warning and decision page displayed prior
+    to publishing the given worksheet.
+
+    INPUT:
+
+    - ``worksheet`` - an instance of Worksheet
+
+    - ``username`` - a string
+
+    OUTPUT:
+
+    - a string - the pre-publication page rendered as HTML
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: nb.html_beforepublish_window(W, 'admin')
+        u'...want to publish this worksheet?...re-publish when changes...'
+    """
+    return template(
+        os.path.join("html", "notebook", "beforepublish_window.html"),
+        worksheet=worksheet,
+        notebook=g.notebook,
+        username=username)
+
+
+def html_afterpublish_window(worksheet, username, url, dtime):
+    r"""
+    Return HTML for a given worksheet's post-publication page.
+
+    INPUT:
+
+    - ``worksheet`` - an instance of Worksheet
+
+    - ``username`` - a string
+
+    - ``url`` - a string representing the URL of the published
+      worksheet
+
+    - ``dtime`` - an instance of time.struct_time representing the
+      publishing time
+
+    OUTPUT:
+
+    - a string - the post-publication page rendered as HTML
+    """
+    time = strftime("%B %d, %Y %I:%M %p", dtime)
+
+    return template(
+        os.path.join("html", "notebook", "afterpublish_window.html"),
+        worksheet=worksheet,
+        notebook=g.notebook,
+        username=username, url=url, time=time)
+
+
+def html_upload_data_window(ws, username):
+    r"""
+    Return HTML for the "Upload Data" window.
+
+    INPUT:
+
+    - ``worksheet`` - an instance of Worksheet
+
+    - ``username`` - a string
+
+    OUTPUT:
+
+    - a string - the HTML representation of the data upload window
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: nb.html_upload_data_window(W, 'admin')
+        u'...Upload or Create Data File...Browse...url...name of a new...'
+    """
+    return template(
+        os.path.join("html", "notebook", "upload_data_window.html"),
+        worksheet=ws, username=username)
 
 
 # Public Worksheets
@@ -804,7 +1079,7 @@ def worksheet_edit_published_page(worksheet):
 ########################################################
 @worksheet_command('share')
 def worksheet_share(worksheet):
-    return g.notebook.html_share(worksheet, g.username)
+    return html_share(worksheet, g.username)
 
 
 @worksheet_command('invite_collab')
@@ -851,11 +1126,10 @@ def worksheet_revisions(worksheet):
     """
     if 'action' not in request.values:
         if 'rev' in request.values:
-            return g.notebook.html_specific_revision(g.username, worksheet,
-                                                     request.values['rev'])
+            return html_specific_revision(g.username, worksheet,
+                                          request.values['rev'])
         else:
-            return g.notebook.html_worksheet_revision_list(
-                g.username, worksheet)
+            return html_worksheet_revision_list(g.username, worksheet)
     else:
         rev = request.values['rev']
         action = request.values['action']
@@ -990,7 +1264,7 @@ def worksheet_datafile(worksheet):
             _("Successfully deleted '%(filename)s'", filename=filename),
             cont=url_for_worksheet(worksheet))
     else:
-        return g.notebook.html_download_or_delete_datafile(
+        return html_download_or_delete_datafile(
             worksheet, g.username, filename)
 
 
@@ -1005,7 +1279,7 @@ def worksheet_savedatafile(worksheet):
         if os.path.exists(dest):
             os.unlink(dest)
         open(dest, 'w').write(text_field)
-    return g.notebook.html_download_or_delete_datafile(
+    return html_download_or_delete_datafile(
         worksheet, g.username, filename)
 
 
