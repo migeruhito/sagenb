@@ -284,12 +284,48 @@ class NotebookFrontend(object):
                 'your account. Make sure you know what you are doing.',
                 '*' * 70,
                 sep='\n')
+
+        if self.conf['interface'] != 'localhost' and not self.conf['secure']:
+            print(
+                '*' * 70,
+                'WARNING: Insecure notebook server listening on external '
+                'interface.',
+                'Unless you are running this via ssh port forwarding, you are',
+                '**crazy**! You should run the notebook with the option '
+                'secure=True.',
+                '*' * 70,
+                sep='\n')
+
+        self.conf['port'] = find_next_available_port(
+            self.conf['interface'], self.conf['port'], self.conf['port_tries'])
+        if self.conf['automatic_login']:
+            print("Automatic login isn't fully implemented. You have to "
+                  'manually open your web browser to the above URL.')
+            self.conf['startup_token'] = '{0:x}'.format(
+                random.randint(0, 2**128))
+        if self.conf['secure']:
+            if (not os.path.exists(self.conf['private_pem']) or
+                    not os.path.exists(self.conf['public_pem'])):
+                print(
+                    'In order to use an SECURE encrypted notebook, you must '
+                    'first run notebook.setup().',
+                    'Now running notebook.setup()',
+                    sep='\n')
+                self.notebook_setup()
+            if (not os.path.exists(self.conf['private_pem']) or
+                    not os.path.exists(self.conf['public_pem'])):
+                print('Failed to setup notebook.  Please try notebook.setup() '
+                      'again manually.')
         #################################################################
 
         # first use provided values, if none, use loaded values,
         # if none use defaults
 
-        self.notebook = notebook.load_notebook(self.conf['absdirectory'])
+        self.notebook = notebook.load_notebook(
+            self.conf['absdirectory'],
+            interface=self.conf['interface'],
+            port=self.conf['port'],
+            secure=self.conf['secure'])
         nb = self.notebook
 
         self.conf['directory'] = nb._dir
@@ -360,37 +396,6 @@ class NotebookFrontend(object):
         nb.upgrade_model()
         nb.save()
 
-        if self.conf['interface'] != 'localhost' and not self.conf['secure']:
-            print(
-                '*' * 70,
-                'WARNING: Insecure notebook server listening on external '
-                'interface.',
-                'Unless you are running this via ssh port forwarding, you are',
-                '**crazy**! You should run the notebook with the option '
-                'secure=True.',
-                '*' * 70,
-                sep='\n')
-
-        self.conf['port'] = find_next_available_port(
-            self.conf['interface'], self.conf['port'], self.conf['port_tries'])
-        if self.conf['automatic_login']:
-            print("Automatic login isn't fully implemented. You have to "
-                  'manually open your web browser to the above URL.')
-            self.conf['startup_token'] = '{0:x}'.format(
-                random.randint(0, 2**128))
-        if self.conf['secure']:
-            if (not os.path.exists(self.conf['private_pem']) or
-                    not os.path.exists(self.conf['public_pem'])):
-                print(
-                    'In order to use an SECURE encrypted notebook, you must '
-                    'first run notebook.setup().',
-                    'Now running notebook.setup()',
-                    sep='\n')
-                self.notebook_setup()
-            if (not os.path.exists(self.conf['private_pem']) or
-                    not os.path.exists(self.conf['public_pem'])):
-                print('Failed to setup notebook.  Please try notebook.setup() '
-                      'again manually.')
 
     def run(self, args=None):
         self.parse(args)
