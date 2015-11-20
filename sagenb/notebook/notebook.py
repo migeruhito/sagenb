@@ -16,7 +16,6 @@ AUTHORS:
 #
 #############################################################################
 
-# For debugging sometimes it is handy to use only the reference implementation.
 from __future__ import absolute_import
 import bz2
 import cPickle
@@ -60,6 +59,7 @@ from .worksheet import extract_name
 
 # Sage Notebook
 
+# For debugging sometimes it is handy to use only the reference implementation.
 USE_REFERENCE_WORKSHEET_PROCESSES = False
 
 if get_module('sage') is not None:
