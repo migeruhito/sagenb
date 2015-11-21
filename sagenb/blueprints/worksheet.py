@@ -108,6 +108,8 @@ def get_cell_id():
         return request.values['id']
 
 
+# notebook html
+
 def render_ws_template(ws=None, username='guest', admin=False, do_print=False):
     r"""
     Return the HTML evaluated for a worksheet.
@@ -435,6 +437,32 @@ def html_upload_data_window(ws, username):
     return template(
         os.path.join("html", "notebook", "upload_data_window.html"),
         worksheet=ws, username=username)
+
+
+# worksheet html
+
+def html_ratings_info(ws, username=None):
+    r"""
+    Return html that renders to give a summary of how this worksheet
+    has been rated.
+
+    OUTPUT:
+
+    - ``string`` -- a string of HTML as a bunch of table rows.
+
+    EXAMPLES::
+
+        sage: nb = sagenb.notebook.notebook.Notebook(
+            tmp_dir(ext='.sagenb'))
+        sage: nb.create_default_users('password')
+        sage: W = nb.create_new_worksheet('Publish Test', 'admin')
+        sage: W.rate(0, 'this lacks content', 'riemann')
+        sage: W.rate(3, 'this is great', 'hilbert')
+        sage: W.html_ratings_info()
+        u'...hilbert...3...this is great...this lacks content...'
+    """
+    return template(os.path.join('html', 'worksheet', 'ratings_info.html'),
+                    worksheet=ws, username=username)
 
 
 # Public Worksheets
@@ -771,7 +799,6 @@ def worksheet_cell_list(worksheet):
     # New UI
     r['cell_list'] = [c.basic() for c in worksheet.cell_list()]
     # Newi UI end
-    # r['html_cell_list'] = W.html_cell_list()
 
     return encode_response(r)
 
@@ -1500,7 +1527,7 @@ def worksheet_publish(worksheet):
 
 @worksheet_command('rating_info')
 def worksheet_rating_info(worksheet):
-    return worksheet.html_ratings_info()
+    return html_ratings_info(worksheet)
 
 
 @worksheet_command('rate')

@@ -1515,29 +1515,6 @@ class Worksheet(object):
             self.__ratings = v
             return v
 
-    def html_ratings_info(self, username=None):
-        r"""
-        Return html that renders to give a summary of how this worksheet
-        has been rated.
-
-        OUTPUT:
-
-        - ``string`` -- a string of HTML as a bunch of table rows.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: W = nb.create_new_worksheet('Publish Test', 'admin')
-            sage: W.rate(0, 'this lacks content', 'riemann')
-            sage: W.rate(3, 'this is great', 'hilbert')
-            sage: W.html_ratings_info()
-            u'...hilbert...3...this is great...this lacks content...'
-        """
-        return template(os.path.join('html', 'worksheet', 'ratings_info.html'),
-                        worksheet=self, username=username)
-
     def rating(self):
         """
         Return overall average rating of self.
@@ -2544,49 +2521,6 @@ class Worksheet(object):
                 if c.is_interactive_cell():
                     c.delete_output()
 
-    ##########################################################
-    # HTML rendering of the whole worksheet
-    ##########################################################
-    def html_cell_list(self, do_print=False, username=None):
-        """
-        INPUT:
-
-            - do_print - a boolean
-
-        OUTPUT:
-
-            - string -- the HTML for the list of cells
-        """
-        ncols = self.notebook().conf()['word_wrap_cols']
-        cells_html = ""
-        if self.is_published():
-            try:
-                return self.__html
-            except AttributeError:
-                for cell in self.cell_list():
-                    cells_html += cell.html(ncols, do_print=True,
-                                            username=self.username) + '\n'
-                s = template(
-                    os.path.join('html', 'worksheet',
-                                 'published_worksheet.html'),
-                    ncols=ncols, cells_html=cells_html, username=username)
-                self.__html = s
-                return s
-        for cell in self.cell_list():
-            try:
-                cells_html += cell.html(ncols, do_print=do_print,
-                                        username=self.username) + '\n'
-            except Exception, msg:
-                # catch any exception, since this exception is raised
-                # sometimes, at least for some worksheets:
-                # exceptions.UnicodeDecodeError: 'ascii' codec can't decode
-                #         byte 0xc2 in position 825: ordinal not in range(128)
-                # and this causes the entire worksheet to fail to
-                # save/render, which is obviously *not* good (much
-                # worse than a weird issue with one cell).
-                print msg
-        return cells_html
-
     def html(self, do_print=False, publish=False, username=None):
         r"""
         INPUT:
@@ -2773,6 +2707,7 @@ class Worksheet(object):
     ##########################################################
     # Managing cells and groups of cells in this worksheet
     ##########################################################
+
     def cell_id_list(self):
         r"""
         Returns a list of ID's of all cells in this worksheet.
