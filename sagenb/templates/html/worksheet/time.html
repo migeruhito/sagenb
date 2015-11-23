@@ -1,0 +1,20 @@
+{#
+INPUT:
+- time - time since last edit
+- last_editor - string of name of last editor
+#}
+{% macro last_edited(time=0, last_editor='') -%}
+    <span class="lastedit">{{ gettext('%(t)s by %(le)s', t=time | convert_time_to_string, le=last_editor) }}</span>
+{%- endmacro %}
+
+{% macro since_last_edited(time=0, last_editor='') -%}
+    <span class="lastedit">{{ gettext('%(t)s ago by %(le)s', t=time | prettify_time_ago, le=last_editor) }}</span>
+{%- endmacro %}
+
+{% macro nice_last_edited(time=0, time_since=0, last_editor='') -%}
+    {% if time_since < 86400 %}
+        {{ since_last_edited(time_since, last_editor) }}
+    {% else %}
+        {{ last_edited(time, last_editor) }}
+        {% endif %}
+{%- endmacro %}

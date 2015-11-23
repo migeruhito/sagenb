@@ -1,4 +1,5 @@
 {% extends theme("html/base_authenticated.html") %}
+{% import theme('html/worksheet/time.html') as time %}
 {#
 INPUT:
 - notebook - an instance of Notebook
@@ -82,7 +83,7 @@ INPUT:
            title="{{ gettext('Click to rename this worksheet') }}">
             {{ worksheet.name() }}
         </a>
-        <div><span class="lastedit">{{ gettext('last edited') }} {{ worksheet.html_time_last_edited(username) | safe }}</span></div>
+        <div><span class="lastedit">{{ gettext('last edited') }} {{ time.last_edited(worksheet.last_edited(), worksheet.last_to_edit()) }}</span></div>
         {% if worksheet.warn_about_other_person_editing(username) and username != 'guest' and not worksheet.docbrowser() and not worksheet.is_published() %}
         <span class="pingdown">({{ gettext('Someone else is viewing this worksheet') }})</span>
         {% endif %}

@@ -25,6 +25,7 @@ from .util.decorators import guest_or_login_required
 from .misc.misc import unicode_str
 from .notebook.template import css_escape
 from .notebook.template import clean_name
+from .notebook.template import convert_time_to_string
 from .notebook.template import prettify_time_ago
 from .notebook.template import number_of_rows
 from .notebook.themes import render_template
@@ -75,6 +76,7 @@ def create_app(notebook, startup_token=None, debug=False):
     app.add_template_filter(css_escape)
     app.add_template_filter(number_of_rows)
     app.add_template_filter(clean_name)
+    app.add_template_filter(convert_time_to_string)
     app.add_template_filter(prettify_time_ago)
     app.add_template_filter(max)
     app.add_template_filter(lambda x: repr(unicode_str(x))[1:],

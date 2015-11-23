@@ -16,11 +16,14 @@ AUTHORS:
 #############################################################################
 from __future__ import absolute_import
 
+import datetime
+import time
 
 import jinja2
 
 import re
 
+from flask.ext.babel import format_datetime
 from flask.ext.babel import gettext
 from flask.ext.babel import ngettext
 
@@ -77,6 +80,17 @@ def prettify_time_ago(t):
         return ngettext('%(num)d hour', '%(num)d hours', h)
     d = int(t / (3600 * 24))
     return ngettext('%(num)d day', '%(num)d days', d)
+
+
+def convert_time_to_string(t):
+    """
+    Converts ``t`` (in Unix time) to a locale-specific string
+    describing the time and date.
+    """
+    try:
+        return format_datetime(datetime.datetime.fromtimestamp(float(t)))
+    except AttributeError:  # testing as opposed to within the Flask app
+        return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))
 
 
 def clean_name(name):

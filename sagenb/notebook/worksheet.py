@@ -31,7 +31,6 @@ import base64
 import bz2
 import calendar
 import copy
-import datetime
 import os
 import re
 import shutil
@@ -39,7 +38,6 @@ import time
 import traceback
 from time import strftime
 
-from flask.ext.babel import format_datetime
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
@@ -2634,33 +2632,6 @@ class Worksheet(object):
                 return True, user
         return False
 
-    def html_time_since_last_edited(self, username=None):
-        t = self.time_since_last_edited()
-        tm = prettify_time_ago(t)
-        return template(
-            os.path.join("html", "worksheet", "time_since_last_edited.html"),
-            last_editor=self.last_to_edit(), time=tm, username=username)
-
-    def html_time_last_edited(self, username=None):
-        return template(
-            os.path.join("html", "worksheet", "time_last_edited.html"),
-            time=convert_time_to_string(self.last_edited()),
-            last_editor=self.last_to_edit(), username=username)
-
-    def html_time_nice_edited(self, username=None):
-        """
-        Returns a "nice" html time since last edit.
-
-        If the last edit was in the last 24 hours, return a "x hours ago".
-        Otherwise, return a specific date.
-        """
-
-        t = self.time_since_last_edited()
-        if t < 3600 * 24:
-            return self.html_time_since_last_edited(username=username)
-        else:
-            return self.html_time_last_edited(username=username)
-
     ##########################################################
     # Managing cells and groups of cells in this worksheet
     ##########################################################
@@ -4449,16 +4420,6 @@ def next_available_id(v):
         i += 1
     return i
 
-
-def convert_time_to_string(t):
-    """
-    Converts ``t`` (in Unix time) to a locale-specific string
-    describing the time and date.
-    """
-    try:
-        return format_datetime(datetime.datetime.fromtimestamp(float(t)))
-    except AttributeError:  # testing as opposed to within the Flask app
-        return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))
 
 # For pybabel
 lazy_gettext('January')

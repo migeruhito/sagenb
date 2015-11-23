@@ -1,4 +1,5 @@
 {% extends theme("html/base_authenticated.html") %}
+{% import theme('html/worksheet/time.html') as time %}
 {#
 INPUT:
 - pub -- a boolean stating whether to show in public mode.
@@ -222,7 +223,7 @@ INPUT:
                 {% endif %}
             </td>
             <td>
-                {{ worksheet.html_time_nice_edited(username) | safe }}
+                {{ time.nice_last_edited(worksheet.last_edited(), worksheet.time_since_last_edited(), worksheet.last_to_edit()) }}
             </td>
         </tr>
         {% endfor %}
