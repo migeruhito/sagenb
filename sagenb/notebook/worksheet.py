@@ -2442,12 +2442,6 @@ class Worksheet(object):
             sage: W.next_id()
             3
         """
-        # Clear any caching.
-        try:
-            del self.__html
-        except AttributeError:
-            pass
-
         self.reset_interact_state()
 
         text.replace('\r\n', '\n')
@@ -2520,43 +2514,6 @@ class Worksheet(object):
             for c in self.cell_list():
                 if c.is_interactive_cell():
                     c.delete_output()
-
-    def html(self, do_print=False, publish=False, username=None):
-        r"""
-        INPUT:
-
-        - publish - a boolean stating whether the worksheet is published
-
-        - do_print - a boolean
-
-        OUTPUT:
-
-        - string -- the HTML for the worksheet
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: W = nb.create_new_worksheet('Test', 'admin')
-            sage: W.html()
-            u'...cell_input_active...worksheet_cell_list...cell_1...'
-            u'cell_output_html_1...'
-        """
-        if self.is_published():
-            try:
-                return self.__html
-            except AttributeError:
-                pass
-
-        s = template(os.path.join("html", "notebook", "worksheet.html"),
-                     do_print=do_print, publish=publish,
-                     worksheet=self, username=username)
-
-        if self.is_published():
-            self.__html = s
-
-        return s
 
     def truncated_name(self, max=30):
         name = self.name()

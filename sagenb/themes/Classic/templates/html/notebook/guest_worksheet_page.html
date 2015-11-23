@@ -61,7 +61,7 @@ INPUT:
 <hr class="usercontrol" />
 <h1 class="title">{{ worksheet.name() }}</h1>
 <h2 class="lastedit">{{ worksheet.html_time_since_last_edited() | safe }}</h2>
-{{ worksheet.html(do_print=false, publish=true, username=username) | safe }}
+{% include theme("html/notebook/worksheet.html") %}
 <script>
 {%- if conf['pub_interact'] %}
     cell_id_list = {{ worksheet.cell_id_list() }};

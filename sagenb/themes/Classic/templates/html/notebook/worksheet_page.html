@@ -14,17 +14,20 @@ INPUT:
 {% block worksheet_main %}
 {% set toggle=true %}
 <div class="worksheet" id="worksheet">
-    {{ worksheet.html(username=username) | safe }}
-    <div class="insert_new_cell" id="insert_last_cell">
-        <div class="ui-icon ui-icon-circle-plus wksht-icon_button" 
-            id="insert_new_last_compute_cell" 
-            title="{{ gettext('Click to insert new compute cell.') }}"></div>
+    {% include theme("html/notebook/worksheet.html") %}
+    <div class="wksht_buttons">
+      <div class="ui-icon ui-icon-circle-plus wksht-icon_button" 
+           id="insert_new_last_compute_cell" 
+           title="{{ gettext('Click to insert new compute cell.') }}">
+       </div>
         {% if not worksheet.docbrowser() %}
-        <div class="ui-icon ui-icon-comment wksht-icon_button" 
-            id="insert_new_last_text_cell"
-            title="{{ gettext('Click to insert new rich-text cell.') }}"></div>
+      <div class="ui-icon ui-icon-comment wksht-icon_button" 
+           id="insert_new_last_text_cell"
+           title="{{ gettext('Click to insert new rich-text cell.') }}">
+       </div>
         {% endif %}
-        <div class="legacy_insert_new_cell" id="legacy_new_last_cell"></div>
+    </div>  
+    <div class="insert_new_cell" id="insert_last_cell">
     </div>  
     <script type="text/javascript">
         state_number = {{ worksheet.state_number() }};
@@ -49,7 +52,7 @@ INPUT:
         $("#insert_new_last_text_cell").bind("click", function (e) {
             insert_new_text_cell_after(cell_id_list[cell_id_list.length - 1]);
         });
-        $("#legacy_new_last_cell").bind("click",function (e) {
+        $("#insert_last_cell").bind("click",function (e) {
             if (e.shiftKey){
                 insert_new_text_cell_after(cell_id_list[cell_id_list.length - 1]);
             } else {

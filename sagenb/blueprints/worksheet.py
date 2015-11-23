@@ -110,7 +110,8 @@ def get_cell_id():
 
 # notebook html
 
-def render_ws_template(ws=None, username='guest', admin=False, do_print=False):
+def render_ws_template(ws=None, username='guest', admin=False, do_print=False,
+                       publish=False):
     r"""
     Return the HTML evaluated for a worksheet.
 
@@ -152,6 +153,7 @@ def render_ws_template(ws=None, username='guest', admin=False, do_print=False):
     if ws.docbrowser() or ws.is_published():
         if ws.is_published() or nb.user_manager().user_is_guest(username):
             template_name = 'guest_worksheet_page.html'
+            publish = True
         else:
             template_name = 'doc_page.html'
     elif do_print:
@@ -161,7 +163,7 @@ def render_ws_template(ws=None, username='guest', admin=False, do_print=False):
 
     return template(os.path.join('html', 'notebook', template_name),
                     worksheet=ws,
-                    notebook=nb, do_print=do_print,
+                    notebook=nb, do_print=do_print, publish=publish,
                     username=username)
 
 
@@ -200,7 +202,7 @@ def html_worksheet_revision_list(username, worksheet):
         username=username)
 
 
-def html_specific_revision_(username, ws, rev):
+def html_specific_revision(username, ws, rev):
     r"""
     Return the HTML for a specific revision of a worksheet.
 
@@ -241,7 +243,8 @@ def html_specific_revision_(username, ws, rev):
     return template(os.path.join("html", "notebook", "specific_revision.html"),
                     worksheet=W,  # the revision, not the original!
                     username=username, rev=rev, prev_rev=prev_rev,
-                    next_rev=next_rev, time_ago=time_ago)
+                    next_rev=next_rev, time_ago=time_ago,
+                    do_print=True, publish=True)
 
 
 def html_share(worksheet, username):
@@ -402,13 +405,13 @@ def html_afterpublish_window(worksheet, username, url, dtime):
 
     - a string - the post-publication page rendered as HTML
     """
-    time = strftime("%B %d, %Y %I:%M %p", dtime)
+    time_ = time.strftime("%B %d, %Y %I:%M %p", dtime)
 
     return template(
         os.path.join("html", "notebook", "afterpublish_window.html"),
         worksheet=worksheet,
         notebook=g.notebook,
-        username=username, url=url, time=time)
+        username=username, url=url, time=time_)
 
 
 def html_upload_data_window(ws, username):
