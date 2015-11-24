@@ -33,7 +33,6 @@ from .interact import INTERACT_RESTART
 from .interact import INTERACT_UPDATE_PREFIX
 from .interact import INTERACT_TEXT
 from .interact import INTERACT_HTML
-from .template import template
 from .misc import CODE_PY
 
 # Maximum number of characters allowed in output.  This is needed
@@ -1171,7 +1170,9 @@ class Cell(Cell_generic):
             sage: C = sagenb.notebook.cell.Cell(
                 0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', None)
             sage: C.edit_text()
-            u'{{{id=0|\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e\n///\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e\n}}}'
+            u'{{{id=0|\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f'
+            u'\u010e\n///\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9'
+            u'\u010f\u010e\n}}}'
         """
         s = self.plain_text(ncols, prompts, max_out)
         return u'{{{id=%s|\n%s\n}}}' % (self.id(), s)
@@ -2506,14 +2507,13 @@ class Cell(Cell_generic):
             '{callback}</div>\n'
             '    <div id="sage_jmol_status_{id}" style="display:none;">'
             'notActivated</div>\n'
-            '</div>').format(
-                id=self._id,
-                size=size,
-                image_name=image_name,
-                timestamp=time.time(),
-                filename=script_name,
-                callback=os.path.join(self.url_to_worksheet(), 'jsmol'),
-        )
+            '</div>').format(id=self._id,
+                             size=size,
+                             image_name=image_name,
+                             timestamp=time.time(),
+                             filename=script_name,
+                             callback=os.path.join(self.url_to_worksheet(),
+                                                   'jsmol'))
 
     def files_html(self, out):
         """
