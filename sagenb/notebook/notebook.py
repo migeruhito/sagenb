@@ -692,9 +692,6 @@ class Notebook(object):
         # We have to parse the ulimit format to our ProcessLimits.
         # The typical format is.
         # '-u 400 -v 1000000 -t 3600'
-        # Despite -t being cputime for ulimit, we map it to walltime,
-        # since that is the only thing that really makes sense for a
-        # notebook server.
         #    -u --> max_processes
         #    -v --> max_vmem (but we divide by 1000)
         #    -t -- > max_walltime
@@ -705,11 +702,11 @@ class Notebook(object):
                 if x.startswith(k):
                     tbl[k] = int(x.split()[1].strip())
         if tbl['v'] is not None:
-            tbl['v'] = tbl['v'] / 1000.0
+            tbl['v'] = tbl['v']
         return sage(
             server_pool=self.server_pool(),
             max_vmem=tbl['v'],
-            max_walltime=tbl['t'],
+            max_cputime=tbl['t'],
             max_processes=tbl['u'],
             use_reference=USE_REFERENCE_WORKSHEET_PROCESSES,
             python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),

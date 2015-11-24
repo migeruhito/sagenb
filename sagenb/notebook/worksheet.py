@@ -3041,9 +3041,13 @@ class Worksheet(object):
         except AttributeError:
             pass
         try:
+            init_code = '\n'.join((
+                "DATA = '{}'".format(
+                    os.path.join(os.path.abspath(self.data_directory()))),
+                'sys.path.append(DATA)',
+                ))
             self.__sage = self.notebook().new_worksheet_process(
-                init_code="DATA = '{}'".format(
-                    os.path.join(os.path.abspath(self.data_directory()))))
+                init_code=init_code)
         except Exception as msg:
             print "ERROR initializing compute process:\n"
             print msg

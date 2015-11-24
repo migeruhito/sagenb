@@ -288,21 +288,23 @@ class SageServerExpect(SageServerABC):
         self._data_dir = None
         self._python = python
 
-        if process_limits:
-            u = ''
-            if process_limits.max_vmem is not None:
-                u += ' -v %s' % (int(process_limits.max_vmem) * 1000)
-            if process_limits.max_cputime is not None:
-                u += ' -t %s' % (int(process_limits.max_cputime))
-            if process_limits.max_processes is not None:
-                u += ' -u %s' % (int(process_limits.max_processes))
-            # prepend ulimit options
-            if u == '':
-                self._ulimit = u
-            else:
-                self._ulimit = 'ulimit %s' % u
-        else:
-            self._ulimit = ''
+        limit_code = 'import resource\n'
+
+        if process_limits is not None:
+            lim_tpt = '{}resource.setrlimit(resource.RLIMIT_{}, ({}, '\
+                      'resource.RLIM_INFINITY))\n'
+            max_vmem = process_limits.max_vmem
+            max_cputime = process_limits.max_cputime
+            max_processes = process_limits.max_processes
+            if max_vmem is not None:
+                limit_code = lim_tpt.format(limit_code, 'NPROC', max_vmem)
+            if max_cputime is not None:
+                limit_code = lim_tpt.format(limit_code, 'CPU', max_cputime)
+            if max_processes is not None:
+                limit_code = lim_tpt.format(limit_code, 'NPROC', max_processes)
+
+        init_code = '{}{}'.format(limit_code, init_code)
+        print(init_code)
 
         if process_limits and process_limits.max_walltime:
             self._max_walltime = process_limits.max_walltime
@@ -311,10 +313,6 @@ class SageServerExpect(SageServerABC):
 
     def command(self):
         return self._python
-        # TODO: The following simply doesn't work -- this is not a valid way to
-        # run ulimited.  Also we should check if ulimit is available before
-        # even doing this.
-        return '&&'.join([x for x in [self._ulimit, self._python] if x])
 
     def __del__(self):
         try:
@@ -620,11 +618,7 @@ class SageServerExpectRemote(SageServerExpect):
         self._remote_python = remote_python
 
     def command(self):
-        if self._ulimit == '':
-            c = self._remote_python
-        else:
-            c = '&&'.join(
-                [x for x in [self._ulimit, self._remote_python] if x])
+        c = self._remote_python
         return 'sage-native-execute ssh -t %s "%s"' % (self._user_at_host, c)
 
     def get_tmpdir(self):

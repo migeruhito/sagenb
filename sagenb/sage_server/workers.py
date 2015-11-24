@@ -10,11 +10,11 @@ from .interfaces import ProcessLimits
 sage_init_code_tpt = '\n'.join((
     'import base64',
     'import sagenb.misc.support as _support_',
-    'import sagenb.notebook.interact as _interact_ '
-    '# for setting current cell id',
+    'import sagenb.notebook.interact as _interact_'
+    '  # for setting current cell id',
+    'import sys',
     '',
     '{}',
-    'import sys; sys.path.append(DATA)',
     '_support_.init(None, globals())',
     '',
     '# The following is Sage-specific -- this immediately bombs out if sage '
@@ -29,12 +29,12 @@ sage_init_code_tpt = '\n'.join((
     'from sagenb.notebook.all import *',
     'try:',
     '    load(os.path.join(os.environ["DOT_SAGE"], "init.sage"),',
-    '         globals(), attach=True)',
+    '         globals())',
     'except (KeyError, IOError):',
     '    pass',))
 
 
-def sage(server_pool=None, max_vmem=None, max_walltime=None,
+def sage(server_pool=None, max_vmem=None, max_walltime=None, max_cputime=None,
          max_processes=None, use_reference=False, python='sage -python',
          init_code=None):
     """
@@ -47,6 +47,7 @@ def sage(server_pool=None, max_vmem=None, max_walltime=None,
 
     process_limits = ProcessLimits(max_vmem=max_vmem,
                                    max_walltime=max_walltime,
+                                   max_cputime=max_cputime,
                                    max_processes=max_processes)
 
     if server_pool is None or len(server_pool) == 0:
