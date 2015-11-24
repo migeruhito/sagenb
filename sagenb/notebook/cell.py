@@ -567,47 +567,6 @@ class TextCell(Cell_generic):
         return r
     # New UI end
 
-    def html(self, wrap=None, div_wrap=True, do_print=False,
-             editing=False, publish=False):
-        """
-        Returns HTML code for this text cell, including its contents
-        and associated script elements.
-
-        INPUT:
-
-        - ``wrap`` -- an integer (default: None); number of columns to
-          wrap at (not used)
-
-        - ``div_wrap`` -- a boolean (default: True); whether to wrap
-          in a div (not used)
-
-        - ``do_print`` - a boolean (default: False); whether to render the
-          cell for printing
-
-        - ``editing`` - a boolean (default: False); whether to open an
-          editor for this cell
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: C = sagenb.notebook.cell.TextCell(0, '2+3', W)
-            sage: C.html()
-            u'...text_cell...2+3...'
-            sage: C.set_input_text("$2+3$")
-        """
-        return template(os.path.join('html', 'notebook', 'text_cell.html'),
-                        cell=self, wrap=wrap, div_wrap=div_wrap,
-                        do_print=do_print,
-                        editing=editing, publish=publish)
-
     def plain_text(self, prompts=False):
         ur"""
         Returns a plain text version of this text cell.
@@ -2386,46 +2345,6 @@ class Cell(Cell_generic):
         return ('time' in self.percent_directives() or
                 'timeit' in self.percent_directives() or
                 getattr(self, '_time', False))
-
-    def html(self, wrap=None, div_wrap=True, do_print=False, publish=False):
-        r"""
-        Returns the HTML for this compute cell.
-
-        INPUT:
-
-        - ``wrap`` - an integer (default: None); the number of word
-          wrap columns
-
-        - ``div_wrap`` - a boolean (default: True); whether to wrap
-          the output in outer div elements
-
-        - ``do_print`` - a boolean (default: False); whether to return
-          output suitable for printing
-
-        - ``publish`` - a boolean (default: False); whether to render
-          a published cell
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
-            sage: C.html()
-            u'...cell_outer_0...2+3...5...'
-        """
-        if wrap is None:
-            wrap = self.notebook().conf()['word_wrap_cols']
-
-        return template(os.path.join('html', 'notebook', 'cell.html'),
-                        cell=self, wrap=wrap, div_wrap=div_wrap,
-                        do_print=do_print, publish=publish)
 
     def url_to_self(self):
         """
