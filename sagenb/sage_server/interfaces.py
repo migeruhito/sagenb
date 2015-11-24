@@ -288,23 +288,32 @@ class SageServerExpect(SageServerABC):
         self._data_dir = None
         self._python = python
 
-        limit_code = 'import resource\n'
+        limit_code = '\n'.join((
+            'import resource',
+            'def process_limit(lim, rlimit, alt_rlimit=None):',
+            '    if lim is not None:',
+            '       rlimit = getattr(resource, rlimit, alt_rlimit)',
+            '       if rlimit is not None:',
+            '           hard_lim = resource.getrlimit(rlimit)[1]',
+            '           if hard_lim == resource.RLIM_INFINITY or '
+            'lim <= hard_lim:',
+            '               resource.setrlimit(rlimit, (lim, hard_lim))',
+            '',
+            '',
+            ))
 
         if process_limits is not None:
-            lim_tpt = '{}resource.setrlimit(resource.RLIMIT_{}, ({}, '\
-                      'resource.RLIM_INFINITY))\n'
-            max_vmem = process_limits.max_vmem
-            max_cputime = process_limits.max_cputime
-            max_processes = process_limits.max_processes
-            if max_vmem is not None:
-                limit_code = lim_tpt.format(limit_code, 'NPROC', max_vmem)
-            if max_cputime is not None:
-                limit_code = lim_tpt.format(limit_code, 'CPU', max_cputime)
-            if max_processes is not None:
-                limit_code = lim_tpt.format(limit_code, 'NPROC', max_processes)
+            lim_tpt = '{}process_limit({}, "RLIMIT_{}", alt_rlimit={}'\
+                      ')\n'
+            limit_code = lim_tpt.format(limit_code, process_limits.max_vmem,
+                                        'VMEM', 'resource.RLIMIT_AS')
+            limit_code = lim_tpt.format(limit_code, process_limits.max_cputime,
+                                        'CPU', None)
+            limit_code = lim_tpt.format(limit_code,
+                                        process_limits.max_processes,
+                                        'NPROC', None)
 
         init_code = '{}{}'.format(limit_code, init_code)
-        print(init_code)
 
         if process_limits and process_limits.max_walltime:
             self._max_walltime = process_limits.max_walltime

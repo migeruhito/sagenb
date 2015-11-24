@@ -691,10 +691,10 @@ class Notebook(object):
         ulimit = self.get_ulimit()
         # We have to parse the ulimit format to our ProcessLimits.
         # The typical format is.
-        # '-u 400 -v 1000000 -t 3600'
+        # '-u 400 -v 1024 -t 3600'
         #    -u --> max_processes
-        #    -v --> max_vmem (but we divide by 1000)
-        #    -t -- > max_walltime
+        #    -v --> max_vmem in Mib (a minimum of 1024 is needed)
+        #    -t -- > max_cputime in seconds
 
         tbl = {'v': None, 'u': None, 't': None}
         for x in ulimit.split('-'):
@@ -702,7 +702,7 @@ class Notebook(object):
                 if x.startswith(k):
                     tbl[k] = int(x.split()[1].strip())
         if tbl['v'] is not None:
-            tbl['v'] = tbl['v']
+            tbl['v'] = (1024 if tbl['v'] < 1024 else tbl['v'])*1024*1024
         return sage(
             server_pool=self.server_pool(),
             max_vmem=tbl['v'],
