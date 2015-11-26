@@ -589,6 +589,7 @@ class Worksheet(object):
     ##########################################################
     # Basic properties
     ##########################################################
+
     def collaborators(self):
         """
         Return a (reference to the) list of the collaborators who can also
@@ -1146,6 +1147,7 @@ class Worksheet(object):
     ##########################################################
     # 3-D plots
     ##########################################################
+
     def live_3D(self):
         """
         Return True if the 3-D plots should be loaded live (interactive) by
@@ -1201,6 +1203,7 @@ class Worksheet(object):
     ##########################################################
     # Publication
     ##########################################################
+
     def is_auto_publish(self):
         """
         Returns True if this worksheet should be automatically published.
@@ -1542,6 +1545,7 @@ class Worksheet(object):
     ##########################################################
     # Active, trash can and archive
     ##########################################################
+
     def everyone_has_deleted_this_worksheet(self):
         """
         Return True if all users have deleted this worksheet, so we know we
@@ -1912,6 +1916,7 @@ class Worksheet(object):
     ##########################################################
     # Owner/viewer/user management
     ##########################################################
+
     def owner(self):
         try:
             return self.__owner
@@ -2114,6 +2119,7 @@ class Worksheet(object):
     ##########################################################
     # Searching
     ##########################################################
+
     def satisfies_search(self, search):
         """
         Return True if all words in search are in the saved text of the
@@ -2157,6 +2163,7 @@ class Worksheet(object):
     ##########################################################
     # Saving
     ##########################################################
+
     def save_snapshot(self, user, E=None):
         if not self.body_is_loaded():
             return
@@ -2282,6 +2289,7 @@ class Worksheet(object):
     ##########################################################
     # Exporting the worksheet in plain text command-line format
     ##########################################################
+
     def plain_text(self, prompts=False, banner=True):
         """
         Return a plain-text version of the worksheet.
@@ -2312,6 +2320,7 @@ class Worksheet(object):
     ##########################################################
     # Editing the worksheet in plain text format (export and import)
     ##########################################################
+
     def body(self):
         """
         OUTPUT:
@@ -2522,6 +2531,7 @@ class Worksheet(object):
     ##########################################################
     # Last edited
     ##########################################################
+
     def last_change(self):
         """
         Return information about when this worksheet was last changed
@@ -2950,6 +2960,7 @@ class Worksheet(object):
     ##########################################################
     # Managing whether computing is happening: stop, start, clear, etc.
     ##########################################################
+
     def clear(self):
         self.__comp_is_running = False
         self.__queue = []
@@ -3418,6 +3429,7 @@ class Worksheet(object):
     ##########################################################
     # Idle timeout
     ##########################################################
+
     def quit_if_idle(self, timeout):
         r"""
         Quit the worksheet process if it has been "idle" for more than
@@ -3457,6 +3469,7 @@ class Worksheet(object):
     ##########################################################
     # Enqueuing cells
     ##########################################################
+
     def queue(self):
         return list(self.__queue)
 
@@ -3552,6 +3565,7 @@ class Worksheet(object):
     ##########################################################
     # Accessing existing cells
     ##########################################################
+
     def get_cell_with_id_or_none(self, id):
         """
         Gets a pre-existing cell with this id, or returns None.
@@ -3616,6 +3630,7 @@ class Worksheet(object):
     ##########################################################
     # (Tab) Completions
     ##########################################################
+
     def best_completion(self, s, word):
         completions = s.split()
         if len(completions) == 0:
@@ -3658,6 +3673,7 @@ class Worksheet(object):
     ##########################################################
     # Processing of input and output to worksheet process.
     ##########################################################
+
     def preparse_input(self, input, C):
         introspect = C.introspect()
         if introspect:
@@ -3793,6 +3809,7 @@ class Worksheet(object):
     ##########################################################
     # Loading and attaching files
     ##########################################################
+
     def load_any_changed_attached_files(self, s):
         r"""
         Modify ``s`` by prepending any necessary load commands
@@ -3930,6 +3947,7 @@ class Worksheet(object):
     ##########################################################
     # Parsing the %cython, %mathjax, %python, etc., extension.
     ##########################################################
+
     def get_cell_system(self, cell):
         r"""
         Returns the system that will run the input in cell.  This
@@ -4078,6 +4096,7 @@ class Worksheet(object):
     ##########################################################
     # List of attached files.
     ##########################################################
+
     def attached_html(self, username=None):
         return template(os.path.join("html", "worksheet", "attached.html"),
                         attached_files=self.attached_files(),
@@ -4086,6 +4105,7 @@ class Worksheet(object):
     ##########################################################
     # Showing and hiding all cells
     ##########################################################
+
     def show_all(self):
         for C in self.cell_list():
             try:

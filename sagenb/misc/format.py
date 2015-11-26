@@ -22,6 +22,22 @@ _futureimport_re = re.compile(
     r'((?:from __future__ import [^;\n]+)+)(?:;\s*)?(.*)')
 
 
+def break_code(string, nodes=True):
+    tree = ast.parse(string)
+    limits = ((node.lineno - 1, node.col_offset) for node in tree.body)
+    line_offsets = [0]
+    for line in string.splitlines(True)[:-1]:
+        line_offsets.append(line_offsets[-1] + len(line))
+    offsets = [line_offsets[lin] + col for lin, col in limits]
+    offsets.append(len(string))
+    lines = []
+    for i, offset in enumerate(offsets[:-1]):
+        node = tree.body[i]
+        line = string[offset:offsets[i + 1]].rstrip(u' \t')
+        lines.append((line, node) if nodes else line)
+    return lines
+
+
 def relocate_future_imports(string):
     """
     Relocates imports from __future__ to the beginning of the
@@ -67,7 +83,8 @@ def relocate_future_imports(string):
         line = lines[imp.lineno - 1]
         lines[imp.lineno - 1] = line[:imp.col_offset] + re.sub(
             r'from\s+__future__\s+import\s+%s;?\s*' % ''.join(
-                [r'\s*%s\s*,?\s*' % name.name for name in imp.names]), '',
+                [r'\s*%s\s*,?\s*' % name.name for name in imp.names]),
+            '',
             line[imp.col_offset:], 1)
         import_lines.append('from __future__ import %s' %
                             ','.join([name.name for name in imp.names]))
@@ -157,7 +174,7 @@ print "START%s"
         string = '# -*- coding: utf-8 -*-\n' + relocate_future_imports(string)
     except SyntaxError:
         # Syntax error anyways, so no need to relocate future imports.
-        string = '# -*- coding: utf-8 -*-\n' + string
+       string = '# -*- coding: utf-8 -*-\n' + string
     return string
 
 
@@ -207,6 +224,6 @@ def displayhook_hack(string):
                 string[
                     i] = "exec compile(%r + '\\n', '', 'single')" % final_lines
                 string = string[:i + 1]
-            except SyntaxError, msg:
+            except SyntaxError:
                 pass
     return '\n'.join(string)
