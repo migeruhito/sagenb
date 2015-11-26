@@ -8,13 +8,10 @@ from .interfaces import SageServerExpectRemote
 from .interfaces import ProcessLimits
 
 sage_init_code_tpt = '\n'.join((
-    'import base64',
     'import sagenb.misc.support as _support_',
     'import sagenb.notebook.interact as _interact_'
     '  # for setting current cell id',
-    'import sys',
     '',
-    '{}',
     '_support_.init(None, globals())',
     '',
     '# The following is Sage-specific -- this immediately bombs out if sage '

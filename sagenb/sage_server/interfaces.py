@@ -26,6 +26,8 @@ import sys
 import traceback
 import tempfile
 
+from base64 import b64encode
+
 import pexpect
 
 from ..misc.format import displayhook_hack
@@ -287,8 +289,12 @@ class SageServerExpect(SageServerABC):
         self._start_walltime = None
         self._data_dir = None
         self._python = python
+        self._so_far = ''
+        self._tempdir = ''
 
         limit_code = '\n'.join((
+            'import os',
+            'import sys',
             'import resource',
             'def process_limit(lim, rlimit, alt_rlimit=None):',
             '    if lim is not None:',
@@ -313,11 +319,12 @@ class SageServerExpect(SageServerABC):
                                         process_limits.max_processes,
                                         'NPROC', None)
 
-        init_code = '{}{}'.format(limit_code, init_code)
+        init_code = '{}{}\n\nsys.ps1 = "{}"'.format(
+            limit_code, init_code, self._prompt)
 
         if process_limits and process_limits.max_walltime:
             self._max_walltime = process_limits.max_walltime
-        self.execute(init_code)
+        self.execute(init_code, mode='raw')
         self.output_status()
 
     def command(self):
@@ -392,6 +399,9 @@ class SageServerExpect(SageServerABC):
         """
         # print "Starting worksheet with command: '%s'"%self.command()
         self._expect = pexpect.spawn(self.command())
+        self._expect.setecho(False)
+        self._expect.expect('>>>')
+        self._expect.sendline('import base64')
         self._is_started = True
         self._is_computing = False
         self._number = 0
@@ -454,7 +464,7 @@ class SageServerExpect(SageServerABC):
         s = tempfile.mkdtemp()
         return (s, s)
 
-    def execute(self, string, data=None):
+    def execute(self, string, data=None, mode=None):
         """
         Start executing the given string in this subprocess.
 
@@ -473,6 +483,19 @@ class SageServerExpect(SageServerABC):
             raise RuntimeError(
                 "unable to start subprocess using command '%s'" % self.command(
                     ))
+        if mode == 'raw':
+            self._expect.sendline(
+                'exec base64.b64decode("{}")'.format(b64encode(string)))
+            return
+        elif mode == 'single':
+            self._expect.sendline(
+                'exec compile(base64.b64decode("{}"), "", "single")'.format(
+                    b64encode(string)))
+            return
+        elif mode == 'sage':
+            self.execute('exec _support_.preparse_worksheet_cell('
+                         '"{}", globals())'.format(string), mode='raw')
+            return
 
         self._number += 1
 
@@ -495,11 +518,11 @@ class SageServerExpect(SageServerABC):
         self._is_computing = True
 
         self._all_tempdirs.append(self._tempdir)
-        open(self._filename, 'w').write(
-            format_for_pexpect(string, self._prompt, self._number))
+        sage_code = format_for_pexpect(string, self._number)
+        open(self._filename, 'w').write(sage_code)
         try:
             self._expect.sendline(
-                '\nimport os;os.chdir("%s");\nexecfile("%s")' % (
+                '\nos.chdir("%s");\nexecfile("%s")' % (
                     remote, sage_input))
         except OSError as msg:
             self._is_computing = False

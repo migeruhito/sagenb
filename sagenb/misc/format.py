@@ -92,7 +92,7 @@ def relocate_future_imports(string):
     return '\n'.join(import_lines) + '\n' + '\n'.join(lines)
 
 
-def format_for_pexpect(string, prompt, number):
+def format_for_pexpect(string, number):
     """
     Formats a string for execution by the pexpect WorksheetProcess
     implementation.
@@ -164,17 +164,16 @@ def format_for_pexpect(string, prompt, number):
         print "Hello world!"
         exec compile(u'print "New line!"' + '\n', '', 'single')
     """
-    string = """
-import sys
-sys.ps1 = "%s"
-print "START%s"
-%s
-""" % (prompt, number, displayhook_hack(string).encode('utf-8', 'ignore'))
+    string = '\n'.join((
+        'print "START%s"',
+        '%s',
+        )) % (number,
+              displayhook_hack(string).encode('utf-8', 'ignore'))
     try:
         string = '# -*- coding: utf-8 -*-\n' + relocate_future_imports(string)
     except SyntaxError:
         # Syntax error anyways, so no need to relocate future imports.
-       string = '# -*- coding: utf-8 -*-\n' + string
+        string = '# -*- coding: utf-8 -*-\n' + string
     return string
 
 
