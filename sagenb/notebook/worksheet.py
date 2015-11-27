@@ -27,7 +27,6 @@ AUTHORS:
 # Import standard Python libraries that we will use below
 from __future__ import absolute_import
 
-import base64
 import bz2
 import calendar
 import copy
@@ -36,6 +35,7 @@ import re
 import shutil
 import time
 import traceback
+from base64 import b64encode
 from time import strftime
 
 from flask.ext.babel import gettext
@@ -2364,7 +2364,7 @@ class Worksheet(object):
         except AttributeError:
             return
         try:
-            S.execute('sagenb.notebook.interact.reset_state()')
+            S.execute('_interact_.reset_state()', mode='raw')
         except OSError:
             # Doesn't matter, since if S is not running, no need
             # to zero out the state dictionary.
@@ -3075,7 +3075,7 @@ class Worksheet(object):
         # If so, send code to initialize the worksheet to have the
         # right pretty printing mode.
         if self.pretty_print():
-            S.execute('pretty_print_default(True);')
+            S.execute('pretty_print_default(True)', mode='raw')
 
         if not self.is_published():
             self._enqueue_auto_cells()
@@ -3801,9 +3801,10 @@ class Worksheet(object):
         # The extra newline below is necessary, since otherwise source
         # code introspection doesn't include the last line.
         return ('open("%s","w").write("# -*- coding: utf-8 -*-\\n" + '
-                '_support_.preparse_worksheet_cell(base64.b64decode("%s"),'
-                'globals())+"\\n"); execfile(os.path.abspath("%s"))' % (
-                    CODE_PY, base64.b64encode(s.encode('utf-8', 'ignore')),
+                '_support_.preparse_worksheet_cell('
+                '_support_.base64.b64decode("%s"), globals())+"\\n");'
+                'execfile(os.path.abspath("%s"))' % (
+                    CODE_PY, b64encode(s.encode('utf-8', 'ignore')),
                     CODE_PY))
 
     ##########################################################

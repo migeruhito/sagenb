@@ -268,6 +268,8 @@ class SageServerExpect(SageServerABC):
           the ``sagenb.interfaces.ProcessLimits`` object.
     """
 
+    modes = ['raw', 'python', 'sage']
+
     def __init__(self,
                  process_limits=None,
                  timeout=0.05,
@@ -401,7 +403,7 @@ class SageServerExpect(SageServerABC):
         self._expect = pexpect.spawn(self.command())
         self._expect.setecho(False)
         self._expect.expect('>>>')
-        self._expect.sendline('import base64')
+        self._expect.sendline('import sagenb.misc.support as _support_')
         self._is_started = True
         self._is_computing = False
         self._number = 0
@@ -483,25 +485,11 @@ class SageServerExpect(SageServerABC):
             raise RuntimeError(
                 "unable to start subprocess using command '%s'" % self.command(
                     ))
-        if mode == 'raw':
+
+        if mode in self.modes:
             self._expect.sendline(
-                'exec base64.b64decode("{}")'.format(b64encode(string)))
-            return
-        elif mode == 'single':
-            self._expect.sendline(
-                'exec compile(base64.b64decode("{}"), "", "single")'.format(
-                    b64encode(string)))
-            return
-        elif mode == 'sage':
-            self.execute('exec _support_.preparse_worksheet_cell('
-                         'base64.b64decode("{}"), globals())'.format(
-                             b64encode(string)), mode='raw')
-            return
-        elif mode == 'sage2':
-            self._expect.sendline(
-                '_support_.execute_sage_code('
-                'base64.b64decode("{}"), globals())'.format(
-                    b64encode(string)))
+                '_support_.execute_code("{}", globals(), mode="{}")'.format(
+                    b64encode(string), mode))
             return
 
         self._number += 1
