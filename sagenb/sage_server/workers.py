@@ -11,6 +11,7 @@ sage_init_code_tpt = '\n'.join((
     'import sagenb.notebook.interact as _interact_'
     '  # for setting current cell id',
     '',
+    '{}',
     '_support_.init(None, globals())',
     '',
     '# The following is Sage-specific -- this immediately bombs out if sage '
