@@ -494,7 +494,14 @@ class SageServerExpect(SageServerABC):
             return
         elif mode == 'sage':
             self.execute('exec _support_.preparse_worksheet_cell('
-                         '"{}", globals())'.format(string), mode='raw')
+                         'base64.b64decode("{}"), globals())'.format(
+                             b64encode(string)), mode='raw')
+            return
+        elif mode == 'sage2':
+            self._expect.sendline(
+                '_support_.execute_sage_code('
+                'base64.b64decode("{}"), globals())'.format(
+                    b64encode(string)))
             return
 
         self._number += 1

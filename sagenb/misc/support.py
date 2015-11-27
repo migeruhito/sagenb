@@ -720,3 +720,8 @@ def preparse_worksheet_cell(s, globals):
     if _automatic_names:
         s = automatic_name_filter(s)
     return s
+
+
+def execute_sage_code(s, globals):
+
+    exec(preparse_worksheet_cell(s, globals), globals)
