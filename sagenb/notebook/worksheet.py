@@ -51,7 +51,6 @@ from ..misc.misc import ignore_nonexistent_files
 from ..misc.misc import set_restrictive_permissions
 from ..misc.misc import unicode_str
 from ..misc.remote_file import get_remote_file
-from ..misc.format import relocate_future_imports
 
 from . import misc
 from .misc import CODE_PY
@@ -3154,33 +3153,6 @@ class Worksheet(object):
 
         C._before_preparse = input + I
         input += self.preparse_input(I, C)
-
-        try:
-            input = relocate_future_imports(input)
-        except SyntaxError:
-            t = traceback.format_exc()
-            s = 'File "<unknown>",'
-            i = t.find(s)
-            if i != -1:
-                t = t[i + len(s):]
-            i = t.find('\n')
-            try:
-                n = int(t[t[:i].rfind(' '):i])  # line number of the exception
-                try:
-                    t = 'Syntax Error:\n    %s' % C._before_preparse.split(
-                        '\n')[n - 1]
-                except IndexError:
-                    pass
-                if False:
-                    if i != -1:
-                        t = t[i:]
-                    v = [w for w in t.split('\n') if w]
-                    t = '\n'.join(['Syntax Error:'] + v[0:-1])
-                C.set_output_text(t, '')
-                del self.__queue[0]
-                return
-            except ValueError:
-                pass
 
         if C.time() and not C.introspect():
             input += ('; print "CPU time: %.2f s,  Wall time: %.2f '

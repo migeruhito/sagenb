@@ -138,127 +138,6 @@ class SageServerABC(object):
         raise NotImplementedError
 
 
-class SageServerReference(SageServerABC):
-    """
-    A controlled Python process that executes code.  This is a reference
-    implementation.
-    """
-    @staticmethod
-    def execute_code(string, state, data=None):
-        # print "execute: '''%s'''"%string
-        string = displayhook_hack(string)
-
-        # Now execute the code capturing the output and files that are
-        # generated.
-        back = os.path.abspath('.')
-        tempdir = tempfile.mkdtemp()
-        if data is not None:
-            # make a symbolic link from the data directory into local tmp
-            # directory
-            os.symlink(data, os.path.join(tempdir, os.path.split(data)[1]))
-
-        s = StringIO.StringIO()
-        saved_stream = sys.stdout
-        sys.stdout = s
-        try:
-            os.chdir(tempdir)
-            exec string in state
-        except Exception:
-            traceback.print_exc(file=s)
-        finally:
-            sys.stdout = saved_stream
-            os.chdir(back)
-        s.seek(0)
-        out = str(s.read())
-        files = [os.path.join(tempdir, x) for x in os.listdir(tempdir)]
-        return out, files, tempdir
-
-    def __init__(self, **kwds):
-        for key in kwds.keys():
-            print(
-                "SageServerReference: does not support "
-                "'%s' option.  Ignored." % key)
-        self._output_status = OutputStatus('', [], True, None)
-        self._state = {}
-
-    def __repr__(self):
-        """
-        Return string representation of this worksheet process.
-        """
-        return "Reference implementation of worksheet process"
-
-    def interrupt(self):
-        """
-        Send an interrupt signal to the currently running computation
-        in the controlled process.  This may or may not succeed.  Call
-        ``self.is_computing()`` to find out if it did.
-        """
-        pass
-
-    def quit(self):
-        """
-        Quit this worksheet process.
-        """
-        self._state = {}
-
-    def start(self):
-        """
-        Start this worksheet process running.
-        """
-        pass
-
-    def is_computing(self):
-        """
-        Return True if a computation is currently running in this worksheet
-        subprocess.
-
-        OUTPUT:
-
-            - ``bool``
-        """
-        return False
-
-    def is_started(self):
-        """
-        Return true if this worksheet subprocess has already been started.
-
-        OUTPUT:
-
-            - ``bool``
-        """
-        return True
-
-    def execute(self, string, data=None):
-        """
-        Start executing the given string in this subprocess.
-
-        INPUT:
-
-            ``string`` -- a string containing code to be executed.
-
-            - ``data`` -- a string or None; if given, must specify an
-              absolute path on the server host filesystem.   This may
-              be ignored by some worksheet process implementations.
-        """
-        out, files, tempdir = self.execute_code(string, self._state, data)
-        self._output_status = OutputStatus(out, files, True, tempdir)
-
-    def output_status(self):
-        """
-        Return OutputStatus object, which includes output from the
-        subprocess from the last executed command up until now,
-        information about files that were created, and whether
-        computing is now done.
-
-        OUTPUT:
-
-            - ``OutputStatus`` object.
-        """
-        OS = self._output_status
-        self._output_status = OutputStatus('', [], True)
-        return OS
-
-
 class SageServerExpect(SageServerABC):
     """
     A controlled Python process that executes code using expect.
@@ -291,6 +170,7 @@ class SageServerExpect(SageServerABC):
         self._data_dir = None
         self._python = python
         self._so_far = ''
+        self._start_label = None
         self._tempdir = ''
 
         limit_code = '\n'.join((
@@ -477,7 +357,6 @@ class SageServerExpect(SageServerABC):
               absolute path on the server host filesystem.   This may
               be ignored by some worksheet process implementations.
         """
-        print('\n\n\n{}\n\n\n'.format(mode))
         if self._expect is None:
             self.start()
 
@@ -488,9 +367,9 @@ class SageServerExpect(SageServerABC):
 
         if mode != 'raw':
             self._number +=1
+            self._start_label = 'START{}'.format(self._number)
             local, remote = self.get_tmpdir()
-            code = 'os.chdir("{}")\nprint("START{}")\n{}'.format(
-                remote, self._number, code)
+            code = 'os.chdir("{}")\n{}'.format(remote, code)
             if data is not None:
                 # make a symbolic link from the data directory into local tmp
                 # directory
@@ -509,8 +388,9 @@ class SageServerExpect(SageServerABC):
             
         try:
             self._expect.sendline(
-                '_support_.execute_code("{}", globals(), mode="{}")'.format(
-                    b64encode(code), mode))
+                '_support_.execute_code('
+                '"{}", globals(), mode="{}", start_label="{}")'.format(
+                    b64encode(code), mode, self._start_label))
         except OSError as msg:
             self._is_computing = False
             self._so_far = str(msg)
@@ -542,15 +422,16 @@ class SageServerExpect(SageServerABC):
         else:
             self._so_far += self._expect.before
 
-        v = re.findall('START%s.*%s' %
-                       (self._number, self._prompt), self._so_far, re.DOTALL)
+        v = re.findall('{}.*{}'.format(self._start_label, self._prompt), 
+                       self._so_far, re.DOTALL)
         if len(v) > 0:
             self._is_computing = False
-            s = v[0][len('START%s' % self._number):-len(self._prompt)]
+            s = v[0][len(self._start_label):-len(self._prompt)]
         else:
-            v = re.findall('START%s.*' % self._number, self._so_far, re.DOTALL)
+            v = re.findall('{}.*'.format(self._start_label), 
+                           self._so_far, re.DOTALL)
             if len(v) > 0:
-                s = v[0][len('START%s' % self._number):]
+                s = v[0][len(self._start_label):]
             else:
                 s = ''
 

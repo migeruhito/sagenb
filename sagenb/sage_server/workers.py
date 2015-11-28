@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import random
 
-from .interfaces import SageServerReference
 from .interfaces import SageServerExpect
 from .interfaces import SageServerExpectRemote
 from .interfaces import ProcessLimits
@@ -32,15 +31,13 @@ sage_init_code_tpt = '\n'.join((
 
 
 def sage(server_pool=None, max_vmem=None, max_walltime=None, max_cputime=None,
-         max_processes=None, use_reference=False, python='sage -python',
+         max_processes=None, python='sage -python',
          init_code=None):
     """
     sage process factory
     """
     init_code = sage_init_code_tpt.format(
         '' if init_code is None else init_code)
-    if use_reference:
-        return SageServerReference()
 
     process_limits = ProcessLimits(max_vmem=max_vmem,
                                    max_walltime=max_walltime,

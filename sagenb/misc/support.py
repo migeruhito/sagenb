@@ -722,14 +722,17 @@ def preparse_worksheet_cell(s, globals):
     return s
 
 
-def execute_code(s, globals, mode='raw'):
-    s = base64.b64decode(s)
+def execute_code(code, globals, mode='raw', start_label=''):
+    code = base64.b64decode(code)
+    if mode != 'raw':
+        print(start_label)
+
     if mode == 'raw':
-        code = s
+        pass
     elif mode == 'python':
-        code = displayhook_hack(s)
+        code = displayhook_hack(code)
     elif mode == 'sage':
-        code = preparse_worksheet_cell(s, globals)
+        code = preparse_worksheet_cell(code, globals)
     else:
         code = 'pass'
 

@@ -52,7 +52,6 @@ from .worksheet import extract_name
 # Sage Notebook
 
 # For debugging sometimes it is handy to use only the reference implementation.
-USE_REFERENCE_WORKSHEET_PROCESSES = False
 
 if get_module('sage') is not None:
     # sage is installed
@@ -708,7 +707,6 @@ class Notebook(object):
             max_vmem=tbl['v'],
             max_cputime=tbl['t'],
             max_processes=tbl['u'],
-            use_reference=USE_REFERENCE_WORKSHEET_PROCESSES,
             python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),
             init_code='\n'.join((init_code, "DIR = '{}'".format(misc.DIR))))
 
