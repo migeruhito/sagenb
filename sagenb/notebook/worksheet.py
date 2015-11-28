@@ -43,7 +43,6 @@ from flask.ext.babel import lazy_gettext
 
 # General sage library code
 import sagenb.misc.support as support
-from ..misc.misc import cython
 from ..misc.misc import verbose
 from ..config import DOT_SAGENB
 from ..misc.misc import walltime
@@ -3066,9 +3065,6 @@ class Worksheet(object):
         all_worksheet_processes.append(self.__sage)
         self.__next_block_id = 0
         S = self.__sage
-        A = self.attached_files()
-        for F in A.iterkeys():
-            A[F] = 0  # expire all
 
         # Check to see if the typeset/pretty print button is checked.
         # If so, send code to initialize the worksheet to have the
@@ -3787,136 +3783,6 @@ class Worksheet(object):
     # Loading and attaching files
     ##########################################################
 
-    def load_any_changed_attached_files(self, s):
-        r"""
-        Modify ``s`` by prepending any necessary load commands
-        corresponding to attached files that have changed.
-        """
-        A = self.attached_files()
-        init_sage = DOT_SAGENB + 'init.sage'
-        if init_sage not in A.keys() and os.path.exists(init_sage):
-            A[init_sage] = 0
-
-        # important that this is A.items() and not A.iteritems()
-        # since we change A during the iteration.
-        for F, tm in A.items():
-            try:
-                new_tm = os.path.getmtime(F)
-            except OSError:
-                del A[F]
-            else:
-                if new_tm > tm:
-                    A[F] = new_tm
-                    s = 'load %s\n' % F + s
-        return s
-
-    def attached_files(self):
-        try:
-            A = self.__attached
-        except AttributeError:
-            A = {}
-            self.__attached = A
-
-        return A
-
-    def attach(self, filename):
-        A = self.attached_files()
-        try:
-            A[filename] = os.path.getmtime(filename)
-        except OSError:
-            print "WARNING: File %s vanished" % filename
-
-    def detach(self, filename):
-        A = self.attached_files()
-        try:
-            A.pop(filename)
-        except KeyError:
-            pass
-
-    def _normalized_filenames(self, L):
-        i = L.find('#')
-        if i != -1:
-            L = L[:i]
-        a = []
-        for filename in L.split():
-            filename = filename.strip('"\'')
-            if not filename.endswith('.py') and \
-                    not filename.endswith('.sage') and \
-                    not filename.endswith('.sobj') and \
-                    not os.path.exists(filename):
-                if os.path.exists(filename + '.sage'):
-                    filename = filename + '.sage'
-                elif os.path.exists(filename + '.py'):
-                    filename = filename + '.py'
-                elif os.path.exists(filename + '.sobj'):
-                    filename = filename + '.sobj'
-            a.append(filename)
-        return a
-
-    def load_path(self):
-        D = self.cells_directory()
-        return [os.path.join(self.directory(), 'data')] + [
-            D + x for x in os.listdir(D)]
-
-    def hunt_file(self, filename):
-        if filename.lower().startswith('http://'):
-            filename = get_remote_file(filename)
-        if not os.path.exists(filename):
-            fn = os.path.split(filename)[-1]
-            for D in self.load_path():
-                t = os.path.join(D, fn)
-                if os.path.exists(t):
-                    filename = t
-                    break
-                if os.path.exists(t + '.sobj'):
-                    filename = t + '.sobj'
-                    break
-        return os.path.abspath(filename)
-
-    def _load_file(self, filename, files_seen_so_far, this_file):
-        if filename.endswith('.sobj'):
-            name = os.path.splitext(filename)[0]
-            name = os.path.split(name)[-1]
-            return '%s = load("%s");' % (name, filename)
-
-        if filename in files_seen_so_far:
-            t = ("print 'WARNING: Not loading %s -- would create recursive "
-                 "load'" % filename)
-
-        try:
-            F = open(filename).read()
-        except IOError:
-            return "print 'Error loading %s -- file not found'" % filename
-        else:
-            filename_orig = filename
-            filename = filename.rstrip('.txt')
-            if filename.endswith('.py'):
-                t = F
-            elif filename.endswith('.spyx') or filename.endswith('.pyx'):
-                try:
-                    mod, dir = cython.cython(
-                        filename_orig, compile_message=True, use_cache=True)
-                except (IOError, OSError, RuntimeError) as msg:
-                    return "print r'Error compiling cython file:\n%s'" % msg
-                t = "import sys\n"
-                t += "sys.path.append('%s')\n" % dir
-                t += "from %s import *\n" % mod
-                return t
-            elif filename.endswith('.sage'):
-                t = self.preparse(F)
-            else:
-                t = ("print 'Loading of file \"%s\" has type not "
-                     "implemented.'" % filename)
-
-        t = self.do_sage_extensions_preparsing(
-            t, files_seen_so_far + [this_file], filename)
-        return t
-
-    def _save_objects(self, s):
-        s = s.replace(',', ' ').replace('(', ' ').replace(')', ' ')
-        v = s.split()
-        return ';'.join(['save(%s,"%s")' % (x, x) for x in v])
-
     def _eval_cmd(self, system, cmd):
         return u"print _support_.syseval(%s, %r, __SAGE_TMP_DIR__)" % (
             system, cmd)
@@ -4069,15 +3935,6 @@ class Worksheet(object):
         else:
             cmd = self._eval_cmd(system, input)
             return True, cmd
-
-    ##########################################################
-    # List of attached files.
-    ##########################################################
-
-    def attached_html(self, username=None):
-        return template(os.path.join("html", "worksheet", "attached.html"),
-                        attached_files=self.attached_files(),
-                        username=username)
 
     ##########################################################
     # Showing and hiding all cells
