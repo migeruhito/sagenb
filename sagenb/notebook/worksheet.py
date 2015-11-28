@@ -3186,7 +3186,11 @@ class Worksheet(object):
             input += ('; print "CPU time: %.2f s,  Wall time: %.2f '
                       's"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n')
         self.__comp_is_running = True
-        self.sage().execute(input, os.path.abspath(self.data_directory()))
+        mode = ('sage' if cell_system == 'sage' and not C.introspect() 
+                       else 'python')
+        self.sage().execute(
+            input, os.path.abspath(self.data_directory()),
+            mode=mode)
 
     def check_comp(self, wait=0.2):
         r"""
@@ -3681,7 +3685,7 @@ class Worksheet(object):
         else:
             switched, input = self.check_for_system_switching(input, C)
             if not switched:
-                input = self.preparse_nonswitched_input(input)
+                input = ignore_prompts_and_output(input).rstrip()
             input += '\n'
         return input
 

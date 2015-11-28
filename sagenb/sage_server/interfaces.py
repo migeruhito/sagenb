@@ -281,10 +281,9 @@ class SageServerExpect(SageServerABC):
         self._output_status = OutputStatus('', [], True)
         self._expect = None
         self._is_started = False
-        self._is_computing = False
+        self._is_computing = True
         self._timeout = timeout
         self._prompt = "__SAGE__"
-        self._filename = ''
         self._all_tempdirs = []
         self._process_limits = process_limits
         self._max_walltime = None
@@ -327,7 +326,7 @@ class SageServerExpect(SageServerABC):
         if process_limits and process_limits.max_walltime:
             self._max_walltime = process_limits.max_walltime
         self.execute(init_code, mode='raw')
-        self.output_status()
+        self.execute('print("INIT OK")', mode='python')
 
     def command(self):
         return self._python
@@ -466,18 +465,19 @@ class SageServerExpect(SageServerABC):
         s = tempfile.mkdtemp()
         return (s, s)
 
-    def execute(self, string, data=None, mode=None):
+    def execute(self, code, data=None, mode='sage'):
         """
-        Start executing the given string in this subprocess.
+        Start executing the given code in this subprocess.
 
         INPUT:
 
-            - ``string`` -- a string containing code to be executed.
+            - ``code`` -- a code containing code to be executed.
 
-            - ``data`` -- a string or None; if given, must specify an
+            - ``data`` -- a code or None; if given, must specify an
               absolute path on the server host filesystem.   This may
               be ignored by some worksheet process implementations.
         """
+        print('\n\n\n{}\n\n\n'.format(mode))
         if self._expect is None:
             self.start()
 
@@ -486,39 +486,31 @@ class SageServerExpect(SageServerABC):
                 "unable to start subprocess using command '%s'" % self.command(
                     ))
 
-        if mode in self.modes:
-            self._expect.sendline(
-                '_support_.execute_code("{}", globals(), mode="{}")'.format(
-                    b64encode(string), mode))
-            return
+        if mode != 'raw':
+            self._number +=1
+            local, remote = self.get_tmpdir()
+            code = 'os.chdir("{}")\nprint("START{}")\n{}'.format(
+                remote, self._number, code)
+            if data is not None:
+                # make a symbolic link from the data directory into local tmp
+                # directory
+                self._data = os.path.split(data)[1]
+                self._data_dir = data
+                set_permissive_permissions(data)
+                os.symlink(data, os.path.join(local, self._data))
+            else:
+                self._data = ''
 
-        self._number += 1
+            self._tempdir = local
+            self._so_far = ''
+            self._is_computing = True
 
-        local, remote = self.get_tmpdir()
-
-        if data is not None:
-            # make a symbolic link from the data directory into local tmp
-            # directory
-            self._data = os.path.split(data)[1]
-            self._data_dir = data
-            set_permissive_permissions(data)
-            os.symlink(data, os.path.join(local, self._data))
-        else:
-            self._data = ''
-
-        self._tempdir = local
-        sage_input = '_sage_input_%s.py' % self._number
-        self._filename = os.path.join(self._tempdir, sage_input)
-        self._so_far = ''
-        self._is_computing = True
-
-        self._all_tempdirs.append(self._tempdir)
-        sage_code = format_for_pexpect(string, self._number)
-        open(self._filename, 'w').write(sage_code)
+            self._all_tempdirs.append(self._tempdir)
+            
         try:
             self._expect.sendline(
-                '\nos.chdir("%s");\nexecfile("%s")' % (
-                    remote, sage_input))
+                '_support_.execute_code("{}", globals(), mode="{}")'.format(
+                    b64encode(code), mode))
         except OSError as msg:
             self._is_computing = False
             self._so_far = str(msg)
@@ -569,7 +561,6 @@ class SageServerExpect(SageServerABC):
         if os.path.exists(self._tempdir):
             files = [os.path.join(self._tempdir, x) for x in os.listdir(
                 self._tempdir) if x != self._data]
-            files = [x for x in files if x != self._filename]
 
         return OutputStatus(s, files, not self._is_computing)
 

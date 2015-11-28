@@ -104,65 +104,6 @@ def format_for_pexpect(string, number):
     * Changes system prompt to `prompt`
     * Prints a START message appended with `number`
     * Appends `string` after processing with :meth: `displayhook_hack`
-
-    EXAMPLES::
-
-        sage: from sagenb.misc.format import format_for_pexpect
-        sage: print format_for_pexpect('13', 'PROMPT', 1)
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        <BLANKLINE>
-        import sys
-        sys.ps1 = "PROMPT"
-        print "START1"
-        exec compile(u'13' + '\n', '', 'single')
-        sage: print format_for_pexpect(
-            'class MyClass:\n    def __init__(self):\n        pass\na = '
-            'MyClass()\na', 'PRMPT', 30)
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        <BLANKLINE>
-        import sys
-        sys.ps1 = "PRMPT"
-        print "START30"
-        class MyClass:
-            def __init__(self):
-                pass
-        a = MyClass()
-        exec compile(u'a' + '\n', '', 'single')
-        sage: print format_for_pexpect(
-            'class MyClass:\n    def __init__(self):\n        pass\n',
-            'PRMPT', 30)
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
-        <BLANKLINE>
-        import sys
-        sys.ps1 = "PRMPT"
-        print "START30"
-        exec compile(
-            u'class MyClass:\n    def __init__(self):\n        pass' + '\n',
-            '', 'single')
-        sage: print format_for_pexpect(
-        'from __future__ import division\nprint "Hey!"', 'MYPROMPT', 25)
-        # -*- coding: utf-8 -*-
-        from __future__ import division
-        <BLANKLINE>
-        import sys
-        sys.ps1 = "MYPROMPT"
-        print "START25"
-        exec compile(u'print "Hey!"' + '\n', '', 'single')
-        <BLANKLINE>
-        sage: print format_for_pexpect(
-            'from __future__ import division;'
-            ' print "Hello world!"\nprint "New line!"', 'MYPRMPT', 30)
-        # -*- coding: utf-8 -*-
-        from __future__ import division
-        <BLANKLINE>
-        import sys
-        sys.ps1 = "MYPRMPT"
-        print "START30"
-        print "Hello world!"
-        exec compile(u'print "New line!"' + '\n', '', 'single')
     """
     string = '\n'.join((
         'print "START%s"',
@@ -170,10 +111,10 @@ def format_for_pexpect(string, number):
         )) % (number,
               displayhook_hack(string).encode('utf-8', 'ignore'))
     try:
-        string = '# -*- coding: utf-8 -*-\n' + relocate_future_imports(string)
+        string = relocate_future_imports(string)
     except SyntaxError:
         # Syntax error anyways, so no need to relocate future imports.
-        string = '# -*- coding: utf-8 -*-\n' + string
+        pass
     return string
 
 
