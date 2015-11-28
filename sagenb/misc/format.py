@@ -92,32 +92,6 @@ def relocate_future_imports(string):
     return '\n'.join(import_lines) + '\n' + '\n'.join(lines)
 
 
-def format_for_pexpect(string, number):
-    """
-    Formats a string for execution by the pexpect WorksheetProcess
-    implementation.
-
-    Currently does the following:
-
-    * Adds a magic comment to enable utf-8 encoding
-    * Moves all __future__ imports to start of file.
-    * Changes system prompt to `prompt`
-    * Prints a START message appended with `number`
-    * Appends `string` after processing with :meth: `displayhook_hack`
-    """
-    string = '\n'.join((
-        'print "START%s"',
-        '%s',
-        )) % (number,
-              displayhook_hack(string).encode('utf-8', 'ignore'))
-    try:
-        string = relocate_future_imports(string)
-    except SyntaxError:
-        # Syntax error anyways, so no need to relocate future imports.
-        pass
-    return string
-
-
 def displayhook_hack(string):
     """
     Modified version of string so that ``exec``'ing it results in

@@ -30,8 +30,6 @@ from base64 import b64encode
 
 import pexpect
 
-from ..misc.format import displayhook_hack
-from ..misc.format import format_for_pexpect
 from ..misc.misc import set_permissive_permissions
 from ..misc.misc import set_restrictive_permissions
 from ..misc.misc import walltime
