@@ -19,8 +19,8 @@ from pydoc import describe
 from pydoc import html
 from pydoc import resolve
 
-import sage.misc.sageinspect
 import sage.server.support
+from sage.misc import sageinspect
 from sage.misc.cython import cython
 from sage.misc.displayhook import DisplayHook
 from sage.misc.inline_fortran import InlineFortran
@@ -34,7 +34,6 @@ from sage.symbolic.all import SR
 
 from ..util import get_module
 from ..util import import_from
-from . import sageinspect
 
 sys.displayhook = DisplayHook()
 
@@ -89,7 +88,7 @@ def init(object_directory=None, globs={}):
     sage.server.support.EMBEDDED_MODE = True
     # Also initialize EMBEDDED_MODE in Sage's misc.sageinspect module,
     # which is used to format docstrings in the notebook.
-    sage.misc.sageinspect.EMBEDDED_MODE = True
+    sageinspect.EMBEDDED_MODE = True
 
 
 def setup_systems(globs):

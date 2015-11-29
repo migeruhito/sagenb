@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*
 """
-Worksheet process base clase
+sage_server interfaces
 
 AUTHORS:
 
   - William Stein
+
+  - J Miguel Farto
 """
 
 #############################################################################
 #
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
+#       Copyright (C) 2015 J Miguel Farto <jmfarto@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
