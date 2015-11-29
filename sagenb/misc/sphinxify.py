@@ -24,7 +24,7 @@ import shutil
 import sys
 from tempfile import mkdtemp
 
-from ..config import SAGE_DOC
+from sage.env import SAGE_DOC
 
 # Globals
 # We import Sphinx on demand, to reduce Sage startup time.
