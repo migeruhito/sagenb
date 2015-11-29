@@ -18,23 +18,30 @@ from pydoc import describe
 from pydoc import html
 from pydoc import resolve
 
+import sage.misc.sageinspect
+import sage.server.support
+from sage.misc.cython import cython
+from sage.misc.displayhook import DisplayHook
+from sage.misc.inline_fortran import InlineFortran
+from sage.misc.sagedoc import format_src
+from sage.misc.session import init as session_init
+from sage.repl.interpreter import _do_preparse
+from sage.repl.preparse import preparse
+from sage.repl.preparse import preparse_file
+from sage.symbolic.all import Expression
+from sage.symbolic.all import SR
+
 from ..util import get_module
 from ..util import import_from
 from . import sageinspect
-from .misc import cython
-from .misc import InlineFortran
-from .misc import session_init
-from .format import displayhook_hack
+from .format import reformat_code
 
+sys.displayhook = DisplayHook()
 
 # Fallback functions in case sage is not present
 def format_src_fb(s, *args, **kwds):
     return s
 
-
-# TODO: sage dependency
-format_src = import_from(
-    'sage.misc.sagedoc', 'format_src', default=lambda: format_src_fb)
 
 # Fallback functions in case sagenb.misc.sphinxify is not present
 
@@ -52,13 +59,6 @@ sphinxify = import_from('sagenb.misc.sphinxify',
 is_sphinx_markup = import_from(
     'sagenb.misc.sphinxify', 'is_sphinx_markup',
     default=lambda: is_sphinx_markup_fb)
-# TODO: sage dependency
-try:
-    from sage.misc.displayhook import DisplayHook
-    sys.displayhook = DisplayHook()
-except ImportError as msg:
-    print msg
-    print 'Graphics will not be shown automatically'
 
 
 ######################################################################
@@ -91,14 +91,10 @@ def init(object_directory=None, globs={}):
     # Ugly cruft.  Initialize the embedded mode of the old Sage
     # notebook, which is going to be included in old copies of Sage
     # forever.
-    # TODO: sage dependency
-    get_module(
-        'sage.server.support', default=lambda: None).EMBEDDED_MODE = True
+    sage.server.support.EMBEDDED_MODE = True
     # Also initialize EMBEDDED_MODE in Sage's misc.sageinspect module,
     # which is used to format docstrings in the notebook.
-    # TODO: sage dependency
-    get_module(
-        'sage.misc.sageinspect', default=lambda: None).EMBEDDED_MODE = True
+    sage.misc.sageinspect.EMBEDDED_MODE = True
 
 
 def setup_systems(globs):
@@ -520,21 +516,12 @@ def preparse_file_fb(contents, *args, **kwds):
     return contents
 
 
-# TODO: sage dependency
-preparse = import_from(
-    'sage.repl.preparse', 'preparse', default=lambda: preparse_fb)
-# TODO: sage dependency
-preparse_file = import_from(
-    'sage.repl.preparse', 'preparse_file', default=lambda: preparse_file_fb)
-
-
 def do_preparse():
     """
     Return True if the preparser is set to on, and False otherwise.
     """
     # TODO: sage dependency
-    return import_from(
-        'sage.repl.interpreter', '_do_preparse', default=lambda: False)
+    return _do_preparse
 
 
 ########################################################################
@@ -547,150 +534,143 @@ def do_preparse():
 ########################################################################
 
 _automatic_names = False
-# We wrap everything in a try/catch, in case this is being imported
-# without the sage library present, e.g., in FEMhub.
-# TODO: sage dependency
-Expression = import_from('sage.symbolic.all', 'Expression')
-# TODO: sage dependency
-SR = import_from('sage.symbolic.all', 'SR')
-if Expression is not None and SR is not None:
-    class AutomaticVariable(Expression):
+class AutomaticVariable(Expression):
+    """
+    An automatically created symbolic variable with an additional
+    :meth:`__call__` method designed so that doing self(foo,...)
+    results in foo.self(...).
+    """
+
+    def __call__(self, *args, **kwds):
         """
-        An automatically created symbolic variable with an additional
-        :meth:`__call__` method designed so that doing self(foo,...)
-        results in foo.self(...).
+        Call method such that self(foo, ...) is transformed into
+        foo.self(...).  Note that self(foo=...,...) is not
+        transformed, it is treated as a normal symbolic
+        substitution.
         """
+        if len(args) == 0:
+            return super(self.__class__, self).__call__(**kwds)
+        return args[0].__getattribute__(str(self))(*args[1:], **kwds)
 
-        def __call__(self, *args, **kwds):
-            """
-            Call method such that self(foo, ...) is transformed into
-            foo.self(...).  Note that self(foo=...,...) is not
-            transformed, it is treated as a normal symbolic
-            substitution.
-            """
-            if len(args) == 0:
-                return super(self.__class__, self).__call__(**kwds)
-            return args[0].__getattribute__(str(self))(*args[1:], **kwds)
+def automatic_name_eval(s, globals, max_names=10000):
+    """
+    Exec the string ``s`` in the scope of the ``globals``
+    dictionary, and if any :exc:`NameError`\ s are raised, try to
+    fix them by defining the variable that caused the error to be
+    raised, then eval again.  Try up to ``max_names`` times.
 
-    def automatic_name_eval(s, globals, max_names=10000):
-        """
-        Exec the string ``s`` in the scope of the ``globals``
-        dictionary, and if any :exc:`NameError`\ s are raised, try to
-        fix them by defining the variable that caused the error to be
-        raised, then eval again.  Try up to ``max_names`` times.
+    INPUT:
 
-        INPUT:
+       - ``s`` -- a string
+       - ``globals`` -- a dictionary
+       - ``max_names`` -- a positive integer (default: 10000)
+    """
+    # This entire automatic naming system really boils down to
+    # this bit of code below.  We simply try to exec the string s
+    # in the globals namespace, defining undefined variables and
+    # functions until everything is defined.
+    for _ in range(max_names):
+        try:
+            exec s in globals
+            return
+        except NameError, msg:
+            # Determine if we hit a NameError that is probably
+            # caused by a variable or function not being defined:
+            if len(msg.args) == 0:
+                raise  # not NameError with
+                # specific variable name
+            v = msg.args[0].split("'")
+            if len(v) < 2:
+                raise  # also not NameError with
+                # specific variable name We did
+                # find an undefined variable: we
+                # simply define it and try
+                # again.
+            nm = v[1]
+            globals[nm] = AutomaticVariable(SR, SR.var(nm))
+    raise NameError(
+        "Too many automatic variable names and functions created "
+        "(limit=%s)" % max_names)
 
-           - ``s`` -- a string
-           - ``globals`` -- a dictionary
-           - ``max_names`` -- a positive integer (default: 10000)
-        """
-        # This entire automatic naming system really boils down to
-        # this bit of code below.  We simply try to exec the string s
-        # in the globals namespace, defining undefined variables and
-        # functions until everything is defined.
-        for _ in range(max_names):
-            try:
-                exec s in globals
-                return
-            except NameError, msg:
-                # Determine if we hit a NameError that is probably
-                # caused by a variable or function not being defined:
-                if len(msg.args) == 0:
-                    raise  # not NameError with
-                    # specific variable name
-                v = msg.args[0].split("'")
-                if len(v) < 2:
-                    raise  # also not NameError with
-                    # specific variable name We did
-                    # find an undefined variable: we
-                    # simply define it and try
-                    # again.
-                nm = v[1]
-                globals[nm] = AutomaticVariable(SR, SR.var(nm))
-        raise NameError(
-            "Too many automatic variable names and functions created "
-            "(limit=%s)" % max_names)
+def automatic_name_filter(s):
+    """
+    Wrap the string ``s`` in a call that will cause evaluation of
+    ``s`` to automatically create undefined variable names.
 
-    def automatic_name_filter(s):
-        """
-        Wrap the string ``s`` in a call that will cause evaluation of
-        ``s`` to automatically create undefined variable names.
+    INPUT:
 
-        INPUT:
+       - ``s`` -- a string
 
-           - ``s`` -- a string
+    OUTPUT:
 
-        OUTPUT:
+       - a string
+    """
+    return (
+        '_support_.automatic_name_eval(_support_.base64.b64decode("%s"),'
+        'globals())' % base64.b64encode(s))
 
-           - a string
-        """
-        return (
-            '_support_.automatic_name_eval(_support_.base64.b64decode("%s"),'
-            'globals())' % base64.b64encode(s))
+def automatic_names(state=None):
+    """
+    Turn automatic creation of variables and functional calling of
+    methods on or off.  Returns the current ``state`` if no
+    argument is given.
 
-    def automatic_names(state=None):
-        """
-        Turn automatic creation of variables and functional calling of
-        methods on or off.  Returns the current ``state`` if no
-        argument is given.
+    This ONLY works in the Sage notebook.  It is not supported on
+    the command line.
 
-        This ONLY works in the Sage notebook.  It is not supported on
-        the command line.
+    INPUT:
 
-        INPUT:
+    - ``state`` -- a boolean (default: None); whether to turn
+      automatic variable creation and functional calling on or off
 
-        - ``state`` -- a boolean (default: None); whether to turn
-          automatic variable creation and functional calling on or off
+    OUTPUT:
 
-        OUTPUT:
+    - a boolean, if ``state`` is None; otherwise, None
 
-        - a boolean, if ``state`` is None; otherwise, None
+    EXAMPLES::
 
-        EXAMPLES::
+        sage: automatic_names(True)      # not tested
+        sage: x + y + z                  # not tested
+        x + y + z
 
-            sage: automatic_names(True)      # not tested
-            sage: x + y + z                  # not tested
-            x + y + z
+    Here, ``trig_expand``, ``y``, and ``theta`` are all
+    automatically created::
 
-        Here, ``trig_expand``, ``y``, and ``theta`` are all
-        automatically created::
+        sage: trig_expand((2*x + 4*y + sin(2*theta))^2)   # not tested
+        4*(sin(theta)*cos(theta) + x + 2*y)^2
 
-            sage: trig_expand((2*x + 4*y + sin(2*theta))^2)   # not tested
-            4*(sin(theta)*cos(theta) + x + 2*y)^2
+    IMPLEMENTATION: Here's how this works, internally.  We define
+    an :class:`AutomaticVariable` class derived from
+    :class:`~sage.symbolic.all.Expression`.  An instance of
+    :class:`AutomaticVariable` is a specific symbolic variable,
+    but with a special :meth:`~AutomaticVariable.__call__` method.
+    We overload the call method so that ``foo(bar, ...)`` gets
+    transformed to ``bar.foo(...)``.  At the same time, we still
+    want expressions like ``f^2 - b`` to work, i.e., we don't want
+    to have to figure out whether a name appearing in a
+    :exc:`NameError` is meant to be a symbolic variable or a
+    function name. Instead, we just make an object that is both!
 
-        IMPLEMENTATION: Here's how this works, internally.  We define
-        an :class:`AutomaticVariable` class derived from
-        :class:`~sage.symbolic.all.Expression`.  An instance of
-        :class:`AutomaticVariable` is a specific symbolic variable,
-        but with a special :meth:`~AutomaticVariable.__call__` method.
-        We overload the call method so that ``foo(bar, ...)`` gets
-        transformed to ``bar.foo(...)``.  At the same time, we still
-        want expressions like ``f^2 - b`` to work, i.e., we don't want
-        to have to figure out whether a name appearing in a
-        :exc:`NameError` is meant to be a symbolic variable or a
-        function name. Instead, we just make an object that is both!
-
-        This entire approach is very simple---we do absolutely no
-        parsing of the actual input.  The actual real work amounts to
-        only a few lines of code.  The primary catch to this approach
-        is that if you evaluate a big block of code in the notebook,
-        and the first few lines take a long time, and the next few
-        lines define 10 new variables, the slow first few lines will
-        be evaluated 10 times.  Of course, the advantage of this
-        approach is that even very subtle code that might inject
-        surprisingly named variables into the namespace will just work
-        correctly, which would be impossible to guarantee with static
-        parsing, no matter how sophisticated it is.  Finally, given
-        the target audience: people wanting to simplify use of Sage
-        for Calculus for undergrads, I think this is an acceptable
-        tradeoff, especially given that this implementation is so
-        simple.
-        """
-        global _automatic_names
-        if state is None:
-            return _automatic_names
-        _automatic_names = bool(state)
+    This entire approach is very simple---we do absolutely no
+    parsing of the actual input.  The actual real work amounts to
+    only a few lines of code.  The primary catch to this approach
+    is that if you evaluate a big block of code in the notebook,
+    and the first few lines take a long time, and the next few
+    lines define 10 new variables, the slow first few lines will
+    be evaluated 10 times.  Of course, the advantage of this
+    approach is that even very subtle code that might inject
+    surprisingly named variables into the namespace will just work
+    correctly, which would be impossible to guarantee with static
+    parsing, no matter how sophisticated it is.  Finally, given
+    the target audience: people wanting to simplify use of Sage
+    for Calculus for undergrads, I think this is an acceptable
+    tradeoff, especially given that this implementation is so
+    simple.
+    """
+    global _automatic_names
+    if state is None:
+        return _automatic_names
+    _automatic_names = bool(state)
 
 
 def preparse_worksheet_cell(s, globals):
@@ -716,7 +696,7 @@ def preparse_worksheet_cell(s, globals):
     """
     if do_preparse():
         s = preparse_file(s, globals=globals)
-    s = displayhook_hack(s)
+    s = reformat_code(s)
     if _automatic_names:
         s = automatic_name_filter(s)
     return s
@@ -730,7 +710,7 @@ def execute_code(code, globals, mode='raw', start_label=''):
     if mode == 'raw':
         pass
     elif mode == 'python':
-        code = displayhook_hack(code)
+        code = reformat_code(code)
     elif mode == 'sage':
         code = preparse_worksheet_cell(code, globals)
     else:

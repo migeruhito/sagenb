@@ -43,24 +43,8 @@ def stub(f):
 # Fallback functions in case sage is not present
 # Not implemented
 @stub
-def session_init_fb(*args, **kwds):
-    pass
-
-
-@stub
 def verbose_fb(*args, **kwds):
     pass
-
-
-@stub
-def InlineFortran_fb(*args, **kwds):
-    pass
-
-
-@stub
-def cython_fb(*args, **kwds):
-    # TODO
-    raise NotImplementedError("Curently %cython mode requires Sage.")
 
 
 @stub
@@ -111,9 +95,6 @@ class Color_fb:
         pass
 
 
-# TODO: sage dependency
-session_init = import_from(
-    'sage.misc.session', 'init', default=lambda: session_init_fb)
 # TODO: sage dependency
 sage_eval = import_from(
     'sage.misc.sage_eval', 'sage_eval', default=lambda: sage_eval_fb)
@@ -188,12 +169,6 @@ tmp_filename = import_from(
     'sage.misc.all', 'tmp_filename', default=lambda: tmp_filename_fb)
 # TODO: sage dependency
 tmp_dir = import_from('sage.misc.all', 'tmp_dir', default=lambda: tmp_dir_fb)
-# TODO: sage dependency
-InlineFortran = import_from(
-    'sage.misc.inline_fortran', 'InlineFortran',
-    default=lambda: InlineFortran_fb)
-# TODO: sage dependency
-cython = import_from('sage.misc.cython', 'cython', default=lambda: cython_fb)
 
 
 #############################################################
