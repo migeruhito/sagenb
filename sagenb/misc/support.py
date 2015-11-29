@@ -38,7 +38,9 @@ from .format import reformat_code
 
 sys.displayhook = DisplayHook()
 
+
 # Fallback functions in case sage is not present
+
 def format_src_fb(s, *args, **kwds):
     return s
 
@@ -214,11 +216,11 @@ def completions(s, globs, format=False, width=90, system="None"):
                     v = [obj + '.' + x for x in D if x and x[0] != '_']
                 else:
                     v = [obj + '.' + x for x in D if x[:n] == method]
-            except Exception, msg:
+            except Exception:
                 v = []
         v = list(set(v))   # make unique
         v.sort()
-    except Exception, msg:
+    except Exception:
         v = []
 
     if prepend:
@@ -396,7 +398,6 @@ def tabulate(v, width=90, ncols=3):
             ncols -= 1
         else:
             break
-    n = max(len(x) for x in v)
     s = ''
     for r in range(nrows):
         for c in range(ncols):
@@ -534,13 +535,14 @@ def do_preparse():
 ########################################################################
 
 _automatic_names = False
+
+
 class AutomaticVariable(Expression):
     """
     An automatically created symbolic variable with an additional
     :meth:`__call__` method designed so that doing self(foo,...)
     results in foo.self(...).
     """
-
     def __call__(self, *args, **kwds):
         """
         Call method such that self(foo, ...) is transformed into
@@ -551,6 +553,7 @@ class AutomaticVariable(Expression):
         if len(args) == 0:
             return super(self.__class__, self).__call__(**kwds)
         return args[0].__getattribute__(str(self))(*args[1:], **kwds)
+
 
 def automatic_name_eval(s, globals, max_names=10000):
     """
@@ -592,6 +595,7 @@ def automatic_name_eval(s, globals, max_names=10000):
         "Too many automatic variable names and functions created "
         "(limit=%s)" % max_names)
 
+
 def automatic_name_filter(s):
     """
     Wrap the string ``s`` in a call that will cause evaluation of
@@ -608,6 +612,7 @@ def automatic_name_filter(s):
     return (
         '_support_.automatic_name_eval(_support_.base64.b64decode("%s"),'
         'globals())' % base64.b64encode(s))
+
 
 def automatic_names(state=None):
     """

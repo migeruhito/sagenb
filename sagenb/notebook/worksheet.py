@@ -34,7 +34,6 @@ import os
 import re
 import shutil
 import time
-import traceback
 from base64 import b64encode
 from time import strftime
 
@@ -44,12 +43,10 @@ from flask.ext.babel import lazy_gettext
 # General sage library code
 import sagenb.misc.support as support
 from ..misc.misc import verbose
-from ..config import DOT_SAGENB
 from ..misc.misc import walltime
 from ..misc.misc import ignore_nonexistent_files
 from ..misc.misc import set_restrictive_permissions
 from ..misc.misc import unicode_str
-from ..misc.remote_file import get_remote_file
 
 from . import misc
 from .misc import CODE_PY

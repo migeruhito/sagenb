@@ -21,9 +21,6 @@ from __future__ import absolute_import
 import os
 import re
 import shutil
-import StringIO
-import sys
-import traceback
 import tempfile
 
 from base64 import b64encode
