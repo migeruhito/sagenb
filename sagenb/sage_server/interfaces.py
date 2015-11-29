@@ -361,7 +361,7 @@ class SageServerExpect(SageServerABC):
                     ))
 
         if mode != 'raw':
-            self._number +=1
+            self._number += 1
             self._start_label = 'START{}'.format(self._number)
             local, remote = self.get_tmpdir()
             code = 'os.chdir("{}")\n{}'.format(remote, code)
@@ -380,7 +380,7 @@ class SageServerExpect(SageServerABC):
             self._is_computing = True
 
             self._all_tempdirs.append(self._tempdir)
-            
+
         try:
             self._expect.sendline(
                 '_support_.execute_code('
@@ -417,13 +417,13 @@ class SageServerExpect(SageServerABC):
         else:
             self._so_far += self._expect.before
 
-        v = re.findall('{}.*{}'.format(self._start_label, self._prompt), 
+        v = re.findall('{}.*{}'.format(self._start_label, self._prompt),
                        self._so_far, re.DOTALL)
         if len(v) > 0:
             self._is_computing = False
             s = v[0][len(self._start_label):-len(self._prompt)]
         else:
-            v = re.findall('{}.*'.format(self._start_label), 
+            v = re.findall('{}.*'.format(self._start_label),
                            self._so_far, re.DOTALL)
             if len(v) > 0:
                 s = v[0][len(self._start_label):]
