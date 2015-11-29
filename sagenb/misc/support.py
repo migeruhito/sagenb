@@ -15,6 +15,7 @@ import base64
 import os
 import string
 import sys
+from importlib import import_module
 from pydoc import describe
 from pydoc import html
 from pydoc import resolve
@@ -32,27 +33,12 @@ from sage.repl.preparse import preparse_file
 from sage.symbolic.all import Expression
 from sage.symbolic.all import SR
 
-from ..util import get_module
-from ..util import import_from
+# TODO: move to sage_server support modules
+from .sphinxify import sphinxify
+from .sphinxify import is_sphinx_markup
+
 
 sys.displayhook = DisplayHook()
-
-
-# Fallback functions in case sagenb.misc.sphinxify is not present
-
-def sphinxify_fb(s):
-    return s
-
-
-def is_sphinx_markup_fb(s):
-    return False
-
-
-sphinxify = import_from('sagenb.misc.sphinxify',
-                        'sphinxify', default=lambda: sphinxify_fb)
-is_sphinx_markup = import_from(
-    'sagenb.misc.sphinxify', 'is_sphinx_markup',
-    default=lambda: is_sphinx_markup_fb)
 
 
 ######################################################################
@@ -468,7 +454,7 @@ def cython_import(filename, verbose=False, compile_message=False,
                              use_cache=use_cache,
                              create_local_c_file=create_local_c_file)
     sys.path.append(build_dir)
-    return get_module(name)
+    return import_module(name)
 
 
 def cython_import_all(filename, globals, verbose=False, compile_message=False,
