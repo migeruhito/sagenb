@@ -13,7 +13,6 @@ from __future__ import absolute_import
 import ast
 import base64
 import os
-import string
 import sys
 from importlib import import_module
 from pydoc import describe
@@ -34,8 +33,8 @@ from sage.symbolic.all import Expression
 from sage.symbolic.all import SR
 
 # TODO: move to sage_server support modules
-from .sphinxify import sphinxify
-from .sphinxify import is_sphinx_markup
+from sagenb.misc.sphinxify import sphinxify
+from sagenb.misc.sphinxify import is_sphinx_markup
 
 
 sys.displayhook = DisplayHook()
@@ -131,14 +130,6 @@ def help(obj):
     print("&nbsp;&nbsp;&nbsp;<a target='_new' href='cell://%s'>"
           "Click to open help window</a>&nbsp;&nbsp;&nbsp;" % filename)
     print '<br></font></tr></td></table></html>'
-
-
-def get_rightmost_identifier(s):
-    X = string.ascii_letters + string.digits + '._'
-    i = len(s) - 1
-    while i >= 0 and s[i] in X:
-        i -= 1
-    return s[i + 1:]
 
 
 def completions(s, globs, format=False, width=90, system="None"):
@@ -429,10 +420,10 @@ def syseval(system, cmd, dir=None):
         cmd = cmd.encode('utf-8', 'ignore')
     return system.eval(cmd, sage_globals, locals=sage_globals)
 
+
 ######################################################################
 # Cython
 ######################################################################
-
 
 def cython_import(filename, verbose=False, compile_message=False,
                   use_cache=False, create_local_c_file=True):
@@ -491,15 +482,10 @@ def preparse_fb(line, *args, **kwds):
     return line
 
 
-def preparse_file_fb(contents, *args, **kwds):
-    return contents
-
-
 def do_preparse():
     """
     Return True if the preparser is set to on, and False otherwise.
     """
-    # TODO: sage dependency
     return _do_preparse
 
 
@@ -847,4 +833,5 @@ def execute_code(code, globals, mode='raw', start_label=''):
     else:
         code = 'pass'
 
+    # TODO: use previous ast analisys done when code is reformated
     exec(code, globals)

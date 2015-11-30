@@ -41,7 +41,7 @@ from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
 # General sage library code
-import sagenb.misc.support as support
+from ..misc.misc import get_rightmost_identifier
 from ..misc.misc import verbose
 from ..misc.misc import walltime
 from ..misc.misc import ignore_nonexistent_files
@@ -3151,8 +3151,8 @@ class Worksheet(object):
             input += ('; print "CPU time: %.2f s,  Wall time: %.2f '
                       's"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n')
         self.__comp_is_running = True
-        mode = ('sage' if cell_system == 'sage' and not C.introspect() 
-                       else 'python')
+        mode = ('sage' if cell_system == 'sage' and not C.introspect()
+                else 'python')
         self.sage().execute(
             input, os.path.abspath(self.data_directory()),
             mode=mode)
@@ -3751,7 +3751,7 @@ class Worksheet(object):
         return out
 
     def _get_last_identifier(self, s):
-        return support.get_rightmost_identifier(s)
+        return get_rightmost_identifier(s)
 
     def preparse(self, s):
         """
