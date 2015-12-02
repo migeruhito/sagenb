@@ -9,7 +9,7 @@
 <form method="post" action="/notebooksettings">
 	<input type="hidden" name="form" value="on" />
 	{%- if auto_table %}
-	{{ auto_table }}
+	{{ auto_table | safe}}
 	{%- endif %}
 	<div class="form-actions">
 		<button type="submit" class="btn btn-primary">{{ gettext('Save') }}</button>
