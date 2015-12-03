@@ -29,6 +29,8 @@ import getpass
 import os
 import socket
 
+# TODO: sage dependency
+from sage.interfaces.cleaner import cleaner as register_with_cleaner
 
 def default_email_address():
     """
@@ -112,7 +114,6 @@ def email(to, subject, body='', from_address=None, verbose=True, block=False,
             # it fails to properly quit (e.g., smtp is taking a long time), so
             # it will get killed no matter what when sage exits.  Zombies are
             # bad bad bad, no matter what!
-            from sagenb.misc.misc import register_with_cleaner
             # register pid of forked process with cleaner
             register_with_cleaner(pid)
         if verbose:
@@ -139,7 +140,6 @@ def email(to, subject, body='', from_address=None, verbose=True, block=False,
             # zombie cleaner just in case, then we kill ourself, as
             # explained above.
             if kill_on_exit:
-                from sagenb.misc.misc import register_with_cleaner
                 # register pid of forked process with cleaner
                 register_with_cleaner(pid)
             os.kill(os.getpid(), 9)                 # suicide

@@ -40,7 +40,6 @@ from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
 # General sage library code
-from ..misc.misc import verbose
 from ..misc.misc import walltime
 from ..misc.misc import ignore_nonexistent_files
 from ..misc.misc import set_restrictive_permissions
@@ -3194,9 +3193,9 @@ class Worksheet(object):
 
         try:
             output_status = S.output_status()
-        except RuntimeError, msg:
-            verbose(
-                "Computation was interrupted or failed. Restarting.\n%s" % msg)
+        except RuntimeError:
+            # verbose(
+            #  "Computation was interrupted or failed. Restarting.\n%s" % msg)
             self.__comp_is_running = False
             self.start_next_comp()
             return 'w', C

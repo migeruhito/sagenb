@@ -161,13 +161,11 @@ import types
 
 # TODO: sage dependency
 from sage.misc.cachefunc import cached_method
-# TODO: sage dependency
 from sage.misc.decorators import decorator_defaults
-
-from ..misc.misc import srange
-from ..misc.misc import sage_eval
-from ..misc.misc import Color
-from ..misc.misc import is_Matrix
+from sage.misc.all import srange
+from sage.misc.sage_eval import sage_eval
+from sage.plot.colors import Color
+from sage.structure.element import is_Matrix
 
 # SAGE_CELL_ID is a module scope variable that is always set equal to
 # the current cell id (of the executing cell).  Code that sets this is

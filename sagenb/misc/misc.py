@@ -33,36 +33,8 @@ import time
 from ..util import import_from
 
 
-def stub(f):
-    def g(*args, **kwds):
-        print "Stub: ", f.func_name
-        return f(*args, **kwds)
-    return g
-
-
 # Fallback functions in case sage is not present
 # Not implemented
-@stub
-def verbose_fb(*args, **kwds):
-    pass
-
-
-@stub
-def is_Matrix_fb(x):
-    return False
-
-
-@stub
-def register_with_cleaner_fb(pid):
-    print('generic cleaner needs to be written')
-
-
-# Implemented
-def sage_eval_fb(value, globs):
-    # worry about ^ and preparser -- this gets used in interact.py,
-    # which is a bit weird, but heh.
-    return eval(value, globs)
-
 
 def strip_string_literals_fb(code, state=None):
     # todo -- do we need this?
@@ -80,31 +52,22 @@ def tmp_dir_fb(name='dir'):
     return tempfile.mkdtemp()
 
 
-def srange_fb(start, end=None, step=1, universe=None, check=True,
-              include_endpoint=False, endpoint_tolerance=1e-5):
-    # TODO: need to put a really srange here!
-    v = [start]
-    while v[-1] <= end:
-        v.append(v[-1] + step)
-    return v
+# TODO: sage dependency - cell
+strip_string_literals = import_from(
+    'sage.repl.preparse', 'strip_string_literals',
+    default=lambda: strip_string_literals_fb)
 
-
-class Color_fb:
-
-    def __init__(self, *args, **kwds):
-        pass
-
-
-# TODO: sage dependency
-sage_eval = import_from(
-    'sage.misc.sage_eval', 'sage_eval', default=lambda: sage_eval_fb)
-# TODO: sage dependency
-verbose = import_from('sage.misc.all', 'verbose', default=lambda: verbose_fb)
+# TODO: sage dependency - must implement - see also worksheet_listing
+tmp_filename = import_from(
+    'sage.misc.all', 'tmp_filename', default=lambda: tmp_filename_fb)
+# TODO: sage dependency - None, but must implement - see also worksheet_listing
+tmp_dir = import_from('sage.misc.all', 'tmp_dir', default=lambda: tmp_dir_fb)
 
 
 ################################
 # clocks -- easy to implement
 ################################
+
 def cputime(t=0):
     try:
         t = float(t)
@@ -143,32 +106,6 @@ def word_wrap(s, ncols=85):
             x = x[k:]
         t.append(x)
     return '\n'.join(t)
-
-
-# TODO: sage dependency
-strip_string_literals = import_from(
-    'sage.repl.preparse', 'strip_string_literals',
-    default=lambda: strip_string_literals_fb)
-# TODO: sage dependency
-Color = import_from('sage.plot.colors', 'Color', default=lambda: Color_fb)
-
-########################################
-# this is needed for @interact
-########################################
-# TODO: sage dependency
-is_Matrix = import_from(
-    'sage.structure.element', 'is_Matrix', default=lambda: is_Matrix_fb)
-# TODO: sage dependency
-srange = import_from('sage.misc.all', 'srange', default=lambda: srange_fb)
-# TODO: sage dependency
-register_with_cleaner = import_from(
-    'sage.interfaces.cleaner', 'cleaner',
-    default=lambda: register_with_cleaner_fb)
-# TODO: sage dependency
-tmp_filename = import_from(
-    'sage.misc.all', 'tmp_filename', default=lambda: tmp_filename_fb)
-# TODO: sage dependency
-tmp_dir = import_from('sage.misc.all', 'tmp_dir', default=lambda: tmp_dir_fb)
 
 
 #############################################################
