@@ -979,7 +979,7 @@ def worksheet_eval(worksheet):
             value = request.values.get('value', '')
             input_text += (
                 "\n_interact_.update('%s', '%s', "
-                "%s, _interact_.standard_b64decode('%s'), globals())" % (
+                "%s, _support_.base64.standard_b64decode('%s'), globals())" % (
                     id, variable, adapt_number, value))
 
         if int(request.values.get('recompute', 0)):
