@@ -20,11 +20,6 @@ if json is None:
 notebook = None
 DIR = None
 
-# Data
-# The file to which the Sage code that will be evaluated is written.
-CODE_PY = "___code___.py"
-
-
 #####################################################
 # Utility functions
 #####################################################

@@ -34,7 +34,6 @@ from .interact import INTERACT_UPDATE_PREFIX
 from .interact import INTERACT_TEXT
 from .interact import INTERACT_HTML
 from .template import template
-from .misc import CODE_PY
 
 # Maximum number of characters allowed in output.  This is needed
 # avoid overloading web browser.  For example, it should be possible
@@ -2650,7 +2649,7 @@ class Cell(Cell_generic):
         # a computation.  This is inspired by
         # http://www.irt.org/script/416.htm/.
         for F in D:
-            if os.path.split(F)[-1] == CODE_PY or 'cell://%s' % F in out:
+            if 'cell://%s' % F in out:
                 continue
             url = os.path.join(self.url_to_self(), F)
             if (F.endswith('.png') or F.endswith('.bmp') or

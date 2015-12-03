@@ -34,7 +34,6 @@ import os
 import re
 import shutil
 import time
-from base64 import b64encode
 from time import strftime
 
 from flask.ext.babel import gettext
@@ -48,7 +47,6 @@ from ..misc.misc import set_restrictive_permissions
 from ..misc.misc import unicode_str
 
 from . import misc
-from .misc import CODE_PY
 # Imports specifically relevant to the sage notebook
 from .cell import Cell, TextCell
 from .template import template
@@ -3217,8 +3215,6 @@ class Worksheet(object):
                     if not os.path.exists(cell_dir):
                         os.makedirs(cell_dir)
                     for X in output_status.filenames:
-                        if os.path.split(X)[1] == CODE_PY:
-                            continue
                         target = os.path.join(cell_dir, os.path.split(X)[1])
                         if os.path.exists(target):
                             os.unlink(target)
@@ -3256,15 +3252,14 @@ class Worksheet(object):
             # not set any output text that C might have got.
             d = self.cell_directory(C)
             for X in os.listdir(d):
-                if os.path.split(X)[-1] != CODE_PY:
-                    Y = os.path.join(d, X)
-                    if os.path.isfile(Y):
-                        try:
-                            os.unlink(Y)
-                        except:
-                            pass
-                    else:
-                        shutil.rmtree(Y, ignore_errors=True)
+                Y = os.path.join(d, X)
+                if os.path.isfile(Y):
+                    try:
+                        os.unlink(Y)
+                    except:
+                        pass
+                else:
+                    shutil.rmtree(Y, ignore_errors=True)
             return 'd', C
 
         if not C.introspect():
@@ -3286,8 +3281,6 @@ class Worksheet(object):
                 os.makedirs(cell_dir)
 
                 for X in filenames:
-                    if os.path.split(X)[-1] == CODE_PY:
-                        continue
                     target = os.path.join(cell_dir, os.path.split(X)[1])
                     # We move X to target. Note that we don't actually
                     # do a rename: in a client/server setup, X might be
@@ -3685,22 +3678,6 @@ class Worksheet(object):
                      'globals(), system="%s"))' % (input, self.system()))
         return input
 
-    def preparse_nonswitched_input(self, input):
-        """
-        Preparse the input to a Sage Notebook cell.
-
-        INPUT:
-
-            - ``input`` -- a string
-
-        OUTPUT:
-
-            - a string
-        """
-        input = ignore_prompts_and_output(input).rstrip()
-        input = self.preparse(input)
-        return input
-
     def _strip_synchro_from_start_of_output(self, s):
         z = SAGE_BEGIN + str(self.synchro())
         i = s.find(z)
@@ -3749,29 +3726,6 @@ class Worksheet(object):
         except (ValueError, IndexError):
             pass
         return out
-
-    def preparse(self, s):
-        """
-        Return preparsed version of input code ``s``, ready to be sent
-        to the Sage process for evaluation.  The output is a "safe
-        string" (no funny characters).
-
-        INPUT:
-
-            - ``s`` -- a string
-
-        OUTPUT:
-
-            - a string
-        """
-        # The extra newline below is necessary, since otherwise source
-        # code introspection doesn't include the last line.
-        return ('open("%s","w").write("# -*- coding: utf-8 -*-\\n" + '
-                '_support_.preparse_worksheet_cell('
-                '_support_.base64.b64decode("%s"), globals())+"\\n");'
-                'execfile(os.path.abspath("%s"))' % (
-                    CODE_PY, b64encode(s.encode('utf-8', 'ignore')),
-                    CODE_PY))
 
     ##########################################################
     # Loading and attaching files
