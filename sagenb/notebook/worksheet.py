@@ -41,7 +41,6 @@ from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
 # General sage library code
-from ..misc.misc import get_rightmost_identifier
 from ..misc.misc import verbose
 from ..misc.misc import walltime
 from ..misc.misc import ignore_nonexistent_files
@@ -160,6 +159,7 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
 
 
 class Worksheet(object):
+    _last_identifier = re.compile(r'[a-zA-Z0-9._]*$')
 
     def __init__(self, name=None, id_number=None,
                  notebook_worksheet_directory=None, system=None,
@@ -3669,17 +3669,17 @@ class Worksheet(object):
                 break
             i += 1
         if before_prompt.endswith('??'):
-            input = self._get_last_identifier(before_prompt[:-2])
+            input = self._last_identifier.search(before_prompt[:-2]).group()
             input = (
                 'print _support_.source_code("%s", globals(), system="%s")' % (
                     input, self.system()))
         elif before_prompt.endswith('?'):
-            input = self._get_last_identifier(before_prompt[:-1])
+            input = self._last_identifier.search(before_prompt[:-1]).group()
             input = (
                 'print _support_.docstring("%s", globals(), system="%s")' % (
                     input, self.system()))
         else:
-            input = self._get_last_identifier(before_prompt)
+            input = self._last_identifier.search(before_prompt).group()
             C._word_being_completed = input
             input = ('print "\\n".join(_support_.completions("%s", '
                      'globals(), system="%s"))' % (input, self.system()))
@@ -3749,9 +3749,6 @@ class Worksheet(object):
         except (ValueError, IndexError):
             pass
         return out
-
-    def _get_last_identifier(self, s):
-        return get_rightmost_identifier(s)
 
     def preparse(self, s):
         """

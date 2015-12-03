@@ -24,7 +24,6 @@ from __future__ import absolute_import
 import os
 import resource
 import signal
-import string
 import socket
 import stat
 import subprocess
@@ -32,14 +31,6 @@ import tempfile
 import time
 
 from ..util import import_from
-
-
-def get_rightmost_identifier(s):
-    X = string.ascii_letters + string.digits + '._'
-    i = len(s) - 1
-    while i >= 0 and s[i] in X:
-        i -= 1
-    return s[i + 1:]
 
 
 def stub(f):
