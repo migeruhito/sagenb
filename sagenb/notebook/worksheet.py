@@ -3125,8 +3125,10 @@ class Worksheet(object):
             '_interact_.SAGE_CELL_ID=%r\n__SAGE_TMP_DIR__=os.getcwd()\n' %
             C.id())
 
+        print_time = C.time()
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
+            print_time = not C.introspect()
 
         # If the input ends in a question mark and is *not* a comment
         # line, then we introspect on it.
@@ -3144,15 +3146,12 @@ class Worksheet(object):
         C._before_preparse = input + I
         input += self.preparse_input(I, C)
 
-        if C.time() and not C.introspect():
-            input += ('; print "CPU time: %.2f s,  Wall time: %.2f '
-                      's"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n')
         self.__comp_is_running = True
         mode = ('sage' if cell_system == 'sage' and not C.introspect()
                 else 'python')
         self.sage().execute(
             input, os.path.abspath(self.data_directory()),
-            mode=mode)
+            mode=mode, print_time=print_time)
 
     def check_comp(self, wait=0.2):
         r"""

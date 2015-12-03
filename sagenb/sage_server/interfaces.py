@@ -343,7 +343,7 @@ class SageServerExpect(SageServerABC):
         s = tempfile.mkdtemp()
         return (s, s)
 
-    def execute(self, code, data=None, mode='sage'):
+    def execute(self, code, data=None, mode='sage', print_time=False):
         """
         Start executing the given code in this subprocess.
 
@@ -387,8 +387,9 @@ class SageServerExpect(SageServerABC):
         try:
             self._expect.sendline(
                 '_support_.execute_code('
-                '"{}", globals(), mode="{}", start_label="{}")'.format(
-                    b64encode(code), mode, self._start_label))
+                '"{}", globals(), mode="{}", start_label="{}", '
+                'print_time={})'.format(
+                    b64encode(code), mode, self._start_label, print_time))
         except OSError as msg:
             self._is_computing = False
             self._so_far = str(msg)

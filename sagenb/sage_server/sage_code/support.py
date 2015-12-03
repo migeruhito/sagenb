@@ -818,7 +818,7 @@ def preparse_worksheet_cell(s, globals):
     return s
 
 
-def execute_code(code, globals, mode='raw', start_label=''):
+def execute_code(code, globals, mode='raw', start_label='', print_time=False):
     code = base64.b64decode(code)
     if mode != 'raw':
         print(start_label)
@@ -831,6 +831,10 @@ def execute_code(code, globals, mode='raw', start_label=''):
         code = preparse_worksheet_cell(code, globals)
     else:
         code = 'pass'
+    if print_time and code != 'raw':
+        code = '\n'.join((
+            code, '\nprint("CPU time: %.2f s,  Wall time: %.2f '
+                  's"%(cputime(__SAGE_t__), walltime(__SAGE_w__)))'))
 
     # TODO: use previous ast analisys done when code is reformated
     exec(code, globals)
