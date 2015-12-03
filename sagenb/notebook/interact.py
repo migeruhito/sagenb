@@ -158,6 +158,7 @@ import cgi
 import inspect
 import math
 import types
+from base64 import standard_b64decode
 
 # TODO: sage dependency
 from sage.misc.cachefunc import cached_method
