@@ -32,9 +32,8 @@ from sage.repl.preparse import preparse_file
 from sage.symbolic.all import Expression
 from sage.symbolic.all import SR
 
-# TODO: move to sage_server support modules
-from sagenb.misc.sphinxify import sphinxify
-from sagenb.misc.sphinxify import is_sphinx_markup
+from sphinxify import sphinxify
+from sphinxify import is_sphinx_markup
 
 
 sys.displayhook = DisplayHook()

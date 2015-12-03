@@ -151,7 +151,8 @@ class SageServerExpect(SageServerABC):
                  process_limits=None,
                  timeout=0.05,
                  python='python',
-                 init_code=None):
+                 init_code=None,
+                 sage_code=None):
         """
         Initialize this worksheet process.
         """
@@ -171,9 +172,11 @@ class SageServerExpect(SageServerABC):
         self._start_label = None
         self._tempdir = ''
 
+        if sage_code is None:
+            sage_code = os.path.join(os.path.split(__file__)[0], 'sage_code')
+        self._init_script = os.path.join(sage_code, 'init.py')
+
         limit_code = '\n'.join((
-            'import os',
-            'import sys',
             'import resource',
             'def process_limit(lim, rlimit, alt_rlimit=None):',
             '    if lim is not None:',
@@ -198,7 +201,7 @@ class SageServerExpect(SageServerABC):
                                         process_limits.max_processes,
                                         'NPROC', None)
 
-        init_code = '{}{}\n\nsys.ps1 = "{}"'.format(
+        init_code = '{}{}\n\n_support_.sys.ps1 = "{}"'.format(
             limit_code, init_code, self._prompt)
 
         if process_limits and process_limits.max_walltime:
@@ -207,7 +210,7 @@ class SageServerExpect(SageServerABC):
         self.execute('print("INIT OK")', mode='python')
 
     def command(self):
-        return self._python
+        return '{} -i {}'.format(self._python, self._init_script)
 
     def __del__(self):
         try:
@@ -276,11 +279,8 @@ class SageServerExpect(SageServerABC):
         """
         Start this worksheet process running.
         """
-        # print "Starting worksheet with command: '%s'"%self.command()
         self._expect = pexpect.spawn(self.command())
         self._expect.setecho(False)
-        self._expect.expect('>>>')
-        self._expect.sendline('import sagenb.misc.support as _support_')
         self._is_started = True
         self._is_computing = False
         self._number = 0
@@ -367,7 +367,7 @@ class SageServerExpect(SageServerABC):
             self._number += 1
             self._start_label = 'START{}'.format(self._number)
             local, remote = self.get_tmpdir()
-            code = 'os.chdir("{}")\n{}'.format(remote, code)
+            code = '_support_.os.chdir("{}")\n{}'.format(remote, code)
             if data is not None:
                 # make a symbolic link from the data directory into local tmp
                 # directory
