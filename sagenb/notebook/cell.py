@@ -14,6 +14,7 @@ a list of cells.
 ###########################################################################
 from __future__ import absolute_import
 
+import ast
 import os
 import re
 import shutil
@@ -24,7 +25,6 @@ from random import randint
 from sys import maxint
 
 from ..misc.misc import word_wrap
-from ..misc.misc import strip_string_literals
 from ..misc.misc import set_restrictive_permissions
 from ..misc.misc import unicode_str
 from ..misc.misc import encoded_str
@@ -1352,12 +1352,23 @@ class Cell(Cell_generic):
             sage: nb.delete()
         """
         # Do *not* cache
-        s = strip_string_literals(self.input_text())
-        if len(s) == 0:
+        try:
+            nodes = ast.parse(self.input_text().replace('^^', '^'))
+        except SyntaxError:
             return False
-        s = s[0]
-        return bool(re.search('(?<!\w)interact\s*\(.*\).*', s) or
-                    re.search('\s*@\s*interact', s))
+
+        void = tuple()
+        name = 'interact'
+        for node in nodes.body:
+            if getattr(getattr(getattr(
+                    node, 'value', void), 'func', void), 'id', void) == name:
+                return True
+            else:
+                for decorator in getattr(node, 'decorator_list', void):
+                    if getattr(getattr(
+                            decorator, 'func', decorator), 'id', void) == name:
+                        return True
+        return False
 
     def is_interacting(self):
         r"""

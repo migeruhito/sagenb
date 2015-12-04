@@ -36,11 +36,6 @@ from ..util import import_from
 # Fallback functions in case sage is not present
 # Not implemented
 
-def strip_string_literals_fb(code, state=None):
-    # todo -- do we need this?
-    return code
-
-
 def tmp_filename_fb(name='tmp'):
     # We use mktemp instead of mkstemp since the semantics of the
     # tmp_filename function simply don't allow for what mkstemp
@@ -51,11 +46,6 @@ def tmp_filename_fb(name='tmp'):
 def tmp_dir_fb(name='dir'):
     return tempfile.mkdtemp()
 
-
-# TODO: sage dependency - cell
-strip_string_literals = import_from(
-    'sage.repl.preparse', 'strip_string_literals',
-    default=lambda: strip_string_literals_fb)
 
 # TODO: sage dependency - must implement - see also worksheet_listing
 tmp_filename = import_from(
