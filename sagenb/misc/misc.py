@@ -47,6 +47,7 @@ def tmp_dir(name='dir', ext='', **kwargs):
 
 
 def cputime(t=0):
+    # TODO: Not used
     try:
         t = float(t)
     except TypeError:
@@ -59,91 +60,16 @@ def walltime(t=0):
     return time.time() - t
 
 
-def word_wrap(s, ncols=85):
-    t = []
-    if ncols == 0:
-        return s
-    for x in s.split('\n'):
-        if len(x) == 0 or x.lstrip()[:5] == 'sage:':
-            t.append(x)
-            continue
-        while len(x) > ncols:
-            k = ncols
-            while k > 0 and x[k] != ' ':
-                k -= 1
-            if k == 0:
-                k = ncols
-                end = '\\'
-            else:
-                end = ''
-            t.append(x[:k] + end)
-            x = x[k:]
-            k = 0
-            while k < len(x) and x[k] == ' ':
-                k += 1
-            x = x[k:]
-        t.append(x)
-    return '\n'.join(t)
-
-
-#############################################################
-# File permissions
-# May need some changes on Windows.
-#############################################################
 def set_restrictive_permissions(filename, allow_execute=False):
-    x = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+    x = stat.S_IRWXU
     if allow_execute:
         x = x | stat.S_IXGRP | stat.S_IXOTH
     os.chmod(filename, x)
 
 
 def set_permissive_permissions(filename):
-    os.chmod(filename, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH |
-             stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
-             stat.S_IRGRP | stat.S_IWGRP | stat.S_IXGRP)
-
-
-def encoded_str(obj, encoding='utf-8'):
-    ur"""
-    Takes an object and returns an encoded str human-readable representation.
-
-    EXAMPLES::
-
-        sage: from sagenb.misc.misc import encoded_str
-        sage: encoded_str(
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
-            ) == 'ěščřžýáíéďĎ'
-        True
-        sage: encoded_str(u'abc')
-        'abc'
-        sage: encoded_str(123)
-        '123'
-    """
-    if isinstance(obj, unicode):
-        return obj.encode(encoding, 'ignore')
-    return str(obj)
-
-
-def unicode_str(obj, encoding='utf-8'):
-    ur"""
-    Takes an object and returns a unicode human-readable representation.
-
-    EXAMPLES::
-
-        sage: from sagenb.misc.misc import unicode_str
-        sage: unicode_str('ěščřžýáíéďĎ'
-            ) == u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
-        True
-        sage: unicode_str('abc')
-        u'abc'
-        sage: unicode_str(123)
-        u'123'
-    """
-    if isinstance(obj, str):
-        return obj.decode(encoding, 'ignore')
-    elif isinstance(obj, unicode):
-        return obj
-    return unicode(obj)
+    # TODO: Not used
+    os.chmod(filename, stat.S_IRWXO | stat.S_IRWXU | stat.S_IRWXG)
 
 
 def ignore_nonexistent_files(curdir, dirlist):
@@ -199,6 +125,76 @@ def ignore_nonexistent_files(curdir, dirlist):
         if not os.path.exists(os.path.join(curdir, x)):
             ignore.append(x)
     return ignore
+
+
+def word_wrap(s, ncols=85):
+    t = []
+    if ncols == 0:
+        return s
+    for x in s.split('\n'):
+        if len(x) == 0 or x.lstrip()[:5] == 'sage:':
+            t.append(x)
+            continue
+        while len(x) > ncols:
+            k = ncols
+            while k > 0 and x[k] != ' ':
+                k -= 1
+            if k == 0:
+                k = ncols
+                end = '\\'
+            else:
+                end = ''
+            t.append(x[:k] + end)
+            x = x[k:]
+            k = 0
+            while k < len(x) and x[k] == ' ':
+                k += 1
+            x = x[k:]
+        t.append(x)
+    return '\n'.join(t)
+
+
+def encoded_str(obj, encoding='utf-8'):
+    ur"""
+    Takes an object and returns an encoded str human-readable representation.
+
+    EXAMPLES::
+
+        sage: from sagenb.misc.misc import encoded_str
+        sage: encoded_str(
+            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+            ) == 'ěščřžýáíéďĎ'
+        True
+        sage: encoded_str(u'abc')
+        'abc'
+        sage: encoded_str(123)
+        '123'
+    """
+    if isinstance(obj, unicode):
+        return obj.encode(encoding, 'ignore')
+    return str(obj)
+
+
+def unicode_str(obj, encoding='utf-8'):
+    ur"""
+    Takes an object and returns a unicode human-readable representation.
+
+    EXAMPLES::
+
+        sage: from sagenb.misc.misc import unicode_str
+        sage: unicode_str('ěščřžýáíéďĎ'
+            ) == u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+        True
+        sage: unicode_str('abc')
+        u'abc'
+        sage: unicode_str(123)
+        u'123'
+    """
+    if isinstance(obj, str):
+        return obj.decode(encoding, 'ignore')
+    elif isinstance(obj, unicode):
+        return obj
+    return unicode(obj)
 
 
 def N_(message):

@@ -24,15 +24,13 @@ from __future__ import absolute_import
 import os
 import re
 import shutil
+import stat
 import tempfile
+from time import time as walltime
 
 from base64 import b64encode
 
 import pexpect
-
-from ..misc.misc import set_permissive_permissions
-from ..misc.misc import set_restrictive_permissions
-from ..misc.misc import walltime
 
 
 class SageServerABC(object):
@@ -224,7 +222,7 @@ class SageServerExpect(SageServerABC):
 
     def _cleanup_data_dir(self):
         if self._data_dir is not None:
-            set_restrictive_permissions(self._data_dir)
+            os.chmod(self._data_dir, stat.S_IRWXU)
 
     def _cleanup_tempfiles(self):
         for X in self._all_tempdirs:
@@ -373,7 +371,7 @@ class SageServerExpect(SageServerABC):
                 # directory
                 self._data = os.path.split(data)[1]
                 self._data_dir = data
-                set_permissive_permissions(data)
+                os.chmod(data, stat.S_IRWXO | stat.S_IRWXU | stat.S_IRWXG)
                 os.symlink(data, os.path.join(local, self._data))
             else:
                 self._data = ''
@@ -533,7 +531,7 @@ class SageServerExpectRemote(SageServerExpect):
                               len(self._local_directory):].lstrip(os.path.sep))
         # Make it so local is world read/writable -- so that the remote
         # worksheet process can write to it.
-        set_permissive_permissions(local)
+        os.chmod(local, stat.S_IRWXO | stat.S_IRWXU | stat.S_IRWXG)
         return (local, remote)
 
 
