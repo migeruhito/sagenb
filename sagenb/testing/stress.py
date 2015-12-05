@@ -9,7 +9,7 @@ import urllib2
 from sage.misc.sage_timeit import sage_timeit
 # TODO: sage dependency
 from sage.misc.all import alarm, cancel_alarm
-from sagenb.misc.misc import walltime
+from sagenb.util import walltime
 
 
 TIMEOUT = 'timeout'

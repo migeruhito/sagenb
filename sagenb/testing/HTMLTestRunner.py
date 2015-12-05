@@ -119,7 +119,7 @@ import sys
 import unittest
 
 import jinja2
-from sagenb.misc.misc import DATA
+from sagenb.util import DATA
 from ..config import SAGENB_VERSION
 from sagenb.notebook.template import template
 

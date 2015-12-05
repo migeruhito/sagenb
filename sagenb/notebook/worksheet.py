@@ -40,10 +40,10 @@ from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
 # General sage library code
-from ..misc.misc import walltime
-from ..misc.misc import ignore_nonexistent_files
-from ..misc.misc import set_restrictive_permissions
-from ..misc.misc import unicode_str
+from ..util import walltime
+from ..util import ignore_nonexistent_files
+from ..util import set_restrictive_permissions
+from ..util import unicode_str
 
 from . import misc
 # Imports specifically relevant to the sage notebook

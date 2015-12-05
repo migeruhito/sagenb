@@ -189,8 +189,6 @@ def suspend_user_nui():
 @admin_required
 @with_lock
 def add_user_nui():
-    from sagenb.notebook.misc import is_valid_username
-
     username = request.values['username']
     password = random_password()
 

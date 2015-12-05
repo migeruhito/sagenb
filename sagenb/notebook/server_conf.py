@@ -10,7 +10,7 @@ from flask.ext.babel import lazy_gettext
 
 from ..config import THEMES
 from ..config import TRANSLATIONS
-from ..misc.misc import N_
+from ..util import N_
 
 from . import conf
 from .conf import POS

@@ -20,14 +20,14 @@ import getpass
 import signal
 
 from sagenb import create_app
-from sagenb.notebook import misc
 from sagenb.config import DOT_SAGENB
 from sagenb.config import SAGE_BROWSER
 from sagenb.config import min_password_length
-from sagenb.misc.misc import find_next_available_port
-from sagenb.misc.misc import open_page
-from sagenb.misc.misc import print_open_msg
-from sagenb.misc.misc import system_command
+from sagenb.util import find_next_available_port
+from sagenb.util import open_page
+from sagenb.util import print_open_msg
+from sagenb.util import system_command
+from sagenb.notebook import misc
 from sagenb.notebook import notebook
 from sagenb.util import get_module
 from sagenb.util import which

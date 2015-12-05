@@ -22,7 +22,7 @@ from .config import SRC
 from .config import THEME_PATHS
 from .util import templates
 from .util.decorators import guest_or_login_required
-from .misc.misc import unicode_str
+from .util import unicode_str
 from .notebook.template import css_escape
 from .notebook.template import clean_name
 from .notebook.template import convert_time_to_string

@@ -19,8 +19,8 @@ from flask.ext.openid import OpenID
 from flask.ext.babel import gettext
 from flask.ext.babel import get_locale
 
-from ..misc.misc import N_
-from ..misc.misc import nN_
+from ..util import N_
+from ..util import nN_
 from ..config import SAGE_VERSION
 from ..config import mathjax_macros
 from ..notebook.challenge import challenge

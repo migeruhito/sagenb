@@ -23,10 +23,10 @@ from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
 from ..config import SAGE_VERSION
-from ..misc.misc import unicode_str
-from ..misc.misc import tmp_dir
-from ..misc.misc import tmp_filename
-from ..misc.misc import walltime
+from ..util import unicode_str
+from ..util import tmp_dir
+from ..util import tmp_filename
+from ..util import walltime
 from ..notebook.misc import encode_response
 from ..notebook.themes import render_template
 

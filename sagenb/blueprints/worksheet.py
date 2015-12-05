@@ -25,8 +25,8 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
-from ..misc.misc import tmp_filename
-from ..misc.misc import unicode_str
+from ..util import tmp_filename
+from ..util import unicode_str
 from ..notebook.docHTMLProcessor import SphinxHTMLProcessor
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..notebook.misc import encode_response

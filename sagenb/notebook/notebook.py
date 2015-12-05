@@ -29,8 +29,8 @@ from docutils.core import publish_parts
 from flask.ext.babel import lazy_gettext
 
 from ..util.decorators import global_lock
-from ..misc.misc import unicode_str
-from ..misc.misc import walltime
+from ..util import unicode_str
+from ..util import walltime
 from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
 from ..util import get_module

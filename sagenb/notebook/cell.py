@@ -24,10 +24,10 @@ from cgi import escape
 from random import randint
 from sys import maxint
 
-from ..misc.misc import word_wrap
-from ..misc.misc import set_restrictive_permissions
-from ..misc.misc import unicode_str
-from ..misc.misc import encoded_str
+from ..util import word_wrap
+from ..util import set_restrictive_permissions
+from ..util import unicode_str
+from ..util import encoded_str
 
 from .interact import INTERACT_RESTART
 from .interact import INTERACT_UPDATE_PREFIX
