@@ -30,33 +30,21 @@ import subprocess
 import tempfile
 import time
 
-from ..util import import_from
+
+def tmp_filename(name='tmp', ext='', **kwargs):
+    # TODO: rethink this
+    # based on sage.misc.temporary_file
+    handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext, **kwargs)
+    os.close(handle)
+    return tmp
 
 
-# Fallback functions in case sage is not present
-# Not implemented
+def tmp_dir(name='dir', ext='', **kwargs):
+    # TODO: rethink this
+    # based on sage.misc.temporary_file
+    tmp = tempfile.mkdtemp(prefix=name, suffix=ext, **kwargs)
+    return '{}{}'.format(tmp, os.sep)
 
-def tmp_filename_fb(name='tmp'):
-    # We use mktemp instead of mkstemp since the semantics of the
-    # tmp_filename function simply don't allow for what mkstemp
-    # provides.
-    return tempfile.mktemp()
-
-
-def tmp_dir_fb(name='dir'):
-    return tempfile.mkdtemp()
-
-
-# TODO: sage dependency - must implement - see also worksheet_listing
-tmp_filename = import_from(
-    'sage.misc.all', 'tmp_filename', default=lambda: tmp_filename_fb)
-# TODO: sage dependency - None, but must implement - see also worksheet_listing
-tmp_dir = import_from('sage.misc.all', 'tmp_dir', default=lambda: tmp_dir_fb)
-
-
-################################
-# clocks -- easy to implement
-################################
 
 def cputime(t=0):
     try:

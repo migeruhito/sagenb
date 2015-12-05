@@ -24,6 +24,7 @@ from werkzeug.utils import secure_filename
 
 from ..config import SAGE_VERSION
 from ..misc.misc import unicode_str
+from ..misc.misc import tmp_dir
 from ..misc.misc import tmp_filename
 from ..misc.misc import walltime
 from ..notebook.misc import encode_response
@@ -168,7 +169,7 @@ def home(username):
 @worksheet_listing.route('/home/')
 @login_required
 def bare_home():
-    return redirect(url_for('home', username=g.username))
+    return redirect(url_for('worksheet_listing.home', username=g.username))
 
 ###########
 # Folders #
@@ -238,7 +239,7 @@ def empty_trash():
     if 'referer' in request.headers:
         return redirect(request.headers['referer'])
     else:
-        return redirect(url_for('home', typ='trash'))
+        return redirect(url_for('worksheet_listing.home', typ='trash'))
 
 
 #####################
@@ -302,7 +303,7 @@ def upload():
     if g.notebook.readonly_user(g.username):
         return templates.message(
             _("Account is in read-only mode"),
-            cont=url_for('home', username=g.username))
+            cont=url_for('worksheet_listing.home', username=g.username))
     return render_template(os.path.join('html', 'upload.html'),
                            username=g.username, sage_version=SAGE_VERSION)
 
@@ -408,14 +409,10 @@ def parse_link_rel(url, fn):
 @worksheet_listing.route('/upload_worksheet', methods=['GET', 'POST'])
 @login_required
 def upload_worksheet():
-    # TODO: sage dependency
-    from sage.misc.all import tmp_filename
-    from sage.misc.all import tmp_dir
-
     if g.notebook.readonly_user(g.username):
         return templates.message(
             _("Account is in read-only mode"),
-            cont=url_for('home', username=g.username))
+            cont=url_for('worksheet_listing.home', username=g.username))
 
     backlinks = _(
         'Return to <a href="/upload" title="Upload a worksheet">'
@@ -499,7 +496,8 @@ def upload_worksheet():
                     else:
                         print("Unknown extension, file %s is "
                               "ignored" % subfilename)
-                return redirect(url_for('home', username=g.username))
+                return redirect(url_for(
+                    'worksheet_listing.home', username=g.username))
 
             else:
                 if url and extension in ['', '.html']:
@@ -524,7 +522,8 @@ def upload_worksheet():
                   'sage-support group</a> and post a link to your worksheet.  '
                   'Alternatively, an sws file is just a bzip2 tarball; take a '
                   'look inside!\n%(backlinks)s', backlinks=backlinks)
-            return templates.message(s, url_for('home', username=g.username))
+            return templates.message(s, url_for(
+                'worksheet_listing.home', username=g.username))
         finally:
             # Clean up the temporarily uploaded filename.
             os.unlink(filename)
@@ -535,7 +534,8 @@ def upload_worksheet():
     except ValueError, msg:
         s = _("Error uploading worksheet '%(msg)s'.%(backlinks)s",
               msg=msg, backlinks=backlinks)
-        return templates.message(s, url_for('home', username=g.username))
+        return templates.message(s, url_for(
+            'worksheet_listing.home', username=g.username))
 
     if new_name:
         W.set_name(new_name)
