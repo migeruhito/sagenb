@@ -33,7 +33,7 @@ from .interact import INTERACT_RESTART
 from .interact import INTERACT_UPDATE_PREFIX
 from .interact import INTERACT_TEXT
 from .interact import INTERACT_HTML
-from .template import template
+from .themes import render_template
 
 # Maximum number of characters allowed in output.  This is needed
 # avoid overloading web browser.  For example, it should be possible
@@ -54,9 +54,6 @@ re_cell = re.compile('"cell://.*?"')
 re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 # Matches script blocks.
 re_script = re.compile(r'<script[^>]*?>.*?</script>', re.DOTALL | re.I)
-
-# Whether to enable editing of :class:`TextCell`s with TinyMCE.
-JEDITABLE_TINYMCE = True
 
 
 class Cell_generic(object):
@@ -602,10 +599,11 @@ class TextCell(Cell_generic):
             u'...text_cell...2+3...'
             sage: C.set_input_text("$2+3$")
         """
-        return template(os.path.join('html', 'notebook', 'text_cell.html'),
-                        cell=self, wrap=wrap, div_wrap=div_wrap,
-                        do_print=do_print,
-                        editing=editing, publish=publish)
+        return render_template(
+            os.path.join('html', 'notebook', 'text_cell.html'),
+            cell=self, wrap=wrap, div_wrap=div_wrap,
+            do_print=do_print,
+            editing=editing, publish=publish)
 
     def plain_text(self, prompts=False):
         ur"""
@@ -2435,9 +2433,9 @@ class Cell(Cell_generic):
         if wrap is None:
             wrap = self.notebook().conf()['word_wrap_cols']
 
-        return template(os.path.join('html', 'notebook', 'cell.html'),
-                        cell=self, wrap=wrap, div_wrap=div_wrap,
-                        do_print=do_print, publish=publish)
+        return render_template(os.path.join('html', 'notebook', 'cell.html'),
+                               cell=self, wrap=wrap, div_wrap=div_wrap,
+                               do_print=do_print, publish=publish)
 
     def url_to_self(self):
         """

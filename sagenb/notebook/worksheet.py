@@ -48,7 +48,7 @@ from ..util import unicode_str
 from . import misc
 # Imports specifically relevant to the sage notebook
 from .cell import Cell, TextCell
-from .template import template
+from .themes import render_template
 from .template import clean_name
 from .template import prettify_time_ago
 
@@ -4146,7 +4146,7 @@ def format_completions_as_html(cell_id, completions, username=None):
     if len(completions) == 0:
         return ''
 
-    return template(
+    return render_template(
         os.path.join("html", "worksheet", "completions.html"),
         cell_id=cell_id,
         # Transpose and enumerate completions to column-major

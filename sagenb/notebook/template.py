@@ -17,19 +17,15 @@ AUTHORS:
 from __future__ import absolute_import
 
 import datetime
+import re
 import time
 
 import jinja2
 
-import re
-
 from flask.ext.babel import format_datetime
-from flask.ext.babel import gettext
 from flask.ext.babel import ngettext
 
-from ..config import SAGE_VERSION
 from ..notebook.themes import get_template
-
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
 
@@ -142,52 +138,3 @@ def number_of_rows(txt, ncols):
     for i in range(nrows):
         nrows += int((len(rows[i]) - 1) / ncols)
     return nrows
-
-
-def template(filename, **user_context):
-    """
-    Returns HTML, CSS, etc., for a template file rendered in the given
-    context.
-
-    INPUT:
-
-    - ``filename`` - a string; the filename of the template relative
-      to ``sagenb/data/templates``
-
-    - ``user_context`` - a dictionary; the context in which to evaluate
-      the file's template variables
-
-    OUTPUT:
-
-    - a string - the rendered HTML, CSS, etc.
-
-    EXAMPLES::
-
-        sage: from sagenb.notebook.template import template
-        sage: s = template(os.path.join('html', 'yes_no.html')); type(s)
-        <type 'unicode'>
-        sage: 'Yes' in s
-        True
-        sage: u = unicode('Are Gröbner bases awesome?','utf-8')
-        sage: s = template(os.path.join('html', 'yes_no.html'), message=u)
-        sage: 'Gr\xc3\xb6bner' in s.encode('utf-8')
-        True
-    """
-    from .notebook import MATHJAX, JEDITABLE_TINYMCE
-    from .misc import notebook
-    # A dictionary containing the default context
-    default_context = {'sitename': gettext('Sage Notebook'),
-                       'sage_version': SAGE_VERSION,
-                       'MATHJAX': MATHJAX,
-                       'gettext': gettext,
-                       'JEDITABLE_TINYMCE': JEDITABLE_TINYMCE,
-                       'conf': notebook.conf() if notebook else None}
-    try:
-        tmpl = get_template(filename)
-    except jinja2.exceptions.TemplateNotFound:
-        return "Notebook Bug -- missing template %s" % filename
-
-    context = dict(default_context)
-    context.update(user_context)
-    r = tmpl.render(**context)
-    return r

@@ -87,9 +87,7 @@ else:
 # used in some of the html menus, etc.
 SYSTEM_NAMES = [v[0] for v in SYSTEMS]
 
-MATHJAX = True
 
-JEDITABLE_TINYMCE = True
 
 
 class WorksheetDict(dict):

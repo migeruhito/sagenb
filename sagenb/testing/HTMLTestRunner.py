@@ -121,7 +121,7 @@ import unittest
 import jinja2
 from sagenb.util import DATA
 from ..config import SAGENB_VERSION
-from sagenb.notebook.template import template
+from sagenb.notebook.themes import render_template
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
@@ -464,14 +464,14 @@ class HTMLTestRunner(object):
         template_dict['test_cases_and_tests'] = '\n'.join(rows)
 
         # Make the report self-contained.
-        stylesheet = template(os.path.join('css', 'test_report.css'))
+        stylesheet = render_template(os.path.join('css', 'test_report.css'))
         template_dict['stylesheet'] = '<style type="text/css"><!--\n' + stylesheet + '\n--></style>'
         template_dict['stylesheet'] += IE_STYLE_FIX.render()
 
         jquery = open(os.path.join(DATA,
                                    'jquery/jquery-1.3.2.min.js'), 'r').read()
         template_dict['javascript'] = '<script type="text/javascript">\n' + jquery + '\n</script>'
-        return template(os.path.join('html', 'test_report.html'),
+        return render_template(os.path.join('html', 'test_report.html'),
                         **template_dict)
 
     def report_for_one_test(self, rows, case_id, test_num, status,

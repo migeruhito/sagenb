@@ -36,7 +36,7 @@ from ..config import SAGENB_ROOT
 
 from ..util.compress.JavaScriptCompressor import JavaScriptCompressor
 from .config import KEYS
-from .template import template
+from .themes import render_template
 
 # Debug mode?  If sagenb lives under SAGE_ROOT/, we minify/pack and cache
 # the Notebook JS library.
@@ -79,10 +79,10 @@ def javascript():
     for k in KEYS:
         keyhandler.add(k[0], **k[1])
 
-    s = template(os.path.join('js', 'notebook_dynamic.js'),
-                 SAGE_URL=SAGE_URL,
-                 KEY_CODES=keyhandler.all_tests(),
-                 debug_mode=debug_mode)
+    s = render_template(os.path.join('js', 'notebook_dynamic.js'),
+                        SAGE_URL=SAGE_URL,
+                        KEY_CODES=keyhandler.all_tests(),
+                        debug_mode=debug_mode)
 
     if debug_mode:
         # TODO: maybe we should return a random hash so that the code

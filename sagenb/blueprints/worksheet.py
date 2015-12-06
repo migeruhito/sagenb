@@ -30,9 +30,6 @@ from ..util import unicode_str
 from ..notebook.docHTMLProcessor import SphinxHTMLProcessor
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..notebook.misc import encode_response
-from ..notebook.notebook import MATHJAX
-from ..notebook.notebook import JEDITABLE_TINYMCE
-from ..notebook.template import template
 from ..notebook.template import prettify_time_ago
 from ..notebook.themes import render_template
 
@@ -161,10 +158,10 @@ def render_ws_template(ws=None, username='guest', admin=False, do_print=False,
     else:
         template_name = 'worksheet_page.html'
 
-    return template(os.path.join('html', 'notebook', template_name),
-                    worksheet=ws,
-                    notebook=nb, do_print=do_print, publish=publish,
-                    username=username)
+    return render_template(os.path.join('html', 'notebook', template_name),
+                           worksheet=ws,
+                           notebook=nb, do_print=do_print, publish=publish,
+                           username=username)
 
 
 def html_worksheet_revision_list(username, worksheet):
@@ -195,7 +192,7 @@ def html_worksheet_revision_list(username, worksheet):
     """
     data = worksheet.snapshot_data()  # pairs ('how long ago', key)
 
-    return template(
+    return render_template(
         os.path.join("html", "notebook", "worksheet_revision_list.html"),
         data=data, worksheet=worksheet,
         notebook=g.notebook,
@@ -240,11 +237,12 @@ def html_specific_revision(username, ws, rev):
                 next_rev = data[i + 1][1]
             break
 
-    return template(os.path.join("html", "notebook", "specific_revision.html"),
-                    worksheet=W,  # the revision, not the original!
-                    username=username, rev=rev, prev_rev=prev_rev,
-                    next_rev=next_rev, time_ago=time_ago,
-                    do_print=True, publish=True)
+    return render_template(
+        os.path.join("html", "notebook", "specific_revision.html"),
+        worksheet=W,  # the revision, not the original!
+        username=username, rev=rev, prev_rev=prev_rev,
+        next_rev=next_rev, time_ago=time_ago,
+        do_print=True, publish=True)
 
 
 def html_share(worksheet, username):
@@ -270,7 +268,7 @@ def html_share(worksheet, username):
         sage: nb.html_share(W, 'admin')
         u'...currently shared...add or remove collaborators...'
     """
-    return template(
+    return render_template(
         os.path.join("html", "notebook", "worksheet_share.html"),
         worksheet=worksheet,
         notebook=g.notebook,
@@ -314,14 +312,14 @@ def html_download_or_delete_datafile(ws, username, filename):
         text_file_content = open(os.path.join(
             ws.data_directory(), filename)).read()
 
-    return template(os.path.join("html", "notebook",
-                                 "download_or_delete_datafile.html"),
-                    worksheet=ws, notebook=g.notebook,
-                    username=username,
-                    filename_=filename,
-                    file_is_image=file_is_image,
-                    file_is_text=file_is_text,
-                    text_file_content=text_file_content)
+    return render_template(os.path.join("html", "notebook",
+                                        "download_or_delete_datafile.html"),
+                           worksheet=ws, notebook=g.notebook,
+                           username=username,
+                           filename_=filename,
+                           file_is_image=file_is_image,
+                           file_is_text=file_is_text,
+                           text_file_content=text_file_content)
 
 
 def html_edit_window(worksheet, username):
@@ -348,10 +346,11 @@ def html_edit_window(worksheet, username):
         u'...textarea class="plaintextedit"...{{{id=1|...//...}}}...'
     """
 
-    return template(os.path.join("html", "notebook", "edit_window.html"),
-                    worksheet=worksheet,
-                    notebook=g.notebook,
-                    username=username)
+    return render_template(
+        os.path.join("html", "notebook", "edit_window.html"),
+        worksheet=worksheet,
+        notebook=g.notebook,
+        username=username)
 
 
 def html_beforepublish_window(worksheet, username):
@@ -378,7 +377,7 @@ def html_beforepublish_window(worksheet, username):
         sage: nb.html_beforepublish_window(W, 'admin')
         u'...want to publish this worksheet?...re-publish when changes...'
     """
-    return template(
+    return render_template(
         os.path.join("html", "notebook", "beforepublish_window.html"),
         worksheet=worksheet,
         notebook=g.notebook,
@@ -407,7 +406,7 @@ def html_afterpublish_window(worksheet, username, url, dtime):
     """
     time_ = time.strftime("%B %d, %Y %I:%M %p", dtime)
 
-    return template(
+    return render_template(
         os.path.join("html", "notebook", "afterpublish_window.html"),
         worksheet=worksheet,
         notebook=g.notebook,
@@ -437,7 +436,7 @@ def html_upload_data_window(ws, username):
         sage: nb.html_upload_data_window(W, 'admin')
         u'...Upload or Create Data File...Browse...url...name of a new...'
     """
-    return template(
+    return render_template(
         os.path.join("html", "notebook", "upload_data_window.html"),
         worksheet=ws, username=username)
 
@@ -464,8 +463,9 @@ def html_ratings_info(ws, username=None):
         sage: W.html_ratings_info()
         u'...hilbert...3...this is great...this lacks content...'
     """
-    return template(os.path.join('html', 'worksheet', 'ratings_info.html'),
-                    worksheet=ws, username=username)
+    return render_template(
+        os.path.join('html', 'worksheet', 'ratings_info.html'),
+        worksheet=ws, username=username)
 
 
 # Public Worksheets
@@ -497,12 +497,11 @@ def html_plain_text_window(worksheet, username):
     plain_text = worksheet.plain_text(prompts=True, banner=False)
     plain_text = escape(plain_text).strip()
 
-    return template(
+    return render_template(
         os.path.join("html", "notebook", "plain_text_window.html"),
         worksheet=worksheet,
         notebook=g.notebook,
-        username=username, plain_text=plain_text,
-        MATHJAX=MATHJAX, JEDITABLE_TINYMCE=JEDITABLE_TINYMCE)
+        username=username, plain_text=plain_text)
 
 
 def pub_worksheet(source):

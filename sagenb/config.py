@@ -149,6 +149,10 @@ for name in (l for l in os.listdir(TRANSLATIONS_PATH) if l != 'en_US'):
 TRANSLATIONS.sort()
 TRANSLATIONS.insert(0, 'en_US')
 
+# GUI settings
+MATHJAX = True
+JEDITABLE_TINYMCE = True
+
 # password
 min_password_length = 6
 

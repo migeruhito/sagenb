@@ -34,7 +34,7 @@ import urllib
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
-from ..notebook.template import template
+from ..notebook.themes import render_template
 
 _ = lazy_gettext
 
@@ -494,8 +494,8 @@ class reCAPTCHAChallenge(AbstractChallenge):
                          'error_param': error_param,
                          'lang': self.lang}
 
-        return template(os.path.join('html', 'recaptcha.html'),
-                        **template_dict)
+        return render_template(os.path.join('html', 'recaptcha.html'),
+                               **template_dict)
 
     def is_valid_response(self, req_args={}, **kwargs):
         """

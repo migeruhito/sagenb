@@ -18,6 +18,9 @@ from flask.ext.themes2 import Themes
 from flask.ext.themes2 import theme_paths_loader
 
 from .config import DEFAULT_THEME
+from .config import JEDITABLE_TINYMCE
+from .config import MATHJAX
+from .config import SAGE_VERSION
 from .config import SRC
 from .config import THEME_PATHS
 from .util import templates
@@ -82,6 +85,16 @@ def create_app(notebook, startup_token=None, debug=False):
     app.add_template_filter(lambda x: repr(unicode_str(x))[1:],
                             name='repr_str')
     app.add_template_filter(dumps, 'tojson')
+
+    # Default template context
+    @app.context_processor
+    def default_template_context():
+        return {'sitename': gettext('Sage Notebook'),
+                'sage_version': SAGE_VERSION,
+                'MATHJAX': MATHJAX,
+                'gettext': gettext,
+                'JEDITABLE_TINYMCE': JEDITABLE_TINYMCE,
+                'conf': notebook.conf()}
 
     # Register the Blueprints
     app.register_blueprint(admin)
