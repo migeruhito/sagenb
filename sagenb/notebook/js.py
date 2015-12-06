@@ -34,7 +34,7 @@ from ..config import SAGE_ROOT
 from ..config import SAGE_URL
 from ..config import SAGENB_ROOT
 
-from .compress.JavaScriptCompressor import JavaScriptCompressor
+from ..util.compress.JavaScriptCompressor import JavaScriptCompressor
 from .config import KEYS
 from .template import template
 
