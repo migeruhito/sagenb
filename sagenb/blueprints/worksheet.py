@@ -13,6 +13,7 @@ from functools import wraps
 from urlparse import urlparse
 
 from flask import Blueprint
+from flask import Markup
 from flask import make_response
 from flask import url_for
 from flask import request
@@ -1672,7 +1673,8 @@ def worksheet_file(path):
         return templates.message(_('Document does not exist.'))
 
     doc_page_html = open(path).read()
-    doc_page = SphinxHTMLProcessor().process_doc_html(doc_page_html)
+    doc_page = Markup(unicode_str(
+        SphinxHTMLProcessor().process_doc_html(doc_page_html))).unescape()
 
     title = (extract_title(doc_page_html).replace('&mdash;', '--') or
              'Live Sage Documentation')
