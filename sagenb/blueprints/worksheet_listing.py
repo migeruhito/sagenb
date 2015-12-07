@@ -2,7 +2,6 @@
 """
 from __future__ import absolute_import
 
-import json
 import os
 import re
 import shutil
@@ -15,6 +14,7 @@ from HTMLParser import HTMLParseError
 from flask import current_app
 from flask import g
 from flask import Blueprint
+from flask import json
 from flask import redirect
 from flask import request
 from flask import url_for

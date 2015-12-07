@@ -4,7 +4,6 @@ from __future__ import absolute_import
 import os
 
 from cgi import escape
-from json import dumps
 
 from flask import Flask
 from flask import g
@@ -84,7 +83,6 @@ def create_app(notebook, startup_token=None, debug=False):
     app.add_template_filter(max)
     app.add_template_filter(lambda x: repr(unicode_str(x))[1:],
                             name='repr_str')
-    app.add_template_filter(dumps, 'tojson')
 
     # Default template context
     @app.context_processor

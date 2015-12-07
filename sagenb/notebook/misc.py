@@ -7,12 +7,7 @@ from __future__ import absolute_import
 
 import re
 import string
-from ..util import get_module
-
-# simplejson is faster, so try to import it first
-json = get_module('simplejson')
-if json is None:
-    import json
+from flask import json
 
 #####################################################
 # Global variables across the application
@@ -227,7 +222,8 @@ def encode_response(obj, separators=(',', ':'), **kwargs):
         sage: d['sub'] = {'shape': 'triangle', 'color': 'blue',
                           'sides': [int(3), int(4), int(5)]}
         sage: encode_response(d, sort_keys = True)
-        '{"null":"blah","11":"foo","AR":"MA","archies":["an","mon","hier"],"bar":1.0,"sub":{"color":"blue","shape":"triangle","sides":[3,4,5]}}'
+        '{"null":"blah","11":"foo","AR":"MA","archies":["an","mon","hier"],
+        "bar":1.0,"sub":{"color":"blue","shape":"triangle","sides":[3,4,5]}}'
         sage: print encode_response(d, separators = (', ', ': '), indent = 4)
         {
             "...": ...
