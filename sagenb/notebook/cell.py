@@ -28,12 +28,12 @@ from ..util import word_wrap
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
 from ..util import encoded_str
+from ..util.templates import render_template
 
 from .interact import INTERACT_RESTART
 from .interact import INTERACT_UPDATE_PREFIX
 from .interact import INTERACT_TEXT
 from .interact import INTERACT_HTML
-from .themes import render_template
 
 # Maximum number of characters allowed in output.  This is needed
 # avoid overloading web browser.  For example, it should be possible

@@ -11,11 +11,11 @@ from flask.ext.babel import gettext
 from ..config import SAGE_VERSION
 from ..notebook.misc import is_valid_password
 from ..notebook.misc import is_valid_email
-from ..notebook.themes import render_template
 
-from ..util import templates
 from ..util.decorators import login_required
 from ..util.decorators import with_lock
+from ..util.templates import message as message_template
+from ..util.templates import render_template
 
 _ = gettext
 
@@ -73,7 +73,7 @@ def settings_page():
                 error = _('Invalid e-mail address.')
 
     if error:
-        return templates.message(error, url_for('settings_page'))
+        return message_template(error, url_for('settings_page'))
 
     if redirect_to_logout:
         return redirect(url_for('authentication.logout'))

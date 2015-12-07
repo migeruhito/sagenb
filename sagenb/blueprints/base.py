@@ -29,13 +29,13 @@ from ..notebook.keyboards import get_keyboard
 from ..notebook.misc import is_valid_username
 from ..notebook.misc import is_valid_email
 from ..notebook.misc import valid_username_chars
-from ..notebook.themes import render_template
 from ..notebook.tutorial import notebook_help
 from ..notebook.user import User
 
 from ..util.decorators import login_required
 from ..util.decorators import guest_or_login_required
 from ..util.decorators import with_lock
+from ..util.templates import render_template
 from .worksheet import url_for_worksheet
 
 base = Blueprint('base', __name__)

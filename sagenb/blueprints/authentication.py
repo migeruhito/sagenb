@@ -23,9 +23,9 @@ from ..notebook.register import make_key
 from ..notebook.register import build_msg
 from ..notebook.register import build_password_msg
 from ..notebook.smtpsend import send_mail
-from ..notebook.themes import render_template
+from ..util.templates import message as message_template
+from ..util.templates import render_template
 
-from ..util import templates
 from ..util.decorators import with_lock
 
 _ = gettext
@@ -284,7 +284,7 @@ def register():
 @with_lock
 def confirm():
     if not g.notebook.conf()['email']:
-        return templates.message(_('The confirmation system is not active.'))
+        return message_template(_('The confirmation system is not active.'))
     key = int(request.values.get('key', '-1'))
 
     invalid_confirm_key = _("""\
@@ -297,19 +297,19 @@ def confirm():
         user = g.notebook.user(username)
         user.set_email_confirmation(True)
     except KeyError:
-        return templates.message(invalid_confirm_key, '/register')
+        return message_template(invalid_confirm_key, '/register')
     success = _(
         """<h1>Email address confirmed for user %(username)s</h1>""",
         username=username)
     del waiting[key]
-    return templates.message(success, title=_('Email Confirmed'))
+    return message_template(success, title=_('Email Confirmed'))
 
 
 @authentication.route('/forgotpass')
 @with_lock
 def forgot_pass():
     if not g.notebook.conf()['email']:
-        return templates.message(
+        return message_template(
             _('The account recovery system is not active.'))
 
     username = request.values.get('username', '').strip()
@@ -318,7 +318,7 @@ def forgot_pass():
             os.path.join('html', 'accounts', 'account_recovery.html'))
 
     def error(msg):
-        return templates.message(msg, url_for('forgot_pass'))
+        return message_template(msg, url_for('forgot_pass'))
 
     try:
         user = g.notebook.user(username)
@@ -352,6 +352,6 @@ def forgot_pass():
     else:
         g.notebook.user_manager().set_password(username, password)
 
-    return templates.message(
+    return message_template(
         _("A new password has been sent to your e-mail address."),
         url_for('base.index'))

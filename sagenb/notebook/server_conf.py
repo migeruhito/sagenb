@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """nodoctest
 """
-# from   template import language
 from __future__ import absolute_import
 
 import copy

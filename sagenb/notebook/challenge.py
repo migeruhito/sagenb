@@ -34,7 +34,7 @@ import urllib
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
-from ..notebook.themes import render_template
+from ..util.templates import render_template
 
 _ = lazy_gettext
 

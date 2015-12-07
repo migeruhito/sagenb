@@ -10,7 +10,7 @@ from flask import redirect
 from flask import g
 from flask.ext.babel import gettext
 
-from . import templates
+from .templates import message as message_template
 
 _ = gettext
 
@@ -39,7 +39,7 @@ def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         if not g.notebook.user_manager().user_is_admin(g.username):
-            return templates.message(
+            return message_template(
                 _("You do not have permission to access this location"),
                 cont=url_for('base.index'))
         return f(*args, **kwds)

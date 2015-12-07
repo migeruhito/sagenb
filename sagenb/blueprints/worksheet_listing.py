@@ -23,17 +23,15 @@ from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
 from ..config import SAGE_VERSION
+from ..notebook.misc import encode_response
 from ..util import unicode_str
 from ..util import tmp_dir
 from ..util import tmp_filename
 from ..util import walltime
-from ..notebook.misc import encode_response
-from ..notebook.themes import render_template
-
-
-from ..util import templates
 from ..util.decorators import login_required
 from ..util.decorators import guest_or_login_required
+from ..util.templates import message as message_template
+from ..util.templates import render_template
 from .worksheet import url_for_worksheet
 
 # Globals
@@ -75,7 +73,7 @@ def render_ws_list_template(args, pub, username):
     except ValueError as E:
         # for example, the sort key was not valid
         print "Error displaying worksheet listing: ", E
-        return templates.message(_("Error displaying worksheet listing."))
+        return message_template(_("Error displaying worksheet listing."))
 
     worksheet_filenames = [x.filename() for x in worksheets]
 
@@ -135,7 +133,7 @@ def worksheet_list():
     except ValueError as E:
         # for example, the sort key was not valid
         print "Error displaying worksheet listing: ", E
-        return templates.message(_("Error displaying worksheet listing."))
+        return message_template(_("Error displaying worksheet listing."))
 
     # if pub and (not g.username or g.username == tuple([])):
     #    r['username'] = 'pub'
@@ -153,9 +151,9 @@ def worksheet_list():
 def home(username):
     if not g.notebook.user_manager().user_is_admin(
             g.username) and username != g.username:
-        return templates.message(_("User '%(user)s' does not have permission "
-                                   "to view the home page of '%(name)s'.",
-                                   user=g.username, name=username))
+        return message_template(_("User '%(user)s' does not have permission "
+                                  "to view the home page of '%(name)s'.",
+                                  user=g.username, name=username))
     else:
         try:
             # New UI
@@ -301,7 +299,7 @@ def download_worksheets():
 @login_required
 def upload():
     if g.notebook.readonly_user(g.username):
-        return templates.message(
+        return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))
     return render_template(os.path.join('html', 'upload.html'),
@@ -315,7 +313,7 @@ class RetrieveError(Exception):
     try:
         my_urlretrive(...)
     except RetrieveError as err:
-        return templates.message(str(err))
+        return message_template(str(err))
 
     This allows us to factor out all the error message handling into
     my_urlretrieve.
@@ -410,7 +408,7 @@ def parse_link_rel(url, fn):
 @login_required
 def upload_worksheet():
     if g.notebook.readonly_user(g.username):
-        return templates.message(
+        return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))
 
@@ -428,7 +426,7 @@ def upload_worksheet():
         extension = os.path.splitext(path)[1].lower()
         if extension not in ["", ".txt", ".sws", ".zip", ".html", ".rst"]:
             # Or shall we try to import the document as an sws when in doubt?
-            return templates.message(
+            return message_template(
                 _("Unknown worksheet extension: %(ext)s. %(links)s",
                     ext=extension, links=backlinks))
         filename = tmp_filename() + extension
@@ -436,7 +434,7 @@ def upload_worksheet():
             matches = re.match("file://(?:localhost)?(/.+)", url)
             if matches:
                 if g.notebook.interface != 'localhost':
-                    return templates.message(
+                    return message_template(
                         _("Unable to load file URL's when not running on "
                           "localhost.\n%(backlinks)s", backlinks=backlinks))
 
@@ -445,20 +443,20 @@ def upload_worksheet():
                 my_urlretrieve(url, filename, backlinks=backlinks)
 
         except RetrieveError as err:
-            return templates.message(str(err))
+            return message_template(str(err))
 
     else:
         # Uploading a file from the user's computer
         dir = tmp_dir()
         file = request.files['file']
         if file.filename is None:
-            return templates.message(
+            return message_template(
                 _("Please specify a worksheet to load.\n%(backlinks)s",
                     backlinks=backlinks))
 
         filename = secure_filename(file.filename)
         if len(filename) == 0:
-            return templates.message(
+            return message_template(
                 _("Invalid filename.\n%(backlinks)s",
                     backlinks=backlinks))
 
@@ -511,7 +509,7 @@ def upload_worksheet():
                             print 'Importing {0}, linked to from {1}'.format(
                                 linked_sws[0]['url'], url)
                         except RetrieveError as err:
-                            return templates.message(str(err))
+                            return message_template(str(err))
                 W = g.notebook.import_worksheet(filename, g.username)
         except Exception, msg:
             print 'error uploading worksheet', msg
@@ -522,7 +520,7 @@ def upload_worksheet():
                   'sage-support group</a> and post a link to your worksheet.  '
                   'Alternatively, an sws file is just a bzip2 tarball; take a '
                   'look inside!\n%(backlinks)s', backlinks=backlinks)
-            return templates.message(s, url_for(
+            return message_template(s, url_for(
                 'worksheet_listing.home', username=g.username))
         finally:
             # Clean up the temporarily uploaded filename.
@@ -534,7 +532,7 @@ def upload_worksheet():
     except ValueError, msg:
         s = _("Error uploading worksheet '%(msg)s'.%(backlinks)s",
               msg=msg, backlinks=backlinks)
-        return templates.message(s, url_for(
+        return message_template(s, url_for(
             'worksheet_listing.home', username=g.username))
 
     if new_name:

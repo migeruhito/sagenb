@@ -18,11 +18,11 @@ from ..notebook import js
 from ..config import SAGE_VERSION
 from ..notebook.misc import encode_response
 from ..notebook.misc import is_valid_username
-from ..notebook.themes import render_template
 
-from ..util import templates
 from ..util.decorators import admin_required
 from ..util.decorators import with_lock
+from ..util.templates import message as message_template
+from ..util.templates import render_template
 
 _ = gettext
 
@@ -138,7 +138,7 @@ def add_user():
         message = _('The temporary password for the new user '
                     '<em>%(username)s</em> is <em>%(password)s</em>',
                     username=username, password=password)
-        return templates.message(message, cont='/adduser', title=_('New User'))
+        return message_template(message, cont='/adduser', title=_('New User'))
     else:
         return render_template(os.path.join('html',
                                             'settings',

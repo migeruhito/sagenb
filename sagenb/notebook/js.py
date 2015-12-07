@@ -35,8 +35,8 @@ from ..config import SAGE_URL
 from ..config import SAGENB_ROOT
 
 from ..util.compress.JavaScriptCompressor import JavaScriptCompressor
+from ..util.templates import render_template
 from .config import KEYS
-from .themes import render_template
 
 # Debug mode?  If sagenb lives under SAGE_ROOT/, we minify/pack and cache
 # the Notebook JS library.

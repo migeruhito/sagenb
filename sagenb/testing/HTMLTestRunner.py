@@ -121,7 +121,7 @@ import unittest
 import jinja2
 from sagenb.util import DATA
 from ..config import SAGENB_VERSION
-from sagenb.notebook.themes import render_template
+from sagenb.util.templates import render_template
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name

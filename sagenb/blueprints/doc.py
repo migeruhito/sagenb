@@ -16,8 +16,8 @@ from flask.helpers import send_from_directory
 
 from ..config import SAGE_DOC
 
-from ..util import templates
 from ..util.decorators import login_required
+from ..util.templates import message as message_template
 from .worksheet import worksheet_file
 
 _ = gettext
@@ -53,7 +53,7 @@ def live(filename=None, manual=None, path_static=None):
     already been fixed upstream.
     """
     if filename is None:
-        return templates.message(_('nothing to see.'), username=g.username)
+        return message_template(_('nothing to see.'), username=g.username)
     if path_static is not None:
         path_static = os.path.join(DOC, manual, '_static')
         return send_from_directory(path_static, filename)

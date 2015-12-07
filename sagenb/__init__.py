@@ -23,15 +23,15 @@ from .config import MATHJAX
 from .config import SAGE_VERSION
 from .config import SRC
 from .config import THEME_PATHS
-from .util import templates
 from .util.decorators import guest_or_login_required
 from .util import unicode_str
-from .notebook.template import css_escape
-from .notebook.template import clean_name
-from .notebook.template import convert_time_to_string
-from .notebook.template import prettify_time_ago
-from .notebook.template import number_of_rows
-from .notebook.themes import render_template
+from .util.templates import css_escape
+from .util.templates import clean_name
+from .util.templates import convert_time_to_string
+from .util.templates import prettify_time_ago
+from .util.templates import number_of_rows
+from .util.templates import message as message_template
+from .util.templates import render_template
 
 from .blueprints.base import oid
 
@@ -69,7 +69,7 @@ def create_app(notebook, startup_token=None, debug=False):
     # Handles all uncaught exceptions if not debug activated
     @app.errorhandler(500)
     def log_exception(error):
-        return templates.message(
+        return message_template(
             gettext('''500: Internal server error.'''),
             username=getattr(g, 'username', 'guest')), 500
 

@@ -48,9 +48,9 @@ from ..util import unicode_str
 from . import misc
 # Imports specifically relevant to the sage notebook
 from .cell import Cell, TextCell
-from .themes import render_template
-from .template import clean_name
-from .template import prettify_time_ago
+from ..util.templates import clean_name
+from ..util.templates import prettify_time_ago
+from ..util.templates import render_template
 
 _ = gettext
 
