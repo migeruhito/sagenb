@@ -29,8 +29,13 @@ import getpass
 import os
 import socket
 
+from twisted.internet import reactor
+
 # TODO: sage dependency
 from sage.interfaces.cleaner import cleaner as register_with_cleaner
+
+from .smtpsend import send_mail
+
 
 def default_email_address():
     """
@@ -145,7 +150,6 @@ def email(to, subject, body='', from_address=None, verbose=True, block=False,
             os.kill(os.getpid(), 9)                 # suicide
 
     # Now we're the child process.  Let's do stuff with Twisetd!
-    from smtpsend import send_mail, reactor
 
     # First define two callback functions.  Each one optionally prints
     # some information, then kills the subprocess dead.
