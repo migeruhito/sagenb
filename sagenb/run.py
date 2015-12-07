@@ -19,7 +19,7 @@ import urllib
 import getpass
 import signal
 
-from sagenb import create_app
+from sagenb.app import create_app
 from sagenb.config import DOT_SAGENB
 from sagenb.config import SAGE_BROWSER
 from sagenb.config import min_password_length
