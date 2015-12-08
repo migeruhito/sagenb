@@ -14,15 +14,15 @@ from flask.ext.babel import get_locale
 from flask.ext.babel import ngettext
 from flask.ext.themes2 import render_theme_template
 
-from .compress.JavaScriptCompressor import JavaScriptCompressor
 from . import cached_property
 from . import N_
 from . import nN_
+from .compress.JavaScriptCompressor import JavaScriptCompressor
+from .keymaps_js import get_keyboard
 
 from ..config import mathjax_macros
 from ..config import KEYS
 from ..config import SAGE_URL
-from ..notebook.keyboards import get_keyboard
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
 
@@ -179,6 +179,7 @@ class DynamicJs(object):
     def __init__(self, debug_mode=False):
         self.debug_mode = debug_mode
         self.__localization = {}
+        self.__keyboard = {}
 
     @cached_property
     def javascript(self):
@@ -241,13 +242,17 @@ class DynamicJs(object):
         return (data, sha1(repr(data)).hexdigest())
 
     def keyboard(self, browser_os):
-        data = get_keyboard(browser_os)
-        return (data, sha1(data).hexdigest())
+        if self.__keyboard.get(browser_os, None) is None:
+            data = get_keyboard(browser_os)
+            self.__keyboard[browser_os] = (data, sha1(repr(data)).hexdigest())
+
+        return self.__keyboard[browser_os]
 
     def clear_cache(self):
         del self.javascript
         del self.mathjax
         self.__localization = {}
+        self.__keyboard = {}
 
 
 class JSKeyHandler(object):
