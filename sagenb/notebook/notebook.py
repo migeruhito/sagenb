@@ -28,18 +28,19 @@ import sys
 from docutils.core import publish_parts
 from flask.ext.babel import lazy_gettext
 
-from ..util.decorators import global_lock
-from ..util import unicode_str
-from ..util import walltime
 from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
 from ..util import get_module
+from ..util import unicode_str
+from ..util import walltime
+from ..util.decorators import global_lock
+from ..util.docHTMLProcessor import docutilsHTMLProcessor
+from ..util.docHTMLProcessor import SphinxHTMLProcessor
+
 from . import misc
 from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
 from . import user         # users
-from .docHTMLProcessor import SphinxHTMLProcessor
-from .docHTMLProcessor import docutilsHTMLProcessor
 from .misc import extract_title
 from .notification import logger
 from .notification import TwistedEmailHandler

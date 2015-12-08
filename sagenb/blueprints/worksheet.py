@@ -25,11 +25,11 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
-from ..util import tmp_filename
-from ..util import unicode_str
-from ..notebook.docHTMLProcessor import SphinxHTMLProcessor
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..notebook.misc import encode_response
+from ..util import tmp_filename
+from ..util import unicode_str
+from ..util.docHTMLProcessor import SphinxHTMLProcessor
 from ..util.templates import message as message_template
 from ..util.templates import prettify_time_ago
 from ..util.templates import render_template
