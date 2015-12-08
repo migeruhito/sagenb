@@ -23,13 +23,13 @@ from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
 from ..config import SAGE_VERSION
-from ..notebook.misc import encode_response
 from ..util import unicode_str
 from ..util import tmp_dir
 from ..util import tmp_filename
 from ..util import walltime
 from ..util.decorators import login_required
 from ..util.decorators import guest_or_login_required
+from ..util.templates import encode_response
 from ..util.templates import message as message_template
 from ..util.templates import render_template
 from .worksheet import url_for_worksheet

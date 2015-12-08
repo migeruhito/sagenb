@@ -15,7 +15,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 #############################################################################
-
 from __future__ import absolute_import
 import cPickle
 import logging
@@ -37,12 +36,12 @@ from ..util import walltime
 from ..util.decorators import global_lock
 from ..util.docHTMLProcessor import docutilsHTMLProcessor
 from ..util.docHTMLProcessor import SphinxHTMLProcessor
+from ..util.text import extract_title
 
 from . import misc
 from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
 from . import user         # users
-from .misc import extract_title
 from .notification import logger
 from .notification import TwistedEmailHandler
 from .user_manager import OpenIDUserManager

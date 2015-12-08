@@ -15,16 +15,16 @@ from flask.ext.babel import gettext
 
 from ..config import SAGE_VERSION
 from ..notebook.challenge import challenge
-from ..notebook.misc import is_valid_username
-from ..notebook.misc import is_valid_password
-from ..notebook.misc import is_valid_email
-from ..notebook.misc import do_passwords_match
 from ..notebook.register import make_key
 from ..notebook.register import build_msg
 from ..notebook.register import build_password_msg
 from ..notebook.smtpsend import send_mail
 from ..util.templates import message as message_template
 from ..util.templates import render_template
+from ..util.text import do_passwords_match
+from ..util.text import is_valid_email
+from ..util.text import is_valid_password
+from ..util.text import is_valid_username
 
 from ..util.decorators import with_lock
 

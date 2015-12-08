@@ -23,6 +23,7 @@ from .keymaps_js import get_keyboard
 from ..config import mathjax_macros
 from ..config import KEYS
 from ..config import SAGE_URL
+from flask import json
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
 
@@ -303,3 +304,52 @@ class JSKeyCode(object):
 
     def js_test(self):
         return "((e.m=={})&&(e.v=={}))".format(self.key, self.mod)
+
+
+# json responses
+
+def encode_response(obj, separators=(',', ':'), **kwargs):
+    """
+    Encodes response data to send to a client.  The current
+    implementation uses JSON.  See :mod:`json` for details.
+
+    INPUT:
+
+    - ``obj`` - an object comprised of basic Python types
+
+    - ``separators`` - a string 2-tuple (default: (',', ':'));
+      dictionary separators to use
+
+    - ``kwargs`` - additional keyword arguments to pass to the
+      encoding function
+
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
+        sage: from sagenb.notebook.misc import encode_response
+        sage: o = [int(3), float(2), {'foo': 'bar'}, None]
+        sage: encode_response(o)
+        '[3,2.0,{"foo":"bar"},null]'
+        sage: d = {'AR': 'MA', int(11): 'foo', 'bar': float(1.0), None: 'blah'}
+        sage: encode_response(d, sort_keys = True)
+        '{"null":"blah","11":"foo","AR":"MA","bar":1.0}'
+        sage: d['archies'] = ['an', 'mon', 'hier']
+        sage: d['sub'] = {'shape': 'triangle', 'color': 'blue',
+                          'sides': [int(3), int(4), int(5)]}
+        sage: encode_response(d, sort_keys = True)
+        '{"null":"blah","11":"foo","AR":"MA","archies":["an","mon","hier"],
+        "bar":1.0,"sub":{"color":"blue","shape":"triangle","sides":[3,4,5]}}'
+        sage: print encode_response(d, separators = (', ', ': '), indent = 4)
+        {
+            "...": ...
+        }
+    """
+    # TODO: Serialize class attributes, so we can do, e.g., r_dict.foo
+    # = 'bar' instead of r_dict['foo'] = 'bar' below.
+
+    # TODO: Use cjson, simplejson instead?  Serialize Sage types,
+    # e.g., Integer, RealLiteral?
+    return json.dumps(obj, separators=separators, **kwargs)

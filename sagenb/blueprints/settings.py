@@ -9,13 +9,13 @@ from flask import g
 from flask.ext.babel import gettext
 
 from ..config import SAGE_VERSION
-from ..notebook.misc import is_valid_password
-from ..notebook.misc import is_valid_email
 
 from ..util.decorators import login_required
 from ..util.decorators import with_lock
 from ..util.templates import message as message_template
 from ..util.templates import render_template
+from ..util.text import is_valid_email
+from ..util.text import is_valid_password
 
 _ = gettext
 

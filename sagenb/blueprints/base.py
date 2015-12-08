@@ -20,8 +20,6 @@ from flask.ext.babel import gettext
 from ..util.templates import DynamicJs
 from ..config import SAGE_VERSION
 from ..notebook.challenge import challenge
-from ..notebook.misc import is_valid_username
-from ..notebook.misc import is_valid_email
 from ..notebook.misc import valid_username_chars
 from ..notebook.tutorial import notebook_help
 from ..notebook.user import User
@@ -30,6 +28,8 @@ from ..util.decorators import login_required
 from ..util.decorators import guest_or_login_required
 from ..util.decorators import with_lock
 from ..util.templates import render_template
+from ..util.text import is_valid_email
+from ..util.text import is_valid_username
 from .worksheet import url_for_worksheet
 
 base = Blueprint('base', __name__)

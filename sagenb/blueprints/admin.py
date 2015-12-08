@@ -15,13 +15,13 @@ from flask.ext.babel import gettext
 from . import base
 
 from ..config import SAGE_VERSION
-from ..notebook.misc import encode_response
-from ..notebook.misc import is_valid_username
 
 from ..util.decorators import admin_required
 from ..util.decorators import with_lock
 from ..util.templates import message as message_template
 from ..util.templates import render_template
+from ..util.templates import encode_response
+from ..util.text import is_valid_username
 
 _ = gettext
 
