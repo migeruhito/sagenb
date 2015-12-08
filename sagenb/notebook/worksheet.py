@@ -45,7 +45,7 @@ from ..util import ignore_nonexistent_files
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
 
-from . import misc
+from .. import config
 # Imports specifically relevant to the sage notebook
 from .cell import Cell, TextCell
 from ..util.templates import clean_name
@@ -997,7 +997,7 @@ class Worksheet(object):
             True
         """
         if not hasattr(self, '_notebook'):
-            self._notebook = misc.notebook
+            self._notebook = config.notebook
         return self._notebook
 
     def save(self, conf_only=False):

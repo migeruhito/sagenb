@@ -10,7 +10,7 @@ import os
 # TODO: sage dependency
 from sage.misc.temporary_file import atomic_write
 
-from . import misc
+from .. import config
 from . import user_conf
 
 SALT = 'aa'
@@ -94,10 +94,10 @@ class User(object):
         try:
             return self.history
         except AttributeError:
-            if misc.notebook is None:
+            if config.notebook is None:
                 return []
             history_file = "%s/worksheets/%s/history.sobj" % (
-                misc.notebook.directory(), self._username)
+                config.notebook.directory(), self._username)
             if os.path.exists(history_file):
                 try:
                     self.history = cPickle.load(open(history_file))
@@ -111,10 +111,10 @@ class User(object):
     def save_history(self):
         if not hasattr(self, 'history'):
             return
-        if misc.notebook is None:
+        if config.notebook is None:
             return
         history_file = "%s/worksheets/%s/history.sobj" % (
-            misc.notebook.directory(), self._username)
+            config.notebook.directory(), self._username)
         try:
             # print "Dumping %s history to '%s'"%(self.__username,
             # history_file)

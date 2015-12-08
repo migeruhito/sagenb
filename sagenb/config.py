@@ -13,6 +13,9 @@ from .util import import_from
 from .util import sage_var  # if py3, from shutil import which
 from .util import which  # if py3, from shutil import which
 
+# Global variables across the application
+# TODO: remove this. Previously in notebook.misc
+notebook = None
 
 # Sage path fallbacks
 def _sage_root_fb():

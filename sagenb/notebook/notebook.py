@@ -28,6 +28,7 @@ import sys
 from docutils.core import publish_parts
 from flask.ext.babel import lazy_gettext
 
+from .. import config
 from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
 from ..util import get_module
@@ -48,7 +49,6 @@ from .user_manager import OpenIDUserManager
 from .worksheet import extract_name
 
 # System libraries
-
 
 # Sage Notebook
 
@@ -89,8 +89,6 @@ else:
 SYSTEM_NAMES = [v[0] for v in SYSTEMS]
 
 
-
-
 class WorksheetDict(dict):
 
     def __init__(self, notebook, *args, **kwds):
@@ -126,6 +124,7 @@ class WorksheetDict(dict):
 # Notebook autosave.
 # Save if make a change to notebook and at least some seconds have elapsed
 # since last save.
+
 class NotebookUpdater(object):
 
     def __init__(self, notebook):
@@ -171,6 +170,8 @@ class Notebook(object):
     HISTORY_NCOLS = 90
 
     def __init__(self, dir, user_manager=None):
+        # TODO: This come from notebook.misc. Must by a conf parameter
+        self.DIR = None
 
         if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
             dir = dir[:-1]
@@ -707,7 +708,7 @@ class Notebook(object):
             max_cputime=tbl['t'],
             max_processes=tbl['u'],
             python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),
-            init_code='\n'.join((init_code, "DIR = '{}'".format(misc.DIR))))
+            init_code='\n'.join((init_code, "DIR = '{}'".format(self.DIR))))
 
     def _python_command(self):
         """
@@ -1559,11 +1560,12 @@ def load_notebook(dir, interface=None, port=None, secure=None,
     nb.port = port
     nb.secure = secure
 
-    # Install this copy of the notebook in misc.py as *the*
+    # Install this copy of the notebook in config as *the*
     # global notebook object used for computations.  This is
     # mainly to avoid circular references, etc.  This also means
     # only one notebook can actually be used at any point.
-    misc.notebook = nb
+    # TODO: remove this. Previously in notebook.misc
+    config.notebook = nb
 
     return nb
 

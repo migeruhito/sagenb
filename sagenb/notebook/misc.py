@@ -10,12 +10,6 @@ import string
 from flask import json
 
 #####################################################
-# Global variables across the application
-#####################################################
-notebook = None
-DIR = None
-
-#####################################################
 # Utility functions
 #####################################################
 valid_username_chars = 'a-z|A-Z|0-9|_|.|@'

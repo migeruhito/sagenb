@@ -27,7 +27,6 @@ from sagenb.util import find_next_available_port
 from sagenb.util import open_page
 from sagenb.util import print_open_msg
 from sagenb.util import system_command
-from sagenb.notebook import misc
 from sagenb.notebook import notebook
 from sagenb.util import get_module
 from sagenb.util import which
@@ -396,7 +395,6 @@ class NotebookFrontend(object):
         nb.upgrade_model()
         nb.save()
 
-
     def run(self, args=None):
         self.parse(args)
         self.update_conf()
@@ -412,7 +410,8 @@ class NotebookFrontend(object):
         print('Executing Sage Notebook with {} server'.format(
             self.conf['server']))
 
-        misc.DIR = self.conf['cwd']  # We should really get rid of this!
+        # TODO: This must be a conf parameter of the notebook
+        self.notebook.DIR = self.conf['cwd']
 
         flask_app = create_app(self.notebook,
                                startup_token=self.conf['startup_token'],
@@ -560,10 +559,11 @@ class NotebookFrontend(object):
                       self.conf['secure'],
                       '/?startup_token={}'.format(self.conf['startup_token']))
         if self.conf['upload']:
-            open_page(SAGE_BROWSER, self.conf['interface'], self.conf['port'],
-                      self.conf['secure'],
-                      '/upload_worksheet?url=file://{}'.format(
-                       urllib.quote(self.conf['upload'])))
+            open_page(
+                SAGE_BROWSER, self.conf['interface'], self.conf['port'],
+                self.conf['secure'],
+                '/upload_worksheet?url=file://{}'.format(
+                    urllib.quote(self.conf['upload'])))
 
     def write_pid(self):
         with open(self.conf['pidfile'], "w") as pidfile:
