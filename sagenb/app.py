@@ -128,7 +128,7 @@ def create_app(notebook, startup_token=None, debug=False):
     # Themes
     app.config['THEME_PATHS'] = THEME_PATHS
     app.config['DEFAULT_THEME'] = DEFAULT_THEME
-    Themes(app, loaders=[theme_paths_loader])
+    Themes(app, app_identifier='sagenb', loaders=[theme_paths_loader])
     name = notebook.conf()['theme']
     if name not in app.theme_manager.themes:
         notebook.conf()['theme'] = app.config['DEFAULT_THEME']
