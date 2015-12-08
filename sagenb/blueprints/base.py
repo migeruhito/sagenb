@@ -5,7 +5,6 @@ import mimetypes
 import os
 import re
 import time
-from hashlib import sha1
 
 from flask import Blueprint
 from flask import url_for
@@ -17,15 +16,10 @@ from flask import make_response
 from flask import current_app
 from flask.ext.openid import OpenID
 from flask.ext.babel import gettext
-from flask.ext.babel import get_locale
 
-from ..util import N_
-from ..util import nN_
+from ..util.templates import DynamicJs
 from ..config import SAGE_VERSION
-from ..config import mathjax_macros
 from ..notebook.challenge import challenge
-from ..notebook.js import javascript
-from ..notebook.keyboards import get_keyboard
 from ..notebook.misc import is_valid_username
 from ..notebook.misc import is_valid_email
 from ..notebook.misc import valid_username_chars
@@ -80,66 +74,34 @@ def index():
 # Dynamic Javascript #
 ######################
 
+dynamic_javascript = DynamicJs()
+
 
 @base.route('/javascript/dynamic/notebook_dynamic.js')
 def dynamic_js():
-    # the javascript() function is cached, so there shouldn't be a big
-    # slowdown calling it
-    data, datahash = javascript()
-    if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
-        response = make_response('', 304)
-    else:
-        response = make_response(data)
-        response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
-        response.headers['Etag'] = datahash
-    return response
-
-_localization_cache = {}
+    data, datahash = dynamic_javascript.javascript
+    return render_js(data, datahash)
 
 
 @base.route('/javascript/dynamic/localization.js')
 def localization_js():
-    global _localization_cache
-    locale = repr(get_locale())
-    if _localization_cache.get(locale, None) is None:
-        data = render_template(os.path.join(
-            'js/localization.js'), N_=N_, nN_=nN_)
-        _localization_cache[locale] = (data, sha1(repr(data)).hexdigest())
-    data, datahash = _localization_cache[locale]
-
-    if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
-        response = make_response('', 304)
-    else:
-        response = make_response(data)
-        response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
-        response.headers['Etag'] = datahash
-    return response
-
-_mathjax_js_cache = None
+    data, datahash = dynamic_javascript.localization
+    return render_js(data, datahash)
 
 
 @base.route('/javascript/dynamic/mathjax_sage.js')
 def mathjax_js():
-    global _mathjax_js_cache
-    if _mathjax_js_cache is None:
-        data = render_template('js/mathjax_sage.js',
-                               theme_mathjax_macros=mathjax_macros)
-        _mathjax_js_cache = (data, sha1(repr(data)).hexdigest())
-    data, datahash = _mathjax_js_cache
-
-    if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
-        response = make_response('', 304)
-    else:
-        response = make_response(data)
-        response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
-        response.headers['Etag'] = datahash
-    return response
+    data, datahash = dynamic_javascript.mathjax
+    return render_js(data, datahash)
 
 
 @base.route('/javascript/dynamic/keyboard/<browser_os>')
 def keyboard_js(browser_os):
-    data = get_keyboard(browser_os)
-    datahash = sha1(data).hexdigest()
+    data, datahash = dynamic_javascript.keyboard(browser_os)
+    return render_js(data, datahash)
+
+
+def render_js(data, datahash):
     if request.environ.get('HTTP_IF_NONE_MATCH', None) == datahash:
         response = make_response('', 304)
     else:

@@ -427,3 +427,23 @@ def system_command(cmd, msg=None):
     msg = cmd if msg is None else '\n'.join((msg, cmd))
     print(msg)
     subprocess.call([cmd], shell=True)
+
+
+def cached_property(function):
+    attr_name = '__{}'.format(function.__name__)
+
+    def get_cached_property(self):
+        try:
+            output = getattr(self, attr_name)
+        except AttributeError:
+            output = function(self)
+            setattr(self, attr_name, output)
+        return output
+
+    def del_cached_property(self):
+        try:
+            delattr(self, attr_name)
+        except AttributeError:
+            pass
+
+    return property(fget=get_cached_property, fdel=del_cached_property)

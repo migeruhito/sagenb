@@ -5,10 +5,24 @@ import time
 import os
 import re
 
+from collections import defaultdict
+from hashlib import sha1
+
 from flask import g
 from flask.ext.babel import format_datetime
+from flask.ext.babel import get_locale
 from flask.ext.babel import ngettext
 from flask.ext.themes2 import render_theme_template
+
+from .compress.JavaScriptCompressor import JavaScriptCompressor
+from . import cached_property
+from . import N_
+from . import nN_
+
+from ..config import mathjax_macros
+from ..config import KEYS
+from ..config import SAGE_URL
+from ..notebook.keyboards import get_keyboard
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
 
@@ -157,3 +171,130 @@ def message(msg, cont='/', username=None, **kwds):
     template_dict.update(kwds)
     return render_template(os.path.join('html', 'error_message.html'),
                            **template_dict)
+
+
+# Dynamic javascript
+
+class DynamicJs(object):
+    def __init__(self, debug_mode=False):
+        self.debug_mode = debug_mode
+        self.__localization = {}
+
+    @cached_property
+    def javascript(self):
+        """
+        Return javascript library for the Sage Notebook.  This is done by
+        reading the template ``notebook_lib.js`` where all of the
+        javascript code is contained and replacing a few of the values
+        specific to the running session.
+
+        Before the code is returned (as a string), it is run through a
+        JavascriptCompressor to minimize the amount of data needed to be
+        sent to the browser.
+
+        The code and a hash of the code is returned.
+
+        .. note::
+
+           This the output of this function is cached so that it only
+           needs to be generated once.
+
+        EXAMPLES::
+
+            sage: from sagenb.notebook.js import javascript
+            sage: s = javascript()
+            sage: s[0][:30]
+            '/* JavaScriptCompressor 0.1 [w'
+
+        """
+        keyhandler = JSKeyHandler()
+        for k in KEYS:
+            keyhandler.add(*k)
+
+        s = render_template('js/notebook_dynamic.js',
+                            SAGE_URL=SAGE_URL,
+                            KEY_CODES=keyhandler.all_tests(),
+                            debug_mode=self.debug_mode)
+
+        # TODO: use minify here, which is more standard (and usually safer
+        # and with gzip compression, smaller); But first inquire about the
+        # propriety of the "This software shall be used for Good, not
+        # Evil" clause in the license.  Does that prevent us from
+        # distributing it (i.e., it adds an extra condition to the
+        # software)?  See http://www.crockford.com/javascript/jsmin.py.txt
+        s = JavaScriptCompressor().getPacked(s.encode('utf-8'))
+        return (s, sha1(s).hexdigest())
+
+    @property
+    def localization(self):
+        locale = repr(get_locale())
+        if self.__localization.get(locale, None) is None:
+            data = render_template('js/localization.js', N_=N_, nN_=nN_)
+            self.__localization[locale] = (data, sha1(repr(data)).hexdigest())
+
+        return self.__localization[locale]
+
+    @cached_property
+    def mathjax(self):
+        data = render_template('js/mathjax_sage.js',
+                               theme_mathjax_macros=mathjax_macros)
+        return (data, sha1(repr(data)).hexdigest())
+
+    def keyboard(self, browser_os):
+        data = get_keyboard(browser_os)
+        return (data, sha1(data).hexdigest())
+
+    def clear_cache(self):
+        del self.javascript
+        del self.mathjax
+        self.__localization = {}
+
+
+class JSKeyHandler(object):
+    """
+    This class is used to make javascript functions to check
+    for specific keyevents.
+    """
+    def __init__(self):
+        self.key_codes = defaultdict(list)
+
+    def set(self, name, key='', mod=0):
+        """
+        Add a named keycode to the handler.  When built by
+        ``all_tests()``, it can be called in javascript by
+        ``key_<key_name>(event_object)``.  The function returns
+        true if the keycode numbered by the ``key`` parameter was
+        pressed with the appropriate modifier keys, false otherwise.
+        """
+        self.key_codes[name] = [JSKeyCode(key, mod)]
+
+    def add(self, name, key='', mod=0):
+        """
+        Similar to ``set_key(...)``, but this instead checks if
+        there is an existing keycode by the specified name, and
+        associates the specified key combination to that name in
+        addition.  This way, if different browsers don't catch one
+        keycode, multiple keycodes can be assigned to the same test.
+        """
+        self.key_codes[name].append(JSKeyCode(key, mod))
+
+    def all_tests(self):
+        """
+        Builds all tests currently in the handler.  Returns a string
+        of javascript code which defines all functions.
+        """
+        tests = ''
+        for name, keys in self.key_codes.items():
+            value = "\n||".join([k.js_test() for k in keys])
+            tests += " function key_%s(e) {\n  return %s;\n}" % (name, value)
+        return tests
+
+
+class JSKeyCode(object):
+    def __init__(self, key, mod):
+        global key_codes
+        self.key = key
+        self.mod = mod
+
+    def js_test(self):
+        return "((e.m=={})&&(e.v=={}))".format(self.key, self.mod)
