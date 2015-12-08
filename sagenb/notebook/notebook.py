@@ -38,7 +38,6 @@ from ..util.docHTMLProcessor import docutilsHTMLProcessor
 from ..util.docHTMLProcessor import SphinxHTMLProcessor
 from ..util.text import extract_title
 
-from . import misc
 from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
 from . import user         # users
