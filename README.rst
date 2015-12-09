@@ -5,7 +5,7 @@ This is a major refactor/rewrite of the Sage Notebook.
 Goals
 =====
 
-* Make the notebook independent from Sage, so that it can be launched by an
+* Make the notebook independent from Sage, so that it can be launched from an
   independent python interpreter.
 
 * Break the notebook in several packages (WebApp, sage_server interface,
@@ -16,22 +16,22 @@ Goals
   a clear web server API, so that different web clients could be
   implemented.
 
-* Increment maintainability.
+* Improve maintainability.
 
-* Increment security, both in the WebApp and in the sage_server interactions.
+* Improve security, both in the WebApp and in the sage_server interactions.
 
-* Increment scalability.
+* Improve scalability.
 
 * Python 3 migration.
 
 Status
 ======
 
-* Notebook startup procedure has been changed. No need for intermediate files
-  generation. Standalone command interface. Debug mode added. Work in progress.
+* Notebook startup procedure has been changed. No need for intermediate startup
+  code files. Standalone command interface. Debug mode added. Work in progress.
 
 * Sage server interface partially isolated (except interact mechanism). No
-  need for intermediate files generation. Code is passed directly to the
+  need for intermediate code files. Code is passed directly to the
   Sage server. Sage initialization left to the sage_server interface.
   Work in progress.
 
@@ -39,7 +39,7 @@ Status
 
 * Currently reformatting code and isolating interdependencies.
 
-* Backwards compatibility is not a goal, but at this moment this version
+* Backward compatibility is not a goal, but at this moment this version
   can be used as a replacement of the current Sage Notebook.
 
 * Some Notebook features could be removed.
