@@ -1,9 +1,0 @@
-{
-    "application": "sagenb", 
-    "identifier": "SamuelA_NewUI", 
-    "name": "Samuel Ainsworth's new gui", 
-    "author": "Samuel Ainsworth",
-    "license": "GPL",
-    "description": "Samuel Ainsworth's new gui. Modified by J. Miguel Farto to run as a theme.",
-    "version": "0.1"
-}
