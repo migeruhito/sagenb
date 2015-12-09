@@ -4624,7 +4624,7 @@ function help() {
     /*
     Popup the help window.
     */
-    window.open("/help", "",
+    window.open("/doc/help", "",
                 "menubar=1,location=1,scrollbars=1,width=800,height=650,toolbar=1,  resizable=1");
 }
 

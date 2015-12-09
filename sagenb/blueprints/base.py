@@ -17,8 +17,6 @@ from flask.ext.openid import OpenID
 from flask.ext.babel import gettext
 
 from ..util.templates import DynamicJs
-from ..config import SAGE_VERSION
-from ..notebook.tutorial import notebook_help
 from ..notebook.user import User
 
 from ..util.auth import challenge
@@ -108,18 +106,6 @@ def render_js(data, datahash):
         response.headers['Content-Type'] = 'text/javascript; charset=utf-8'
         response.headers['Etag'] = datahash
     return response
-
-########
-# Help #
-########
-
-
-@base.route('/help')
-@login_required
-def help():
-    return render_template(
-        os.path.join('html', 'docs.html'), username=g.username,
-        notebook_help=notebook_help, sage_version=SAGE_VERSION)
 
 ###########
 # History #
