@@ -90,7 +90,6 @@ def create_app(notebook, startup_token=None, debug=False):
         return {'sitename': gettext('Sage Notebook'),
                 'sage_version': SAGE_VERSION,
                 'MATHJAX': MATHJAX,
-                'gettext': gettext,
                 'JEDITABLE_TINYMCE': JEDITABLE_TINYMCE,
                 'conf': notebook.conf()}
 
