@@ -24,29 +24,21 @@ from cgi import escape
 from random import randint
 from sys import maxint
 
+from ..config import MAX_OUTPUT
+from ..config import MAX_OUTPUT_LINES
+from ..config import TRACEBACK
 from ..util import word_wrap
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
 from ..util import encoded_str
 from ..util.templates import render_template
+from ..util.text import format_exception
 
 from .interact import INTERACT_RESTART
 from .interact import INTERACT_UPDATE_PREFIX
 from .interact import INTERACT_TEXT
 from .interact import INTERACT_HTML
 
-# Maximum number of characters allowed in output.  This is needed
-# avoid overloading web browser.  For example, it should be possible
-# to gracefully survive:
-#    while True:
-#       print "hello world"
-# On the other hand, we don't want to loose the output of big matrices
-# and numbers, so don't make this too small.
-MAX_OUTPUT = 32000
-MAX_OUTPUT_LINES = 120
-
-# Used to detect and format tracebacks.  See :func:`format_exception`.
-TRACEBACK = 'Traceback (most recent call last):'
 
 # This regexp matches "cell://blah..." in a non-greedy way (the ?), so
 # we don't get several of these combined in one.
@@ -2750,58 +2742,3 @@ class Cell(Cell_generic):
         files = unicode_str(files)
         images = unicode_str(images)
         return images + files
-
-
-# Alias
-ComputeCell = Cell
-
-
-#####################
-# Utility functions #
-#####################
-def format_exception(s0, ncols):
-    r"""
-    Formats exceptions so they do not appear expanded by default.
-
-    INPUT:
-
-    - ``s0`` - a string
-
-    - ``ncols`` - an integer; number of word wrap columns
-
-    OUTPUT:
-
-    - a string
-
-    If ``s0`` contains "notracebacks," this function simply returns
-    ``s0``.
-
-    EXAMPLES::
-
-        sage: sagenb.notebook.cell.format_exception(
-            sagenb.notebook.cell.TRACEBACK,80)
-        '\nTraceback (click to the left of this block for traceback)\n...\n
-        Traceback (most recent call last):'
-        sage: sagenb.notebook.cell.format_exception(
-            sagenb.notebook.cell.TRACEBACK + "notracebacks",80)
-        'Traceback (most recent call last):notracebacks'
-    """
-    s = s0.lstrip()
-    # Add a notracebacks option -- if it is in the string then
-    # tracebacks aren't shrunk.  This is currently used by the
-    # functions sagenb.misc.support.help and sage.server.support.help.
-    if TRACEBACK not in s or 'notracebacks' in s:
-        return s0
-    if ncols > 0:
-        s = s.strip()
-        w = s.splitlines()
-        for k in range(len(w)):
-            if TRACEBACK in w[k]:
-                break
-        s = ('\n'.join(w[:k]) +
-             '\nTraceback (click to the left of this block for traceback)' +
-             '\n...\n' + w[-1])
-    else:
-        s = s.replace("exec compile(ur'", "")
-        s = s.replace("' + '\\n', '', 'single')", "")
-    return s

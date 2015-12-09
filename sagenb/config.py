@@ -17,6 +17,7 @@ from .util import which  # if py3, from shutil import which
 # TODO: remove this. Previously in notebook.misc
 notebook = None
 
+
 # Sage path fallbacks
 def _sage_root_fb():
     path = which('sage')  # This works if sage_root is in PATH or if
@@ -118,6 +119,20 @@ SRC = os.path.join(SAGE_SRC, 'sage')
 JMOL = os.path.join(SAGE_SHARE, 'jmol')
 JSMOL = os.path.join(SAGE_SHARE, 'jsmol')
 J2S = os.path.join(JSMOL, 'j2s')
+
+# Cell output control
+# Maximum number of characters allowed in output.  This is needed
+# avoid overloading web browser.  For example, it should be possible
+# to gracefully survive:
+#    while True:
+#       print "hello world"
+# On the other hand, we don't want to loose the output of big matrices
+# and numbers, so don't make this too small.
+MAX_OUTPUT = 32000
+MAX_OUTPUT_LINES = 120
+# Used to detect and format tracebacks.
+# See :func:`.util.text.format_exception`.
+TRACEBACK = 'Traceback (most recent call last):'
 
 # themes
 system_themes_path = os.path.join(SAGENB_ROOT, 'themes')

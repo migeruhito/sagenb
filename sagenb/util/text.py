@@ -4,6 +4,8 @@ import re
 import string
 from flask.ext.babel import gettext
 
+from ..config import TRACEBACK
+
 valid_username_chars = r'a-zA-Z0-9_.@'
 valid_username_re = re.compile(r'[a-zA-Z_][{}]*'.format(valid_username_chars))
 invalid_username_re = re.compile('[^{}]'.format(valid_username_chars))
@@ -188,3 +190,51 @@ def extract_title(html_page):
         return gettext("Untitled")
 
     return title.groups()[0]
+
+
+def format_exception(s0, ncols):
+    r"""
+    Formats exceptions so they do not appear expanded by default.
+
+    INPUT:
+
+    - ``s0`` - a string
+
+    - ``ncols`` - an integer; number of word wrap columns
+
+    OUTPUT:
+
+    - a string
+
+    If ``s0`` contains "notracebacks," this function simply returns
+    ``s0``.
+
+    EXAMPLES::
+
+        sage: sagenb.notebook.cell.format_exception(
+            sagenb.notebook.cell.TRACEBACK,80)
+        '\nTraceback (click to the left of this block for traceback)\n...\n
+        Traceback (most recent call last):'
+        sage: sagenb.notebook.cell.format_exception(
+            sagenb.notebook.cell.TRACEBACK + "notracebacks",80)
+        'Traceback (most recent call last):notracebacks'
+    """
+    s = s0.lstrip()
+    # Add a notracebacks option -- if it is in the string then
+    # tracebacks aren't shrunk.  This is currently used by the
+    # functions sagenb.misc.support.help and sage.server.support.help.
+    if TRACEBACK not in s or 'notracebacks' in s:
+        return s0
+    if ncols > 0:
+        s = s.strip()
+        w = s.splitlines()
+        for k in range(len(w)):
+            if TRACEBACK in w[k]:
+                break
+        s = ('\n'.join(w[:k]) +
+             '\nTraceback (click to the left of this block for traceback)' +
+             '\n...\n' + w[-1])
+    else:
+        s = s.replace("exec compile(ur'", "")
+        s = s.replace("' + '\\n', '', 'single')", "")
+    return s
