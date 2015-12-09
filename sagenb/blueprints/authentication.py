@@ -14,11 +14,11 @@ from flask import current_app
 from flask.ext.babel import gettext
 
 from ..config import SAGE_VERSION
-from ..notebook.challenge import challenge
-from ..notebook.register import make_key
-from ..notebook.register import build_msg
-from ..notebook.register import build_password_msg
 from ..notebook.smtpsend import send_mail
+from ..util.auth import challenge
+from ..util.auth import register_make_key
+from ..util.auth import register_build_msg
+from ..util.auth import register_build_password_msg
 from ..util.templates import message as message_template
 from ..util.templates import render_template
 from ..util.text import do_passwords_match
@@ -257,11 +257,12 @@ def register():
     if g.notebook.conf()['email']:
 
         # TODO: make this come from the server settings
-        key = make_key()
+        key = register_make_key()
         listenaddr = g.notebook.interface
         port = g.notebook.port
         fromaddr = 'no-reply@%s' % listenaddr
-        body = build_msg(key, username, listenaddr, port, g.notebook.secure)
+        body = register_build_msg(
+            key, username, listenaddr, port, g.notebook.secure)
 
         # Send a confirmation message to the user.
         try:
@@ -339,7 +340,7 @@ def forgot_pass():
     listenaddr = g.notebook.interface
     port = g.notebook.port
     fromaddr = 'no-reply@%s' % listenaddr
-    body = build_password_msg(
+    body = register_build_password_msg(
         password, username, listenaddr, port, g.notebook.secure)
     destaddr = user.get_email()
     try:

@@ -4,7 +4,9 @@ import re
 import string
 from flask.ext.babel import gettext
 
-valid_username_re = re.compile(r'[a-zA-Z_][a-zA-Z0-9_.@]*')
+valid_username_chars = r'a-zA-Z0-9_.@'
+valid_username_re = re.compile(r'[a-zA-Z_][{}]*'.format(valid_username_chars))
+invalid_username_re = re.compile('[^{}]'.format(valid_username_chars))
 valid_email_re = re.compile(r"""
     ^%(unquoted)s+(\.%(unquoted)s+)*    # unquoted local-part
     @                                   # at
@@ -14,6 +16,10 @@ valid_email_re = re.compile(r"""
     re.IGNORECASE | re.VERBOSE)
 extract_title_re = re.compile(
     r'\<title\>(.*?)\<\/title\>', re.IGNORECASE | re.DOTALL)
+
+
+def trunc_invalid_username_chars(name):
+    return invalid_username_re.sub('_', name)
 
 
 def is_valid_username(username):

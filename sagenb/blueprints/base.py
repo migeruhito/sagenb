@@ -3,7 +3,6 @@ from __future__ import absolute_import
 
 import mimetypes
 import os
-import re
 import time
 
 from flask import Blueprint
@@ -19,17 +18,17 @@ from flask.ext.babel import gettext
 
 from ..util.templates import DynamicJs
 from ..config import SAGE_VERSION
-from ..notebook.challenge import challenge
-from ..notebook.misc import valid_username_chars
 from ..notebook.tutorial import notebook_help
 from ..notebook.user import User
 
+from ..util.auth import challenge
 from ..util.decorators import login_required
 from ..util.decorators import guest_or_login_required
 from ..util.decorators import with_lock
 from ..util.templates import render_template
 from ..util.text import is_valid_email
 from ..util.text import is_valid_username
+from ..util.text import trunc_invalid_username_chars
 from .worksheet import url_for_worksheet
 
 base = Blueprint('base', __name__)
@@ -192,12 +191,10 @@ def set_profiles():
 
     if request.method == 'GET':
         if 'openid_response' in session:
-            re_invalid_username_chars = re.compile(
-                '[^(%s)]' % valid_username_chars)
             openid_resp = session['openid_response']
             if openid_resp.fullname is not None:
-                openid_resp.fullname = re.sub(
-                    re_invalid_username_chars, '_', openid_resp.fullname)
+                openid_resp.fullname = trunc_invalid_username_chars(
+                    openid_resp.fullname)
             template_dict = {}
             if show_challenge:
                 template_dict['challenge_html'] = chal.html()

@@ -1,43 +1,200 @@
-# -*- coding: utf-8 -*
-r"""
-Notebook Registration Challenges
-
-This module includes support for challenge-response tests posed to
-users registering for new Sage notebook accounts.  These \ **C**\
-ompletely \ **A**\ utomated \ **P**\ ublic \ **T**\ uring tests to
-tell \ **C**\ omputers and \ **H**\ umans \ **A**\ part, or CAPTCHAs,
-may be simple math questions, requests for special registration codes,
-or reCAPTCHAs_.
-
-.. _reCAPTCHAs: http://recaptcha.net/
-
-AUTHORS:
-
-- reCAPTCHA_ is written by Ben Maurer and maintained by Josh
-  Bronson. It is licensed under a MIT/X11 license.  The reCAPTCHA
-  challenge implemented in :class:`reCAPTCHAChallenge` is adapted from
-  `this Python API`_, which is also available here_.
-
-.. _reCAPTCHA: http://recaptcha.net/
-.. _this Python API: http://pypi.python.org/pypi/recaptcha-client
-.. _here: http://code.google.com/p/recaptcha
-
-"""
 from __future__ import absolute_import
 
 import os
 import random
 import re
-import urllib2
 import urllib
+import urllib2
 
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
-from ..util.templates import render_template
+from . import get_module
+from .templates import render_template
 
 _ = lazy_gettext
 
+
+class AuthMethod():
+    """
+    Abstract class for authmethods that are used by ExtAuthUserManager
+    All auth methods must implement the following methods
+    """
+
+    def __init__(self, conf):
+        self._conf = conf
+
+    def check_user(self, username):
+        raise NotImplementedError
+
+    def check_password(self, username, password):
+        raise NotImplementedError
+
+    def get_attrib(self, username, attrib):
+        raise NotImplementedError
+
+
+class LdapAuth(AuthMethod):
+    """
+    Authentication via LDAP
+
+    User authentication basically works like this:
+    1.1) bind to LDAP with either
+            - generic configured DN and password (simple bind)
+            - GSSAPI (e.g. Kerberos)
+    1.2) find the ldap object matching username.
+
+    2) if 1 succeeds, try simple bind with the supplied user DN and password
+    """
+
+    def _require_ldap(default_return):
+        """
+        function decorator to
+            - disable LDAP auth
+            - return a "default" value (decorator argument)
+        if importing ldap fails
+        """
+        def wrap(f):
+            def wrapped_f(self, *args, **kwargs):
+                if get_module('ldap') is None:
+                    print "cannot 'import ldap', disabling LDAP auth"
+                    self._conf['auth_ldap'] = False
+                    return default_return
+                else:
+                    return f(self, *args, **kwargs)
+            return wrapped_f
+        return wrap
+
+    def __init__(self, conf):
+        AuthMethod.__init__(self, conf)
+
+    def _ldap_search(self, query, attrlist=None, sizelimit=20):
+        """
+        runs any ldap query passed as arg
+        """
+        import ldap
+        from ldap.sasl import gssapi
+        conn = ldap.initialize(self._conf['ldap_uri'])
+
+        try:
+            if self._conf['ldap_gssapi']:
+                token = gssapi()
+                conn.sasl_interactive_bind_s('', token)
+            else:
+                conn.simple_bind_s(
+                    self._conf['ldap_binddn'], self._conf['ldap_bindpw'])
+
+            result = conn.search_ext_s(
+                self._conf['ldap_basedn'],
+                ldap.SCOPE_SUBTREE,
+                filterstr=query,
+                attrlist=attrlist,
+                timeout=self._conf['ldap_timeout'],
+                sizelimit=sizelimit)
+        except ldap.LDAPError, e:
+            print 'LDAP Error: %s' % str(e)
+            return []
+        finally:
+            conn.unbind_s()
+
+        return result
+
+    def _get_ldapuser(self, username, attrlist=None):
+        """
+        Returns a tuple containing the DN and a dict of attributes of the given
+        username, or (None, None) if the username is not found
+        """
+        from ldap.filter import filter_format
+
+        query = filter_format(
+            '(%s=%s)', (self._conf['ldap_username_attrib'], username))
+
+        result = self._ldap_search(query, attrlist)
+
+        # only allow one unique result
+        # (len(result) will probably always be 0 or 1)
+        return result[0] if len(result) == 1 else (None, None)
+
+    @_require_ldap(False)
+    def check_user(self, username):
+        # LDAP is NOT case sensitive while sage is, so only allow lowercase
+        if not username.islower():
+            return False
+        dn, attribs = self._get_ldapuser(username)
+        return dn is not None
+
+    @_require_ldap(False)
+    def check_password(self, username, password):
+        import ldap
+
+        dn, attribs = self._get_ldapuser(username)
+        if not dn:
+            return False
+
+        # try to bind with found DN
+        conn = ldap.initialize(uri=self._conf['ldap_uri'])
+        try:
+            conn.simple_bind_s(dn, password)
+            return True
+        except ldap.INVALID_CREDENTIALS:
+            return False
+        except ldap.LDAPError, e:
+            print 'LDAP Error: %s' % str(e)
+            return False
+        finally:
+            conn.unbind_s()
+
+    @_require_ldap('')
+    def get_attrib(self, username, attrib):
+        # 'translate' attribute names used in ExtAuthUserManager
+        # to their ldap equivalents
+
+        # "email" is "mail"
+        if attrib == 'email':
+            attrib = 'mail'
+
+        dn, attribs = self._get_ldapuser(username, [attrib])
+        if not attribs:
+            return ''
+
+        # return the first item or '' if the attribute is missing
+        return attribs.get(attrib, [''])[0]
+
+
+# Registration
+
+def register_build_msg(key, username, addr, port, secure):
+    url_prefix = "https" if secure else "http"
+    s = gettext("Hi %(username)s!\n\n", username=username)
+    s += gettext(
+        'Thank you for registering for the Sage notebook. '
+        'To complete your registration, copy and paste'
+        ' the following link into your browser:\n\n'
+        '%(url_prefix)s://%(addr)s:%(port)s/confirm?key=%(key)s\n\n'
+        'You will be taken to a page which will confirm that you have '
+        'indeed registered.',
+        url_prefix=url_prefix, addr=addr, port=port, key=key)
+    return s.encode('utf-8')
+
+
+def register_build_password_msg(key, username, addr, port, secure):
+    url_prefix = "https" if secure else "http"
+    s = gettext("Hi %(username)s!\n\n", username=username)
+    s += gettext(
+        'Your new password is %(key)s\n\n'
+        'Sign in at %(url_prefix)s://%(addr)s:%(port)s/\n\n'
+        'Make sure to reset your password by going to Settings in the '
+        'upper right bar.',
+        key=key, url_prefix=url_prefix, addr=addr, port=port)
+    return s.encode('utf-8')
+
+
+def register_make_key():
+    key = random.randint(0, 2**128 - 1)
+    return key
+
+
+# Challenge
 
 class ChallengeResponse(object):
     """
