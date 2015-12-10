@@ -532,9 +532,7 @@ class Worksheet(object):
         """
         return self.owner() == '_sage_'
 
-    ##########################################################
     # Basic properties
-    ##########################################################
 
     def collaborators(self):
         """
@@ -1043,9 +1041,7 @@ class Worksheet(object):
         self.__pretty_print = check
         self.eval_asap_no_output("pretty_print_default(%r)" % check)
 
-    ##########################################################
     # 3-D plots
-    ##########################################################
 
     def live_3D(self):
         """
@@ -1099,9 +1095,7 @@ class Worksheet(object):
         """
         self.__live_3D = check
 
-    ##########################################################
     # Publication
-    ##########################################################
 
     def is_auto_publish(self):
         """
@@ -1441,9 +1435,7 @@ class Worksheet(object):
             rating = float(sum(r)) / float(len(r))
         return rating
 
-    ##########################################################
     # Active, trash can and archive
-    ##########################################################
 
     def everyone_has_deleted_this_worksheet(self):
         """
@@ -1812,9 +1804,7 @@ class Worksheet(object):
         if os.path.exists(dir):
             shutil.rmtree(dir)
 
-    ##########################################################
     # Owner/viewer/user management
-    ##########################################################
 
     def owner(self):
         try:
@@ -2015,9 +2005,7 @@ class Worksheet(object):
         except AttributeError:
             self.__collaborators = [user]
 
-    ##########################################################
     # Searching
-    ##########################################################
 
     def satisfies_search(self, search):
         """
@@ -2059,9 +2047,7 @@ class Worksheet(object):
         # Every single word is there.
         return True
 
-    ##########################################################
     # Saving
-    ##########################################################
 
     def save_snapshot(self, user, E=None):
         if not self.body_is_loaded():
@@ -2185,9 +2171,7 @@ class Worksheet(object):
             if creation > amnesty:
                 os.remove(os.path.join(path, snapshots[i]))
 
-    ##########################################################
     # Exporting the worksheet in plain text command-line format
-    ##########################################################
 
     def plain_text(self, prompts=False, banner=True):
         """
@@ -2216,9 +2200,7 @@ class Worksheet(object):
         """
         return '\n\n---\n\n'.join([C.input_text() for C in self.cell_list()])
 
-    ##########################################################
     # Editing the worksheet in plain text format (export and import)
-    ##########################################################
 
     def body(self):
         """
@@ -2427,9 +2409,7 @@ class Worksheet(object):
             name = name[:max] + ' ...'
         return name
 
-    ##########################################################
     # Last edited
-    ##########################################################
 
     def last_change(self):
         """
@@ -2541,9 +2521,7 @@ class Worksheet(object):
                 return True, user
         return False
 
-    ##########################################################
     # Managing cells and groups of cells in this worksheet
-    ##########################################################
 
     def cell_id_list(self):
         r"""
@@ -2856,9 +2834,7 @@ class Worksheet(object):
                     break
         return cells[0].id()
 
-    ##########################################################
     # Managing whether computing is happening: stop, start, clear, etc.
-    ##########################################################
 
     def clear(self):
         self.__comp_is_running = False
@@ -3293,9 +3269,7 @@ class Worksheet(object):
         # return URL in the web browser of the given cmd
         return '/home/%s/%s' % (self.filename(), cmd)
 
-    ##########################################################
     # Idle timeout
-    ##########################################################
 
     def quit_if_idle(self, timeout):
         r"""
@@ -3333,9 +3307,7 @@ class Worksheet(object):
             return
         self._record_that_we_are_computing(username)
 
-    ##########################################################
     # Enqueuing cells
-    ##########################################################
 
     def queue(self):
         return list(self.__queue)
@@ -3429,9 +3401,7 @@ class Worksheet(object):
     def append(self, L):
         self.cell_list().append(L)
 
-    ##########################################################
     # Accessing existing cells
-    ##########################################################
 
     def get_cell_with_id_or_none(self, id):
         """
@@ -3479,9 +3449,7 @@ class Worksheet(object):
             return False
         return True
 
-    ##########################################################
     # (Tab) Completions
-    ##########################################################
 
     def best_completion(self, s, word):
         completions = s.split()
@@ -3522,9 +3490,7 @@ class Worksheet(object):
             rows.append(row)
         return format_completions_as_html(id, rows)
 
-    ##########################################################
     # Processing of input and output to worksheet process.
-    ##########################################################
 
     def preparse_input(self, input, C):
         introspect = C.introspect()
@@ -3600,17 +3566,13 @@ class Worksheet(object):
             pass
         return out
 
-    ##########################################################
     # Loading and attaching files
-    ##########################################################
 
     def _eval_cmd(self, system, cmd):
         return u"print _support_.syseval(%s, %r, __SAGE_TMP_DIR__)" % (
             system, cmd)
 
-    ##########################################################
     # Parsing the %cython, %mathjax, %python, etc., extension.
-    ##########################################################
 
     def get_cell_system(self, cell):
         r"""
@@ -3757,9 +3719,7 @@ class Worksheet(object):
             cmd = self._eval_cmd(system, input)
             return True, cmd
 
-    ##########################################################
     # Showing and hiding all cells
-    ##########################################################
 
     def show_all(self):
         for C in self.cell_list():
