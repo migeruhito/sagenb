@@ -37,51 +37,33 @@ import time
 from time import strftime
 
 from flask.ext.babel import gettext
-from flask.ext.babel import lazy_gettext
-
-# General sage library code
-from ..util import walltime
-from ..util import ignore_nonexistent_files
-from ..util import set_restrictive_permissions
-from ..util import unicode_str
 
 from .. import config
 # Imports specifically relevant to the sage notebook
 from .cell import Cell, TextCell
-from ..util.templates import clean_name
+from ..config import INITIAL_NUM_CELLS
+from ..config import WARN_THRESHOLD
+from ..util import walltime
+from ..util import ignore_nonexistent_files
+from ..util import next_available_id
+from ..util import set_restrictive_permissions
+from ..util import unicode_str
+from ..util.templates import format_completions_as_html
 from ..util.templates import prettify_time_ago
-from ..util.templates import render_template
+from ..util.text import ignore_prompts_and_output
+from ..util.text import extract_text_before_first_compute_cell
+from ..util.text import extract_first_compute_cell
+from ..util.text import split_search_string_into_keywords
+from ..util.text import extract_name
+from ..util.text import extract_system
 
 _ = gettext
 
-# Set some constants that will be used for regular expressions below.
-whitespace = re.compile('\s')  # Match any whitespace character
-non_whitespace = re.compile('\S')
-
-# Constants that control the behavior of the worksheet.
-INTERRUPT_TRIES = 3    # number of times to send control-c to
-# subprocess before giving up
-INITIAL_NUM_CELLS = 1  # number of empty cells in new worksheets
-WARN_THRESHOLD = 100   # The number of seconds, so if there was no
-# activity on this worksheet for this many
-# seconds, then editing is considered safe.
-# Used when multiple people are editing the
-# same worksheet.
-
-# The strings used to synchronized the compute subprocesses.
-# WARNING:  If you make any changes to this, be sure to change the
-# error line below that looks like this:
-#         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
-SC = '\x01'
-SAGE_BEGIN = SC + 'b'
-SAGE_END = SC + 'e'
-SAGE_ERROR = SC + 'r'
-
 # Integers that define which folder this worksheet is in relative to a
 # given user.
-ARCHIVED = 0
-ACTIVE = 1
-TRASH = 2
+WS_ARCHIVED = 0
+WS_ACTIVE = 1
+WS_TRASH = 2
 
 
 all_worksheet_processes = []
@@ -94,33 +76,6 @@ def update_worksheets():
     """
     for S in all_worksheet_processes:
         S.update()
-
-
-def worksheet_filename(name, owner):
-    """
-    Return the relative directory name of this worksheet with given
-    name and owner.
-
-    INPUT:
-
-    -  ``name`` - string, which may have spaces and funny
-       characters, which are replaced by underscores.
-
-    -  ``owner`` - string, with no spaces or funny
-       characters
-
-    OUTPUT: string
-
-    EXAMPLES::
-
-        sage: sagenb.notebook.worksheet.worksheet_filename(
-            'Example worksheet 3', 'sage10')
-        'sage10/Example_worksheet_3'
-        sage: sagenb.notebook.worksheet.worksheet_filename(
-            'Example#%&! work\\sheet 3', 'sage10')
-        'sage10/Example_____work_sheet_3'
-    """
-    return os.path.join(owner, clean_name(name))
 
 
 def Worksheet_from_basic(obj, notebook_worksheet_directory):
@@ -342,7 +297,7 @@ class Worksheet(object):
                 dictionary mapping usernames to list of tags that
                 reflect what the tages are for that user.  A tag can be
                 an integer
-                  0,1,2 (=ARCHIVED,ACTIVE,TRASH),
+                  0,1,2 (=WS_ARCHIVED,WS_ACTIVE,WS_TRASH),
                 or a string (not yet supported).
                 This is used for now to fill in the __user_views.
             'last_change'
@@ -1568,8 +1523,8 @@ class Worksheet(object):
     def user_view(self, user):
         """
         Return the view that the given user has of this worksheet. If the
-        user currently doesn't have a view set it to ACTIVE and return
-        ACTIVE.
+        user currently doesn't have a view set it to WS_ACTIVE and return
+        WS_ACTIVE.
 
         INPUT:
 
@@ -1577,11 +1532,11 @@ class Worksheet(object):
 
         OUTPUT:
 
-        -  ``Python int`` - one of ACTIVE, ARCHIVED, TRASH,
+        -  ``Python int`` - one of WS_ACTIVE, WS_ARCHIVED, WS_TRASH,
            which are defined in worksheet.py
 
         EXAMPLES: We create a new worksheet and get the view, which is
-        ACTIVE::
+        WS_ACTIVE::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
@@ -1605,7 +1560,7 @@ class Worksheet(object):
             sage: sagenb.notebook.worksheet.ARCHIVED
             0
 
-        For any other random viewer the view is set by default to ACTIVE.
+        For any other random viewer the view is set by default to WS_ACTIVE.
 
         ::
 
@@ -1618,8 +1573,8 @@ class Worksheet(object):
             self.__user_view = {}
         except KeyError:
             pass
-        self.__user_view[user] = ACTIVE
-        return ACTIVE
+        self.__user_view[user] = WS_ACTIVE
+        return WS_ACTIVE
 
     def tags(self):
         """
@@ -1637,14 +1592,14 @@ class Worksheet(object):
 
     def set_tags(self, tags):
         """
-        Set the tags -- for now we ignore everything except ACTIVE,
-        ARCHIVED, TRASH.
+        Set the tags -- for now we ignore everything except WS_ACTIVE,
+        WS_ARCHIVED, WS_TRASH.
 
         INPUT:
 
             - ``tags`` -- dictionary with keys usernames and values a
-              list of tags, where a tag is a string or ARCHIVED,
-              ACTIVE, TRASH.
+              list of tags, where a tag is a string or WS_ARCHIVED,
+              WS_ACTIVE, WS_TRASH.
         """
         d = {}
         for user, v in tags.iteritems():
@@ -1661,8 +1616,8 @@ class Worksheet(object):
 
         -  ``user`` - a string
 
-        -  ``x`` - int, one of the variables ACTIVE, ARCHIVED,
-           TRASH in worksheet.py
+        -  ``x`` - int, one of the variables WS_ACTIVE, WS_ARCHIVED,
+           WS_TRASH in worksheet.py
 
         EXAMPLES::
 
@@ -1695,8 +1650,8 @@ class Worksheet(object):
 
         -  ``user`` - a string
 
-        -  ``x`` - int, one of the variables ACTIVE, ARCHIVED,
-           TRASH in worksheet.py
+        -  ``x`` - int, one of the variables WS_ACTIVE, WS_ARCHIVED,
+           WS_TRASH in worksheet.py
 
         EXAMPLES::
 
@@ -1733,7 +1688,7 @@ class Worksheet(object):
             sage: W.is_archived('admin')
             True
         """
-        return self.user_view_is(user, ARCHIVED)
+        return self.user_view_is(user, WS_ARCHIVED)
 
     def is_active(self, user):
         """
@@ -1757,7 +1712,7 @@ class Worksheet(object):
             sage: W.is_active('admin')
             False
         """
-        return self.user_view_is(user, ACTIVE)
+        return self.user_view_is(user, WS_ACTIVE)
 
     def is_trashed(self, user):
         """
@@ -1781,7 +1736,7 @@ class Worksheet(object):
             sage: W.is_trashed('admin')
             True
         """
-        return self.user_view_is(user, TRASH)
+        return self.user_view_is(user, WS_TRASH)
 
     def move_to_archive(self, user):
         """
@@ -1801,7 +1756,7 @@ class Worksheet(object):
             sage: W.is_archived('admin')
             True
         """
-        self.set_user_view(user, ARCHIVED)
+        self.set_user_view(user, WS_ARCHIVED)
         if self.viewers() == [user]:
             self.quit()
 
@@ -1826,7 +1781,7 @@ class Worksheet(object):
             sage: W.is_active('admin')
             True
         """
-        self.set_user_view(user, ACTIVE)
+        self.set_user_view(user, WS_ACTIVE)
 
     def move_to_trash(self, user):
         """
@@ -1846,7 +1801,7 @@ class Worksheet(object):
             sage: W.is_trashed('admin')
             True
         """
-        self.set_user_view(user, TRASH)
+        self.set_user_view(user, WS_TRASH)
         if self.viewers() == [user]:
             self.quit()
 
@@ -3541,21 +3496,6 @@ class Worksheet(object):
         """
         return self.get_cell_with_id_or_none(id) or self._new_cell(id)
 
-    def synchronize(self, s):
-        try:
-            i = (self.__synchro + 1) % 65536
-        except AttributeError:
-            i = 0
-        self.__synchro = i
-        return 'print "%s%s"\n' % (
-            SAGE_BEGIN, i) + s + '\nprint "%s%s"\n' % (SAGE_END, i)
-
-    def synchro(self):
-        try:
-            return self.__synchro
-        except AttributeError:
-            return 0
-
     def check_cell(self, id):
         """
         Checks the status of a given compute cell.
@@ -3675,23 +3615,6 @@ class Worksheet(object):
             input = ('print "\\n".join(_support_.completions("%s", '
                      'globals(), system="%s"))' % (input, self.system()))
         return input
-
-    def _strip_synchro_from_start_of_output(self, s):
-        z = SAGE_BEGIN + str(self.synchro())
-        i = s.find(z)
-        if i == -1:
-            # Did not find any synchronization info in the output
-            # stream.
-            j = s.find('Traceback')
-            if j != -1:
-                # Probably there was an error; better not hide it.
-                return s[j:]
-            else:
-                # Maybe we just read too early -- suppress displaying
-                # anything yet.
-                return ''
-        else:
-            return s[i + len(z):]
 
     def postprocess_output(self, out, C):
         if C.introspect():
@@ -3978,305 +3901,3 @@ class Worksheet(object):
                 "user '%s' not allowed to edit this worksheet" % username)
         for C in self.cell_list():
             C.delete_output()
-
-
-__internal_test1 = ('def foo(x):\n    """\n    EXAMPLES:\n        sage: 2+2\n'
-                    '        4\n    """\n    return x\n'.lstrip())
-
-__internal_test2 = '''
-sage: 2 + 2
-4
-'''.lstrip()
-
-
-def ignore_prompts_and_output(aString):
-    r"""
-    Given a string s that defines an input block of code, if the first
-    line begins in ``sage:`` (or ``>>>``), strip out all lines that
-    don't begin in either ``sage:`` (or ``>>>``) or ``...``, and
-    remove all ``sage:`` (or ``>>>``) and ``...`` from the beginning
-    of the remaining lines.
-
-    TESTS::
-
-        sage: test1 = sagenb.notebook.worksheet.__internal_test1
-        sage: test1 == sagenb.notebook.worksheet.ignore_prompts_and_output(
-            test1)
-        True
-        sage: test2 = sagenb.notebook.worksheet.__internal_test2
-        sage: sagenb.notebook.worksheet.ignore_prompts_and_output(test2)
-        '2 + 2\n'
-    """
-    s = aString.lstrip()
-    is_example = s.startswith('sage:') or s.startswith('>>>')
-    if not is_example:
-        return aString  # return original, not stripped copy
-    new = ''
-    lines = s.split('\n')
-    for line in lines:
-        line = line.lstrip()
-        if line.startswith('sage:'):
-            new += after_first_word(line).lstrip() + '\n'
-        elif line.startswith('>>>'):
-            new += after_first_word(line).lstrip() + '\n'
-        elif line.startswith('...'):
-            new += after_first_word(line) + '\n'
-    return new
-
-
-def extract_text_before_first_compute_cell(text):
-    """
-    OUTPUT: Everything in text up to the first {{{.
-    """
-    i = text.find('{{{')
-    if i == -1:
-        return text
-    return text[:i]
-
-
-def extract_first_compute_cell(text):
-    """
-    INPUT: a block of wiki-like marked up text OUTPUT:
-
-
-    -  ``meta`` - meta information about the cell (as a
-       dictionary)
-
-    -  ``input`` - string, the input text
-
-    -  ``output`` - string, the output text
-
-    -  ``end`` - integer, first position after }}} in
-       text.
-    """
-    # Find the input block
-    i = text.find('{{{')
-    if i == -1:
-        raise EOFError
-    j = text[i:].find('\n')
-    if j == -1:
-        raise EOFError
-    k = text[i:].find('|')
-    if k != -1 and k < j:
-        try:
-            meta = dictify(text[i + 3:i + k])
-        except TypeError:
-            meta = {}
-        i += k + 1
-    else:
-        meta = {}
-        i += 3
-
-    j = text[i:].find('\n}}}')
-    if j == -1:
-        j = len(text)
-    else:
-        j += i
-    k = text[i:].find('\n///')
-    if k == -1 or k + i > j:
-        input = text[i:j]
-        output = ''
-    else:
-        input = text[i:i + k].strip()
-        output = text[i + k + 4:j]
-
-    return meta, input.strip(), output, j + 4
-
-
-def after_first_word(s):
-    r"""
-    Return everything after the first whitespace in the string s.
-    Returns the empty string if there is nothing after the first
-    whitespace.
-
-    INPUT:
-
-    -  ``s`` - string
-
-    OUTPUT: a string
-
-    EXAMPLES::
-
-        sage: from sagenb.notebook.worksheet import after_first_word
-        sage: after_first_word("\%gap\n2+2\n")
-        '2+2\n'
-        sage: after_first_word("2+2")
-        ''
-    """
-    i = whitespace.search(s)
-    if i is None:
-        return ''
-    return s[i.start() + 1:]
-
-
-def first_word(s):
-    r"""
-    Returns everything before the first whitespace in the string s. If
-    there is no whitespace, then the entire string s is returned.
-
-    EXAMPLES::
-
-        sage: from sagenb.notebook.worksheet import first_word
-        sage: first_word("\%gap\n2+2\n")
-        '\\%gap'
-        sage: first_word("2+2")
-        '2+2'
-    """
-    i = whitespace.search(s)
-    if i is None:
-        return s
-    return s[:i.start()]
-
-
-def format_completions_as_html(cell_id, completions, username=None):
-    """
-    Returns tabular HTML code for a list of introspection completions.
-
-    INPUT:
-
-    - ``cell_id`` - an integer or a string; the ID of the ambient cell
-
-    - ``completions`` - a nested list of completions in row-major
-      order
-
-    OUTPUT:
-
-    - a string
-    """
-    if len(completions) == 0:
-        return ''
-
-    return render_template(
-        os.path.join("html", "worksheet", "completions.html"),
-        cell_id=cell_id,
-        # Transpose and enumerate completions to column-major
-        completions_enumerated=enumerate(map(list, zip(*completions))))
-
-
-def extract_name(text):
-    # The first line is the title
-    i = non_whitespace.search(text)
-    if i is None:
-        name = _('Untitled')
-        n = 0
-    else:
-        i = i.start()
-        j = text[i:].find('\n')
-        if j != -1:
-            name = text[i:i + j]
-            n = j + 1
-        else:
-            name = text[i:]
-            n = len(text) - 1
-    return name.strip(), n
-
-
-def extract_system(text):
-    # If the first line is "system: ..." , then it is the system.  Otherwise
-    # the system is Sage.
-    i = non_whitespace.search(text)
-    if i is None:
-        return 'sage', 0
-    else:
-        i = i.start()
-        if not text[i:].startswith('system:'):
-            return 'sage', 0
-        j = text[i:].find('\n')
-        if j != -1:
-            system = text[i:i + j][7:].strip()
-            n = j + 1
-        else:
-            system = text[i:][7:].strip()
-            n = len(text) - 1
-        return system, n
-
-
-def dictify(s):
-    """
-    INPUT:
-
-    -  ``s`` - a string like 'in=5, out=7'
-
-    OUTPUT:
-
-    -  ``dict`` - such as 'in':5, 'out':7
-    """
-    w = []
-    try:
-        for v in s.split(','):
-            a, b = v.strip().split('=')
-            try:
-                b = eval(b)
-            except:
-                pass
-            w.append([a, b])
-    except ValueError:
-        return {}
-    return dict(w)
-
-
-def next_available_id(v):
-    """
-    Return smallest nonnegative integer not in v.
-    """
-    i = 0
-    while i in v:
-        i += 1
-    return i
-
-
-# For pybabel
-lazy_gettext('January')
-lazy_gettext('February')
-lazy_gettext('March')
-lazy_gettext('April')
-lazy_gettext('May')
-lazy_gettext('June')
-lazy_gettext('July')
-lazy_gettext('August')
-lazy_gettext('September')
-lazy_gettext('October')
-lazy_gettext('November')
-lazy_gettext('December')
-
-
-def split_search_string_into_keywords(s):
-    r"""
-    The point of this function is to allow for searches like this::
-
-                  "ws 7" foo bar  Modular  '"the" end'
-
-    i.e., where search terms can be in quotes and the different quote
-    types can be mixed.
-
-    INPUT:
-
-    -  ``s`` - a string
-
-    OUTPUT:
-
-    -  ``list`` - a list of strings
-    """
-    ans = []
-    while len(s) > 0:
-        word, i = _get_next(s, '"')
-        if i != -1:
-            ans.append(word)
-            s = s[i:]
-        word, j = _get_next(s, "'")
-        if j != -1:
-            ans.append(word)
-            s = s[j:]
-        if i == -1 and j == -1:
-            break
-    ans.extend(s.split())
-    return ans
-
-
-def _get_next(s, quote='"'):
-    i = s.find(quote)
-    if i != -1:
-        j = s[i + 1:].find(quote)
-        if j != -1:
-            return s[i + 1:i + 1 + j].strip(), i + 1 + j
-    return None, -1

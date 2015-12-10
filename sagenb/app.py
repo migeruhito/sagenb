@@ -25,7 +25,6 @@ from .config import THEME_PATHS
 from .util.decorators import guest_or_login_required
 from .util import unicode_str
 from .util.templates import css_escape
-from .util.templates import clean_name
 from .util.templates import convert_time_to_string
 from .util.templates import prettify_time_ago
 from .util.templates import number_of_rows
@@ -77,7 +76,6 @@ def create_app(notebook, startup_token=None, debug=False):
     # Template filters
     app.add_template_filter(css_escape)
     app.add_template_filter(number_of_rows)
-    app.add_template_filter(clean_name)
     app.add_template_filter(convert_time_to_string)
     app.add_template_filter(prettify_time_ago)
     app.add_template_filter(max)

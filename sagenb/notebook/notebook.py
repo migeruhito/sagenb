@@ -37,14 +37,14 @@ from ..util.decorators import global_lock
 from ..util.docHTMLProcessor import docutilsHTMLProcessor
 from ..util.docHTMLProcessor import SphinxHTMLProcessor
 from ..util.text import extract_title
+from ..util.text import extract_name
 
-from . import worksheet    # individual worksheets (which make up a notebook)
 from . import server_conf  # server configuration
 from . import user         # users
 from .notification import logger
 from .notification import TwistedEmailHandler
 from .user_manager import OpenIDUserManager
-from .worksheet import extract_name
+from .worksheet import update_worksheets
 
 # System libraries
 
@@ -849,7 +849,7 @@ class Notebook(object):
         return id_number
 
     def new_worksheet_with_title_from_text(self, text, owner):
-        name, _ = worksheet.extract_name(text)
+        name, _ = extract_name(text)
         W = self.create_new_worksheet(name, owner)
         return W
 
@@ -1339,7 +1339,7 @@ class Notebook(object):
             W.quit()
 
     def update_worksheet_processes(self):
-        worksheet.update_worksheets()
+        update_worksheets()
 
     def quit_idle_worksheet_processes(self):
         timeout = self.conf()['idle_timeout']

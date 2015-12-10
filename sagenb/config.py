@@ -9,6 +9,8 @@ from pkg_resources import resource_filename
 from pkg_resources import working_set
 from subprocess import check_output
 
+from flask.ext.babel import lazy_gettext
+
 from .util import import_from
 from .util import sage_var  # if py3, from shutil import which
 from .util import which  # if py3, from shutil import which
@@ -134,6 +136,15 @@ MAX_OUTPUT_LINES = 120
 # See :func:`.util.text.format_exception`.
 TRACEBACK = 'Traceback (most recent call last):'
 
+# Worksheet control
+# Constants that control the behavior of the worksheet.
+INITIAL_NUM_CELLS = 1  # number of empty cells in new worksheets
+WARN_THRESHOLD = 100   # The number of seconds, so if there was no
+# activity on this worksheet for this many
+# seconds, then editing is considered safe.
+# Used when multiple people are editing the
+# same worksheet.
+
 # themes
 system_themes_path = os.path.join(SAGENB_ROOT, 'themes')
 user_themes_path = os.path.join(DOT_SAGENB, 'themes')
@@ -166,6 +177,19 @@ for name in (l for l in os.listdir(TRANSLATIONS_PATH) if l != 'en_US'):
         TRANSLATIONS.append(name)
 TRANSLATIONS.sort()
 TRANSLATIONS.insert(0, 'en_US')
+# For pybabel
+lazy_gettext('January')
+lazy_gettext('February')
+lazy_gettext('March')
+lazy_gettext('April')
+lazy_gettext('May')
+lazy_gettext('June')
+lazy_gettext('July')
+lazy_gettext('August')
+lazy_gettext('September')
+lazy_gettext('October')
+lazy_gettext('November')
+lazy_gettext('December')
 
 # GUI settings
 MATHJAX = True

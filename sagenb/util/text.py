@@ -18,6 +18,8 @@ valid_email_re = re.compile(r"""
     re.IGNORECASE | re.VERBOSE)
 extract_title_re = re.compile(
     r'\<title\>(.*?)\<\/title\>', re.IGNORECASE | re.DOTALL)
+whitespace_re = re.compile('\s')
+non_whitespace_re = re.compile('\S')
 
 
 def trunc_invalid_username_chars(name):
@@ -238,3 +240,227 @@ def format_exception(s0, ncols):
         s = s.replace("exec compile(ur'", "")
         s = s.replace("' + '\\n', '', 'single')", "")
     return s
+
+
+def ignore_prompts_and_output(aString):
+    r"""
+    Given a string s that defines an input block of code, if the first
+    line begins in ``sage:`` (or ``>>>``), strip out all lines that
+    don't begin in either ``sage:`` (or ``>>>``) or ``...``, and
+    remove all ``sage:`` (or ``>>>``) and ``...`` from the beginning
+    of the remaining lines.
+
+    TESTS::
+
+        sage: test1 = sagenb.notebook.worksheet.__internal_test1
+        sage: test1 == sagenb.notebook.worksheet.ignore_prompts_and_output(
+            test1)
+        True
+        sage: test2 = sagenb.notebook.worksheet.__internal_test2
+        sage: sagenb.notebook.worksheet.ignore_prompts_and_output(test2)
+        '2 + 2\n'
+    """
+    s = aString.lstrip()
+    is_example = s.startswith('sage:') or s.startswith('>>>')
+    if not is_example:
+        return aString  # return original, not stripped copy
+    new = ''
+    lines = s.split('\n')
+    for line in lines:
+        line = line.lstrip()
+        if line.startswith('sage:'):
+            new += after_first_word(line).lstrip() + '\n'
+        elif line.startswith('>>>'):
+            new += after_first_word(line).lstrip() + '\n'
+        elif line.startswith('...'):
+            new += after_first_word(line) + '\n'
+    return new
+
+
+def after_first_word(s):
+    r"""
+    Return everything after the first whitespace_re in the string s.
+    Returns the empty string if there is nothing after the first
+    whitespace_re.
+
+    INPUT:
+
+    -  ``s`` - string
+
+    OUTPUT: a string
+
+    EXAMPLES::
+
+        sage: from sagenb.notebook.worksheet import after_first_word
+        sage: after_first_word("\%gap\n2+2\n")
+        '2+2\n'
+        sage: after_first_word("2+2")
+        ''
+    """
+    i = whitespace_re.search(s)
+    if i is None:
+        return ''
+    return s[i.start() + 1:]
+
+
+def extract_text_before_first_compute_cell(text):
+    """
+    OUTPUT: Everything in text up to the first {{{.
+    """
+    i = text.find('{{{')
+    if i == -1:
+        return text
+    return text[:i]
+
+
+def extract_first_compute_cell(text):
+    """
+    INPUT: a block of wiki-like marked up text OUTPUT:
+
+
+    -  ``meta`` - meta information about the cell (as a
+       dictionary)
+
+    -  ``input`` - string, the input text
+
+    -  ``output`` - string, the output text
+
+    -  ``end`` - integer, first position after }}} in
+       text.
+    """
+    # Find the input block
+    i = text.find('{{{')
+    if i == -1:
+        raise EOFError
+    j = text[i:].find('\n')
+    if j == -1:
+        raise EOFError
+    k = text[i:].find('|')
+    if k != -1 and k < j:
+        try:
+            meta = dictify(text[i + 3:i + k])
+        except TypeError:
+            meta = {}
+        i += k + 1
+    else:
+        meta = {}
+        i += 3
+
+    j = text[i:].find('\n}}}')
+    if j == -1:
+        j = len(text)
+    else:
+        j += i
+    k = text[i:].find('\n///')
+    if k == -1 or k + i > j:
+        input = text[i:j]
+        output = ''
+    else:
+        input = text[i:i + k].strip()
+        output = text[i + k + 4:j]
+
+    return meta, input.strip(), output, j + 4
+
+
+def extract_name(text):
+    # The first line is the title
+    i = non_whitespace_re.search(text)
+    if i is None:
+        name = gettext('Untitled')
+        n = 0
+    else:
+        i = i.start()
+        j = text[i:].find('\n')
+        if j != -1:
+            name = text[i:i + j]
+            n = j + 1
+        else:
+            name = text[i:]
+            n = len(text) - 1
+    return name.strip(), n
+
+
+def extract_system(text):
+    # If the first line is "system: ..." , then it is the system.  Otherwise
+    # the system is Sage.
+    i = non_whitespace_re.search(text)
+    if i is None:
+        return 'sage', 0
+    else:
+        i = i.start()
+        if not text[i:].startswith('system:'):
+            return 'sage', 0
+        j = text[i:].find('\n')
+        if j != -1:
+            system = text[i:i + j][7:].strip()
+            n = j + 1
+        else:
+            system = text[i:][7:].strip()
+            n = len(text) - 1
+        return system, n
+
+
+def dictify(s):
+    """
+    INPUT:
+
+    -  ``s`` - a string like 'in=5, out=7'
+
+    OUTPUT:
+
+    -  ``dict`` - such as 'in':5, 'out':7
+    """
+    w = []
+    try:
+        for v in s.split(','):
+            a, b = v.strip().split('=')
+            try:
+                b = eval(b)
+            except:
+                pass
+            w.append([a, b])
+    except ValueError:
+        return {}
+    return dict(w)
+
+
+def split_search_string_into_keywords(s):
+    r"""
+    The point of this function is to allow for searches like this::
+
+                  "ws 7" foo bar  Modular  '"the" end'
+
+    i.e., where search terms can be in quotes and the different quote
+    types can be mixed.
+
+    INPUT:
+
+    -  ``s`` - a string
+
+    OUTPUT:
+
+    -  ``list`` - a list of strings
+    """
+    ans = []
+    while len(s) > 0:
+        word, i = get_next(s, '"')
+        if i != -1:
+            ans.append(word)
+            s = s[i:]
+        word, j = get_next(s, "'")
+        if j != -1:
+            ans.append(word)
+            s = s[j:]
+        if i == -1 and j == -1:
+            break
+    ans.extend(s.split())
+    return ans
+
+
+def get_next(s, quote='"'):
+    i = s.find(quote)
+    if i != -1:
+        j = s[i + 1:].find(quote)
+        if j != -1:
+            return s[i + 1:i + 1 + j].strip(), i + 1 + j
+    return None, -1

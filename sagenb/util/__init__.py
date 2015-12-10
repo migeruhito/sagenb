@@ -447,3 +447,13 @@ def cached_property(function):
             pass
 
     return property(fget=get_cached_property, fdel=del_cached_property)
+
+
+def next_available_id(v):
+    """
+    Return smallest nonnegative integer not in v.
+    """
+    i = 0
+    while i in v:
+        i += 1
+    return i

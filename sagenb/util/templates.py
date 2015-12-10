@@ -89,24 +89,6 @@ def convert_time_to_string(t):
         return time.strftime('%B %d, %Y %I:%M %p', time.localtime(float(t)))
 
 
-def clean_name(name):
-    """
-    Converts a string to a safe/clean name by converting non-alphanumeric
-    characters to underscores.
-
-    INPUT:
-
-    - name -- a string
-
-    EXAMPLES::
-
-        sage: from sagenb.util.templates import clean_name
-        sage: print clean_name('this!is@bad+string')
-        this_is_bad_string
-    """
-    return ''.join([x if x.isalnum() else '_' for x in name])
-
-
 def number_of_rows(txt, ncols):
     r"""
     Returns the number of rows needed to display a string, given a
@@ -353,3 +335,31 @@ def encode_response(obj, separators=(',', ':'), **kwargs):
     # TODO: Use cjson, simplejson instead?  Serialize Sage types,
     # e.g., Integer, RealLiteral?
     return json.dumps(obj, separators=separators, **kwargs)
+
+
+# completions
+
+
+def format_completions_as_html(cell_id, completions, username=None):
+    """
+    Returns tabular HTML code for a list of introspection completions.
+
+    INPUT:
+
+    - ``cell_id`` - an integer or a string; the ID of the ambient cell
+
+    - ``completions`` - a nested list of completions in row-major
+      order
+
+    OUTPUT:
+
+    - a string
+    """
+    if len(completions) == 0:
+        return ''
+
+    return render_template(
+        os.path.join("html", "worksheet", "completions.html"),
+        cell_id=cell_id,
+        # Transpose and enumerate completions to column-major
+        completions_enumerated=enumerate(map(list, zip(*completions))))
