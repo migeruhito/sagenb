@@ -28,9 +28,12 @@ from docutils.core import publish_parts
 from flask.ext.babel import lazy_gettext
 
 from .. import config
+from ..config import SYSTEMS
+from ..config import SYSTEM_NAMES
 from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
-from ..util import get_module
+from ..util import make_path_relative
+from ..util import sort_worksheet_list
 from ..util import unicode_str
 from ..util import walltime
 from ..util.decorators import global_lock
@@ -45,46 +48,6 @@ from .notification import logger
 from .notification import TwistedEmailHandler
 from .user_manager import OpenIDUserManager
 from .worksheet import update_worksheets
-
-# System libraries
-
-# Sage Notebook
-
-# For debugging sometimes it is handy to use only the reference implementation.
-
-if get_module('sage') is not None:
-    # sage is installed
-    # [(string: name, bool: optional)]
-    SYSTEMS = [('sage', False),
-               ('gap', False),
-               ('gp', False),
-               ('html', False),
-               ('latex', False),
-               ('maxima', False),
-               ('python', False),
-               ('r', False),
-               ('sh', False),
-               ('singular', False),
-               ('axiom', True),
-               ('fricas', True),
-               ('kash', True),
-               ('macaulay2', True),
-               ('magma', True),
-               ('maple', True,),
-               ('mathematica', True),
-               ('matlab', True),
-               ('mupad', True),
-               ('octave', True),
-               ('scilab', True)]
-else:
-    # sage is not installed
-    SYSTEMS = [('sage', True)]  # but gracefully degenerated version of
-    # sage mode, e.g., preparsing is trivial
-
-
-# We also record the system names without (optional) since they are
-# used in some of the html menus, etc.
-SYSTEM_NAMES = [v[0] for v in SYSTEMS]
 
 
 class WorksheetDict(dict):
@@ -1517,8 +1480,6 @@ class Notebook(object):
             print 'Done upgrading to model version 1'
             self.conf()['model_version'] = 1
 
-####################################################################
-
 
 def load_notebook(dir, interface=None, port=None, secure=None,
                   user_manager=None):
@@ -1576,10 +1537,7 @@ def migrate_old_notebook_v1(dir):
     nb_sobj = os.path.join(dir, 'nb.sobj')
     old_nb = cPickle.loads(open(nb_sobj).read())
 
-    ######################################################################
     # Tell user what is going on and make a backup
-    ######################################################################
-
     print ""
     print "*" * 80
     print "*"
@@ -1632,10 +1590,8 @@ def migrate_old_notebook_v1(dir):
         new_user.conf().confs = old_user.conf().confs
         users[new_user.username()] = new_user
 
-    ######################################################################
     # Set the worksheets of the new notebook equal to the ones from
     # the old one.
-    ######################################################################
 
     def migrate_old_worksheet(old_worksheet):
         """
@@ -1721,9 +1677,6 @@ def migrate_old_notebook_v1(dir):
         i += 1
         if i % 25 == 0:
             percent = i / float(num_worksheets)
-            # total_time * percent = time_so_far, so
-            # remaining_time = total_time - time_so_far =
-            # time_so_far*(1/percent - 1)
             print("    Migrated %s (of %s) worksheets (about %.0f seconds "
                   "remaining)" % (
                       i, num_worksheets, walltime(tm) * (1 / percent - 1)))
@@ -1745,65 +1698,3 @@ def migrate_old_notebook_v1(dir):
 
     print "Worksheet migration completed."
     return new_nb
-
-
-def make_path_relative(dir):
-    r"""
-    Replace an absolute path with a relative path, if possible.
-    Otherwise, return the given path.
-
-    INPUT:
-
-    - ``dir`` - a string containing, e.g., a directory name
-
-    OUTPUT:
-
-    - a string
-    """
-    base, file = os.path.split(dir)
-    if os.path.exists(file):
-        return file
-    return dir
-
-##########################################################
-# Misc
-##########################################################
-
-
-def sort_worksheet_list(v, sort, reverse):
-    """
-    Sort a given list on a given key, in a given order.
-
-    INPUT:
-
-    - ``sort`` - a string; 'last_edited', 'owner', 'rating', or 'name'
-
-    - ``reverse`` - a bool; if True, reverse the order of the sort.
-
-    OUTPUT:
-
-    - the sorted list
-    """
-    f = None
-    if sort == 'last_edited':
-        def c(a, b):
-            return -cmp(a.last_edited(), b.last_edited())
-        f = c
-    elif sort == 'name':
-        def c(a, b):
-            return cmp((a.name().lower(), -a.last_edited()),
-                       (b.name().lower(), -b.last_edited()))
-        f = c
-    elif sort == 'owner':
-        def c(a, b):
-            return cmp((a.owner().lower(), -a.last_edited()),
-                       (b.owner().lower(), -b.last_edited()))
-        f = c
-    elif sort == "rating":
-        def c(a, b):
-            return -cmp((a.rating(), -a.last_edited()),
-                        (b.rating(), -b.last_edited()))
-        f = c
-    else:
-        raise ValueError("invalid sort key '%s'" % sort)
-    v.sort(cmp=f, reverse=reverse)

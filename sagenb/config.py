@@ -11,6 +11,7 @@ from subprocess import check_output
 
 from flask.ext.babel import lazy_gettext
 
+from .util import get_module
 from .util import import_from
 from .util import sage_var  # if py3, from shutil import which
 from .util import which  # if py3, from shutil import which
@@ -121,6 +122,36 @@ SRC = os.path.join(SAGE_SRC, 'sage')
 JMOL = os.path.join(SAGE_SHARE, 'jmol')
 JSMOL = os.path.join(SAGE_SHARE, 'jsmol')
 J2S = os.path.join(JSMOL, 'j2s')
+
+# Notebook globals
+if get_module('sage') is not None:
+    # [(string: name, bool: optional)]
+    SYSTEMS = [('sage', False),
+               ('gap', False),
+               ('gp', False),
+               ('html', False),
+               ('latex', False),
+               ('maxima', False),
+               ('python', False),
+               ('r', False),
+               ('sh', False),
+               ('singular', False),
+               ('axiom', True),
+               ('fricas', True),
+               ('kash', True),
+               ('macaulay2', True),
+               ('magma', True),
+               ('maple', True,),
+               ('mathematica', True),
+               ('matlab', True),
+               ('mupad', True),
+               ('octave', True),
+               ('scilab', True)]
+else:
+    SYSTEMS = [('sage', True)]  # Gracefully degenerated version of
+    # sage mode, e.g., preparsing is trivial
+SYSTEM_NAMES = [v[0] for v in SYSTEMS]
+
 
 # Cell output control
 # Maximum number of characters allowed in output.  This is needed

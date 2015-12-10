@@ -457,3 +457,50 @@ def next_available_id(v):
     while i in v:
         i += 1
     return i
+
+
+def make_path_relative(dir):
+    r"""
+    Replace an absolute path with a relative path, if possible.
+    Otherwise, return the given path.
+
+    INPUT:
+
+    - ``dir`` - a string containing, e.g., a directory name
+
+    OUTPUT:
+
+    - a string
+    """
+    base, file = os.path.split(dir)
+    if os.path.exists(file):
+        return file
+    return dir
+
+
+def sort_worksheet_list(v, sort, reverse):
+    """
+    Sort a given list on a given key, in a given order.
+
+    INPUT:
+
+    - ``sort`` - a string; 'last_edited', 'owner', 'rating', or 'name'
+
+    - ``reverse`` - a bool; if True, reverse the order of the sort.
+
+    OUTPUT:
+
+    - the sorted list
+    """
+    def key_last_edited(a):
+        return -a.last_edited()
+    if sort == 'last_edited':
+        v.sort(key=key_last_edited, reverse=reverse)
+    elif sort in ['name', 'owner']:
+        v.sort(key=lambda a: (getattr(a, sort)().lower(), key_last_edited(a)),
+               reverse=reverse)
+    elif sort == 'rating':
+        v.sort(key=lambda a: (getattr(a, sort)(), key_last_edited(a)),
+               reverse=reverse)
+    else:
+        raise ValueError('Invalid sort key {!r}'.format(sort))
