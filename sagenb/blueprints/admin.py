@@ -43,21 +43,20 @@ def users(reset=None):
     if reset:
         password = random_password()
         try:
-            g.notebook.user_manager().set_password(reset, password)
+            g.notebook.user_manager.set_password(reset, password)
         except LookupError:
             pass
         else:
             template_dict['reset'] = [reset, password]
 
     template_dict['number_of_users'] = len(
-        g.notebook.user_manager().valid_login_names(
-        )) if len(g.notebook.user_manager(
-        ).valid_login_names()) > 1 else None
-    users = sorted(g.notebook.user_manager().valid_login_names())
+        g.notebook.user_manager.valid_login_names(
+        )) if len(g.notebook.user_manager.valid_login_names()) > 1 else None
+    users = sorted(g.notebook.user_manager.valid_login_names())
     del users[users.index('admin')]
-    template_dict['users'] = [g.notebook.user_manager().user(username)
+    template_dict['users'] = [g.notebook.user_manager.user(username)
                               for username in users]
-    template_dict['admin'] = g.notebook.user_manager().user(
+    template_dict['admin'] = g.notebook.user_manager.user(
         g.username).is_admin()
     template_dict['username'] = g.username
     return render_template(os.path.join(
@@ -69,7 +68,7 @@ def users(reset=None):
 @with_lock
 def suspend_user(user):
     try:
-        U = g.notebook.user_manager().user(user)
+        U = g.notebook.user_manager.user(user)
         U.set_suspension()
     except KeyError:
         pass
@@ -82,7 +81,7 @@ def suspend_user(user):
 def del_user(user):
     if user != 'admin':
         try:
-            g.notebook.user_manager().delete_user(user)
+            g.notebook.user_manager.delete_user(user)
         except KeyError:
             pass
     return redirect(url_for("admin.sers"))
@@ -93,7 +92,7 @@ def del_user(user):
 @with_lock
 def toggle_admin(user):
     try:
-        U = g.notebook.user_manager().user(user)
+        U = g.notebook.user_manager.user(user)
         if U.is_admin():
             U.revoke_admin()
         else:
@@ -108,7 +107,7 @@ def toggle_admin(user):
 @with_lock
 def add_user():
     template_dict = {
-        'admin': g.notebook.user_manager().user(g.username).is_admin(),
+        'admin': g.notebook.user_manager.user(g.username).is_admin(),
         'username': g.username,
         'sage_version': SAGE_VERSION}
     if 'username' in request.values:
@@ -125,14 +124,14 @@ def add_user():
 
         chara = string.letters + string.digits
         password = ''.join([choice(chara) for i in range(8)])
-        if username in g.notebook.user_manager().usernames():
+        if username in g.notebook.user_manager.usernames():
             return render_template(os.path.join('html',
                                                 'settings',
                                                 'admin_add_user.html'),
                                    error='username_taken',
                                    username_input=username,
                                    **template_dict)
-        g.notebook.user_manager().add_user(username, password, '', force=True)
+        g.notebook.user_manager.add_user(username, password, '', force=True)
 
         message = _('The temporary password for the new user '
                     '<em>%(username)s</em> is <em>%(password)s</em>',
@@ -153,8 +152,8 @@ def reset_user_password():
     user = request.values['username']
     password = random_password()
     try:
-        # U = g.notebook.user_manager().user(user)
-        g.notebook.user_manager().set_password(user, password)
+        # U = g.notebook.user_manager.user(user)
+        g.notebook.user_manager.set_password(user, password)
     except KeyError:
         pass
 
@@ -172,7 +171,7 @@ def reset_user_password():
 def suspend_user_nui():
     user = request.values['username']
     try:
-        U = g.notebook.user_manager().user(user)
+        U = g.notebook.user_manager.user(user)
         U.set_suspension()
     except KeyError:
         pass
@@ -196,14 +195,14 @@ def add_user_nui():
             'error': _('<strong>Invalid username!</strong>')
         })
 
-    if username in g.notebook.user_manager().usernames():
+    if username in g.notebook.user_manager.usernames():
         return encode_response({
             'error': _(
                 'The username <strong>%(username)s</strong> is already taken!',
                 username=username)
         })
 
-    g.notebook.user_manager().add_user(username, password, '', force=True)
+    g.notebook.user_manager.add_user(username, password, '', force=True)
     return encode_response({
         'message': _(
             'The temporary password for the new user <strong>%(username)s'
@@ -237,7 +236,7 @@ def notebook_settings():
     template_dict = {}
     template_dict['sage_version'] = SAGE_VERSION
     template_dict['auto_table'] = g.notebook.conf().html_table(updated)
-    template_dict['admin'] = g.notebook.user_manager().user(
+    template_dict['admin'] = g.notebook.user_manager.user(
         g.username).is_admin()
     template_dict['username'] = g.username
 

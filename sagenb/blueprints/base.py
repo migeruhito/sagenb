@@ -153,7 +153,7 @@ def create_or_login(resp):
     if not g.notebook.conf()['openid']:
         return redirect(url_for('base.index'))
     try:
-        username = g.notebook.user_manager().get_username_from_openid(
+        username = g.notebook.user_manager.get_username_from_openid(
             resp.identity_url)
         session['username'] = g.username = username
         session.modified = True
@@ -222,7 +222,7 @@ def set_profiles():
             if not is_valid_username(username):
                 parse_dict['username_invalid'] = True
                 raise ValueError("Invalid username")
-            if g.notebook.user_manager().user_exists(username):
+            if g.notebook.user_manager.user_exists(username):
                 parse_dict['username_taken'] = True
                 raise ValueError("Pre-existing username")
             if not is_valid_email(request.form.get('email')):
@@ -231,11 +231,11 @@ def set_profiles():
             try:
                 new_user = User(username, '', email=resp.email,
                                 account_type='user')
-                g.notebook.user_manager().add_user_object(new_user)
+                g.notebook.user_manager.add_user_object(new_user)
             except ValueError as msg:
                 parse_dict['creation_error'] = True
                 raise ValueError("Error in creating user\n%s" % msg)
-            g.notebook.user_manager().create_new_openid(
+            g.notebook.user_manager.create_new_openid(
                 resp.identity_url, username)
             session['username'] = g.username = username
             session.modified = True

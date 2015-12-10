@@ -67,7 +67,7 @@ def worksheet_view(f):
             if owner != '_sage_' and g.username != owner:
                 if not worksheet.is_published():
                     if (g.username not in worksheet.collaborators() and
-                            not g.notebook.user_manager().user_is_admin(
+                            not g.notebook.user_manager.user_is_admin(
                                 g.username)):
                         return message_template(
                             _("You do not have permission to access this "
@@ -130,7 +130,7 @@ def render_ws_template(ws=None, username='guest', admin=False, do_print=False,
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: render_ws_template(W, 'admin')
         u'...Test...cell_input...if (e.shiftKey)...state_number...'
@@ -148,7 +148,7 @@ def render_ws_template(ws=None, username='guest', admin=False, do_print=False,
     nb = g.notebook
 
     if ws.docbrowser() or ws.is_published():
-        if ws.is_published() or nb.user_manager().user_is_guest(username):
+        if ws.is_published() or nb.user_manager.user_is_guest(username):
             template_name = 'guest_worksheet_page.html'
             publish = True
         else:
@@ -182,7 +182,7 @@ def html_worksheet_revision_list(username, worksheet):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: W.body()
         u'\n\n{{{id=1|\n\n///\n}}}'
@@ -263,7 +263,7 @@ def html_share(worksheet, username):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: nb.html_share(W, 'admin')
         u'...currently shared...add or remove collaborators...'
@@ -295,7 +295,7 @@ def html_download_or_delete_datafile(ws, username, filename):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: nb.html_download_or_delete_datafile(W, 'admin', 'bar')
         u'...Data file: bar...DATA is a special variable...uploaded...'
@@ -340,7 +340,7 @@ def html_edit_window(worksheet, username):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: nb.html_edit_window(W, 'admin')
         u'...textarea class="plaintextedit"...{{{id=1|...//...}}}...'
@@ -372,7 +372,7 @@ def html_beforepublish_window(worksheet, username):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: nb.html_beforepublish_window(W, 'admin')
         u'...want to publish this worksheet?...re-publish when changes...'
@@ -431,7 +431,7 @@ def html_upload_data_window(ws, username):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: nb.html_upload_data_window(W, 'admin')
         u'...Upload or Create Data File...Browse...url...name of a new...'
@@ -456,7 +456,7 @@ def html_ratings_info(ws, username=None):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Publish Test', 'admin')
         sage: W.rate(0, 'this lacks content', 'riemann')
         sage: W.rate(3, 'this is great', 'hilbert')
@@ -489,7 +489,7 @@ def html_plain_text_window(worksheet, username):
 
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
-        sage: nb.create_default_users('password')
+        sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_new_worksheet('Test', 'admin')
         sage: nb.html_plain_text_window(W, 'admin')
         u'...pre class="plaintext"...cell_intext...textfield...'
@@ -525,7 +525,7 @@ def pub_worksheet(source):
 @worksheet.route('/new_worksheet')
 @login_required
 def new_worksheet():
-    if g.notebook.readonly_user(g.username):
+    if g.notebook.storage.readonly_user(g.username):
         return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))
@@ -624,7 +624,7 @@ def worksheet_command(target, **route_kwds):
                 if target.split('/')[0] not in published_commands_allowed:
                     raise NotImplementedError(
                         "User _sage_ can not access URL %s" % target)
-            if g.notebook.readonly_user(g.username):
+            if g.notebook.storage.readonly_user(g.username):
                 if target.split('/')[0] not in readonly_commands_allowed:
                     return message_template(
                         _("Account is in read-only mode"),
@@ -665,7 +665,7 @@ def worksheet_alive(worksheet):
 
 @worksheet_command('system/<system>')
 def worksheet_system(worksheet, system):
-    worksheet.set_system(system)
+    worksheet.system = system.strip()
     return 'success'
 
 
@@ -1163,7 +1163,7 @@ def worksheet_invite_collab(worksheet):
             _("Error: can't add more than 500 collaborators at a time"),
             cont=url_for_worksheet(worksheet))
     worksheet.set_collaborators(collaborators)
-    user_manager = g.notebook.user_manager()
+    user_manager = g.notebook.user_manager
     # add worksheet to new collaborators
     for u in collaborators - old_collaborators:
         try:
@@ -1678,7 +1678,7 @@ def worksheet_file(path):
 
     W = doc_worksheet()
     W.edit_save(doc_page)
-    W.set_system('sage')
+    W.system = 'sage'
     W.set_name(title)
     W.save()
     W.quit()

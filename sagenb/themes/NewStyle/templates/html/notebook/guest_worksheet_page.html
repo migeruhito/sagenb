@@ -20,7 +20,7 @@ INPUT:
     {% set edit_text = "Edit this." %}
     {% set edit_text = gettext('Edit this.') %}
     {% set url           = original_worksheet.worksheet_command('') %}
-{% elif notebook.user_manager().user_is_guest(username) %}
+{% elif notebook.user_manager.user_is_guest(username) %}
     {% set edit_text = gettext('Log in to edit a copy.') %}
     {% set url       = "/" %}
 {% else %}
@@ -39,14 +39,14 @@ INPUT:
     <li><a href="{{ url }}">{{ edit_text }}</a></li>
     <li><a href="download/{{ download_name }}.sws">{{ gettext('Download.') }}</a></li>
     {% if worksheet.rating() != -1 or
-       not (notebook.user_manager().user_is_guest(username) or worksheet.is_publisher(username)) %}
+       not (notebook.user_manager.user_is_guest(username) or worksheet.is_publisher(username)) %}
     <li>
         {% if worksheet.rating() != -1 %}
             <a class="usercontrol" href="rating_info">
                 {{ gettext('This page is rated %(wr).1f.', wr=worksheet.rating()) }}
             </a>
         {% endif %}
-        {% if not (notebook.user_manager().user_is_guest(username) or worksheet.is_publisher(username)) %}
+        {% if not (notebook.user_manager.user_is_guest(username) or worksheet.is_publisher(username)) %}
             <span>
             </span>
             {% for i in range(5) %}

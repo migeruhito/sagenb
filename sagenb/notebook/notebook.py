@@ -25,13 +25,12 @@ import traceback
 import sys
 
 from docutils.core import publish_parts
-from flask.ext.babel import lazy_gettext
 
 from .. import config
 from ..config import SYSTEMS
-from ..config import SYSTEM_NAMES
 from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
+from ..util import cached_property
 from ..util import make_path_relative
 from ..util import sort_worksheet_list
 from ..util import unicode_str
@@ -54,7 +53,7 @@ class WorksheetDict(dict):
 
     def __init__(self, notebook, *args, **kwds):
         self.notebook = notebook
-        self.storage = notebook._Notebook__storage
+        self.storage = notebook.storage
         dict.__init__(self, *args, **kwds)
 
     def __getitem__(self, item):
@@ -131,6 +130,7 @@ class Notebook(object):
     HISTORY_NCOLS = 90
 
     def __init__(self, dir, user_manager=None):
+        self.systems = SYSTEMS
         # TODO: This come from notebook.misc. Must by a conf parameter
         self.DIR = None
 
@@ -145,7 +145,7 @@ class Notebook(object):
         # For now we only support the FilesystemDatastore storage
         # backend.
         S = FilesystemDatastore(dir)
-        self.__storage = S
+        self.storage = S
 
         # Now set the configuration, loaded from the datastore.
         try:
@@ -155,8 +155,8 @@ class Notebook(object):
             # exist.
             self.__worksheets = WorksheetDict(self)
 
-        self._user_manager = (OpenIDUserManager(conf=self.conf())
-                              if user_manager is None else user_manager)
+        self.user_manager = (OpenIDUserManager(conf=self.conf())
+                             if user_manager is None else user_manager)
 
         # Set up email notification logger
         logger.addHandler(TwistedEmailHandler(self.conf(), logging.ERROR))
@@ -165,7 +165,7 @@ class Notebook(object):
 
         # Set the list of users
         try:
-            S.load_users(self._user_manager)
+            S.load_users(self.user_manager)
         except IOError:
             pass
 
@@ -174,13 +174,13 @@ class Notebook(object):
         self.__worksheets = W
 
         # Store / Refresh public worksheets
-        for id_number in os.listdir(self.__storage._abspath(
-                self.__storage._user_path("pub"))):
+        for id_number in os.listdir(self.storage._abspath(
+                self.storage._user_path("pub"))):
             if id_number.isdigit():
                 a = "pub/" + str(id_number)
                 if a not in self.__worksheets:
                     try:
-                        self.__worksheets[a] = self.__storage.load_worksheet(
+                        self.__worksheets[a] = self.storage.load_worksheet(
                             "pub", int(id_number))
                     except Exception:
                         print "Warning: problem loading %s/%s: %s" % (
@@ -188,7 +188,7 @@ class Notebook(object):
 
         # Set the openid-user dict
         try:
-            self._user_manager.load(S)
+            self.user_manager.load(S)
         except IOError:
             pass
 
@@ -218,132 +218,14 @@ class Notebook(object):
             ...
             OSError: [Errno 2] No such file or directory: '...
         """
-        self.__storage.delete()
+        self.storage.delete()
 
-    def systems(self, username=None):
-        systems = []
-        for system in SYSTEMS:
-            if system[1]:
-                systems.append(
-                    system[0] + ' (' + lazy_gettext('optional') + ')')
-            else:
-                systems.append(system[0])
-        return systems
-
+    @cached_property
     def system_names(self):
-        return SYSTEM_NAMES
+        return tuple(system[0] for system in self.systems)
 
-    def user_manager(self):
-        """
-        Returns self's UserManager object.
-
-        EXAMPLES::
-
-            sage: n = sagenb.notebook.notebook.Notebook(tmp_dir(ext='.sagenb'))
-            sage: n.user_manager()
-            <sagenb.notebook.user_manager.OpenIDUserManager object at 0x...>
-        """
-        return self._user_manager
-
-    ##########################################################
-    # Users
-    ##########################################################
-    def create_default_users(self, passwd):
-        """
-        Create the default users for a notebook.
-
-        INPUT:
-
-        - ``passwd`` - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: list(sorted(nb.user_manager().users().iteritems()))
-            [('_sage_', _sage_), ('admin', admin), ('guest', guest),
-             ('pub', pub)]
-            sage: list(
-                sorted(nb.user_manager().passwords().iteritems())) #random
-            [('_sage_', ''), ('admin', ''), ('guest', ''), ('pub', '')]
-            sage: nb.create_default_users('newpassword')
-            WARNING: User 'pub' already exists -- and is now being replaced.
-            WARNING: User '_sage_' already exists -- and is now being replaced.
-            WARNING: User 'guest' already exists -- and is now being replaced.
-            WARNING: User 'admin' already exists -- and is now being replaced.
-            sage: list(
-                sorted(nb.user_manager().passwords().iteritems())) #random
-            [('_sage_', ''), ('admin', ''), ('guest', ''), ('pub', '')]
-            sage: len(list(sorted(nb.user_manager().passwords().iteritems())))
-            4
-        """
-        self.user_manager().create_default_users(passwd)
-
-    def user(self, username):
-        """
-        Return an instance of the User class given the ``username`` of a user
-        in a notebook.
-
-        INPUT:
-
-        - ``username`` - a string
-
-        OUTPUT:
-
-        - an instance of User
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().create_default_users('password')
-            sage: nb.user('admin')
-            admin
-            sage: nb.user('admin').get_email()
-            ''
-            sage: nb.user('admin').password() #random
-            '256$7998210096323979f76e9fedaf1f85bda1561c479ae732f9c1f1abab129'\
-            '1b0b9$373f16b9d5fab80b9a9012af26a6b2d52d92b6d4b64c1836562cbd4264'\
-            'a6e704'
-        """
-        return self.user_manager().user(username)
-
-    def valid_login_names(self):
-        """
-        Return a list of users that can log in.
-
-        OUTPUT:
-
-        - a list of strings
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: nb.valid_login_names()
-            ['admin']
-            sage: nb.user_manager().add_user(
-                'Mark', 'password', '', force=True)
-            sage: nb.user_manager().add_user(
-                'Sarah', 'password', '', force=True)
-            sage: nb.user_manager().add_user(
-                'David', 'password', '', force=True)
-            sage: sorted(nb.valid_login_names())
-            ['David', 'Mark', 'Sarah', 'admin']
-        """
-        return self.user_manager().valid_login_names()
-
-    def readonly_user(self, username):
-        """
-        Returns True if the user is supposed to only be a read-only user.
-        """
-        return self.__storage.readonly_user(username)
-
-    ##########################################################
     # Publishing worksheets
-    ##########################################################
+
     def _initialize_worksheet(self, src, W):
         r"""
         Initialize a new worksheet from a source worksheet.
@@ -380,7 +262,7 @@ class Notebook(object):
         W.save()
 
     def pub_worksheets(self):
-        path = self.__storage._abspath(self.__storage._user_path("pub"))
+        path = self.storage._abspath(self.storage._user_path("pub"))
         v = []
         a = ""
         for id_number in os.listdir(path):
@@ -390,7 +272,7 @@ class Notebook(object):
                     v.append(self.__worksheets[a])
                 else:
                     try:
-                        self.__worksheets[a] = self.__storage.load_worksheet(
+                        self.__worksheets[a] = self.storage.load_worksheet(
                             "pub", int(id_number))
                         v.append(self.__worksheets[a])
                     except Exception:
@@ -406,7 +288,7 @@ class Notebook(object):
         if username == "pub":
             return self.pub_worksheets()
 
-        worksheets = self.__storage.worksheets(username)
+        worksheets = self.storage.worksheets(username)
         # if a worksheet has already been loaded in self.__worksheets, return
         # that instead since worksheets that are already running should be
         # noted as such
@@ -420,8 +302,8 @@ class Notebook(object):
         """
         # Should return worksheets from self.__worksheets if possible
         worksheets = self.users_worksheets(username)
-        user = self.user_manager().user(username)
-        viewable_worksheets = [self.__storage.load_worksheet(owner, id)
+        user = self.user_manager.user(username)
+        viewable_worksheets = [self.storage.load_worksheet(owner, id)
                                for owner, id in user.viewable_worksheets()]
         # we double-check that we can actually view these worksheets
         # just in case someone forgets to update the map
@@ -453,12 +335,12 @@ class Notebook(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user('Mark','password','',force=True)
+            sage: nb.user_manager.add_user('Mark','password','',force=True)
             sage: W = nb.new_worksheet_with_title_from_text(
                 'First steps', owner='Mark')
             sage: nb.worksheet_names()
             ['Mark/0']
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: nb.publish_worksheet(nb.get_worksheet_with_filename(
                 'Mark/0'), 'Mark')
             pub/0: [Cell 1: in=, out=]
@@ -489,9 +371,7 @@ class Notebook(object):
         W.save()
         return W
 
-    ##########################################################
     # Moving, copying, creating, renaming, and listing worksheets
-    ##########################################################
 
     def scratch_worksheet(self):
         try:
@@ -502,12 +382,12 @@ class Notebook(object):
             return W
 
     def create_new_worksheet(self, worksheet_name, username):
-        if username != 'pub' and self.user_manager().user_is_guest(username):
+        if username != 'pub' and self.user_manager.user_is_guest(username):
             raise ValueError("guests cannot create new worksheets")
 
         W = self.worksheet(username)
 
-        W.set_system(self.system(username))
+        W.system = self.system(username)
         W.set_name(worksheet_name)
         self.save_worksheet(W)
         self.__worksheets[W.filename()] = W
@@ -562,7 +442,7 @@ class Notebook(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.new_worksheet_with_title_from_text(
                 'Sage', owner='sage')
@@ -596,11 +476,11 @@ class Notebook(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.new_worksheet_with_title_from_text(
                 'Sage', owner='sage')
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'wstein','sage','wstein@sagemath.org',force=True)
             sage: W2 = nb.new_worksheet_with_title_from_text(
                 'Elliptic Curves', owner='wstein')
@@ -611,9 +491,7 @@ class Notebook(object):
         W.sort()
         return W
 
-    ##########################################################
     # Information about the pool of worksheet compute servers
-    ##########################################################
 
     def server_pool(self):
         return self.conf()['server_pool']
@@ -679,16 +557,14 @@ class Notebook(object):
         except AttributeError:
             pass
 
-    ##########################################################
     # Configuration settings.
-    ##########################################################
 
     def system(self, username=None):
         """
         The default math software system for new worksheets for a
         given user or the whole notebook (if username is None).
         """
-        return self.user(username).conf()['default_system']
+        return self.user_manager.user(username).conf()['default_system']
 
     def pretty_print(self, username=None):
         """
@@ -697,7 +573,7 @@ class Notebook(object):
 
         TODO -- only implemented for the notebook right now
         """
-        return self.user(username).conf()['default_pretty_print']
+        return self.user_manager.user(username).conf()['default_pretty_print']
 
     def set_pretty_print(self, pretty_print):
         self.__pretty_print = pretty_print
@@ -715,16 +591,15 @@ class Notebook(object):
     def set_color(self, color):
         self.__color = color
 
-    ##########################################################
     # The notebook history.
-    ##########################################################
+
     def user_history(self, username):
         if not hasattr(self, '_user_history'):
             self._user_history = {}
         if username in self._user_history:
             return self._user_history[username]
         history = []
-        for hunk in self.__storage.load_user_history(username):
+        for hunk in self.storage.load_user_history(username):
             hunk = unicode_str(hunk)
             history.append(hunk)
         self._user_history[username] = history
@@ -745,13 +620,11 @@ class Notebook(object):
     def add_to_user_history(self, entry, username):
         history = self.user_history(username)
         history.append(entry)
-        maxlen = self.user_manager().user_conf(username)['max_history_length']
+        maxlen = self.user_manager.user_conf(username)['max_history_length']
         while len(history) > maxlen:
             del history[0]
 
-    ##########################################################
     # Importing and exporting worksheets to files
-    ##########################################################
 
     def export_worksheet(self, worksheet_filename, output_filename,
                          title=None):
@@ -767,7 +640,7 @@ class Notebook(object):
             - ``title`` - title to use for the exported worksheet (if
                None, just use current title)
         """
-        S = self.__storage
+        S = self.storage
         W = self.get_worksheet_with_filename(worksheet_filename)
         S.save_worksheet(W)
         username = W.owner()
@@ -787,7 +660,7 @@ class Notebook(object):
 
             - ``id_number`` - nonnegative integer or None (default)
         """
-        S = self.__storage
+        S = self.storage
         if id_number is None:
             id_number = self.new_id_number(username)
         try:
@@ -801,7 +674,7 @@ class Notebook(object):
         """
         Find the next worksheet id for the given user.
         """
-        u = self.user(username).conf()
+        u = self.user_manager.user(username).conf()
         id_number = u['next_worksheet_id_number']
         if id_number == -1:  # need to initialize
             id_number = max(
@@ -847,7 +720,7 @@ class Notebook(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
             sage: W = nb.import_worksheet(name, 'admin')
@@ -924,7 +797,7 @@ class Notebook(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\na = 10\n}}}')
             sage: W = nb._import_worksheet_txt(name, 'admin'); W
@@ -962,7 +835,7 @@ class Notebook(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('{{{id=0\n2+3\n}}}')
             sage: W = nb.import_worksheet(name, 'admin')
@@ -987,7 +860,7 @@ class Notebook(object):
             ['admin/0', 'admin/1']
         """
         id_number = self.new_id_number(username)
-        worksheet = self.__storage.import_worksheet(
+        worksheet = self.storage.import_worksheet(
             username, id_number, filename)
 
         # I'm not at all convinced this is a good idea, since we
@@ -1019,7 +892,7 @@ class Notebook(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.html'
             sage: fd = open(name,'w')
             sage: fd.write(''.join([
@@ -1125,7 +998,7 @@ class Notebook(object):
             sage: fd.close()
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_worksheet_rst(name, 'admin')
             sage: W.name()
             u'Test Notebook'
@@ -1210,7 +1083,7 @@ class Notebook(object):
             sage: fd.close()
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_worksheet_docutils_html(name, 'admin')
             sage: W.name()
             u'Test Notebook'
@@ -1267,9 +1140,7 @@ class Notebook(object):
             name = name + " (%s)" % i
             worksheet.set_name(name)
 
-    ##########################################################
     # Server configuration
-    ##########################################################
 
     def conf(self):
         try:
@@ -1287,9 +1158,8 @@ class Notebook(object):
             self.__conf = C
             return C
 
-    ##########################################################
     # Computing control
-    ##########################################################
+
     def set_not_computing(self):
         # unpickled, no worksheets will think they are
         # being computed, since they clearly aren't (since
@@ -1321,9 +1191,8 @@ class Notebook(object):
         except KeyError:
             pass
 
-    ##########################################################
     # Worksheet HTML generation
-    ##########################################################
+
     def worksheet_list_for_public(self, username, sort='last_edited',
                                   reverse=False, search=None):
         W = self.users_worksheets('pub')
@@ -1348,9 +1217,8 @@ class Notebook(object):
         sort_worksheet_list(W, sort, reverse)  # changed W in place
         return W
 
-    ##########################################################
     # Accessing all worksheets with certain properties.
-    ##########################################################
+
     def active_worksheets_for(self, username):
         # TODO: check if the worksheets are active
         # return [ws for ws in self.get_worksheets_with_viewer(username) if
@@ -1362,7 +1230,7 @@ class Notebook(object):
         We should only call this if the user is admin!
         """
         all_worksheets = []
-        for username in self._user_manager.users():
+        for username in self.user_manager.users():
             if username in ['_sage_', 'pub']:
                 continue
             for w in self.users_worksheets(username):
@@ -1370,7 +1238,7 @@ class Notebook(object):
         return all_worksheets
 
     def get_worksheets_with_viewer(self, username):
-        if self._user_manager.user_is_admin(username):
+        if self.user_manager.user_is_admin(username):
             return self.get_all_worksheets()
         return self.users_worksheets_view(username)
 
@@ -1395,18 +1263,16 @@ class Notebook(object):
         except KeyError:
             raise KeyError("No worksheet with filename '%s'" % filename)
 
-    ###########################################################
     # Saving the whole notebook
-    ###########################################################
 
     def save(self):
         """
         Save this notebook server to disk.
         """
-        S = self.__storage
-        S.save_users(self.user_manager().users())
+        S = self.storage
+        S.save_users(self.user_manager.users())
         S.save_server_conf(self.conf())
-        self._user_manager.save(S)
+        self.user_manager.save(S)
         # Save the non-doc-browser worksheets.
         for n, W in self.__worksheets.items():
             if not n.startswith('doc_browser'):
@@ -1416,7 +1282,7 @@ class Notebook(object):
                 S.save_user_history(username, H)
 
     def save_worksheet(self, W, conf_only=False):
-        self.__storage.save_worksheet(W, conf_only=conf_only)
+        self.storage.save_worksheet(W, conf_only=conf_only)
 
     def logout(self, username):
         r"""
@@ -1443,9 +1309,9 @@ class Notebook(object):
         if model_version is None or model_version < 1:
             print "Upgrading model version to version 1"
             # this uses code from get_all_worksheets()
-            user_manager = self.user_manager()
+            user_manager = self.user_manager
             num_users = 0
-            for username in self._user_manager.users():
+            for username in self.user_manager.users():
                 num_users += 1
                 if num_users % 1000 == 0:
                     print 'Upgraded %d users' % num_users
@@ -1575,9 +1441,9 @@ def migrate_old_notebook_v1(dir):
             new_nb.conf().confs[t] = getattr(old_nb, '_Notebook__' + t)
 
     # Now update the user data from the old notebook to the new one:
-    print "Migrating %s user accounts..." % len(old_nb.user_manager().users())
-    users = new_nb.user_manager().users()
-    for username, old_user in old_nb.user_manager().users().iteritems():
+    print "Migrating %s user accounts..." % len(old_nb.user_manager.users())
+    users = new_nb.user_manager.users()
+    for username, old_user in old_nb.user_manager.users().iteritems():
         new_user = user.User(old_user.username(), '',
                              old_user.get_email(), old_user.account_type())
         new_user.set_hashed_password(old_user.password())
@@ -1686,7 +1552,7 @@ def migrate_old_notebook_v1(dir):
 
     # Migrating history
     new_nb._user_history = {}
-    for username in old_nb.user_manager().users().keys():
+    for username in old_nb.user_manager.users().keys():
         history_file = os.path.join(
             dir, 'worksheets', username, 'history.sobj')
         if os.path.exists(history_file):

@@ -9,7 +9,6 @@ INPUT:
 - select    - a string containing the control that is selected
 #}
 
-{% set system_names = worksheet.notebook().system_names() %}
 {% block title %}{{ worksheet.name() }}{% endblock %}
 
 
@@ -72,7 +71,7 @@ INPUT:
 {% endblock %}
 
 {% block main %}
-{% if notebook is defined and notebook.readonly_user(username) %}
+{% if notebook is defined and notebook.storage.readonly_user(username) %}
 <h1>{{ gettext('Account is read only.  You may download or delete worksheets or data.') }}</h1>
 {% endif %}
 
@@ -131,11 +130,11 @@ INPUT:
         </select>
 
         {% if not worksheet.docbrowser() and not worksheet.is_published() %}
-        <select onchange="go_system_select(this, {{ worksheet.system_index() }});" class="worksheet" id="systems-menu">
-            {% for system_name in worksheet.notebook().systems(username) %}
-            <option title="{{ gettext('Evaluate all input cells using %(i)s', i=system_names[loop.index0]) }}"
-                    {{ "selected" if worksheet.system_index() == loop.index0 else "" }} value="{{ system_names[loop.index0] }}">
-                {{ system_name }}
+        <select onchange="go_system_select(this, {{ worksheet.system_index }});" class="worksheet" id="systems-menu">
+            {% for system in worksheet.notebook().systems %}
+            <option title="{{ gettext('Evaluate all input cells using %(i)s', i=system[0]) }}"
+                    {{ "selected" if worksheet.system == system[0] else "" }} value="{{ system[0] }}">
+                    {{ system[0] }}{% if system[1] %} ({{ gettext('optional') }}){% endif %}
             </option>
             {% endfor %}
         </select>    

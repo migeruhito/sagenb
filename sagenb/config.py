@@ -126,7 +126,7 @@ J2S = os.path.join(JSMOL, 'j2s')
 # Notebook globals
 if get_module('sage') is not None:
     # [(string: name, bool: optional)]
-    SYSTEMS = [('sage', False),
+    SYSTEMS = (('sage', False),
                ('gap', False),
                ('gp', False),
                ('html', False),
@@ -146,11 +146,10 @@ if get_module('sage') is not None:
                ('matlab', True),
                ('mupad', True),
                ('octave', True),
-               ('scilab', True)]
+               ('scilab', True))
 else:
-    SYSTEMS = [('sage', True)]  # Gracefully degenerated version of
+    SYSTEMS = (('sage', True))  # Gracefully degenerated version of
     # sage mode, e.g., preparsing is trivial
-SYSTEM_NAMES = [v[0] for v in SYSTEMS]
 
 
 # Cell output control

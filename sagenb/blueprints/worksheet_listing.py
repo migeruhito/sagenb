@@ -62,7 +62,7 @@ def render_ws_list_template(args, pub, username):
     search = unicode_str(args['search']) if 'search' in args else None
     sort = args['sort'] if 'sort' in args else 'last_edited'
     reverse = (args['reverse'] == 'True') if 'reverse' in args else False
-    readonly = g.notebook.readonly_user(g.username)
+    readonly = g.notebook.storage.readonly_user(g.username)
     try:
         if not pub:
             worksheets = g.notebook.worksheet_list_for_user(
@@ -80,7 +80,7 @@ def render_ws_list_template(args, pub, username):
     if pub and (not username or username == tuple([])):
         username = 'pub'
 
-    accounts = g.notebook.user_manager().get_accounts()
+    accounts = g.notebook.user_manager.get_accounts()
     sage_version = SAGE_VERSION
     return render_template('html/worksheet_listing.html', **locals())
 
@@ -111,7 +111,7 @@ def worksheet_list():
     r = {}
 
     pub = 'pub' in request.args
-    g.notebook.readonly_user(g.username)
+    g.notebook.storage.readonly_user(g.username)
     typ = request.args['type'] if 'type' in request.args else 'active'
     search = unicode_str(
         request.args['search']) if 'search' in request.args else None
@@ -138,7 +138,7 @@ def worksheet_list():
     # if pub and (not g.username or g.username == tuple([])):
     #    r['username'] = 'pub'
 
-    r['accounts'] = g.notebook.user_manager().get_accounts()
+    r['accounts'] = g.notebook.user_manager.get_accounts()
     r['sage_version'] = SAGE_VERSION
     # r['pub'] = pub
 
@@ -149,7 +149,7 @@ def worksheet_list():
 @worksheet_listing.route('/home/<username>/')
 @login_required
 def home(username):
-    if not g.notebook.user_manager().user_is_admin(
+    if not g.notebook.user_manager.user_is_admin(
             g.username) and username != g.username:
         return message_template(_("User '%(user)s' does not have permission "
                                   "to view the home page of '%(name)s'.",
@@ -176,7 +176,7 @@ def bare_home():
 
 def get_worksheets_from_request():
     # TODO: Is this neccessary?
-    g.notebook.user_manager().user(g.username)
+    g.notebook.user_manager.user(g.username)
 
     if 'filename' in request.form:
         filenames = [request.form['filename']]
@@ -298,7 +298,7 @@ def download_worksheets():
 @worksheet_listing.route('/upload')
 @login_required
 def upload():
-    if g.notebook.readonly_user(g.username):
+    if g.notebook.storage.readonly_user(g.username):
         return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))
@@ -407,7 +407,7 @@ def parse_link_rel(url, fn):
 @worksheet_listing.route('/upload_worksheet', methods=['GET', 'POST'])
 @login_required
 def upload_worksheet():
-    if g.notebook.readonly_user(g.username):
+    if g.notebook.storage.readonly_user(g.username):
         return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))

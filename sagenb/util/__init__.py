@@ -449,6 +449,30 @@ def cached_property(function):
     return property(fget=get_cached_property, fdel=del_cached_property)
 
 
+def writable_cached_property(function):
+    attr_name = '__{}'.format(function.__name__)
+
+    def get_cached_property(self):
+        try:
+            output = getattr(self, attr_name)
+        except AttributeError:
+            output = function(self)
+            setattr(self, attr_name, output)
+        return output
+
+    def del_cached_property(self):
+        try:
+            delattr(self, attr_name)
+        except AttributeError:
+            pass
+
+    def set_cached_property(self, value):
+        setattr(self, attr_name, value)
+
+    return property(fget=get_cached_property, fset=set_cached_property,
+                    fdel=del_cached_property)
+
+
 def next_available_id(v):
     """
     Return smallest nonnegative integer not in v.

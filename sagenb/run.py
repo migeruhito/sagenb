@@ -340,28 +340,28 @@ class NotebookFrontend(object):
         nb.conf()['openid'] = self.conf['openid']
 
         if self.conf['accounts'] is not None:
-            nb.user_manager().set_accounts(self.conf['accounts'])
+            nb.user_manager.set_accounts(self.conf['accounts'])
         else:
-            nb.user_manager().set_accounts(nb.conf()['accounts'])
+            nb.user_manager.set_accounts(nb.conf()['accounts'])
 
-        if (nb.user_manager().user_exists('root') and
-                not nb.user_manager().user_exists('admin')):
+        if (nb.user_manager.user_exists('root') and
+                not nb.user_manager.user_exists('admin')):
             # This is here only for backward compatibility with one
             # version of the notebook.
             nb.create_user_with_same_password('admin', 'root')
             # It would be a security risk to leave an escalated account around.
 
-        if not nb.user_manager().user_exists('admin'):
+        if not nb.user_manager.user_exists('admin'):
             self.conf['reset'] = True
 
         if self.conf['reset']:
             passwd = self.get_admin_passwd()
-            if nb.user_manager().user_exists('admin'):
-                admin = nb.user_manager().user('admin')
+            if nb.user_manager.user_exists('admin'):
+                admin = nb.user_manager.user('admin')
                 admin.set_password(passwd)
                 print("Password changed for user 'admin'.")
             else:
-                nb.user_manager().create_default_users(passwd)
+                nb.user_manager.create_default_users(passwd)
                 print(
                     'User admin created with the password you specified.',
                     '',
@@ -376,7 +376,7 @@ class NotebookFrontend(object):
 
         # For old notebooks, make sure that default users are always created.
         # This fixes issue #175 (https://github.com/sagemath/sagenb/issues/175)
-        um = nb.user_manager()
+        um = nb.user_manager
         for user in ('_sage_', 'pub'):
             if not um.user_exists(user):
                 um.add_user(user, '', '', account_type='user', force=True)

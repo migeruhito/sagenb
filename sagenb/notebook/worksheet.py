@@ -114,7 +114,7 @@ class Worksheet(object):
     _last_identifier = re.compile(r'[a-zA-Z0-9._]*$')
 
     def __init__(self, name=None, id_number=None,
-                 notebook_worksheet_directory=None, system=None,
+                 notebook_worksheet_directory=None, system='sage',
                  owner=None, pretty_print=False,
                  auto_publish=False, create_directories=True, live_3D=False):
         ur"""
@@ -153,7 +153,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: import sagenb.notebook.misc
             sage: sagenb.notebook.misc.notebook = nb
             sage: W = nb.create_new_worksheet(
@@ -161,13 +161,13 @@ class Worksheet(object):
             sage: W
             admin/0: [Cell 1: in=, out=]
         """
+        self.system = system
         if name is None:
             # A fresh worksheet
             self.clear()
             return
 
         # Record the basic properties of the worksheet
-        self.__system = system
         self.__pretty_print = pretty_print
         self.__owner = owner
         self.__viewers = []
@@ -175,7 +175,6 @@ class Worksheet(object):
         self.__autopublish = auto_publish
         self.__saved_by_info = {}
         self.__live_3D = live_3D
-
         # state sequence number, used for sync
         self.__state_number = 0
 
@@ -326,7 +325,7 @@ class Worksheet(object):
         d = {
             'name': unicode(self.name()),
             'id_number': int(self.id_number()),
-            'system': self.system(),
+            'system': self.system,
             'owner': self.owner(),
             'viewers': self.viewers(),
             'collaborators': self.collaborators(),
@@ -440,7 +439,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(
                 ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W2 = nb.create_new_worksheet('test2', 'admin')
             sage: W1 = nb.create_new_worksheet('test1', 'admin')
             sage: cmp(W1, W2)
@@ -464,7 +463,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.__repr__()
             'admin/0: [Cell 1: in=, out=]'
@@ -485,7 +484,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: len(W)
             1
@@ -520,7 +519,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.docbrowser()
             False
@@ -548,7 +547,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.collaborators(); C
             []
@@ -575,7 +574,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.collaborators(); C
             []
@@ -604,10 +603,10 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.set_collaborators(['sage', 'admin', 'hilbert', 'sage'])
@@ -618,7 +617,7 @@ class Worksheet(object):
             sage: W.collaborators()
             ['hilbert', 'sage']
         """
-        users = self.notebook().user_manager().users()
+        users = self.notebook().user_manager.users()
         owner = self.owner()
         collaborators = set([u for u in v if u in users and u != owner])
         self.__collaborators = sorted(collaborators)
@@ -635,10 +634,10 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.add_viewer('hilbert')
@@ -667,7 +666,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: C = W.viewers(); C
             []
@@ -693,8 +692,8 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
                 'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('test1', 'admin')
             sage: W.add_viewer('hilbert')
@@ -722,7 +721,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.name()
             u'A Test Worksheet'
@@ -748,7 +747,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_name('A renamed worksheet')
             sage: W.name()
@@ -772,7 +771,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
             'admin/0'
@@ -795,7 +794,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
             'admin/0'
@@ -817,7 +816,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename()
             'admin/0'
@@ -835,7 +834,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.filename_without_owner()
             '0'
@@ -855,7 +854,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.directory()
             '.../home/admin/0'
@@ -872,7 +871,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.data_directory()
             '.../home/admin/0/data'
@@ -893,7 +892,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.attached_data_files()
             []
@@ -917,7 +916,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.cells_directory()
             '.../home/admin/0/cells'
@@ -944,7 +943,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.notebook()
             <...sagenb.notebook.notebook.Notebook...>
@@ -958,31 +957,7 @@ class Worksheet(object):
     def save(self, conf_only=False):
         self.notebook().save_worksheet(self, conf_only=conf_only)
 
-    def system(self):
-        """
-        Return the math software system in which by default all input to
-        the notebook is evaluated.
-
-        OUTPUT: string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
-            sage: W.system()
-            'sage'
-            sage: W.set_system('mathematica')
-            sage: W.system()
-            'mathematica'
-        """
-        try:
-            return self.__system
-        except AttributeError:
-            self.__system = 'sage'
-            return 'sage'
-
+    @property
     def system_index(self):
         """
         Return the index of the current system into the Notebook's
@@ -994,35 +969,12 @@ class Worksheet(object):
 
         OUTPUT: integer
         """
-        S = self.system()
-        names = self.notebook().system_names()
-        if S not in names:
-            S = names[0]
-            self.set_system(S)
+        system_names = self.notebook().system_names
+        try:
+            return system_names.index(self.system)
+        except ValueError:
+            self.system = system_names[0]
             return 0
-        else:
-            return names.index(S)
-
-    def set_system(self, system='sage'):
-        """
-        Set the math software system in which input is evaluated by
-        default.
-
-        INPUT:
-
-        -  ``system`` - string (default: 'sage')
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
-            sage: W.set_system('magma')
-            sage: W.system()
-            'magma'
-        """
-        self.__system = system.strip()
 
     def pretty_print(self):
         """
@@ -1036,7 +988,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.pretty_print()
             False
@@ -1073,7 +1025,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_pretty_print('false')
             sage: W.pretty_print()
@@ -1108,7 +1060,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.live_3D()
             False
@@ -1134,7 +1086,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('A Test Worksheet', 'admin')
             sage: W.set_live_3D(False)
             sage: W.live_3D()
@@ -1176,7 +1128,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.is_published()
             False
@@ -1198,7 +1150,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.worksheet_that_was_published() is W
             True
@@ -1226,7 +1178,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: S = nb.publish_worksheet(W, 'admin')
             sage: S.publisher()
@@ -1247,7 +1199,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
             sage: P.is_publisher('hearst')
@@ -1267,7 +1219,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
             sage: P.has_published_version()
@@ -1294,7 +1246,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')  # indirect test
             sage: W._Worksheet__published_version
@@ -1316,7 +1268,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
             sage: W.published_version() is P
@@ -1346,7 +1298,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: P = nb.publish_worksheet(W, 'admin')
             sage: P.worksheet_that_was_published() is W
@@ -1383,7 +1335,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(3, 'this is great', 'hilbert')
             sage: W.ratings()
@@ -1421,7 +1373,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rate(0, 'this lacks content', 'riemann')
             sage: W.is_rater('admin')
@@ -1446,7 +1398,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.ratings()
             []
@@ -1473,7 +1425,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.rating()
             -1
@@ -1504,7 +1456,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.everyone_has_deleted_this_worksheet()
             False
@@ -1540,7 +1492,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.user_view('admin')
             1
@@ -1623,7 +1575,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.set_user_view('admin', sagenb.notebook.worksheet.ARCHIVED)
             sage: W.user_view('admin') == sagenb.notebook.worksheet.ARCHIVED
@@ -1657,7 +1609,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Publish Test', 'admin')
             sage: W.user_view_is('admin', sagenb.notebook.worksheet.ARCHIVED)
             False
@@ -1680,7 +1632,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Archived Test', 'admin')
             sage: W.is_archived('admin')
             False
@@ -1704,7 +1656,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.is_active('admin')
             True
@@ -1728,7 +1680,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Trash Test', 'admin')
             sage: W.is_trashed('admin')
             False
@@ -1750,7 +1702,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Archive Test', 'admin')
             sage: W.move_to_archive('admin')
             sage: W.is_archived('admin')
@@ -1772,7 +1724,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.move_to_archive('admin')
             sage: W.is_active('admin')
@@ -1795,7 +1747,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Trash Test', 'admin')
             sage: W.move_to_trash('admin')
             sage: W.is_trashed('admin')
@@ -1817,7 +1769,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Active Test', 'admin')
             sage: W.move_to_trash('admin')
             sage: W.is_active('admin')
@@ -1836,8 +1788,8 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\n3^20\n}}}')
@@ -1912,9 +1864,9 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'william', 'william', 'wstein@sagemath.org', force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.user_can_edit('sage')
@@ -1955,9 +1907,9 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'wstein','sage','wstein@sagemath.org',force=True)
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.new_worksheet_with_title_from_text(
                 'Sage', owner='sage')
@@ -2021,8 +1973,8 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
                 'diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Viewer test', 'admin')
             sage: W.add_viewer('diophantus')
@@ -2047,8 +1999,8 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
                 'diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Collaborator test', 'admin')
             sage: W.collaborators()
@@ -2327,7 +2279,7 @@ class Worksheet(object):
         system, i = extract_system(text)
         if system == "None":
             system = "sage"
-        self.set_system(system)
+        self.system = system.strip()
         text = text[i:]
 
         self.edit_save(text)
@@ -2354,7 +2306,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test Edit Save', 'sage')
 
@@ -2380,7 +2332,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage', 'sage', 'sage@sagemath.org', force=True)
             sage: W = nb.create_new_worksheet('Test trac #8443', 'sage')
             sage: W.edit_save('{{{\n1+1\n///\n}}}')
@@ -2605,7 +2557,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
 
         Now we set the worksheet to have two cells with the default id of 0
@@ -2662,7 +2614,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
             sage: v = W.cell_list(); v
@@ -2696,7 +2648,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test', 'admin')
             sage: W.edit_save(
                 'foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
@@ -2723,7 +2675,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Edit Save', 'admin')
             sage: W
             admin/0: [Cell 1: in=, out=]
@@ -2858,7 +2810,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.create_default_users('password')
+            sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_new_worksheet('Test Delete Cell', 'admin')
             sage: W.edit_save(
                 '{{{id=foo|\n2+3\n///\n5\n}}}\n{{{id=9|\n2+8\n///\n10\n}}}'
@@ -3058,7 +3010,7 @@ class Worksheet(object):
             I = C.cleaned_input_text()
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
-                S = self.system()
+                S = self.system
                 if S is None:
                     S = 'sage'
                 C.set_output_text('Exited %s process' % S, '')
@@ -3121,7 +3073,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\n3^20\n}}}')
@@ -3274,7 +3226,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('{{{\nfactor(2^997-1)\n}}}')
@@ -3603,17 +3555,17 @@ class Worksheet(object):
             input = self._last_identifier.search(before_prompt[:-2]).group()
             input = (
                 'print _support_.source_code("%s", globals(), system="%s")' % (
-                    input, self.system()))
+                    input, self.system))
         elif before_prompt.endswith('?'):
             input = self._last_identifier.search(before_prompt[:-1]).group()
             input = (
                 'print _support_.docstring("%s", globals(), system="%s")' % (
-                    input, self.system()))
+                    input, self.system))
         else:
             input = self._last_identifier.search(before_prompt).group()
             C._word_being_completed = input
             input = ('print "\\n".join(_support_.completions("%s", '
-                     'globals(), system="%s"))' % (input, self.system()))
+                     'globals(), system="%s"))' % (input, self.system))
         return input
 
     def postprocess_output(self, out, C):
@@ -3670,7 +3622,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save(
@@ -3682,7 +3634,7 @@ class Worksheet(object):
             u'gap'
             sage: W.edit_save(
                 '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
-            sage: W.set_system('gap')
+            sage: W.system = 'gap'
             sage: c0, c1 = W.cell_list()
             sage: W.get_cell_system(c0)
             u'sage'
@@ -3692,7 +3644,7 @@ class Worksheet(object):
         if cell.system() is not None:
             system = cell.system()
         else:
-            system = self.system()
+            system = self.system
         return system
 
     def cython_import(self, cmd, cell):
@@ -3733,7 +3685,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
 
@@ -3773,7 +3725,7 @@ class Worksheet(object):
 
             sage: W.edit_save(
                 '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
-            sage: W.set_system('gap')
+            sage: W.system = 'gap'
             sage: c0, c1 = W.cell_list()
             sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, u'2+3')
@@ -3836,7 +3788,7 @@ class Worksheet(object):
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager().add_user(
+            sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save(

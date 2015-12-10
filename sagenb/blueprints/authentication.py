@@ -46,7 +46,7 @@ def lookup_current_user():
 
 @authentication.route('/login', methods=['POST', 'GET'])
 def login(template_dict={}):
-    template_dict.update({'accounts': g.notebook.user_manager().get_accounts(),
+    template_dict.update({'accounts': g.notebook.user_manager.get_accounts(),
                           'recovery': g.notebook.conf()['email'],
                           'next': request.values.get('next', ''),
                           'sage_version': SAGE_VERSION,
@@ -65,7 +65,7 @@ def login(template_dict={}):
         # we only handle ascii usernames.
         if is_valid_username(username):
             try:
-                U = g.notebook.user_manager().user(username)
+                U = g.notebook.user_manager.user(username)
             except (KeyError, LookupError):
                 U = None
                 template_dict['username_error'] = True
@@ -83,7 +83,7 @@ def login(template_dict={}):
         if U is None:
             pass
         elif (is_valid_password(password, username) and
-              g.notebook.user_manager().check_password(username, password)):
+              g.notebook.user_manager.check_password(username, password)):
             if U.is_suspended():
                 # suspended
                 return _("Your account is currently suspended")
@@ -121,7 +121,7 @@ waiting = {}
 @authentication.route('/register', methods=['GET', 'POST'])
 @with_lock
 def register():
-    if not g.notebook.user_manager().get_accounts():
+    if not g.notebook.user_manager.get_accounts():
         return redirect(url_for('base.index'))
 
     # VALIDATORS: is_valid_username, is_valid_password,
@@ -168,7 +168,7 @@ def register():
     if username:
         if not is_valid_username(username):
             template_dict['username_invalid'] = True
-        elif g.notebook.user_manager().user_exists(username):
+        elif g.notebook.user_manager.user_exists(username):
             template_dict['username_taken'] = True
         else:
             template_dict['username'] = username
@@ -239,16 +239,15 @@ def register():
 
     # Create an account, if username is unique.
     try:
-        g.notebook.user_manager().add_user(username, password, email_address)
+        g.notebook.user_manager.add_user(username, password, email_address)
     except ValueError:
         template_dict['username_taken'] = True
         template_dict['error'] = 'E '
 
-        form = render_template(os.path.join('html',
+        return render_template(os.path.join('html',
                                             'accounts',
                                             'registration.html'),
                                **template_dict)
-        return HTMLResponse(stream=form)
 
     # XXX: Add logging support
     # log.msg("Created new user '%s'"%username)
@@ -273,7 +272,7 @@ def register():
             pass
 
     # Go to the login page.
-    template_dict = {'accounts': g.notebook.user_manager().get_accounts(),
+    template_dict = {'accounts': g.notebook.user_manager.get_accounts(),
                      'welcome_user': username,
                      'recovery': g.notebook.conf()['email'],
                      'sage_version': SAGE_VERSION}
@@ -295,7 +294,7 @@ def confirm():
     """)
     try:
         username = waiting[key]
-        user = g.notebook.user(username)
+        user = g.notebook.user_manager.user(username)
         user.set_email_confirmation(True)
     except KeyError:
         return message_template(invalid_confirm_key, '/register')
@@ -322,7 +321,7 @@ def forgot_pass():
         return message_template(msg, url_for('forgot_pass'))
 
     try:
-        user = g.notebook.user(username)
+        user = g.notebook.user_manager.user(username)
     except KeyError:
         return error(_('Username is invalid.'))
 
@@ -351,7 +350,7 @@ def forgot_pass():
         return error(
             _("The new password couldn't be sent to %(dest)s.", dest=destaddr))
     else:
-        g.notebook.user_manager().set_password(username, password)
+        g.notebook.user_manager.set_password(username, password)
 
     return message_template(
         _("A new password has been sent to your e-mail address."),
