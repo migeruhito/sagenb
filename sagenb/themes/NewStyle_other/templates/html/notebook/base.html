@@ -71,7 +71,7 @@ INPUT:
 {% endblock %}
 
 {% block main %}
-{% if notebook is defined and notebook.storage.readonly_user(username) %}
+{% if notebook is defined and notebook.readonly_user(username) %}
 <h1>{{ gettext('Account is read only.  You may download or delete worksheets or data.') }}</h1>
 {% endif %}
 

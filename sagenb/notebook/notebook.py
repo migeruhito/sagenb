@@ -53,7 +53,7 @@ class WorksheetDict(dict):
 
     def __init__(self, notebook, *args, **kwds):
         self.notebook = notebook
-        self.storage = notebook.storage
+        self._storage = notebook._storage
         dict.__init__(self, *args, **kwds)
 
     def __getitem__(self, item):
@@ -72,7 +72,7 @@ class WorksheetDict(dict):
         except ValueError:
             raise KeyError(item)
         try:
-            worksheet = self.storage.load_worksheet(username, id)
+            worksheet = self._storage.load_worksheet(username, id)
         except ValueError:
             raise KeyError(item)
 
@@ -145,7 +145,7 @@ class Notebook(object):
         # For now we only support the FilesystemDatastore storage
         # backend.
         S = FilesystemDatastore(dir)
-        self.storage = S
+        self._storage = S
 
         # Now set the configuration, loaded from the datastore.
         try:
@@ -174,13 +174,13 @@ class Notebook(object):
         self.__worksheets = W
 
         # Store / Refresh public worksheets
-        for id_number in os.listdir(self.storage._abspath(
-                self.storage._user_path("pub"))):
+        for id_number in os.listdir(self._storage._abspath(
+                self._storage._user_path("pub"))):
             if id_number.isdigit():
                 a = "pub/" + str(id_number)
                 if a not in self.__worksheets:
                     try:
-                        self.__worksheets[a] = self.storage.load_worksheet(
+                        self.__worksheets[a] = self._storage.load_worksheet(
                             "pub", int(id_number))
                     except Exception:
                         print "Warning: problem loading %s/%s: %s" % (
@@ -218,13 +218,21 @@ class Notebook(object):
             ...
             OSError: [Errno 2] No such file or directory: '...
         """
-        self.storage.delete()
+        self._storage.delete()
 
     @cached_property
     def system_names(self):
         return tuple(system[0] for system in self.systems)
 
-    # Publishing worksheets
+    # Users
+
+    def readonly_user(self, username):
+        """
+        Returns True if the user is supposed to only be a read-only user.
+        """
+        return self._storage.readonly_user(username)
+
+    # # Worksheets
 
     def _initialize_worksheet(self, src, W):
         r"""
@@ -261,60 +269,122 @@ class Notebook(object):
         W.edit_save(src.edit_text())
         W.save()
 
-    def pub_worksheets(self):
-        path = self.storage._abspath(self.storage._user_path("pub"))
+    # Query worksheets
+
+    def _with_running_worksheets(self, worksheets):
+        """
+        if a worksheet has already been loaded in self.__worksheets, return
+        that instead since worksheets that are already running should be
+        noted as such.
+        """
+        return [self.__worksheets.get(w.filename(), w) for w in worksheets]
+
+    @property
+    def _pub_wsts(self):
+        path = self._storage._abspath(self._storage._user_path("pub"))
         v = []
         a = ""
-        for id_number in os.listdir(path):
-            if id_number.isdigit():
-                a = "pub" + "/" + id_number
-                if a in self.__worksheets:
-                    v.append(self.__worksheets[a])
-                else:
-                    try:
-                        self.__worksheets[a] = self.storage.load_worksheet(
-                            "pub", int(id_number))
-                        v.append(self.__worksheets[a])
-                    except Exception:
-                        print "Warning: problem loading %s/%s: %s" % (
-                            "pub", id_number, traceback.format_exc())
+        for id_number in (idn for idn in os.listdir(path) if idn.isdigit()):
+            a = os.join('pub', id_number)
+            if a not in self.__worksheets:
+                try:
+                    self.__worksheets[a] = self._storage.load_worksheet(
+                        "pub", int(id_number))
+                except Exception:
+                    print('Warning: problem loading {}: {}'.format(
+                        a, traceback.format_exc()))
+                    continue
+
+            v.append(self.__worksheets[a])
         return v
 
-    def users_worksheets(self, username):
+    def _user_viewable_wsts(self, username):
+        r"""
+        Returns all worksheets viewable by `username`.
+        For `admin`, only the worksheets owned by him are returned.
+        """
+        # Should return worksheets from self.__worksheets if possible
+        worksheets = self.user_wsts(username)
+        user_vw = self.user_manager.user(username).viewable_worksheets()
+        viewable_worksheets = (
+            self._storage.load_worksheet(owner, id) for owner, id in user_vw)
+        # we double-check that we can actually view these worksheets
+        # just in case someone forgets to update the map
+        worksheets.extend(
+            w for w in viewable_worksheets if w.is_viewer(username))
+        return self._with_running_worksheets(worksheets)
+
+    def user_wsts(self, username):
         r"""
         Returns all worksheets owned by `username`
         """
-
         if username == "pub":
-            return self.pub_worksheets()
+            return self._pub_wsts
 
-        worksheets = self.storage.worksheets(username)
-        # if a worksheet has already been loaded in self.__worksheets, return
-        # that instead since worksheets that are already running should be
-        # noted as such
-        return ([self.__worksheets[w.filename()]
-                 if w.filename() in self.__worksheets
-                 else w for w in worksheets])
+        worksheets = self._storage.worksheets(username)
+        return self._with_running_worksheets(worksheets)
 
-    def users_worksheets_view(self, username):
-        r"""
-        Returns all worksheets viewable by `username`
+    def user_active_wsts(self, username):
+        return [wst for wst in self.user_viewable_wsts(username)
+                if wst.is_active(username)]
+
+    def user_trashed_wsts(self, username):
+        return [wst for wst in self.user_viewable_wsts(username)
+                if wst.is_trashed(username)]
+
+    def user_archived_wsts(self, username):
+        return [wst for wst in self.user_viewable_wsts(username)
+                if wst.is_archived(username)]
+
+    def user_viewable_wsts(self, username):
+        if self.user_manager.user_is_admin(username):
+            return self.all_wsts
+        return self._user_viewable_wsts(username)
+
+    def user_selected_wsts(self, user, typ="active", sort='last_edited',
+                           reverse=False, search=None):
+        if user == 'pub':
+            W = self.user_wsts('pub')
+        elif typ == "trash":
+            W = self.user_trashed_wsts(user)
+        elif typ == "active":
+            W = self.user_active_wsts(user)
+        else:  # typ must be archived
+            W = self.user_archived_wsts(user)
+
+        if search:
+            W = [x for x in W if x.satisfies_search(search)]
+        sort_worksheet_list(W, sort, reverse)  # changed W in place
+        return W
+
+    def filename_wst(self, filename):
         """
-        # Should return worksheets from self.__worksheets if possible
-        worksheets = self.users_worksheets(username)
-        user = self.user_manager.user(username)
-        viewable_worksheets = [self.storage.load_worksheet(owner, id)
-                               for owner, id in user.viewable_worksheets()]
-        # we double-check that we can actually view these worksheets
-        # just in case someone forgets to update the map
-        worksheets.extend([w for w in viewable_worksheets
-                           if w.is_viewer(username)])
-        # if a worksheet has already been loaded in self.__worksheets, return
-        # that instead since worksheets that are already running should be
-        # noted as such
-        return [self.__worksheets[w.filename()]
-                if w.filename() in self.__worksheets else w
-                for w in worksheets]
+        Get the worksheet with the given filename.  If there is no
+        such worksheet, raise a ``KeyError``.
+
+        INPUT:
+
+        - ``filename`` - a string
+
+        OUTPUT:
+
+        - a Worksheet instance
+        """
+        try:
+            return self.__worksheets[filename]
+        except KeyError:
+            raise KeyError("No worksheet with filename '%s'" % filename)
+
+    @property
+    def all_wsts(self):
+        """
+        We should only call this if the user is admin!
+        """
+        return [w for username in self.user_manager.users()
+                if username not in ['_sage_', 'pub']
+                for w in self.user_wsts(username)]
+
+    # Publish worksheets
 
     def publish_worksheet(self, worksheet, username):
         r"""
@@ -341,7 +411,7 @@ class Notebook(object):
             sage: nb.worksheet_names()
             ['Mark/0']
             sage: nb.user_manager.create_default_users('password')
-            sage: nb.publish_worksheet(nb.get_worksheet_with_filename(
+            sage: nb.publish_worksheet(nb.filename_wst(
                 'Mark/0'), 'Mark')
             pub/0: [Cell 1: in=, out=]
             sage: sorted(nb.worksheet_names())
@@ -350,7 +420,7 @@ class Notebook(object):
         W = None
 
         # Reuse an existing published version
-        for X in self.get_worksheets_with_owner('pub'):
+        for X in self.user_wsts('pub'):
             if (X.worksheet_that_was_published() == worksheet):
                 W = X
 
@@ -454,7 +524,7 @@ class Notebook(object):
             sage: nb.worksheet_names()
             []
         """
-        X = self.get_worksheets_with_viewer(username)
+        X = self.user_viewable_wsts(username)
         X = [W for W in X if W.is_trashed(username)]
         for W in X:
             W.delete_user(username)
@@ -599,7 +669,7 @@ class Notebook(object):
         if username in self._user_history:
             return self._user_history[username]
         history = []
-        for hunk in self.storage.load_user_history(username):
+        for hunk in self._storage.load_user_history(username):
             hunk = unicode_str(hunk)
             history.append(hunk)
         self._user_history[username] = history
@@ -640,8 +710,8 @@ class Notebook(object):
             - ``title`` - title to use for the exported worksheet (if
                None, just use current title)
         """
-        S = self.storage
-        W = self.get_worksheet_with_filename(worksheet_filename)
+        S = self._storage
+        W = self.filename_wst(worksheet_filename)
         S.save_worksheet(W)
         username = W.owner()
         id_number = W.id_number()
@@ -660,7 +730,7 @@ class Notebook(object):
 
             - ``id_number`` - nonnegative integer or None (default)
         """
-        S = self.storage
+        S = self._storage
         if id_number is None:
             id_number = self.new_id_number(username)
         try:
@@ -679,7 +749,7 @@ class Notebook(object):
         if id_number == -1:  # need to initialize
             id_number = max(
                 [w.id_number()
-                    for w in self.worksheet_list_for_user(
+                    for w in self.user_selected_wsts(
                         username)] + [-1]) + 1
         u['next_worksheet_id_number'] = id_number + 1
         return id_number
@@ -841,7 +911,7 @@ class Notebook(object):
             sage: W = nb.import_worksheet(name, 'admin')
             sage: W.filename()
             'admin/0'
-            sage: sorted([w.filename() for w in nb.get_all_worksheets()])
+            sage: sorted([w.filename() for w in nb.all_wsts])
             ['admin/0']
 
         We then export the worksheet to an sws file.::
@@ -860,7 +930,7 @@ class Notebook(object):
             ['admin/0', 'admin/1']
         """
         id_number = self.new_id_number(username)
-        worksheet = self.storage.import_worksheet(
+        worksheet = self._storage.import_worksheet(
             username, id_number, filename)
 
         # I'm not at all convinced this is a good idea, since we
@@ -1129,7 +1199,7 @@ class Notebook(object):
         name = worksheet.name()
         display_names = [
             w.name()
-            for w in self.get_worksheets_with_owner(worksheet.owner())]
+            for w in self.user_wsts(worksheet.owner())]
         if name in display_names:
             j = name.rfind('(')
             if j != -1:
@@ -1191,85 +1261,13 @@ class Notebook(object):
         except KeyError:
             pass
 
-    # Worksheet HTML generation
-
-    def worksheet_list_for_public(self, username, sort='last_edited',
-                                  reverse=False, search=None):
-        W = self.users_worksheets('pub')
-
-        if search:
-            W = [x for x in W if x.satisfies_search(search)]
-
-        sort_worksheet_list(W, sort, reverse)  # changed W in place
-        return W
-
-    def worksheet_list_for_user(self, user, typ="active", sort='last_edited',
-                                reverse=False, search=None):
-        X = self.get_worksheets_with_viewer(user)
-        if typ == "trash":
-            W = [x for x in X if x.is_trashed(user)]
-        elif typ == "active":
-            W = [x for x in X if x.is_active(user)]
-        else:  # typ must be archived
-            W = [x for x in X if not (x.is_trashed(user) or x.is_active(user))]
-        if search:
-            W = [x for x in W if x.satisfies_search(search)]
-        sort_worksheet_list(W, sort, reverse)  # changed W in place
-        return W
-
-    # Accessing all worksheets with certain properties.
-
-    def active_worksheets_for(self, username):
-        # TODO: check if the worksheets are active
-        # return [ws for ws in self.get_worksheets_with_viewer(username) if
-        # ws.is_active(username)]
-        return self.users_worksheets_view(username)
-
-    def get_all_worksheets(self):
-        """
-        We should only call this if the user is admin!
-        """
-        all_worksheets = []
-        for username in self.user_manager.users():
-            if username in ['_sage_', 'pub']:
-                continue
-            for w in self.users_worksheets(username):
-                all_worksheets.append(w)
-        return all_worksheets
-
-    def get_worksheets_with_viewer(self, username):
-        if self.user_manager.user_is_admin(username):
-            return self.get_all_worksheets()
-        return self.users_worksheets_view(username)
-
-    def get_worksheets_with_owner(self, owner):
-        return self.users_worksheets(owner)
-
-    def get_worksheet_with_filename(self, filename):
-        """
-        Get the worksheet with the given filename.  If there is no
-        such worksheet, raise a ``KeyError``.
-
-        INPUT:
-
-        - ``filename`` - a string
-
-        OUTPUT:
-
-        - a Worksheet instance
-        """
-        try:
-            return self.__worksheets[filename]
-        except KeyError:
-            raise KeyError("No worksheet with filename '%s'" % filename)
-
     # Saving the whole notebook
 
     def save(self):
         """
         Save this notebook server to disk.
         """
-        S = self.storage
+        S = self._storage
         S.save_users(self.user_manager.users())
         S.save_server_conf(self.conf())
         self.user_manager.save(S)
@@ -1282,7 +1280,7 @@ class Notebook(object):
                 S.save_user_history(username, H)
 
     def save_worksheet(self, W, conf_only=False):
-        self.storage.save_worksheet(W, conf_only=conf_only)
+        self._storage.save_worksheet(W, conf_only=conf_only)
 
     def logout(self, username):
         r"""
@@ -1293,7 +1291,7 @@ class Notebook(object):
         pass
 
     def delete_doc_browser_worksheets(self):
-        for w in self.users_worksheets('_sage_'):
+        for w in self.user_wsts('_sage_'):
             if w.name().startswith('doc_browser'):
                 self.delete_worksheet(w.filename())
 
@@ -1308,7 +1306,7 @@ class Notebook(object):
         model_version = self.conf()['model_version']
         if model_version is None or model_version < 1:
             print "Upgrading model version to version 1"
-            # this uses code from get_all_worksheets()
+            # this uses code from all_wsts()
             user_manager = self.user_manager
             num_users = 0
             for username in self.user_manager.users():
@@ -1318,7 +1316,7 @@ class Notebook(object):
                 if username in ['_sage_', 'pub']:
                     continue
                 try:
-                    for w in self.users_worksheets(username):
+                    for w in self.user_wsts(username):
                         owner = w.owner()
                         id_number = w.id_number()
                         collaborators = w.collaborators()

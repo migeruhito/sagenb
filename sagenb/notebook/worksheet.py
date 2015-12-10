@@ -1155,7 +1155,7 @@ class Worksheet(object):
             True
         """
         try:
-            return self.notebook().get_worksheet_with_filename(
+            return self.notebook().filename_wst(
                 '%s/%s' % self.__worksheet_came_from)
         except Exception:   # things can go wrong (especially with old migrated
                             # Sage notebook servers!), but we don't want such
@@ -1271,7 +1271,7 @@ class Worksheet(object):
         try:
             filename = self.__published_version
             try:
-                W = self.notebook().get_worksheet_with_filename(filename)
+                W = self.notebook().filename_wst(filename)
                 return W
             except KeyError:
                 del self.__published_version

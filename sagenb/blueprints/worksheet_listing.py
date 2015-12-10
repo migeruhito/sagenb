@@ -62,14 +62,14 @@ def render_ws_list_template(args, pub, username):
     search = unicode_str(args['search']) if 'search' in args else None
     sort = args['sort'] if 'sort' in args else 'last_edited'
     reverse = (args['reverse'] == 'True') if 'reverse' in args else False
-    readonly = g.notebook.storage.readonly_user(g.username)
+    readonly = g.notebook.readonly_user(g.username)
     try:
         if not pub:
-            worksheets = g.notebook.worksheet_list_for_user(
+            worksheets = g.notebook.user_selected_wsts(
                 username, typ=typ, sort=sort, search=search, reverse=reverse)
         else:
-            worksheets = g.notebook.worksheet_list_for_public(
-                username, sort=sort, search=search, reverse=reverse)
+            worksheets = g.notebook.user_selected_wsts(
+                'pub', sort=sort, search=search, reverse=reverse)
     except ValueError as E:
         # for example, the sort key was not valid
         print "Error displaying worksheet listing: ", E
@@ -111,7 +111,7 @@ def worksheet_list():
     r = {}
 
     pub = 'pub' in request.args
-    g.notebook.storage.readonly_user(g.username)
+    g.notebook.readonly_user(g.username)
     typ = request.args['type'] if 'type' in request.args else 'active'
     search = unicode_str(
         request.args['search']) if 'search' in request.args else None
@@ -122,13 +122,13 @@ def worksheet_list():
     try:
         if not pub:
             r['worksheets'] = [
-                x.basic() for x in g.notebook.worksheet_list_for_user(
+                x.basic() for x in g.notebook.user_selected_wsts(
                     g.username, typ=typ, sort=sort, search=search,
                     reverse=reverse)]
         else:
             r['worksheets'] = [
-                x.basic() for x in g.notebook.worksheet_list_for_public(
-                    g.username, sort=sort, search=search, reverse=reverse)]
+                x.basic() for x in g.notebook.user_selected_wsts(
+                    'pub', sort=sort, search=search, reverse=reverse)]
 
     except ValueError as E:
         # for example, the sort key was not valid
@@ -186,7 +186,7 @@ def get_worksheets_from_request():
         filenames = []
     worksheets = []
     for filename in filenames:
-        W = g.notebook.get_worksheet_with_filename(filename)
+        W = g.notebook.filename_wst(filename)
         if W.owner() != g.username:
             # TODO BUG: if trying to stop a shared worksheet, this check means
             # that only the owner can stop from the worksheet listing (using
@@ -264,10 +264,10 @@ def download_worksheets():
     worksheet_names = set()
     if 'filenames' in request.values:
         filenames = json.loads(request.values['filenames'])
-        worksheets = [g.notebook.get_worksheet_with_filename(x.strip())
+        worksheets = [g.notebook.filename_wst(x.strip())
                       for x in filenames if len(x.strip()) > 0]
     else:
-        worksheets = g.notebook.worksheet_list_for_user(g.username)
+        worksheets = g.notebook.user_selected_wsts(g.username)
 
     zip = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_STORED)
     for worksheet in worksheets:
@@ -298,7 +298,7 @@ def download_worksheets():
 @worksheet_listing.route('/upload')
 @login_required
 def upload():
-    if g.notebook.storage.readonly_user(g.username):
+    if g.notebook.readonly_user(g.username):
         return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))
@@ -407,7 +407,7 @@ def parse_link_rel(url, fn):
 @worksheet_listing.route('/upload_worksheet', methods=['GET', 'POST'])
 @login_required
 def upload_worksheet():
-    if g.notebook.storage.readonly_user(g.username):
+    if g.notebook.readonly_user(g.username):
         return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))

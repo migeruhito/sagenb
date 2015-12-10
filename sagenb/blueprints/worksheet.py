@@ -56,7 +56,7 @@ def worksheet_view(f):
         worksheet_filename = username + "/" + id
         try:
             worksheet = kwds['worksheet'] = (
-                g.notebook.get_worksheet_with_filename(worksheet_filename))
+                g.notebook.filename_wst(worksheet_filename))
         except KeyError:
             return message_template(
                 _("You do not have permission to access this worksheet"))
@@ -525,7 +525,7 @@ def pub_worksheet(source):
 @worksheet.route('/new_worksheet')
 @login_required
 def new_worksheet():
-    if g.notebook.storage.readonly_user(g.username):
+    if g.notebook.readonly_user(g.username):
         return message_template(
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))
@@ -553,7 +553,7 @@ def worksheet_v(username, id, worksheet=None):
 def public_worksheet(id):
     filename = 'pub/%s' % id
     try:
-        original_worksheet = g.notebook.get_worksheet_with_filename(filename)
+        original_worksheet = g.notebook.filename_wst(filename)
     except KeyError:
         return message_template(
             _("Requested public worksheet does not exist"))
@@ -573,7 +573,7 @@ def public_worksheet(id):
 def public_worksheet_download(id, title):
     worksheet_filename = "pub" + "/" + id
     try:
-        worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
+        worksheet = g.notebook.filename_wst(worksheet_filename)
     except KeyError:
         return message_template(
             _("You do not have permission to access this worksheet"))
@@ -584,7 +584,7 @@ def public_worksheet_download(id, title):
 def public_worksheet_cells(id, filename):
     worksheet_filename = "pub" + "/" + id
     try:
-        worksheet = g.notebook.get_worksheet_with_filename(worksheet_filename)
+        worksheet = g.notebook.filename_wst(worksheet_filename)
     except KeyError:
         return message_template(
             _("You do not have permission to access this worksheet"))
@@ -624,7 +624,7 @@ def worksheet_command(target, **route_kwds):
                 if target.split('/')[0] not in published_commands_allowed:
                     raise NotImplementedError(
                         "User _sage_ can not access URL %s" % target)
-            if g.notebook.storage.readonly_user(g.username):
+            if g.notebook.readonly_user(g.username):
                 if target.split('/')[0] not in readonly_commands_allowed:
                     return message_template(
                         _("Account is in read-only mode"),
@@ -1357,7 +1357,7 @@ def worksheet_link_datafile(worksheet):
     data_filename = request.values['filename']
     src = os.path.abspath(os.path.join(
         worksheet.data_directory(), data_filename))
-    target_ws = g.notebook.get_worksheet_with_filename(
+    target_ws = g.notebook.filename_wst(
         target_worksheet_filename)
     target = os.path.abspath(os.path.join(
         target_ws.data_directory(), data_filename))
@@ -1639,7 +1639,7 @@ def doc_worksheet():
     doc_worksheet_number = doc_worksheet_number % g.notebook.conf()[
         'doc_pool_size']
     W = None
-    for X in g.notebook.users_worksheets('_sage_'):
+    for X in g.notebook.user_wsts('_sage_'):
         if X.compute_process_has_been_started():
             continue
         if X.id_number() == doc_worksheet_number:
