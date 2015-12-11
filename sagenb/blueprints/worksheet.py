@@ -1571,7 +1571,7 @@ def unconditional_download(worksheet, title):
 
     try:
         # XXX: Accessing the hard disk.
-        g.notebook.export_worksheet(worksheet.filename(), filename, title)
+        g.notebook.export_wst(worksheet.filename(), filename, title)
     except KeyError:
         return message_template(_('No such worksheet.'))
 

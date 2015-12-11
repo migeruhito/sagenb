@@ -272,7 +272,7 @@ def download_worksheets():
     zip = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_STORED)
     for worksheet in worksheets:
         sws_filename = tmp_filename() + '.sws'
-        g.notebook.export_worksheet(worksheet.filename(), sws_filename)
+        g.notebook.export_wst(worksheet.filename(), sws_filename)
         entry_name = worksheet.name()
         if entry_name in worksheet_names:
             i = 2

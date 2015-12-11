@@ -520,9 +520,8 @@ class Notebook(object):
         u = self.user_manager.user(username).conf()
         id_number = u['next_worksheet_id_number']
         if id_number == -1:  # need to initialize
-            id_number = max(
-                [w.id_number() for w in self.user_selected_wsts(username)] +
-                [-1]) + 1
+            id_number = max([-1].extend(
+                w.id_number() for w in self.user_wsts(username)))
         u['next_worksheet_id_number'] = id_number + 1
         return id_number
 
@@ -549,8 +548,7 @@ class Notebook(object):
         self.__worksheets[W.filename()] = W
         return W
 
-    def export_worksheet(self, worksheet_filename, output_filename,
-                         title=None):
+    def export_wst(self, worksheet_filename, output_filename, title=None):
         """
         Export a worksheet, creating a sws file on the file system.
 
@@ -568,7 +566,7 @@ class Notebook(object):
         S.save_worksheet(W)
         username = W.owner()
         id_number = W.id_number()
-        S.export_worksheet(username, id_number, output_filename, title=title)
+        S.export_wst(username, id_number, output_filename, title=title)
 
     def new_worksheet_with_title_from_text(self, text, owner):
         name, _ = extract_name(text)
@@ -733,7 +731,7 @@ class Notebook(object):
         We then export the worksheet to an sws file.::
 
             sage: sws = os.path.join(tmp_dir(), 'tmp.sws')
-            sage: nb.export_worksheet(W.filename(), sws)
+            sage: nb.export_wst(W.filename(), sws)
 
         Now we import the sws.::
 
