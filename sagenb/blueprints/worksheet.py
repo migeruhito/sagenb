@@ -511,7 +511,7 @@ def pub_worksheet(source):
     proxy.set_last_change(*source.last_change())
     proxy.set_worksheet_that_was_published(
         source.worksheet_that_was_published())
-    g.notebook._initialize_worksheet(source, proxy)
+    g.notebook.initialize_wst(source, proxy)
     proxy.set_tags({'_pub_': [True]})
     proxy.save()
     return proxy

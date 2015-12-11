@@ -218,6 +218,7 @@ class Notebook(object):
             ...
             OSError: [Errno 2] No such file or directory: '...
         """
+        #TODO: Not used. Only in docs.
         self._storage.delete()
 
     @cached_property
@@ -234,7 +235,7 @@ class Notebook(object):
 
     # # Worksheets
 
-    def _initialize_worksheet(self, src, W):
+    def initialize_wst(self, src, W):
         r"""
         Initialize a new worksheet from a source worksheet.
 
@@ -324,6 +325,11 @@ class Notebook(object):
         worksheets = self._storage.worksheets(username)
         return self._with_running_worksheets(worksheets)
 
+    def user_viewable_wsts(self, username):
+        if self.user_manager.user_is_admin(username):
+            return self.all_wsts
+        return self._user_viewable_wsts(username)
+
     def user_active_wsts(self, username):
         return [wst for wst in self.user_viewable_wsts(username)
                 if wst.is_active(username)]
@@ -335,11 +341,6 @@ class Notebook(object):
     def user_archived_wsts(self, username):
         return [wst for wst in self.user_viewable_wsts(username)
                 if wst.is_archived(username)]
-
-    def user_viewable_wsts(self, username):
-        if self.user_manager.user_is_admin(username):
-            return self.all_wsts
-        return self._user_viewable_wsts(username)
 
     def user_selected_wsts(self, user, typ="active", sort='last_edited',
                            reverse=False, search=None):
@@ -429,7 +430,7 @@ class Notebook(object):
             W = self.create_new_worksheet(worksheet.name(), 'pub')
 
         # Copy cells, output, data, etc.
-        self._initialize_worksheet(worksheet, W)
+        self.initialize_wst(worksheet, W)
 
         # Update metadata.
         W.set_worksheet_that_was_published(worksheet)
@@ -466,7 +467,7 @@ class Notebook(object):
 
     def copy_worksheet(self, ws, owner):
         W = self.create_new_worksheet('default', owner)
-        self._initialize_worksheet(ws, W)
+        self.initialize_wst(ws, W)
         name = "Copy of %s" % ws.name()
         W.set_name(name)
         return W
