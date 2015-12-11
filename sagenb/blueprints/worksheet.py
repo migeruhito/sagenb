@@ -131,7 +131,7 @@ def render_ws_template(ws=None, username='guest', admin=False, do_print=False,
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: render_ws_template(W, 'admin')
         u'...Test...cell_input...if (e.shiftKey)...state_number...'
     """
@@ -183,7 +183,7 @@ def html_worksheet_revision_list(username, worksheet):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: W.body()
         u'\n\n{{{id=1|\n\n///\n}}}'
         sage: W.save_snapshot('admin')
@@ -221,7 +221,7 @@ def html_specific_revision(username, ws, rev):
 
     filename = ws.get_snapshot_text_filename(rev)
     txt = bz2.decompress(open(filename).read())
-    W = nb.scratch_worksheet()
+    W = nb.scratch_wst
     W.set_name('Revision of ' + ws.name())
     W.delete_cells_directory()
     W.edit_save(txt)
@@ -264,7 +264,7 @@ def html_share(worksheet, username):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: nb.html_share(W, 'admin')
         u'...currently shared...add or remove collaborators...'
     """
@@ -296,7 +296,7 @@ def html_download_or_delete_datafile(ws, username, filename):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: nb.html_download_or_delete_datafile(W, 'admin', 'bar')
         u'...Data file: bar...DATA is a special variable...uploaded...'
     """
@@ -341,7 +341,7 @@ def html_edit_window(worksheet, username):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: nb.html_edit_window(W, 'admin')
         u'...textarea class="plaintextedit"...{{{id=1|...//...}}}...'
     """
@@ -373,7 +373,7 @@ def html_beforepublish_window(worksheet, username):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: nb.html_beforepublish_window(W, 'admin')
         u'...want to publish this worksheet?...re-publish when changes...'
     """
@@ -432,7 +432,7 @@ def html_upload_data_window(ws, username):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: nb.html_upload_data_window(W, 'admin')
         u'...Upload or Create Data File...Browse...url...name of a new...'
     """
@@ -457,7 +457,7 @@ def html_ratings_info(ws, username=None):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Publish Test', 'admin')
+        sage: W = nb.create_wst('Publish Test', 'admin')
         sage: W.rate(0, 'this lacks content', 'riemann')
         sage: W.rate(3, 'this is great', 'hilbert')
         sage: W.html_ratings_info()
@@ -490,7 +490,7 @@ def html_plain_text_window(worksheet, username):
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_new_worksheet('Test', 'admin')
+        sage: W = nb.create_wst('Test', 'admin')
         sage: nb.html_plain_text_window(W, 'admin')
         u'...pre class="plaintext"...cell_intext...textfield...'
     """
@@ -530,7 +530,7 @@ def new_worksheet():
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username))
 
-    W = g.notebook.create_new_worksheet(gettext("Untitled"), g.username)
+    W = g.notebook.create_wst(gettext("Untitled"), g.username)
     return redirect(url_for_worksheet(W))
 
 
@@ -1115,7 +1115,7 @@ def worksheet_text(worksheet):
 
 @worksheet_command('copy')
 def worksheet_copy(worksheet):
-    copy = g.notebook.copy_worksheet(worksheet, g.username)
+    copy = g.notebook.copy_wst(worksheet, g.username)
     if 'no_load' in request.values:
         return ''
     else:
@@ -1136,7 +1136,7 @@ def worksheet_edit_published_page(worksheet):
     if ws.owner() == g.username:
         W = ws
     else:
-        W = g.notebook.copy_worksheet(worksheet, g.username)
+        W = g.notebook.copy_wst(worksheet, g.username)
         W.set_name(worksheet.name())
 
     return redirect(url_for_worksheet(W))
@@ -1210,7 +1210,7 @@ def worksheet_revisions(worksheet):
             worksheet.edit_save(txt)
             return redirect(url_for_worksheet(worksheet))
         elif action == 'publish':
-            W = g.notebook.publish_worksheet(worksheet, g.username)
+            W = g.notebook.publish_wst(worksheet, g.username)
             txt = bz2.decompress(
                 open(worksheet.get_snapshot_text_filename(rev)).read())
             W.delete_cells_directory()
@@ -1480,20 +1480,20 @@ def worksheet_publish(worksheet):
     # Publishes worksheet and also sets worksheet to be published
     # automatically when saved
     if 'yes' in request.values and 'auto' in request.values:
-        g.notebook.publish_worksheet(worksheet, g.username)
+        g.notebook.publish_wst(worksheet, g.username)
         worksheet.set_auto_publish(True)
         return redirect(worksheet_publish.url_for(worksheet))
     # Just publishes worksheet
     elif 'yes' in request.values:
-        g.notebook.publish_worksheet(worksheet, g.username)
+        g.notebook.publish_wst(worksheet, g.username)
         return redirect(worksheet_publish.url_for(worksheet))
     # Stops publication of worksheet
     elif 'stop' in request.values:
-        g.notebook.delete_worksheet(worksheet.published_version().filename())
+        g.notebook.delete_wst(worksheet.published_version().filename())
         return redirect(worksheet_publish.url_for(worksheet))
     # Re-publishes worksheet
     elif 're' in request.values:
-        g.notebook.publish_worksheet(worksheet, g.username)
+        g.notebook.publish_wst(worksheet, g.username)
         return redirect(worksheet_publish.url_for(worksheet))
     # Sets worksheet to be published automatically when saved
     elif 'auto' in request.values:
@@ -1650,7 +1650,7 @@ def doc_worksheet():
     if W is None:
         # The first argument here is the worksheet's title, which the
         # caller should set with W.set_name.
-        W = g.notebook.create_new_worksheet('', '_sage_')
+        W = g.notebook.create_wst('', '_sage_')
     return W
 
 

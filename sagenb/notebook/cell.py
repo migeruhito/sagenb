@@ -228,7 +228,7 @@ class Cell_generic(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.worksheet() is W
             True
@@ -280,7 +280,7 @@ class Cell_generic(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.worksheet_filename()
             'sage/0'
@@ -302,7 +302,7 @@ class Cell_generic(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.notebook() is nb
             True
@@ -325,7 +325,7 @@ class Cell_generic(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2"); C
             Cell 2: in=2^2, out=
             sage: C.is_last()
@@ -354,7 +354,7 @@ class Cell_generic(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(1, "2^2")
             sage: C = W.get_cell_with_id(1)
             sage: C.next_id()
@@ -585,7 +585,7 @@ class TextCell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', W)
             sage: C.html()
             u'...text_cell...2+3...'
@@ -775,7 +775,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\nplot(sin(x),(x,0,5))\n///\n20\n}}}')
             sage: C = W.cell_list()[0]
             sage: C.evaluate()
@@ -815,7 +815,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\n2+3\n///\n20\n}}}')
             sage: C = W.cell_list()[0]
             sage: C
@@ -973,7 +973,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(
@@ -1010,7 +1010,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.directory()
             '.../home/sage/0/cells/0'
@@ -1036,7 +1036,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C._directory_name()
             '.../home/sage/0/cells/0'
@@ -1064,7 +1064,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.word_wrap_cols()
             72
@@ -1226,7 +1226,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save(
                 'foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
             sage: W.new_cell_after(1, "2^2")
@@ -1256,7 +1256,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.interrupt()
             sage: C.interrupted()
@@ -1283,7 +1283,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.interrupt()
             sage: C.interrupted()
@@ -1307,7 +1307,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.computing()
             False
@@ -1331,7 +1331,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(
                 0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
             sage: C.is_interactive_cell()
@@ -1375,7 +1375,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "@interact\ndef f(
                 a=slider(0,10,1,5):\n    print a^2")
             sage: C.is_interacting()
@@ -1409,7 +1409,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.evaluate()
             sage: W.check_comp(
@@ -1821,7 +1821,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.process_cell_urls('"cell://foobar"')
             '/home/sage/0/cells/0/foobar?...'
@@ -1859,7 +1859,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.output_text()
             u'<pre class="shrunk">5</pre>'
@@ -1943,7 +1943,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.parse_html(
                 '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">\n<html>'
@@ -2062,7 +2062,7 @@ class Cell(Cell_generic):
             sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
@@ -2098,7 +2098,7 @@ class Cell(Cell_generic):
             sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
@@ -2140,7 +2140,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
@@ -2178,7 +2178,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
@@ -2215,7 +2215,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
@@ -2243,7 +2243,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
             sage: C.introspect()
             False
@@ -2304,7 +2304,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\n3^5\n}}}')
             sage: C = W.cell_list()[0]; C
             Cell 0: in=3^5, out=
@@ -2417,7 +2417,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.html()
             u'...cell_outer_0...2+3...5...'
@@ -2443,7 +2443,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.url_to_self()
             '/home/sage/0/cells/0'
@@ -2469,7 +2469,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
             sage: C.url_to_worksheet()
             '/home/sage/0'
@@ -2491,7 +2491,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(
@@ -2520,7 +2520,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(
@@ -2618,7 +2618,7 @@ class Cell(Cell_generic):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_new_worksheet('Test', 'sage')
+            sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(

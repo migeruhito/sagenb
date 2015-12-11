@@ -157,20 +157,6 @@ INPUT:
                 {% else %}
                 
                 <input type="checkbox" unchecked id="{{ name|css_escape }}" />
-                {# I'm removing this select since it is a massive performance killer and these 
-                serve no real purpose at all.  Plus google docs got rid of the analogous menu.
-                <select onchange="go_option(this);" class="worksheet_edit">
-                    <option value="" title="File options" selected>File</option>
-                    <option value="list_rename_worksheet('{{ name }}','{{ worksheet.name() }}');" title="Change the name of this worksheet.">
-                        Rename...
-                    </option>            
-                    <option value="list_edit_worksheet('{{ name }}');" title="Open this worksheet and edit it">Edit</option>
-                    <option value="list_copy_worksheet('{{ name }}');" title="Copy this worksheet">Copy Worksheet</option>
-                    <option value="list_share_worksheet('{{ name }}');" title="Share this worksheet with others">Collaborate</option>
-                    <option value="list_publish_worksheet('{{ name }}');" title="Publish this worksheet on the internet">Publish</option>
-                    <option value="list_revisions_of_worksheet('{{ name }}');" title="See all revisions of this worksheet">Revisions</option>
-                </select>
-                #}      
                 {% endif %}
             </td>
 

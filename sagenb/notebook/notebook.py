@@ -387,7 +387,7 @@ class Notebook(object):
 
     # Publish worksheets
 
-    def publish_worksheet(self, worksheet, username):
+    def publish_wst(self, worksheet, username):
         r"""
         Publish a user's worksheet.  This creates a new worksheet in
         the 'pub' directory with the same contents as ``worksheet``.
@@ -409,14 +409,10 @@ class Notebook(object):
             sage: nb.user_manager.add_user('Mark','password','',force=True)
             sage: W = nb.new_worksheet_with_title_from_text(
                 'First steps', owner='Mark')
-            sage: nb.worksheet_names()
-            ['Mark/0']
             sage: nb.user_manager.create_default_users('password')
-            sage: nb.publish_worksheet(nb.filename_wst(
+            sage: nb.publish_wst(nb.filename_wst(
                 'Mark/0'), 'Mark')
             pub/0: [Cell 1: in=, out=]
-            sage: sorted(nb.worksheet_names())
-            ['Mark/0', 'pub/0']
         """
         W = None
 
@@ -427,7 +423,7 @@ class Notebook(object):
 
         # Or create a new one.
         if W is None:
-            W = self.create_new_worksheet(worksheet.name(), 'pub')
+            W = self.create_wst(worksheet.name(), 'pub')
 
         # Copy cells, output, data, etc.
         self.initialize_wst(worksheet, W)
@@ -442,17 +438,13 @@ class Notebook(object):
         W.save()
         return W
 
-    # Moving, copying, creating, renaming, and listing worksheets
+    # Move, copy, create, rename, and list worksheets
 
-    def scratch_worksheet(self):
-        try:
-            return self.__scratch_worksheet
-        except AttributeError:
-            W = self.create_new_worksheet('scratch', '_sage_')
-            self.__scratch_worksheet = W
-            return W
+    @cached_property
+    def scratch_wst(self):
+        return self.create_wst('scratch', '_sage_')
 
-    def create_new_worksheet(self, worksheet_name, username):
+    def create_wst(self, worksheet_name, username):
         if username != 'pub' and self.user_manager.user_is_guest(username):
             raise ValueError("guests cannot create new worksheets")
 
@@ -465,14 +457,14 @@ class Notebook(object):
 
         return W
 
-    def copy_worksheet(self, ws, owner):
-        W = self.create_new_worksheet('default', owner)
+    def copy_wst(self, ws, owner):
+        W = self.create_wst('default', owner)
         self.initialize_wst(ws, W)
         name = "Copy of %s" % ws.name()
         W.set_name(name)
         return W
 
-    def delete_worksheet(self, filename):
+    def delete_wst(self, filename):
         """
         Delete the given worksheet and remove its name from the worksheet
         list.  Raise a KeyError, if it is missing.
@@ -489,14 +481,6 @@ class Notebook(object):
 
         W.quit()
         shutil.rmtree(W.directory(), ignore_errors=False)
-        self.deleted_worksheets()[filename] = W
-
-    def deleted_worksheets(self):
-        try:
-            return self.__deleted_worksheets
-        except AttributeError:
-            self.__deleted_worksheets = {}
-            return self.__deleted_worksheets
 
     def empty_trash(self, username):
         """
@@ -519,204 +503,28 @@ class Notebook(object):
                 'Sage', owner='sage')
             sage: W._notebook = nb
             sage: W.move_to_trash('sage')
-            sage: nb.worksheet_names()
-            ['sage/0']
             sage: nb.empty_trash('sage')
-            sage: nb.worksheet_names()
-            []
         """
         X = self.user_viewable_wsts(username)
-        X = [W for W in X if W.is_trashed(username)]
-        for W in X:
+        for W in (ws for ws in X if ws.is_trashed(username)):
             W.delete_user(username)
             if W.owner() is None:
-                self.delete_worksheet(W.filename())
+                self.delete_wst(W.filename())
 
-    def worksheet_names(self):
+    # Import/export worksheets from/to files
+
+    def new_id_number(self, username):
         """
-        Return a list of all the names of worksheets in this notebook.
-
-        OUTPUT:
-
-        - a list of strings.
-
-        EXAMPLES:
-
-        We make a new notebook with two users and two worksheets,
-        then list their names::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.new_worksheet_with_title_from_text(
-                'Sage', owner='sage')
-            sage: nb.user_manager.add_user(
-                'wstein','sage','wstein@sagemath.org',force=True)
-            sage: W2 = nb.new_worksheet_with_title_from_text(
-                'Elliptic Curves', owner='wstein')
-            sage: nb.worksheet_names()
-            ['sage/0', 'wstein/0']
+        Find the next worksheet id for the given user.
         """
-        W = self.__worksheets.keys()
-        W.sort()
-        return W
-
-    # Information about the pool of worksheet compute servers
-
-    def server_pool(self):
-        return self.conf()['server_pool']
-
-    def set_server_pool(self, servers):
-        self.conf()['server_pool'] = servers
-
-    def get_ulimit(self):
-        try:
-            return self.__ulimit
-        except AttributeError:
-            self.__ulimit = ''
-            return ''
-
-    def set_ulimit(self, ulimit):
-        self.__ulimit = ulimit
-
-    def get_server(self):
-        P = self.server_pool()
-        if P is None or len(P) == 0:
-            return None
-        try:
-            self.__server_number = (self.__server_number + 1) % len(P)
-            i = self.__server_number
-        except AttributeError:
-            self.__server_number = 0
-            i = 0
-        return P[i]
-
-    def new_worksheet_process(self, init_code=None):
-        """
-        Return a new worksheet process object with parameters determined by
-        configuration of this notebook server.
-        """
-        ulimit = self.get_ulimit()
-        # We have to parse the ulimit format to our ProcessLimits.
-        # The typical format is.
-        # '-u 400 -v 1024 -t 3600'
-        #    -u --> max_processes
-        #    -v --> max_vmem in Mib (a minimum of 1024 is needed)
-        #    -t -- > max_cputime in seconds
-
-        tbl = {'v': None, 'u': None, 't': None}
-        for x in ulimit.split('-'):
-            for k in tbl.keys():
-                if x.startswith(k):
-                    tbl[k] = int(x.split()[1].strip())
-        if tbl['v'] is not None:
-            tbl['v'] = (1024 if tbl['v'] < 1024 else tbl['v'])*1024*1024
-        return sage(
-            server_pool=self.server_pool(),
-            max_vmem=tbl['v'],
-            max_cputime=tbl['t'],
-            max_processes=tbl['u'],
-            python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),
-            init_code='\n'.join((init_code, "DIR = '{}'".format(self.DIR))))
-
-    def _python_command(self):
-        """
-        """
-        try:
-            return self.__python_command
-        except AttributeError:
-            pass
-
-    # Configuration settings.
-
-    def system(self, username=None):
-        """
-        The default math software system for new worksheets for a
-        given user or the whole notebook (if username is None).
-        """
-        return self.user_manager.user(username).conf()['default_system']
-
-    def pretty_print(self, username=None):
-        """
-        The default typeset setting for new worksheets for
-        a given user or the whole notebook (if username is None).
-
-        TODO -- only implemented for the notebook right now
-        """
-        return self.user_manager.user(username).conf()['default_pretty_print']
-
-    def set_pretty_print(self, pretty_print):
-        self.__pretty_print = pretty_print
-
-    def color(self):
-        """
-        The default color scheme for the notebook.
-        """
-        try:
-            return self.__color
-        except AttributeError:
-            self.__color = 'default'
-            return self.__color
-
-    def set_color(self, color):
-        self.__color = color
-
-    # The notebook history.
-
-    def user_history(self, username):
-        if not hasattr(self, '_user_history'):
-            self._user_history = {}
-        if username in self._user_history:
-            return self._user_history[username]
-        history = []
-        for hunk in self._storage.load_user_history(username):
-            hunk = unicode_str(hunk)
-            history.append(hunk)
-        self._user_history[username] = history
-        return history
-
-    def create_new_worksheet_from_history(self, name, username, maxlen=None):
-        W = self.create_new_worksheet(name, username)
-        W.edit_save(
-            'Log Worksheet\n' + self.user_history_text(username, maxlen=None))
-        return W
-
-    def user_history_text(self, username, maxlen=None):
-        history = self.user_history(username)
-        if maxlen:
-            history = history[-maxlen:]
-        return '\n\n'.join([hunk.strip() for hunk in history])
-
-    def add_to_user_history(self, entry, username):
-        history = self.user_history(username)
-        history.append(entry)
-        maxlen = self.user_manager.user_conf(username)['max_history_length']
-        while len(history) > maxlen:
-            del history[0]
-
-    # Importing and exporting worksheets to files
-
-    def export_worksheet(self, worksheet_filename, output_filename,
-                         title=None):
-        """
-        Export a worksheet, creating a sws file on the file system.
-
-        INPUT:
-
-            -  ``worksheet_filename`` - a string e.g., 'username/id_number'
-
-            -  ``output_filename`` - a string, e.g., 'worksheet.sws'
-
-            - ``title`` - title to use for the exported worksheet (if
-               None, just use current title)
-        """
-        S = self._storage
-        W = self.filename_wst(worksheet_filename)
-        S.save_worksheet(W)
-        username = W.owner()
-        id_number = W.id_number()
-        S.export_worksheet(username, id_number, output_filename, title=title)
+        u = self.user_manager.user(username).conf()
+        id_number = u['next_worksheet_id_number']
+        if id_number == -1:  # need to initialize
+            id_number = max(
+                [w.id_number() for w in self.user_selected_wsts(username)] +
+                [-1]) + 1
+        u['next_worksheet_id_number'] = id_number + 1
+        return id_number
 
     def worksheet(self, username, id_number=None):
         """
@@ -741,23 +549,30 @@ class Notebook(object):
         self.__worksheets[W.filename()] = W
         return W
 
-    def new_id_number(self, username):
+    def export_worksheet(self, worksheet_filename, output_filename,
+                         title=None):
         """
-        Find the next worksheet id for the given user.
+        Export a worksheet, creating a sws file on the file system.
+
+        INPUT:
+
+            -  ``worksheet_filename`` - a string e.g., 'username/id_number'
+
+            -  ``output_filename`` - a string, e.g., 'worksheet.sws'
+
+            - ``title`` - title to use for the exported worksheet (if
+               None, just use current title)
         """
-        u = self.user_manager.user(username).conf()
-        id_number = u['next_worksheet_id_number']
-        if id_number == -1:  # need to initialize
-            id_number = max(
-                [w.id_number()
-                    for w in self.user_selected_wsts(
-                        username)] + [-1]) + 1
-        u['next_worksheet_id_number'] = id_number + 1
-        return id_number
+        S = self._storage
+        W = self.filename_wst(worksheet_filename)
+        S.save_worksheet(W)
+        username = W.owner()
+        id_number = W.id_number()
+        S.export_worksheet(username, id_number, output_filename, title=title)
 
     def new_worksheet_with_title_from_text(self, text, owner):
         name, _ = extract_name(text)
-        W = self.create_new_worksheet(name, owner)
+        W = self.create_wst(name, owner)
         return W
 
     def change_worksheet_key(self, old_key, new_key):
@@ -1023,7 +838,7 @@ class Notebook(object):
 
         title = extract_title(doc_page_html).replace('&mdash;', '--')
 
-        worksheet = self.create_new_worksheet(title, owner)
+        worksheet = self.create_wst(title, owner)
         worksheet.edit_save(doc_page)
 
         # FIXME: An extra compute cell is always added to the end.
@@ -1110,7 +925,7 @@ class Notebook(object):
         worksheet_txt = translator.process_doc_html(html)
 
         # Create worksheet
-        worksheet = self.create_new_worksheet(title, owner)
+        worksheet = self.create_wst(title, owner)
         worksheet.edit_save(worksheet_txt)
 
         return worksheet
@@ -1187,7 +1002,7 @@ class Notebook(object):
             title = title[:-5]
 
         # Create worksheet
-        worksheet = self.create_new_worksheet(title, owner)
+        worksheet = self.create_wst(title, owner)
         worksheet.edit_save(worksheet_txt)
 
         return worksheet
@@ -1210,6 +1025,139 @@ class Notebook(object):
                 i += 1
             name = name + " (%s)" % i
             worksheet.set_name(name)
+
+    # Information about the pool of worksheet compute servers
+
+    def server_pool(self):
+        return self.conf()['server_pool']
+
+    def set_server_pool(self, servers):
+        self.conf()['server_pool'] = servers
+
+    def get_ulimit(self):
+        try:
+            return self.__ulimit
+        except AttributeError:
+            self.__ulimit = ''
+            return ''
+
+    def set_ulimit(self, ulimit):
+        self.__ulimit = ulimit
+
+    def get_server(self):
+        P = self.server_pool()
+        if P is None or len(P) == 0:
+            return None
+        try:
+            self.__server_number = (self.__server_number + 1) % len(P)
+            i = self.__server_number
+        except AttributeError:
+            self.__server_number = 0
+            i = 0
+        return P[i]
+
+    def new_worksheet_process(self, init_code=None):
+        """
+        Return a new worksheet process object with parameters determined by
+        configuration of this notebook server.
+        """
+        ulimit = self.get_ulimit()
+        # We have to parse the ulimit format to our ProcessLimits.
+        # The typical format is.
+        # '-u 400 -v 1024 -t 3600'
+        #    -u --> max_processes
+        #    -v --> max_vmem in Mib (a minimum of 1024 is needed)
+        #    -t -- > max_cputime in seconds
+
+        tbl = {'v': None, 'u': None, 't': None}
+        for x in ulimit.split('-'):
+            for k in tbl.keys():
+                if x.startswith(k):
+                    tbl[k] = int(x.split()[1].strip())
+        if tbl['v'] is not None:
+            tbl['v'] = (1024 if tbl['v'] < 1024 else tbl['v'])*1024*1024
+        return sage(
+            server_pool=self.server_pool(),
+            max_vmem=tbl['v'],
+            max_cputime=tbl['t'],
+            max_processes=tbl['u'],
+            python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),
+            init_code='\n'.join((init_code, "DIR = '{}'".format(self.DIR))))
+
+    def _python_command(self):
+        """
+        """
+        try:
+            return self.__python_command
+        except AttributeError:
+            pass
+
+    # Configuration settings.
+
+    def system(self, username=None):
+        """
+        The default math software system for new worksheets for a
+        given user or the whole notebook (if username is None).
+        """
+        return self.user_manager.user(username).conf()['default_system']
+
+    def pretty_print(self, username=None):
+        """
+        The default typeset setting for new worksheets for
+        a given user or the whole notebook (if username is None).
+
+        TODO -- only implemented for the notebook right now
+        """
+        return self.user_manager.user(username).conf()['default_pretty_print']
+
+    def set_pretty_print(self, pretty_print):
+        self.__pretty_print = pretty_print
+
+    def color(self):
+        """
+        The default color scheme for the notebook.
+        """
+        try:
+            return self.__color
+        except AttributeError:
+            self.__color = 'default'
+            return self.__color
+
+    def set_color(self, color):
+        self.__color = color
+
+    # The notebook history.
+
+    def user_history(self, username):
+        if not hasattr(self, '_user_history'):
+            self._user_history = {}
+        if username in self._user_history:
+            return self._user_history[username]
+        history = []
+        for hunk in self._storage.load_user_history(username):
+            hunk = unicode_str(hunk)
+            history.append(hunk)
+        self._user_history[username] = history
+        return history
+
+    def create_wst_from_history(self, name, username, maxlen=None):
+        W = self.create_wst(name, username)
+        W.edit_save(
+            'Log Worksheet\n' + self.user_history_text(username, maxlen=None))
+        return W
+
+    def user_history_text(self, username, maxlen=None):
+        history = self.user_history(username)
+        if maxlen:
+            history = history[-maxlen:]
+        return '\n\n'.join([hunk.strip() for hunk in history])
+
+    def add_to_user_history(self, entry, username):
+        history = self.user_history(username)
+        history.append(entry)
+        maxlen = self.user_manager.user_conf(username)['max_history_length']
+        while len(history) > maxlen:
+            del history[0]
 
     # Server configuration
 
@@ -1294,7 +1242,7 @@ class Notebook(object):
     def delete_doc_browser_worksheets(self):
         for w in self.user_wsts('_sage_'):
             if w.name().startswith('doc_browser'):
-                self.delete_worksheet(w.filename())
+                self.delete_wst(w.filename())
 
     def upgrade_model(self):
         """
