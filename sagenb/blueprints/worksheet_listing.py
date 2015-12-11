@@ -487,7 +487,7 @@ def upload_worksheet():
                         except AttributeError:
                             open(tmpfilename, 'w').write(
                                 zip_file.read(subfilename))
-                        W = g.notebook.import_worksheet(
+                        W = g.notebook.import_wst(
                             tmpfilename, g.username)
                         if new_name:
                             W.set_name("%s - %s" % (new_name, W.name()))
@@ -510,7 +510,7 @@ def upload_worksheet():
                                 linked_sws[0]['url'], url)
                         except RetrieveError as err:
                             return message_template(str(err))
-                W = g.notebook.import_worksheet(filename, g.username)
+                W = g.notebook.import_wst(filename, g.username)
         except Exception, msg:
             print 'error uploading worksheet', msg
             s = _('There was an error uploading the worksheet.  It could be '

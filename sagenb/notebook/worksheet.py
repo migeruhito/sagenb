@@ -802,7 +802,7 @@ class Worksheet(object):
         old_filename = self.__filename
         self.__filename = filename
         self.__dir = os.path.join(self.notebook()._dir, filename)
-        self.notebook().change_worksheet_key(old_filename, filename)
+        self.notebook().change_wst_key(old_filename, filename)
 
     def filename(self):
         """

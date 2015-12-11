@@ -225,7 +225,25 @@ class Notebook(object):
     def system_names(self):
         return tuple(system[0] for system in self.systems)
 
-    # Users
+    # Server configuration
+
+    def conf(self):
+        try:
+            return self.__conf
+        except AttributeError:
+            C = server_conf.ServerConfiguration()
+            # if we are newly creating a notebook, then we want to
+            # have a default model version of 1, currently
+            # we can't just set the default value in server_conf.py
+            # to 1 since it would then be 1 for notebooks without the
+            # model_version property
+            # TODO: distinguish between a new server config default values
+            #  and default values for missing properties
+            C['model_version'] = 1
+            self.__conf = C
+            return C
+
+    # Users query
 
     def readonly_user(self, username):
         """
@@ -235,42 +253,7 @@ class Notebook(object):
 
     # # Worksheets
 
-    def initialize_wst(self, src, W):
-        r"""
-        Initialize a new worksheet from a source worksheet.
-
-        INPUT:
-
-        - ``src`` - a Worksheet instance; the source
-
-        - ``W`` - a new Worksheet instance; the target
-        """
-        # Note: Each Worksheet method *_directory actually creates a
-        # directory, if it doesn't already exist.
-
-        # More compact, but significantly less efficient?
-        #      shutil.rmtree(W.cells_directory(), ignore_errors=True)
-        #      shutil.rmtree(W.data_directory(), ignore_errors=True)
-        #      shutil.rmtree(W.snapshots_directory(), ignore_errors=True)
-        #      shutil.copytree(src.cells_directory(), W.cells_directory())
-        #      shutil.copytree(src.data_directory(), W.data_directory())
-
-        for sub in ['cells', 'data', 'snapshots']:
-            target_dir = os.path.join(W.directory(), sub)
-            if os.path.exists(target_dir):
-                shutil.rmtree(target_dir, ignore_errors=True)
-
-        # Copy images, data files, etc.
-        for sub in ['cells', 'data']:
-            source_dir = os.path.join(src.directory(), sub)
-            if os.path.exists(source_dir):
-                target_dir = os.path.join(W.directory(), sub)
-                shutil.copytree(source_dir, target_dir)
-
-        W.edit_save(src.edit_text())
-        W.save()
-
-    # Query worksheets
+    # worksheet query
 
     def _with_running_worksheets(self, worksheets):
         """
@@ -385,59 +368,82 @@ class Notebook(object):
                 if username not in ['_sage_', 'pub']
                 for w in self.user_wsts(username)]
 
-    # Publish worksheets
+    # Worksheet controller
 
-    def publish_wst(self, worksheet, username):
+    def change_wst_key(self, old_key, new_key):
+        ws = self.__worksheets
+        ws[new_key] = ws[old_key]
+        del ws[old_key]
+
+    def new_id_number(self, username):
+        """
+        Find the next worksheet id for the given user.
+        """
+        u = self.user_manager.user(username).conf()
+        id_number = u['next_worksheet_id_number']
+        if id_number == -1:  # need to initialize
+            id_number = max([-1].extend(
+                w.id_number() for w in self.user_wsts(username)))
+        u['next_worksheet_id_number'] = id_number + 1
+        return id_number
+
+    def initialize_wst(self, src, W):
         r"""
-        Publish a user's worksheet.  This creates a new worksheet in
-        the 'pub' directory with the same contents as ``worksheet``.
+        Initialize a new worksheet from a source worksheet.
 
         INPUT:
 
-        - ``worksheet`` - an instance of Worksheet
+        - ``src`` - a Worksheet instance; the source
 
-        - ``username`` - a string
-
-        OUTPUT:
-
-        - a new or existing published instance of Worksheet
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user('Mark','password','',force=True)
-            sage: W = nb.create_wst('First steps', owner='Mark')
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.publish_wst(nb.filename_wst(
-                'Mark/0'), 'Mark')
-            pub/0: [Cell 1: in=, out=]
+        - ``W`` - a new Worksheet instance; the target
         """
-        W = None
+        # Note: Each Worksheet method *_directory actually creates a
+        # directory, if it doesn't already exist.
 
-        # Reuse an existing published version
-        for X in self.user_wsts('pub'):
-            if (X.worksheet_that_was_published() == worksheet):
-                W = X
+        # More compact, but significantly less efficient?
+        #      shutil.rmtree(W.cells_directory(), ignore_errors=True)
+        #      shutil.rmtree(W.data_directory(), ignore_errors=True)
+        #      shutil.rmtree(W.snapshots_directory(), ignore_errors=True)
+        #      shutil.copytree(src.cells_directory(), W.cells_directory())
+        #      shutil.copytree(src.data_directory(), W.data_directory())
 
-        # Or create a new one.
-        if W is None:
-            W = self.create_wst(worksheet.name(), 'pub')
+        for sub in ['cells', 'data', 'snapshots']:
+            target_dir = os.path.join(W.directory(), sub)
+            if os.path.exists(target_dir):
+                shutil.rmtree(target_dir, ignore_errors=True)
 
-        # Copy cells, output, data, etc.
-        self.initialize_wst(worksheet, W)
+        # Copy images, data files, etc.
+        for sub in ['cells', 'data']:
+            source_dir = os.path.join(src.directory(), sub)
+            if os.path.exists(source_dir):
+                target_dir = os.path.join(W.directory(), sub)
+                shutil.copytree(source_dir, target_dir)
 
-        # Update metadata.
-        W.set_worksheet_that_was_published(worksheet)
-        W.move_to_archive(username)
-        worksheet.set_published_version(W.filename())
-        W.record_edit(username)
-        W.set_name(worksheet.name())
-        self.__worksheets[W.filename()] = W
+        W.edit_save(src.edit_text())
         W.save()
-        return W
 
-    # Move, copy, create, rename, and list worksheets
+    def worksheet(self, username, id_number=None):
+        """
+        Create a new worksheet with given id_number belonging to the
+        user with given username, or return an already existing
+        worksheet.  If id_number is None, creates a new worksheet
+        using the next available new id_number for the given user.
+
+        INPUT:
+
+            - ``username`` -- string
+
+            - ``id_number`` - nonnegative integer or None (default)
+        """
+        S = self._storage
+        if id_number is None:
+            id_number = self.new_id_number(username)
+        try:
+            W = S.load_worksheet(username, id_number)
+        except ValueError:
+            W = S.create_worksheet(username, id_number)
+        self.__worksheets[W.filename()] = W
+        return W
 
     @cached_property
     def scratch_wst(self):
@@ -449,7 +455,7 @@ class Notebook(object):
 
         W = self.worksheet(username)
 
-        W.system = self.system(username)
+        W.system = self.user_manager(username).conf()['default_system']
         W.set_name(worksheet_name)
         self.save_worksheet(W)
         self.__worksheets[W.filename()] = W
@@ -509,43 +515,6 @@ class Notebook(object):
             if W.owner() is None:
                 self.delete_wst(W.filename())
 
-    # Import/export worksheets from/to files
-
-    def new_id_number(self, username):
-        """
-        Find the next worksheet id for the given user.
-        """
-        u = self.user_manager.user(username).conf()
-        id_number = u['next_worksheet_id_number']
-        if id_number == -1:  # need to initialize
-            id_number = max([-1].extend(
-                w.id_number() for w in self.user_wsts(username)))
-        u['next_worksheet_id_number'] = id_number + 1
-        return id_number
-
-    def worksheet(self, username, id_number=None):
-        """
-        Create a new worksheet with given id_number belonging to the
-        user with given username, or return an already existing
-        worksheet.  If id_number is None, creates a new worksheet
-        using the next available new id_number for the given user.
-
-        INPUT:
-
-            - ``username`` -- string
-
-            - ``id_number`` - nonnegative integer or None (default)
-        """
-        S = self._storage
-        if id_number is None:
-            id_number = self.new_id_number(username)
-        try:
-            W = S.load_worksheet(username, id_number)
-        except ValueError:
-            W = S.create_worksheet(username, id_number)
-        self.__worksheets[W.filename()] = W
-        return W
-
     def export_wst(self, worksheet_filename, output_filename, title=None):
         """
         Export a worksheet, creating a sws file on the file system.
@@ -566,13 +535,7 @@ class Notebook(object):
         id_number = W.id_number()
         S.export_wst(username, id_number, output_filename, title=title)
 
-    def change_worksheet_key(self, old_key, new_key):
-        ws = self.__worksheets
-        W = ws[old_key]
-        ws[new_key] = W
-        del ws[old_key]
-
-    def import_worksheet(self, filename, owner):
+    def import_wst(self, filename, owner):
         r"""
         Import a worksheet with the given ``filename`` and set its
         ``owner``.  If the file extension is not recognized, raise a
@@ -600,7 +563,7 @@ class Notebook(object):
             sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
-            sage: W = nb.import_worksheet(name, 'admin')
+            sage: W = nb.import_wst(name, 'admin')
 
         W is our newly-created worksheet, with the 2+3 cell in it::
 
@@ -617,43 +580,40 @@ class Notebook(object):
         if ext.lower() == '.txt':
             # A plain text file with {{{'s that defines a worksheet
             # (no graphics).
-            W = self._import_worksheet_txt(filename, owner)
+            W = self._import_wst_txt(filename, owner)
         elif ext.lower() == '.sws':
             # An sws file (really a tar.bz2) which defines a worksheet with
             # graphics, etc.
-            W = self._import_worksheet_sws(filename, owner)
+            W = self._import_wst_sws(filename, owner)
         elif ext.lower() == '.html':
             # An html file, which should contain the static version of
             # a sage help page, as generated by Sphinx
-            html = open(filename).read()
+            with open(filename) as f:
+                html = f.read()
 
             cell_pattern = r"""{{{id=.*?///.*?}}}"""
             docutils_pattern = (r'<meta name="generator" content="Docutils '
                                 r'\S+: http://docutils\.sourceforge\.net/" />')
-            sphinx_pattern = (r'Created using <a href="http://sphinx\.pocoo\.'
-                              r'org/">Sphinx</a>')
 
             if re.search(cell_pattern, html, re.DOTALL) is not None:
-                W = self._import_worksheet_txt(filename, owner)
+                W = self._import_wst_txt(filename, owner)
             elif re.search(docutils_pattern, html) is not None:
-                W = self._import_worksheet_docutils_html(filename, owner)
-            elif re.search(sphinx_pattern, html) is not None:
-                W = self._import_worksheet_html(filename, owner)
+                W = self._import_wst_docutils_html(filename, owner)
             else:
-                # Unrecognized html file
+                # Sphinx web page or unrecognized html file.
                 # We do the default behavior, i.e. we import as if it was
                 # generated by Sphinx web page
-                W = self._import_worksheet_html(filename, owner)
+                W = self._import_wst_html(filename, owner)
         elif ext.lower() == '.rst':
             # A ReStructuredText file
-            W = self._import_worksheet_rst(filename, owner)
+            W = self._import_wst_rst(filename, owner)
         else:
             # We only support txt, sws, html and rst files
             raise ValueError("unknown extension '%s'" % ext)
         self.__worksheets[W.filename()] = W
         return W
 
-    def _import_worksheet_txt(self, filename, owner):
+    def _import_wst_txt(self, filename, owner):
         r"""
         Import a plain text file as a new worksheet.
 
@@ -677,19 +637,17 @@ class Notebook(object):
             sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\na = 10\n}}}')
-            sage: W = nb._import_worksheet_txt(name, 'admin'); W
+            sage: W = nb._import_wst_txt(name, 'admin'); W
             admin/0: [TextCell 0: foo, Cell 1: in=a = 10, out=]
         """
-        # Open the worksheet txt file and load it in.
-        worksheet_txt = open(filename).read()
-        # Create a new worksheet with the right title and owner.
+        with open(filename) as f:
+            worksheet_txt = f.read()
         wst_name, _ = extract_text(worksheet_txt)
         worksheet = self.create_wst(wst_name, owner)
-        # Set the new worksheet to have the contents specified by that file.
         worksheet.edit_save(worksheet_txt)
         return worksheet
 
-    def _import_worksheet_sws(self, filename, username):
+    def _import_wst_sws(self, filename, username):
         r"""
         Import an sws format worksheet into this notebook as a new
         worksheet.
@@ -715,7 +673,7 @@ class Notebook(object):
             sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('{{{id=0\n2+3\n}}}')
-            sage: W = nb.import_worksheet(name, 'admin')
+            sage: W = nb.import_wst(name, 'admin')
             sage: W.filename()
             'admin/0'
             sage: sorted([w.filename() for w in nb.all_wsts])
@@ -728,7 +686,7 @@ class Notebook(object):
 
         Now we import the sws.::
 
-            sage: W = nb._import_worksheet_sws(sws, 'admin')
+            sage: W = nb._import_wst_sws(sws, 'admin')
             sage: nb._Notebook__worksheets[W.filename()] = W
 
         Yes, it's there now (as a new worksheet)::
@@ -740,14 +698,9 @@ class Notebook(object):
         worksheet = self._storage.import_worksheet(
             username, id_number, filename)
 
-        # I'm not at all convinced this is a good idea, since we
-        # support multiple worksheets with the same title very well
-        # already.  So it's commented out.
-        # self.change_worksheet_name_to_avoid_collision(worksheet)
-
         return worksheet
 
-    def _import_worksheet_html(self, filename, owner):
+    def _import_wst_html(self, filename, owner):
         r"""
         Import a static html help page generated by Sphinx as a new
         worksheet.
@@ -799,7 +752,7 @@ class Notebook(object):
             ... '</div></div></div></div>\n',
             ... '</body></html>']))
             sage: fd.close()
-            sage: W = nb._import_worksheet_html(name, 'admin')
+            sage: W = nb._import_wst_html(name, 'admin')
             sage: W.name()
             u'Test notebook -- test'
             sage: W.owner()
@@ -839,7 +792,7 @@ class Notebook(object):
 
         return worksheet
 
-    def _import_worksheet_rst(self, filename, owner):
+    def _import_wst_rst(self, filename, owner):
         r"""
         Import a ReStructuredText file as a new worksheet.
 
@@ -876,7 +829,7 @@ class Notebook(object):
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
-            sage: W = nb._import_worksheet_rst(name, 'admin')
+            sage: W = nb._import_wst_rst(name, 'admin')
             sage: W.name()
             u'Test Notebook'
             sage: W.owner()
@@ -921,7 +874,7 @@ class Notebook(object):
 
         return worksheet
 
-    def _import_worksheet_docutils_html(self, filename, owner):
+    def _import_wst_docutils_html(self, filename, owner):
         r"""
         Import a static html help page generated by docutils as a new
         worksheet.
@@ -961,7 +914,7 @@ class Notebook(object):
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
-            sage: W = nb._import_worksheet_docutils_html(name, 'admin')
+            sage: W = nb._import_wst_docutils_html(name, 'admin')
             sage: W.name()
             u'Test Notebook'
             sage: W.owner()
@@ -998,24 +951,63 @@ class Notebook(object):
 
         return worksheet
 
-    def change_worksheet_name_to_avoid_collision(self, worksheet):
+    def publish_wst(self, worksheet, username):
+        r"""
+        Publish a user's worksheet.  This creates a new worksheet in
+        the 'pub' directory with the same contents as ``worksheet``.
+
+        INPUT:
+
+        - ``worksheet`` - an instance of Worksheet
+
+        - ``username`` - a string
+
+        OUTPUT:
+
+        - a new or existing published instance of Worksheet
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user('Mark','password','',force=True)
+            sage: W = nb.create_wst('First steps', owner='Mark')
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.publish_wst(nb.filename_wst(
+                'Mark/0'), 'Mark')
+            pub/0: [Cell 1: in=, out=]
         """
-        Change the display name of the worksheet if there is already a
-        worksheet with the same name as this one.
-        """
-        name = worksheet.name()
-        display_names = [
-            w.name()
-            for w in self.user_wsts(worksheet.owner())]
-        if name in display_names:
-            j = name.rfind('(')
-            if j != -1:
-                name = name[:j].rstrip()
-            i = 2
-            while name + " (%s)" % i in display_names:
-                i += 1
-            name = name + " (%s)" % i
-            worksheet.set_name(name)
+        W = None
+
+        # Reuse an existing published version
+        for X in self.user_wsts('pub'):
+            if (X.worksheet_that_was_published() == worksheet):
+                W = X
+
+        # Or create a new one.
+        if W is None:
+            W = self.create_wst(worksheet.name(), 'pub')
+
+        # Copy cells, output, data, etc.
+        self.initialize_wst(worksheet, W)
+
+        # Update metadata.
+        W.set_worksheet_that_was_published(worksheet)
+        W.move_to_archive(username)
+        worksheet.set_published_version(W.filename())
+        W.record_edit(username)
+        W.set_name(worksheet.name())
+        self.__worksheets[W.filename()] = W
+        W.save()
+        return W
+
+    def save_worksheet(self, W, conf_only=False):
+        self._storage.save_worksheet(W, conf_only=conf_only)
+
+    def delete_doc_browser_worksheets(self):
+        for w in self.user_wsts('_sage_'):
+            if w.name().startswith('doc_browser'):
+                self.delete_wst(w.filename())
 
     # Information about the pool of worksheet compute servers
 
@@ -1083,40 +1075,6 @@ class Notebook(object):
         except AttributeError:
             pass
 
-    # Configuration settings.
-
-    def system(self, username=None):
-        """
-        The default math software system for new worksheets for a
-        given user or the whole notebook (if username is None).
-        """
-        return self.user_manager.user(username).conf()['default_system']
-
-    def pretty_print(self, username=None):
-        """
-        The default typeset setting for new worksheets for
-        a given user or the whole notebook (if username is None).
-
-        TODO -- only implemented for the notebook right now
-        """
-        return self.user_manager.user(username).conf()['default_pretty_print']
-
-    def set_pretty_print(self, pretty_print):
-        self.__pretty_print = pretty_print
-
-    def color(self):
-        """
-        The default color scheme for the notebook.
-        """
-        try:
-            return self.__color
-        except AttributeError:
-            self.__color = 'default'
-            return self.__color
-
-    def set_color(self, color):
-        self.__color = color
-
     # The notebook history.
 
     def user_history(self, username):
@@ -1149,24 +1107,6 @@ class Notebook(object):
         maxlen = self.user_manager.user_conf(username)['max_history_length']
         while len(history) > maxlen:
             del history[0]
-
-    # Server configuration
-
-    def conf(self):
-        try:
-            return self.__conf
-        except AttributeError:
-            C = server_conf.ServerConfiguration()
-            # if we are newly creating a notebook, then we want to
-            # have a default model version of 1, currently
-            # we can't just set the default value in server_conf.py
-            # to 1 since it would then be 1 for notebooks without the
-            # model_version property
-            # TODO: distinguish between a new server config default values
-            #  and default values for missing properties
-            C['model_version'] = 1
-            self.__conf = C
-            return C
 
     # Computing control
 
@@ -1201,7 +1141,7 @@ class Notebook(object):
         except KeyError:
             pass
 
-    # Saving the whole notebook
+    # App controller
 
     def save(self):
         """
@@ -1219,9 +1159,6 @@ class Notebook(object):
             for username, H in self._user_history.iteritems():
                 S.save_user_history(username, H)
 
-    def save_worksheet(self, W, conf_only=False):
-        self._storage.save_worksheet(W, conf_only=conf_only)
-
     def logout(self, username):
         r"""
         Do not do anything on logout (so far).
@@ -1229,11 +1166,6 @@ class Notebook(object):
         In particular, do **NOT** stop all ``username``'s worksheets!
         """
         pass
-
-    def delete_doc_browser_worksheets(self):
-        for w in self.user_wsts('_sage_'):
-            if w.name().startswith('doc_browser'):
-                self.delete_wst(w.filename())
 
     def upgrade_model(self):
         """
