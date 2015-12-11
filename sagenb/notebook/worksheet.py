@@ -161,13 +161,8 @@ class Worksheet(object):
             sage: W
             admin/0: [Cell 1: in=, out=]
         """
-        self.system = system
-        if name is None:
-            # A fresh worksheet
-            self.clear()
-            return
-
         # Record the basic properties of the worksheet
+        self.system = system
         self.__pretty_print = pretty_print
         self.__owner = owner
         self.__viewers = []
@@ -180,6 +175,11 @@ class Worksheet(object):
 
         # Initialize the cell id counter.
         self.__next_id = 0
+
+        if name is None:
+            # A fresh worksheet
+            self.clear()
+            return
 
         self.set_name(name)
 
