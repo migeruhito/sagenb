@@ -54,8 +54,7 @@ from ..util.text import ignore_prompts_and_output
 from ..util.text import extract_text_before_first_compute_cell
 from ..util.text import extract_first_compute_cell
 from ..util.text import split_search_string_into_keywords
-from ..util.text import extract_name
-from ..util.text import extract_system
+from ..util.text import extract_text
 
 _ = gettext
 
@@ -1901,8 +1900,7 @@ class Worksheet(object):
                 'wstein','sage','wstein@sagemath.org',force=True)
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.new_worksheet_with_title_from_text(
-                'Sage', owner='sage')
+            sage: W = nb.create_wst('Sage', owner='sage')
             sage: W.add_viewer('wstein')
             sage: W.owner()
             'sage'
@@ -2254,15 +2252,10 @@ class Worksheet(object):
     def edit_save_old_format(self, text, username=None):
         text.replace('\r\n', '\n')
 
-        name, i = extract_name(text)
+        name, text = extract_text(text)
         self.set_name(name)
-        text = text[i:]
 
-        system, i = extract_system(text)
-        if system == "None":
-            system = "sage"
-        self.system = system.strip()
-        text = text[i:]
+        self.system, text = extract_text(text, start='system:', default='sage')
 
         self.edit_save(text)
 

@@ -362,42 +362,15 @@ def extract_first_compute_cell(text):
     return meta, input.strip(), output, j + 4
 
 
-def extract_name(text):
-    # The first line is the title
-    i = non_whitespace_re.search(text)
-    if i is None:
-        name = gettext('Untitled')
-        n = 0
-    else:
-        i = i.start()
-        j = text[i:].find('\n')
-        if j != -1:
-            name = text[i:i + j]
-            n = j + 1
-        else:
-            name = text[i:]
-            n = len(text) - 1
-    return name.strip(), n
-
-
-def extract_system(text):
+def extract_text(text, start='', default=gettext('Untitled')):
     # If the first line is "system: ..." , then it is the system.  Otherwise
     # the system is Sage.
-    i = non_whitespace_re.search(text)
-    if i is None:
-        return 'sage', 0
+    text = text.lstrip().splitlines()
+    if not (text and text[0].startswith(start)):
+        name = default
     else:
-        i = i.start()
-        if not text[i:].startswith('system:'):
-            return 'sage', 0
-        j = text[i:].find('\n')
-        if j != -1:
-            system = text[i:i + j][7:].strip()
-            n = j + 1
-        else:
-            system = text[i:][7:].strip()
-            n = len(text) - 1
-        return system, n
+        name = text.pop(0)[len(start):].strip()
+    return name, '\n'.join(text)
 
 
 def dictify(s):

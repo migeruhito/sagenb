@@ -39,7 +39,7 @@ from ..util.decorators import global_lock
 from ..util.docHTMLProcessor import docutilsHTMLProcessor
 from ..util.docHTMLProcessor import SphinxHTMLProcessor
 from ..util.text import extract_title
-from ..util.text import extract_name
+from ..util.text import extract_text
 
 from . import server_conf  # server configuration
 from . import user         # users
@@ -218,7 +218,7 @@ class Notebook(object):
             ...
             OSError: [Errno 2] No such file or directory: '...
         """
-        #TODO: Not used. Only in docs.
+        # TODO: Not used. Only in docs.
         self._storage.delete()
 
     @cached_property
@@ -407,8 +407,7 @@ class Notebook(object):
             sage: nb = sagenb.notebook.notebook.load_notebook(
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user('Mark','password','',force=True)
-            sage: W = nb.new_worksheet_with_title_from_text(
-                'First steps', owner='Mark')
+            sage: W = nb.create_wst('First steps', owner='Mark')
             sage: nb.user_manager.create_default_users('password')
             sage: nb.publish_wst(nb.filename_wst(
                 'Mark/0'), 'Mark')
@@ -499,8 +498,7 @@ class Notebook(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.new_worksheet_with_title_from_text(
-                'Sage', owner='sage')
+            sage: W = nb.create_wst('Sage', owner='sage')
             sage: W._notebook = nb
             sage: W.move_to_trash('sage')
             sage: nb.empty_trash('sage')
@@ -567,11 +565,6 @@ class Notebook(object):
         username = W.owner()
         id_number = W.id_number()
         S.export_wst(username, id_number, output_filename, title=title)
-
-    def new_worksheet_with_title_from_text(self, text, owner):
-        name, _ = extract_name(text)
-        W = self.create_wst(name, owner)
-        return W
 
     def change_worksheet_key(self, old_key, new_key):
         ws = self.__worksheets
@@ -690,8 +683,8 @@ class Notebook(object):
         # Open the worksheet txt file and load it in.
         worksheet_txt = open(filename).read()
         # Create a new worksheet with the right title and owner.
-        worksheet = self.new_worksheet_with_title_from_text(
-            worksheet_txt, owner)
+        wst_name, _ = extract_text(worksheet_txt)
+        worksheet = self.create_wst(wst_name, owner)
         # Set the new worksheet to have the contents specified by that file.
         worksheet.edit_save(worksheet_txt)
         return worksheet
@@ -993,7 +986,7 @@ class Notebook(object):
         worksheet_txt = translator.process_doc_html(html)
 
         # Extract title
-        title, _ = extract_name(worksheet_txt)
+        title, _ = extract_text(worksheet_txt)
         if title.startswith('<h1 class="title">'):
             title = title[18:]
         if title.endswith('</h1>'):
