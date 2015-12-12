@@ -123,6 +123,30 @@ JMOL = os.path.join(SAGE_SHARE, 'jmol')
 JSMOL = os.path.join(SAGE_SHARE, 'jsmol')
 J2S = os.path.join(JSMOL, 'j2s')
 
+# Gui config
+CHOICES = 'choices'
+DESC = 'desc'
+GROUP = 'group'
+POS = 'pos'
+TYPE = 'type'
+
+T_BOOL = 0
+T_CHOICE = 2
+T_COLOR = 4
+T_INFO = 7
+T_INTEGER = 1
+T_LIST = 6
+T_REAL = 3
+T_STRING = 5
+
+G_APPEARANCE = lazy_gettext('Appearance')
+G_AUTH = lazy_gettext('Authentication')
+G_LDAP = lazy_gettext('LDAP')
+G_SERVER = lazy_gettext('Server')
+
+POS_DEFAULT = 100
+
+
 # Notebook globals
 if get_module('sage') is not None:
     # [(string: name, bool: optional)]

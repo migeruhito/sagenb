@@ -12,21 +12,21 @@ from ..config import TRANSLATIONS
 from ..util import N_
 
 from . import conf
-from .conf import POS
-from .conf import DESC
-from .conf import GROUP
-from .conf import TYPE
-from .conf import CHOICES
-from .conf import T_BOOL
-from .conf import T_INTEGER
-from .conf import T_CHOICE
-from .conf import T_STRING
-from .conf import T_LIST
-from .conf import T_INFO
-from .conf import G_APPEARANCE
-from .conf import G_AUTH
-from .conf import G_SERVER
-from .conf import G_LDAP
+from ..config import CHOICES
+from ..config import DESC
+from ..config import GROUP
+from ..config import POS
+from ..config import TYPE
+from ..config import T_BOOL
+from ..config import T_CHOICE
+from ..config import T_INFO
+from ..config import T_INTEGER
+from ..config import T_LIST
+from ..config import T_STRING
+from ..config import G_APPEARANCE
+from ..config import G_AUTH
+from ..config import G_LDAP
+from ..config import G_SERVER
 
 _ = lazy_gettext
 

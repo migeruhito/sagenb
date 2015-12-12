@@ -8,13 +8,13 @@ import copy
 from flask.ext.babel import lazy_gettext
 
 from ..config import TRANSLATIONS
+from ..config import CHOICES
+from ..config import DESC
+from ..config import GROUP
+from ..config import TYPE
+from ..config import T_CHOICE
 
 from .conf import Configuration
-from .conf import DESC
-from .conf import GROUP
-from .conf import TYPE
-from .conf import CHOICES
-from .conf import T_CHOICE
 
 defaults = {'max_history_length': 1000,
             'default_system': 'sage',

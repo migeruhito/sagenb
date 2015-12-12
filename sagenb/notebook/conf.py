@@ -14,30 +14,21 @@ from __future__ import absolute_import
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
 
+from ..config import POS
+from ..config import DESC
+from ..config import GROUP
+from ..config import TYPE
+from ..config import CHOICES
+from ..config import T_BOOL
+from ..config import T_CHOICE
+from ..config import T_COLOR
+from ..config import T_INFO
+from ..config import T_INTEGER
+from ..config import T_LIST
+from ..config import T_REAL
+from ..config import G_LDAP
+from ..config import POS_DEFAULT
 from ..util import import_from
-
-
-POS = 'pos'
-DESC = 'desc'
-GROUP = 'group'
-TYPE = 'type'
-CHOICES = 'choices'
-
-T_BOOL = 0
-T_INTEGER = 1
-T_CHOICE = 2
-T_REAL = 3
-T_COLOR = 4
-T_STRING = 5
-T_LIST = 6
-T_INFO = 7
-
-G_APPEARANCE = lazy_gettext('Appearance')
-G_AUTH = lazy_gettext('Authentication')
-G_SERVER = lazy_gettext('Server')
-G_LDAP = lazy_gettext('LDAP')
-
-POS_DEFAULT = 100
 
 
 class Configuration(object):
@@ -80,7 +71,7 @@ class Configuration(object):
     def html_conf_form(self, action):
         D = self.defaults()
         C = self.confs
-        K = list(set(self.confs.keys() + D.keys()))
+        K = list(set(C.keys() + D.keys()))
         K.sort()
         options = ''
         for key in K:
@@ -91,7 +82,7 @@ class Configuration(object):
         <form method="post" action="%s" enctype="multipart/form-data">
         <input type="submit" value="Submit">
         <table border=0 cellpadding=5 cellspacing=2>
-%s
+            %s
         </table>
         </form>
         """ % (action, options)
