@@ -195,6 +195,32 @@ class Notebook(object):
         # Old stuff
         self.updater = NotebookUpdater(self)
 
+    # App query
+
+    @cached_property
+    def system_names(self):
+        return tuple(system[0] for system in self.systems)
+
+    # App configuration
+
+    def conf(self):
+        try:
+            return self.__conf
+        except AttributeError:
+            C = server_conf.ServerConfiguration()
+            # if we are newly creating a notebook, then we want to
+            # have a default model version of 1, currently
+            # we can't just set the default value in server_conf.py
+            # to 1 since it would then be 1 for notebooks without the
+            # model_version property
+            # TODO: distinguish between a new server config default values
+            #  and default values for missing properties
+            C['model_version'] = 1
+            self.__conf = C
+            return C
+
+    # App controller
+
     def delete(self):
         """
         Delete all files related to this notebook.
@@ -221,29 +247,113 @@ class Notebook(object):
         # TODO: Not used. Only in docs.
         self._storage.delete()
 
-    @cached_property
-    def system_names(self):
-        return tuple(system[0] for system in self.systems)
+    def save(self):
+        """
+        Save this notebook server to disk.
+        """
+        S = self._storage
+        S.save_users(self.user_manager.users())
+        S.save_server_conf(self.conf())
+        self.user_manager.save(S)
+        # Save the non-doc-browser worksheets.
+        for n, W in self.__worksheets.items():
+            if not n.startswith('doc_browser'):
+                S.save_worksheet(W)
+        if hasattr(self, '_user_history'):
+            for username, H in self._user_history.iteritems():
+                S.save_user_history(username, H)
 
-    # Server configuration
+    def logout(self, username):
+        r"""
+        Do not do anything on logout (so far).
 
-    def conf(self):
-        try:
-            return self.__conf
-        except AttributeError:
-            C = server_conf.ServerConfiguration()
-            # if we are newly creating a notebook, then we want to
-            # have a default model version of 1, currently
-            # we can't just set the default value in server_conf.py
-            # to 1 since it would then be 1 for notebooks without the
-            # model_version property
-            # TODO: distinguish between a new server config default values
-            #  and default values for missing properties
-            C['model_version'] = 1
-            self.__conf = C
-            return C
+        In particular, do **NOT** stop all ``username``'s worksheets!
+        """
+        pass
 
-    # Users query
+    def upgrade_model(self):
+        """
+        Upgrade the model, if needed.
+
+        - Version 0 (or non-existent model version, which defaults to 0):
+          Original flask notebook
+        - Version 1: shared worksheet data cached in the User object
+        """
+        model_version = self.conf()['model_version']
+        if model_version is None or model_version < 1:
+            print "Upgrading model version to version 1"
+            # this uses code from all_wsts()
+            user_manager = self.user_manager
+            num_users = 0
+            for username in self.user_manager.users():
+                num_users += 1
+                if num_users % 1000 == 0:
+                    print 'Upgraded %d users' % num_users
+                if username in ['_sage_', 'pub']:
+                    continue
+                try:
+                    for w in self.user_wsts(username):
+                        owner = w.owner()
+                        id_number = w.id_number()
+                        collaborators = w.collaborators()
+                        for u in collaborators:
+                            try:
+                                user_manager.user(u).viewable_worksheets().add(
+                                    (owner, id_number))
+                            except KeyError:
+                                # user doesn't exist
+                                pass
+                except (UnicodeEncodeError, OSError):
+                    # Catch UnicodeEncodeError because sometimes a username has
+                    # a non-ascii character Catch OSError since sometimes when
+                    # moving user directories (which happens automatically when
+                    # getting user's worksheets), OSError: [Errno 39] Directory
+                    # not empty is thrown (we should be using shutil.move
+                    # instead, probably) users with these problems won't have
+                    # their sharing cached, but they will probably have
+                    # problems logging in anyway, so they probably won't notice
+                    # not having shared worksheets
+                    print >> sys.stderr, (
+                        'Error on username %s' % username.encode('utf8'))
+                    print >> sys.stderr, traceback.format_exc()
+                    pass
+            print 'Done upgrading to model version 1'
+            self.conf()['model_version'] = 1
+
+    # App cotroller. The notebook history.
+
+    def user_history(self, username):
+        if not hasattr(self, '_user_history'):
+            self._user_history = {}
+        if username in self._user_history:
+            return self._user_history[username]
+        history = []
+        for hunk in self._storage.load_user_history(username):
+            hunk = unicode_str(hunk)
+            history.append(hunk)
+        self._user_history[username] = history
+        return history
+
+    def create_wst_from_history(self, name, username, maxlen=None):
+        W = self.create_wst(name, username)
+        W.edit_save(
+            'Log Worksheet\n' + self.user_history_text(username, maxlen=None))
+        return W
+
+    def user_history_text(self, username, maxlen=None):
+        history = self.user_history(username)
+        if maxlen:
+            history = history[-maxlen:]
+        return '\n\n'.join([hunk.strip() for hunk in history])
+
+    def add_to_user_history(self, entry, username):
+        history = self.user_history(username)
+        history.append(entry)
+        maxlen = self.user_manager.user_conf(username)['max_history_length']
+        while len(history) > maxlen:
+            del history[0]
+
+    # User query
 
     def readonly_user(self, username):
         """
@@ -251,9 +361,7 @@ class Notebook(object):
         """
         return self._storage.readonly_user(username)
 
-    # # Worksheets
-
-    # worksheet query
+    # Worksheet query
 
     def _with_running_worksheets(self, worksheets):
         """
@@ -1075,39 +1183,6 @@ class Notebook(object):
         except AttributeError:
             pass
 
-    # The notebook history.
-
-    def user_history(self, username):
-        if not hasattr(self, '_user_history'):
-            self._user_history = {}
-        if username in self._user_history:
-            return self._user_history[username]
-        history = []
-        for hunk in self._storage.load_user_history(username):
-            hunk = unicode_str(hunk)
-            history.append(hunk)
-        self._user_history[username] = history
-        return history
-
-    def create_wst_from_history(self, name, username, maxlen=None):
-        W = self.create_wst(name, username)
-        W.edit_save(
-            'Log Worksheet\n' + self.user_history_text(username, maxlen=None))
-        return W
-
-    def user_history_text(self, username, maxlen=None):
-        history = self.user_history(username)
-        if maxlen:
-            history = history[-maxlen:]
-        return '\n\n'.join([hunk.strip() for hunk in history])
-
-    def add_to_user_history(self, entry, username):
-        history = self.user_history(username)
-        history.append(entry)
-        maxlen = self.user_manager.user_conf(username)['max_history_length']
-        while len(history) > maxlen:
-            del history[0]
-
     # Computing control
 
     def set_not_computing(self):
@@ -1140,81 +1215,6 @@ class Notebook(object):
             del self.__worksheets[W.filename()]
         except KeyError:
             pass
-
-    # App controller
-
-    def save(self):
-        """
-        Save this notebook server to disk.
-        """
-        S = self._storage
-        S.save_users(self.user_manager.users())
-        S.save_server_conf(self.conf())
-        self.user_manager.save(S)
-        # Save the non-doc-browser worksheets.
-        for n, W in self.__worksheets.items():
-            if not n.startswith('doc_browser'):
-                S.save_worksheet(W)
-        if hasattr(self, '_user_history'):
-            for username, H in self._user_history.iteritems():
-                S.save_user_history(username, H)
-
-    def logout(self, username):
-        r"""
-        Do not do anything on logout (so far).
-
-        In particular, do **NOT** stop all ``username``'s worksheets!
-        """
-        pass
-
-    def upgrade_model(self):
-        """
-        Upgrade the model, if needed.
-
-        - Version 0 (or non-existent model version, which defaults to 0):
-          Original flask notebook
-        - Version 1: shared worksheet data cached in the User object
-        """
-        model_version = self.conf()['model_version']
-        if model_version is None or model_version < 1:
-            print "Upgrading model version to version 1"
-            # this uses code from all_wsts()
-            user_manager = self.user_manager
-            num_users = 0
-            for username in self.user_manager.users():
-                num_users += 1
-                if num_users % 1000 == 0:
-                    print 'Upgraded %d users' % num_users
-                if username in ['_sage_', 'pub']:
-                    continue
-                try:
-                    for w in self.user_wsts(username):
-                        owner = w.owner()
-                        id_number = w.id_number()
-                        collaborators = w.collaborators()
-                        for u in collaborators:
-                            try:
-                                user_manager.user(u).viewable_worksheets().add(
-                                    (owner, id_number))
-                            except KeyError:
-                                # user doesn't exist
-                                pass
-                except (UnicodeEncodeError, OSError):
-                    # Catch UnicodeEncodeError because sometimes a username has
-                    # a non-ascii character Catch OSError since sometimes when
-                    # moving user directories (which happens automatically when
-                    # getting user's worksheets), OSError: [Errno 39] Directory
-                    # not empty is thrown (we should be using shutil.move
-                    # instead, probably) users with these problems won't have
-                    # their sharing cached, but they will probably have
-                    # problems logging in anyway, so they probably won't notice
-                    # not having shared worksheets
-                    print >> sys.stderr, (
-                        'Error on username %s' % username.encode('utf8'))
-                    print >> sys.stderr, traceback.format_exc()
-                    pass
-            print 'Done upgrading to model version 1'
-            self.conf()['model_version'] = 1
 
 
 def load_notebook(dir, interface=None, port=None, secure=None,
