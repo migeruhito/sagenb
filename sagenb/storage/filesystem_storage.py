@@ -46,17 +46,18 @@ import tarfile
 import tempfile
 import traceback
 from hashlib import md5
-
-# TODO: sage dependency
 from sage.misc.temporary_file import atomic_write
 
 from ..util import set_restrictive_permissions
 from ..util import encoded_str
-from ..notebook.server_conf import ServerConfiguration_from_basic
 from ..notebook.user import User_from_basic
 from ..notebook.worksheet import Worksheet_from_basic
 
 from .abstract_storage import Datastore
+from ..notebook.models import ServerConfiguration_from_basic
+
+
+# TODO: sage dependency
 
 
 def is_safe(a):

@@ -14,7 +14,7 @@ from ..config import GROUP
 from ..config import TYPE
 from ..config import T_CHOICE
 
-from .conf import Configuration
+from .models import Configuration
 
 defaults = {'max_history_length': 1000,
             'default_system': 'sage',

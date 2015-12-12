@@ -41,7 +41,7 @@ from ..util.docHTMLProcessor import SphinxHTMLProcessor
 from ..util.text import extract_title
 from ..util.text import extract_text
 
-from . import server_conf  # server configuration
+from .models import ServerConfiguration
 from . import user         # users
 from .notification import logger
 from .notification import TwistedEmailHandler
@@ -207,7 +207,7 @@ class Notebook(object):
         try:
             return self.__conf
         except AttributeError:
-            C = server_conf.ServerConfiguration()
+            C = ServerConfiguration()
             # if we are newly creating a notebook, then we want to
             # have a default model version of 1, currently
             # we can't just set the default value in server_conf.py
