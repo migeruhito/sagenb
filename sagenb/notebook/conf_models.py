@@ -169,6 +169,12 @@ app_gui_hints = {
         TYPE: T_CHOICE,
         CHOICES: TRANSLATIONS,
     },
+    'theme': {
+        DESC: _('Theme'),
+        GROUP: G_APPEARANCE,
+        TYPE: T_CHOICE,
+        CHOICES: THEMES,
+    },
 
     'openid': {
         POS: 1,
@@ -260,13 +266,25 @@ app_gui_hints = {
         GROUP: G_LDAP,
         TYPE: T_INTEGER,
     },
-    'theme': {
-        DESC: _('Theme'),
-        GROUP: G_APPEARANCE,
-        TYPE: T_CHOICE,
-        CHOICES: THEMES,
-    },
 }
+
+user_defaults = {
+    'max_history_length': 1000,
+    'default_system': 'sage',
+    'autosave_interval': 60 * 60,
+    'default_pretty_print': False,
+    'next_worksheet_id_number': -1,  # not yet initialized
+    'language': 'default',
+    }
+
+user_gui_hints = {
+    'language': {
+        DESC: lazy_gettext('Language'),
+        GROUP: lazy_gettext('Appearance'),
+        TYPE: T_CHOICE,
+        CHOICES: ['default'] + TRANSLATIONS,
+        },
+    }
 
 
 class Configuration(object):
@@ -490,3 +508,18 @@ class ServerConfiguration(Configuration):
 
     def defaults_descriptions(self):
         return app_gui_hints
+
+
+def UserConfiguration_from_basic(basic):
+    c = UserConfiguration()
+    c.confs = copy.copy(basic)
+    return c
+
+
+class UserConfiguration(Configuration):
+
+    def defaults(self):
+        return user_defaults
+
+    def defaults_descriptions(self):
+        return user_gui_hints

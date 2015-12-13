@@ -41,7 +41,7 @@ from ..util.docHTMLProcessor import SphinxHTMLProcessor
 from ..util.text import extract_title
 from ..util.text import extract_text
 
-from .models import ServerConfiguration
+from .conf_models import ServerConfiguration
 from . import user         # users
 from .notification import logger
 from .notification import TwistedEmailHandler

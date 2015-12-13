@@ -11,7 +11,8 @@ import os
 from sage.misc.temporary_file import atomic_write
 
 from .. import config
-from . import user_conf
+from .conf_models import UserConfiguration_from_basic
+from .conf_models import UserConfiguration
 
 SALT = 'aa'
 
@@ -22,7 +23,7 @@ def User_from_basic(basic):
     """
     user = User(basic['username'])
     user.__dict__.update(dict([('_' + x, y) for x, y in basic.iteritems()]))
-    user._conf = user_conf.UserConfiguration_from_basic(user._conf)
+    user._conf = UserConfiguration_from_basic(user._conf)
     return user
 
 
@@ -46,7 +47,7 @@ class User(object):
                 "account type must be one of admin, user, or guest")
         self._account_type = account_type
         self._external_auth = external_auth
-        self._conf = user_conf.UserConfiguration()
+        self._conf = UserConfiguration()
         self._temporary_password = ''
         self._is_suspended = False
         self._viewable_worksheets = set()
