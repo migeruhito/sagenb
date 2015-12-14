@@ -288,6 +288,12 @@ user_gui_hints = {
 
 
 class Configuration(object):
+    @classmethod
+    def from_basic(cls, basic):
+        c = cls()
+        c.confs = copy.copy(basic)
+        return c
+
     def __init__(self):
         self.confs = {}
 
@@ -496,12 +502,6 @@ class Configuration(object):
         return u'\n'.join(lines)
 
 
-def ServerConfiguration_from_basic(basic):
-    c = ServerConfiguration()
-    c.confs = copy.copy(basic)
-    return c
-
-
 class ServerConfiguration(Configuration):
     def defaults(self):
         return app_defaults
@@ -510,14 +510,7 @@ class ServerConfiguration(Configuration):
         return app_gui_hints
 
 
-def UserConfiguration_from_basic(basic):
-    c = UserConfiguration()
-    c.confs = copy.copy(basic)
-    return c
-
-
 class UserConfiguration(Configuration):
-
     def defaults(self):
         return user_defaults
 

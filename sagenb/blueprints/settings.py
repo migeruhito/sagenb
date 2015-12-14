@@ -97,7 +97,7 @@ def settings_page():
         else:
             td['email_confirmed'] = _('Not confirmed')
 
-    td['admin'] = nu.is_admin()
+    td['admin'] = nu.is_admin
 
     return render_template(
         os.path.join('html', 'settings', 'account_settings.html'), **td)

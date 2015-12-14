@@ -51,13 +51,11 @@ from sage.misc.temporary_file import atomic_write
 
 from ..util import set_restrictive_permissions
 from ..util import encoded_str
-from ..notebook.user import User_from_basic
+from ..notebook.user import User
 from ..notebook.worksheet import Worksheet_from_basic
 
 from .abstract_storage import Datastore
-from ..notebook.conf_models import ServerConfiguration_from_basic
-
-
+from ..notebook.conf_models import ServerConfiguration
 
 
 def is_safe(a):
@@ -226,7 +224,7 @@ class FilesystemDatastore(Datastore):
     # storage will work).
     #########################################################################
     def _basic_to_users(self, obj):
-        return dict([(name, User_from_basic(basic)) for name, basic in obj])
+        return dict([(name, User.from_basic(basic)) for name, basic in obj])
 
     def _users_to_basic(self, users):
         new = list(sorted([[name, U.basic()]
@@ -234,7 +232,7 @@ class FilesystemDatastore(Datastore):
         return new
 
     def _basic_to_server_conf(self, obj):
-        return ServerConfiguration_from_basic(obj)
+        return ServerConfiguration.from_basic(obj)
 
     def _server_conf_to_basic(self, server):
         return server.basic()

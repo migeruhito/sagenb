@@ -298,7 +298,7 @@ class Notebook(object):
                         collaborators = w.collaborators()
                         for u in collaborators:
                             try:
-                                user_manager.user(u).viewable_worksheets().add(
+                                user_manager.user(u).viewable_worksheets.add(
                                     (owner, id_number))
                             except KeyError:
                                 # user doesn't exist
@@ -397,7 +397,7 @@ class Notebook(object):
         """
         # Should return worksheets from self.__worksheets if possible
         worksheets = self.user_wsts(username)
-        user_vw = self.user_manager.user(username).viewable_worksheets()
+        user_vw = self.user_manager.user(username).viewable_worksheets
         viewable_worksheets = (
             self._storage.load_worksheet(owner, id) for owner, id in user_vw)
         # we double-check that we can actually view these worksheets
@@ -1319,11 +1319,11 @@ def migrate_old_notebook_v1(dir):
         new_user.set_hashed_password(old_user.password)
         transfer_attributes(
             old_user, new_user,
-            [('_User__email_confirmed', '_email_confirmed'),
+            [('_User__email_confirmed', 'email_confirmed'),
              ('_User__temporary_password', '_temporary_password'),
-             ('_User__is_suspended', '_is_suspended')])
+             ('_User__is_suspended', 'is_suspended')])
         # Fix the __conf field, which is also an instance of a class
-        new_user.conf().confs = old_user.conf().confs
+        new_user.conf.confs = old_user.conf.confs
         users[new_user.username] = new_user
 
     # Set the worksheets of the new notebook equal to the ones from

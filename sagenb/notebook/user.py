@@ -8,39 +8,47 @@ from ..config import UAT_GUEST
 from ..config import UAT_USER
 from ..util import generate_salt
 
-from .conf_models import UserConfiguration_from_basic
 from .conf_models import UserConfiguration
-
-
-def User_from_basic(basic):
-    """
-    Create a user from a basic data structure.
-    """
-    user = User(basic['username'])
-    user.__dict__.update(dict([('_' + x, y) for x, y in basic.iteritems()]))
-    user._conf = UserConfiguration_from_basic(user._conf)
-    return user
 
 
 class User(object):
     account_types = (UAT_ADMIN, UAT_USER, UAT_GUEST)
 
+    @classmethod
+    def from_basic(cls, basic):
+        password = basic.pop('password')
+        conf = basic.pop('conf')
+        conf = UserConfiguration.from_basic(conf)
+        new = cls(conf=conf, **basic)
+        new.set_hashed_password(password)
+        return new
+
     def __init__(self,
-                 username, password='', temporary_password='',
-                 email='', email_confirmed=False,
-                 account_type='admin', external_auth=None, is_suspended=False,
+                 username, password='', email='',
+                 account_type='admin', external_auth=None,
+
+                 email_confirmed=False,
+                 is_suspended=False,
                  viewable_worksheets=None,
-                 conf=None):
+                 conf=None,
+                 temporary_password='',  # TODO: Remove. Useless.
+                 # TODO: There are a spurious User__username field in the
+                 # cpickled users this **kwargs get rid of this and other
+                 # spurious fields. This must be removed when the pickled
+                 # users integrity be checked by a more apropriate way.
+                 **kwargs
+                 ):
         self.__username = username  # Read only -> property
         self.password = password  # property
         self.email = email
         self.email_confirmed = email_confirmed  # Boolean
         self.account_type = account_type  # property
-        self._external_auth_ = external_auth
-        self._temporary_password = ''
-        self._is_suspended = False
-        self._viewable_worksheets = set()
-        self._conf = UserConfiguration()
+        self.__external_auth = external_auth  # Read only -> property
+        self._temporary_password = temporary_password
+        self.is_suspended = is_suspended
+        self.viewable_worksheets = (
+            set() if viewable_worksheets is None else viewable_worksheets)
+        self.conf = UserConfiguration() if conf is None else conf
 
     @property
     def username(self):
@@ -93,19 +101,6 @@ class User(object):
                 salt, hashlib.sha256(salt + password).hexdigest())
             self._temporary_password = ''
 
-    def set_hashed_password(self, password):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
-            sage: user.set_hashed_password('Crrc!')
-            sage: user.password
-            'Crrc!'
-        """
-        self._password = password
-        self._temporary_password = ''
-
     @property
     def account_type(self):
         """
@@ -131,129 +126,90 @@ class User(object):
                     *self.account_types))
         self.__account_type = account_type
 
+    def basic(self):
+        """
+        Return a basic Python data structure from which self can be
+        reconstructed.
+        """
+        return {
+            'username': self.username,
+            'password': self.password,
+            'email': self.email,
+            'email_confirmed': self.email_confirmed,
+            'account_type': self.account_type,
+            'external_auth': self.external_auth,
+            'temporary_password': self._temporary_password,
+            'is_suspended': self.is_suspended,
+            'viewable_worksheets': self.viewable_worksheets,
+            'conf': self.conf.basic(),
+            }
+
+    @property
+    def external_auth(self):
+        return self.__external_auth
+
     def __eq__(self, other):
         return all((
             self.__class__ is other.__class__,
             self.username == other.username,
             self.email == other.email,
-            self.conf() == other.conf(),
+            self.conf == other.conf,
             self.account_type == other.account_type))
 
     def __repr__(self):
         return self.username
 
     def __getitem__(self, *args):
-        return self._conf.__getitem__(*args)
+        return self.conf.__getitem__(*args)
 
     def __setitem__(self, *args):
-        self._conf.__setitem__(*args)
+        self.conf.__setitem__(*args)
 
-    def basic(self):
-        """
-        Return a basic Python data structure from which self can be
-        reconstructed.
-        """
-        d = dict([(x[1:], y)
-                  for x, y in self.__dict__.iteritems() if x[0] == '_'])
-        d['conf'] = self._conf.basic()
-        return d
-
-    def conf(self):
+    def set_hashed_password(self, password):
         """
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: config = User('bob', 'Aisfa!!', 'bob@sagemath.net',
-                                'admin').conf(); config
-            Configuration: {}
-            sage: config['max_history_length']
-            1000
-            sage: config['default_system']
-            'sage'
-            sage: config['autosave_interval']
-            3600
-            sage: config['default_pretty_print']
-            False
+            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
+            sage: user.set_hashed_password('Crrc!')
+            sage: user.password
+            'Crrc!'
         """
-        return self._conf
+        self._password = password
+        self._temporary_password = ''
 
+    # Auxiliary methods and properties for account_type flags encapsulation
+
+    @property
     def is_admin(self):
         """
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: User('A', account_type='admin').is_admin()
+            sage: User('A', account_type='admin').is_admin
             True
-            sage: User('B', account_type='user').is_admin()
+            sage: User('B', account_type='user').is_admin
             False
         """
         return self.account_type == UAT_ADMIN
 
-    def grant_admin(self):
-        if not self.is_guest():
-            self._account_type = UAT_ADMIN
-
-    def revoke_admin(self):
-        if not self.is_guest():
-            self.account_type = UAT_USER
-
+    @property
     def is_guest(self):
         """
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: User('A', account_type='guest').is_guest()
+            sage: User('A', account_type='guest').is_guest
             True
-            sage: User('B', account_type='user').is_guest()
+            sage: User('B', account_type='user').is_guest
             False
         """
         return self.account_type == UAT_GUEST
 
-    def is_external(self):
-        return self.external_auth() is not None
+    def grant_admin(self):
+        if not self.is_guest:
+            self._account_type = UAT_ADMIN
 
-    def external_auth(self):
-        return self._external_auth
-
-    def is_suspended(self):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
-            sage: user.is_suspended()
-            False
-        """
-        try:
-            return self._is_suspended
-        except AttributeError:
-            return False
-
-    def set_suspension(self):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
-            sage: user.is_suspended()
-            False
-            sage: user.set_suspension()
-            sage: user.is_suspended()
-            True
-            sage: user.set_suspension()
-            sage: user.is_suspended()
-            False
-        """
-        try:
-            self._is_suspended = False if self._is_suspended else True
-        except AttributeError:
-            self._is_suspended = True
-
-    def viewable_worksheets(self):
-        """
-        Returns the (mutable) set of viewable worksheets.
-
-        The elements of the set are of the form ('owner',id),
-        identifying worksheets the user is able to view.
-        """
-        return self._viewable_worksheets
+    def revoke_admin(self):
+        if not self.is_guest:
+            self.account_type = UAT_USER

@@ -44,7 +44,7 @@ def users(reset=None):
         password = random_password()
         try:
             g.notebook.user_manager.set_password(reset, password)
-        except LookupError:
+        except (ValueError, LookupError):
             pass
         else:
             template_dict['reset'] = [reset, password]
@@ -57,7 +57,7 @@ def users(reset=None):
     template_dict['users'] = [g.notebook.user_manager.user(username)
                               for username in users]
     template_dict['admin'] = g.notebook.user_manager.user(
-        g.username).is_admin()
+        g.username).is_admin
     template_dict['username'] = g.username
     return render_template(os.path.join(
         'html', 'settings', 'user_management.html'), **template_dict)
@@ -69,9 +69,10 @@ def users(reset=None):
 def suspend_user(user):
     try:
         U = g.notebook.user_manager.user(user)
-        U.set_suspension()
-    except KeyError:
+    except (ValueError, LookupError):
         pass
+    else:
+        U.is_suspended = not U.is_suspended
     return redirect(url_for("admin.users"))
 
 
@@ -93,12 +94,13 @@ def del_user(user):
 def toggle_admin(user):
     try:
         U = g.notebook.user_manager.user(user)
-        if U.is_admin():
+    except (ValueError, LookupError):
+        pass
+    else:
+        if U.is_admin:
             U.revoke_admin()
         else:
             U.grant_admin()
-    except KeyError:
-        pass
     return redirect(url_for("admin.users"))
 
 
@@ -107,7 +109,7 @@ def toggle_admin(user):
 @with_lock
 def add_user():
     template_dict = {
-        'admin': g.notebook.user_manager.user(g.username).is_admin(),
+        'admin': g.notebook.user_manager.user(g.username).is_admin,
         'username': g.username,
         'sage_version': SAGE_VERSION}
     if 'username' in request.values:
@@ -172,10 +174,10 @@ def suspend_user_nui():
     user = request.values['username']
     try:
         U = g.notebook.user_manager.user(user)
-        U.set_suspension()
-    except KeyError:
+    except (ValueError, LookupError):
         pass
-
+    else:
+        U.is_suspended = not U.is_suspended
     return encode_response({
         'message': _(
             'User <strong>%(username)s</strong> has been '
@@ -237,7 +239,7 @@ def notebook_settings():
     template_dict['sage_version'] = SAGE_VERSION
     template_dict['auto_table'] = g.notebook.conf().html_table(updated)
     template_dict['admin'] = g.notebook.user_manager.user(
-        g.username).is_admin()
+        g.username).is_admin
     template_dict['username'] = g.username
 
     return render_template(os.path.join('html',

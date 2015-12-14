@@ -4,7 +4,6 @@ import crypt
 import hashlib
 
 from ..config import SALT
-from ..util import generate_salt
 from ..util.auth import LdapAuth
 
 from .user import User
@@ -175,8 +174,8 @@ class UserManager(object):
             False
         """
         try:
-            return self.user(username).is_admin()
-        except KeyError:
+            return self.user(username).is_admin
+        except (ValueError, LookupError):
             return False
 
     def user_is_guest(self, username):
@@ -193,8 +192,8 @@ class UserManager(object):
             False
         """
         try:
-            return self.user(username).is_guest()
-        except KeyError:
+            return self.user(username).is_guest
+        except (ValueError, LookupError):
             return False
 
     def create_default_users(self, passwd, verbose=False):
@@ -243,11 +242,11 @@ class UserManager(object):
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
             sage: U.create_default_users('password')
-            sage: U.user('admin').conf()
+            sage: U.user('admin').conf
             Configuration: {}
 
         """
-        return self.user(username).conf()
+        return self.user(username).conf
 
     def set_accounts(self, value):
         """
@@ -500,7 +499,7 @@ class SimpleUserManager(UserManager):
         if username == "pub" or password == '':
             return False
         user_password = self.password(username)
-        if user_password is None and not self.user(username).is_external():
+        if user_password is None and self.user(username).external_auth is None:
             print "User %s has None password" % username
             return False
         if user_password.find('$') == -1:
@@ -569,8 +568,8 @@ class ExtAuthUserManager(SimpleUserManager):
         use that auth method to check username/password combination.
         """
         u = self.users()[username]
-        if u.is_external():
-            a = u.external_auth()
+        if u.external_auth is not None:
+            a = u.external_auth
         else:
             return False
 

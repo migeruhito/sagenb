@@ -1167,15 +1167,15 @@ def worksheet_invite_collab(worksheet):
     # add worksheet to new collaborators
     for u in collaborators - old_collaborators:
         try:
-            user_manager.user(u).viewable_worksheets().add((owner, id_number))
+            user_manager.user(u).viewable_worksheets.add((owner, id_number))
         except (ValueError, LookupError):
             # user doesn't exist
             pass
     # remove worksheet from ex-collaborators
     for u in old_collaborators - collaborators:
         try:
-            user_manager.user(u).viewable_worksheets(
-            ).discard((owner, id_number))
+            user_manager.user(u).viewable_worksheets.discard(
+                (owner, id_number))
         except (ValueError, LookupError):
             # user doesn't exist
             pass

@@ -84,7 +84,7 @@ def login(template_dict={}):
             pass
         elif (is_valid_password(password, username) and
               g.notebook.user_manager.check_password(username, password)):
-            if U.is_suspended():
+            if U.is_suspended:
                 # suspended
                 return _("Your account is currently suspended")
             else:
