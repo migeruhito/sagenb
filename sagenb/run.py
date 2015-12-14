@@ -358,7 +358,7 @@ class NotebookFrontend(object):
             passwd = self.get_admin_passwd()
             if nb.user_manager.user_exists('admin'):
                 admin = nb.user_manager.user('admin')
-                admin.set_password(passwd)
+                admin.password = passwd
                 print("Password changed for user 'admin'.")
             else:
                 nb.user_manager.create_default_users(passwd)

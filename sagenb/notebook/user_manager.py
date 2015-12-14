@@ -3,10 +3,11 @@ from __future__ import absolute_import
 import crypt
 import hashlib
 
-from . import user
+from ..config import SALT
+from ..util import generate_salt
 from ..util.auth import LdapAuth
 
-SALT = 'aa'
+from .user import User
 
 
 class UserManager(object):
@@ -312,7 +313,7 @@ class UserManager(object):
         if username in us:
             print("WARNING: User '%s' already exists -- and is now being "
                   "replaced." % username)
-        U = user.User(username, password, email, account_type, external_auth)
+        U = User(username, password, email, account_type, external_auth)
         us[username] = U
         self.set_password(username, password)
 
@@ -340,11 +341,11 @@ class UserManager(object):
         if not self.get_accounts() and not force:
             raise ValueError("creating new accounts disabled.")
         us = self.users()
-        if user.username() in us:
+        if user.username in us:
             print("WARNING: User '%s' already exists -- and is now being "
-                  "replaced." % user.username())
+                  "replaced." % user.username)
 
-        self._users[user.username()] = user
+        self._users[user.username] = user
 
 
 class SimpleUserManager(UserManager):
@@ -381,7 +382,7 @@ class SimpleUserManager(UserManager):
 
         """
         O = self.user(other_username)
-        passwd = O.password()
+        passwd = O.password
         self.set_password(username, passwd, encrypt=False)
 
     def _user(self, username):
@@ -456,14 +457,10 @@ class SimpleUserManager(UserManager):
             'test'
         """
         if encrypt:
-            salt = user.generate_salt()
-            new_password = 'sha256${0}${1}'.format(
-                salt, hashlib.sha256(salt + new_password).hexdigest())
-        self._passwords[username] = new_password
-        # need to make sure password in the user object is synced
-        # for compatibility only the user object data is stored in the
-        # 'users.pickle'
-        self.user(username).set_password(new_password, encrypt=False)
+            self.user(username).password = new_password
+        else:
+            self.user(username).set_hashed_password(new_password)
+        self._passwords[username] = self.user(username).password
 
     def passwords(self):
         """
@@ -483,7 +480,7 @@ class SimpleUserManager(UserManager):
             4
 
         """
-        return dict([(user.username(), self.password(user.username()))
+        return dict([(user.username, self.password(user.username))
                      for user in self.user_list()])
 
     def password(self, username):
@@ -507,7 +504,7 @@ class SimpleUserManager(UserManager):
             print "User %s has None password" % username
             return False
         if user_password.find('$') == -1:
-            if user_password == crypt.crypt(password, user.SALT):
+            if user_password == crypt.crypt(password, SALT):
                 self.set_password(username, password)
                 return True
             else:

@@ -146,6 +146,12 @@ G_SERVER = lazy_gettext('Server')
 
 POS_DEFAULT = 100
 
+# Users Globals
+SALT = 'aa'
+# User account types
+UAT_ADMIN = 'admin'
+UAT_USER = 'user'
+UAT_GUEST = 'guest'
 
 # Notebook globals
 if get_module('sage') is not None:

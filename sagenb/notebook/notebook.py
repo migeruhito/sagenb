@@ -1314,9 +1314,9 @@ def migrate_old_notebook_v1(dir):
     print "Migrating %s user accounts..." % len(old_nb.user_manager.users())
     users = new_nb.user_manager.users()
     for username, old_user in old_nb.user_manager.users().iteritems():
-        new_user = user.User(old_user.username(), '',
-                             old_user.get_email(), old_user.account_type())
-        new_user.set_hashed_password(old_user.password())
+        new_user = user.User(old_user.username, '',
+                             old_user.email, old_user.account_type)
+        new_user.set_hashed_password(old_user.password)
         transfer_attributes(
             old_user, new_user,
             [('_User__email_confirmed', '_email_confirmed'),
@@ -1324,7 +1324,7 @@ def migrate_old_notebook_v1(dir):
              ('_User__is_suspended', '_is_suspended')])
         # Fix the __conf field, which is also an instance of a class
         new_user.conf().confs = old_user.conf().confs
-        users[new_user.username()] = new_user
+        users[new_user.username] = new_user
 
     # Set the worksheets of the new notebook equal to the ones from
     # the old one.

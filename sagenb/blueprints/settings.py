@@ -66,8 +66,8 @@ def settings_page():
         newemail = request.values.get('new-email', None)
         if newemail:
             if is_valid_email(newemail):
-                nu.set_email(newemail)
-                # nu.set_email_confirmation(False)
+                nu.email = newemail
+                # nu.email_confirmed = False
                 redirect_to_home = True
             else:
                 error = _('Invalid e-mail address.')
@@ -91,8 +91,8 @@ def settings_page():
 
     td['email'] = g.notebook.conf()['email']
     if td['email']:
-        td['email_address'] = nu.get_email() or 'None'
-        if nu.is_email_confirmed():
+        td['email_address'] = nu.email or 'None'
+        if nu.email_confirmed:
             td['email_confirmed'] = _('Confirmed')
         else:
             td['email_confirmed'] = _('Not confirmed')

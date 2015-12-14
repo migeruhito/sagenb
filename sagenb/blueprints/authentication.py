@@ -295,7 +295,7 @@ def confirm():
     try:
         username = waiting[key]
         user = g.notebook.user_manager.user(username)
-        user.set_email_confirmation(True)
+        user.email_confirmed = True
     except KeyError:
         return message_template(invalid_confirm_key, '/register')
     success = _(
@@ -325,13 +325,12 @@ def forgot_pass():
     except KeyError:
         return error(_('Username is invalid.'))
 
-    if not user.is_email_confirmed():
+    if not user.email_confirmed:
         return error(_("The e-mail address hasn't been confirmed."))
 
     # XXX: some of this could be factored out into a random passowrd
     # function.  There are a few places in admin.py that also use it.
     chara = string.letters + string.digits
-    old_pass = user.password()
     password = ''.join([choice(chara) for i in range(8)])
 
     # TODO: make this come from the server settings
@@ -341,7 +340,7 @@ def forgot_pass():
     fromaddr = 'no-reply@%s' % listenaddr
     body = register_build_password_msg(
         password, username, listenaddr, port, g.notebook.secure)
-    destaddr = user.get_email()
+    destaddr = user.email
     try:
         send_mail(fromaddr, destaddr, _(
             "Sage Notebook Account Recovery"), body)
