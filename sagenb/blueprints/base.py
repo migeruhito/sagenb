@@ -16,8 +16,8 @@ from flask import current_app
 from flask.ext.openid import OpenID
 from flask.ext.babel import gettext
 
+from ..models import User
 from ..util.templates import DynamicJs
-from ..notebook.user import User
 
 from ..util.auth import challenge
 from ..util.decorators import login_required

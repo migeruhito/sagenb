@@ -7,7 +7,7 @@ from ..config import SALT
 from ..util.auth import encrypt_password
 from ..util.auth import LdapAuth
 
-from .user import User
+from ..models import User
 
 
 class UserManager(object):

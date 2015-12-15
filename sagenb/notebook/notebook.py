@@ -41,8 +41,8 @@ from ..util.docHTMLProcessor import SphinxHTMLProcessor
 from ..util.text import extract_title
 from ..util.text import extract_text
 
-from .conf_models import ServerConfiguration
-from . import user         # users
+from ..models import ServerConfiguration
+from ..models import User
 from .notification import logger
 from .notification import TwistedEmailHandler
 from .user_manager import OpenIDUserManager
@@ -1314,8 +1314,8 @@ def migrate_old_notebook_v1(dir):
     print "Migrating %s user accounts..." % len(old_nb.user_manager.users())
     users = new_nb.user_manager.users()
     for username, old_user in old_nb.user_manager.users().iteritems():
-        new_user = user.User(old_user.username, '',
-                             old_user.email, old_user.account_type)
+        new_user = User(old_user.username, '',
+                        old_user.email, old_user.account_type)
         new_user.password = old_user.password
         transfer_attributes(
             old_user, new_user,

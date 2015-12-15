@@ -49,13 +49,13 @@ from hashlib import md5
 # TODO: sage dependency
 from sage.misc.temporary_file import atomic_write
 
+from ..models import User
 from ..util import set_restrictive_permissions
 from ..util import encoded_str
-from ..notebook.user import User
 from ..notebook.worksheet import Worksheet_from_basic
 
 from .abstract_storage import Datastore
-from ..notebook.conf_models import ServerConfiguration
+from ..models import ServerConfiguration
 
 
 def is_safe(a):
