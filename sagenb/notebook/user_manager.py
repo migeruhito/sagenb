@@ -11,17 +11,18 @@ from .user import User
 
 
 class UserManager(object):
-
-    def __init__(self, accounts=False):
+    def __init__(self, accounts=True, conf=None):
         """
         EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U = UserManager()
             sage: U == loads(dumps(U))
             True
+
         """
+        self._passwords = {}
         self._users = {}
-        self._accounts = accounts
+        self._conf = {'accounts': accounts} if conf is None else conf
 
     def __eq__(self, other):
         """
@@ -41,13 +42,11 @@ class UserManager(object):
             sage: U1 == U2
             True
         """
-        if other.__class__ is not self.__class__:
-            return False
-        if self._users != other._users:
-            return False
-        if self._accounts != other._accounts:
-            return False
-        return True
+        return all((
+            other.__class__ is self.__class__,
+            self._users == other._users,
+            self._accounts == other._accounts,
+            ))
 
     def user_list(self):
         """
@@ -249,39 +248,15 @@ class UserManager(object):
         """
         return self.user(username).conf
 
-    def set_accounts(self, value):
-        """
-        Set whether or not accounts can be created for this notebook.
+    def get_accounts(self):
+        # need to use notebook's conf because those are already serialized
+        # fix when user_manager is serialized
+        return self._conf['accounts']
 
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U.create_default_users('password')
-            sage: U.get_accounts()
-            True
-            sage: U.set_accounts(False)
-            sage: U.get_accounts()
-            False
-        """
+    def set_accounts(self, value):
         if value not in [True, False]:
             raise ValueError("accounts must be True or False")
-        self._accounts = value
-
-    def get_accounts(self):
-        """
-        Get whether or not accounts can be created for this notebook.
-
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U.create_default_users('password')
-            sage: U.get_accounts()
-            True
-            sage: U.set_accounts(False)
-            sage: U.get_accounts()
-            False
-        """
-        return self._accounts
+        self._conf['accounts'] = value
 
     def add_user(self, username, password, email, account_type="user",
                  external_auth=None, force=False):
@@ -346,22 +321,6 @@ class UserManager(object):
                   "replaced." % user.username)
 
         self._users[user.username] = user
-
-
-class SimpleUserManager(UserManager):
-
-    def __init__(self, accounts=True, conf=None):
-        """
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U == loads(dumps(U))
-            True
-
-        """
-        self._passwords = {}
-        UserManager.__init__(self, accounts=accounts)
-        self._conf = {'accounts': accounts} if conf is None else conf
 
     def copy_password(self, username, other_username):
         """
@@ -463,22 +422,11 @@ class SimpleUserManager(UserManager):
         except AttributeError:
             return False
 
-    def get_accounts(self):
-        # need to use notebook's conf because those are already serialized
-        # fix when user_manager is serialized
-        return self._conf['accounts']
 
-    def set_accounts(self, value):
-        if value not in [True, False]:
-            raise ValueError("accounts must be True or False")
-        self._accounts = value
-        self._conf['accounts'] = value
-
-
-class ExtAuthUserManager(SimpleUserManager):
+class ExtAuthUserManager(UserManager):
 
     def __init__(self, accounts=None, conf=None):
-        SimpleUserManager.__init__(self, accounts=accounts, conf=conf)
+        UserManager.__init__(self, accounts=accounts, conf=conf)
 
         # keys must match to a T_BOOL option in server_config.py
         # so we can turn this auth method on/off
