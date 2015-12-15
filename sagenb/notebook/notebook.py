@@ -1316,7 +1316,7 @@ def migrate_old_notebook_v1(dir):
     for username, old_user in old_nb.user_manager.users().iteritems():
         new_user = user.User(old_user.username, '',
                              old_user.email, old_user.account_type)
-        new_user.set_hashed_password(old_user.password)
+        new_user.password = old_user.password
         transfer_attributes(
             old_user, new_user,
             [('_User__email_confirmed', 'email_confirmed'),

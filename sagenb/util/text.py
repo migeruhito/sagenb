@@ -7,7 +7,7 @@ from flask.ext.babel import gettext
 from ..config import TRACEBACK
 
 valid_username_chars = r'a-zA-Z0-9_.@'
-valid_username_re = re.compile(r'[a-zA-Z_][{}]*'.format(valid_username_chars))
+valid_username_re = re.compile(r'[a-zA-Z_][{}]+'.format(valid_username_chars))
 invalid_username_re = re.compile('[^{}]'.format(valid_username_chars))
 valid_email_re = re.compile(r"""
     ^%(unquoted)s+(\.%(unquoted)s+)*    # unquoted local-part

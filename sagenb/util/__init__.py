@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 import os
-import random
 import resource
 import signal
 import socket
@@ -529,10 +528,3 @@ def sort_worksheet_list(v, sort, reverse):
                reverse=reverse)
     else:
         raise ValueError('Invalid sort key {!r}'.format(sort))
-
-
-def generate_salt():
-    """
-    Returns a salt for use in hashing.
-    """
-    return hex(random.getrandbits(256))[2:-1]

@@ -4,6 +4,7 @@ import crypt
 import hashlib
 
 from ..config import SALT
+from ..util.auth import encrypt_password
 from ..util.auth import LdapAuth
 
 from .user import User
@@ -384,59 +385,6 @@ class SimpleUserManager(UserManager):
         passwd = O.password
         self.set_password(username, passwd, encrypt=False)
 
-    def _user(self, username):
-        """
-        Returns a User object with username username.
-
-        This method is called by UserManager.user if it did not find a user
-        with username username in the user dictionary.  This method will
-        automatically create users for the usernames 'pub', '_sage_',
-        'admin', and 'guest'.
-
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U.user('guest')
-            guest
-            sage: U.user('pub')
-            pub
-            sage: U.user('admin')
-            admin
-
-        TESTS::
-
-            sage: U.user('william')
-            Traceback (most recent call last):
-            ...
-            LookupError: no user 'william'
-
-            sage: U._user('william')
-            Traceback (most recent call last):
-            ...
-            LookupError: no user 'william'
-
-            sage: U.user('hello/')
-            Traceback (most recent call last):
-            ...
-            ValueError: no user 'hello/'
-
-            sage: U._user('hello/')
-            Traceback (most recent call last):
-            ...
-            LookupError: no user 'hello/'
-
-        """
-        if username in ['pub', '_sage_']:
-            self.add_user(username, '', '', account_type='user', force=True)
-            return self.users()[username]
-        elif username == 'admin':
-            self.add_user(username, '', '', account_type='admin', force=True)
-            return self.users()[username]
-        elif username == 'guest':
-            self.add_user('guest', '', '', account_type='guest', force=True)
-            return self.users()[username]
-        raise LookupError("no user '{}'".format(username))
-
     def set_password(self, username, new_password, encrypt=True):
         """
         EXAMPLES:
@@ -455,10 +403,8 @@ class SimpleUserManager(UserManager):
                 'admin', 'test', encrypt=False); U.password('admin')
             'test'
         """
-        if encrypt:
-            self.user(username).password = new_password
-        else:
-            self.user(username).set_hashed_password(new_password)
+        self.user(username).password = (
+            encrypt_password(new_password) if encrypt else new_password)
         self._passwords[username] = self.user(username).password
 
     def passwords(self):
@@ -545,20 +491,17 @@ class ExtAuthUserManager(SimpleUserManager):
         Check all auth methods that are enabled in the notebook's config.
         If a valid username is found, a new User object will be created.
         """
-        for a in self._auth_methods:
-            if self._conf[a]:
-                u = self._auth_methods[a].check_user(username)
-                if u:
-                    try:
-                        email = self._auth_methods[
-                            a].get_attrib(username, 'email')
-                    except KeyError:
-                        email = None
+        for a, method in self._auth_methods.iteritems():
+            if self._conf[a] and method.check_user(username):
+                try:
+                    email = method.get_attrib(username, 'email')
+                except KeyError:
+                    email = None
 
-                    self.add_user(username, password='', email=email,
-                                  account_type='user', external_auth=a,
-                                  force=True)
-                    return self.users()[username]
+                self.add_user(username, password='', email=email,
+                              account_type='user', external_auth=a,
+                              force=True)
+                return self.users()[username]
 
         raise LookupError("no user '{}'".format(username))
 
@@ -567,15 +510,9 @@ class ExtAuthUserManager(SimpleUserManager):
         Find auth method for user 'username' and
         use that auth method to check username/password combination.
         """
-        u = self.users()[username]
-        if u.external_auth is not None:
-            a = u.external_auth
-        else:
-            return False
-
-        if self._conf[a]:
+        a = self.users()[username].external_auth
+        if a is not None and self._conf[a]:
             return self._auth_methods[a].check_password(username, password)
-
         return False
 
 

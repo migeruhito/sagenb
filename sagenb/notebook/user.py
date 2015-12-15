@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*
 from __future__ import absolute_import
 
-import hashlib
-
 from ..config import UAT_ADMIN
 from ..config import UAT_GUEST
 from ..config import UAT_USER
-from ..util import generate_salt
 
 from .conf_models import UserConfiguration
 
@@ -16,11 +13,9 @@ class User(object):
 
     @classmethod
     def from_basic(cls, basic):
-        password = basic.pop('password')
         conf = basic.pop('conf')
         conf = UserConfiguration.from_basic(conf)
         new = cls(conf=conf, **basic)
-        new.set_hashed_password(password)
         return new
 
     def __init__(self,
@@ -39,7 +34,8 @@ class User(object):
                  **kwargs
                  ):
         self.__username = username  # Read only -> property
-        self.password = password  # property
+        # property
+        self.password = password
         self.email = email
         self.email_confirmed = email_confirmed  # Boolean
         self.account_type = account_type  # property
@@ -96,9 +92,7 @@ class User(object):
             # won't get as a password -- i.e., this account is closed.
             self.__password = 'x'
         else:
-            salt = generate_salt()
-            self.__password = 'sha256${0}${1}'.format(
-                salt, hashlib.sha256(salt + password).hexdigest())
+            self.__password = password
             self._temporary_password = ''
 
     @property
@@ -164,19 +158,6 @@ class User(object):
 
     def __setitem__(self, *args):
         self.conf.__setitem__(*args)
-
-    def set_hashed_password(self, password):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
-            sage: user.set_hashed_password('Crrc!')
-            sage: user.password
-            'Crrc!'
-        """
-        self._password = password
-        self._temporary_password = ''
 
     # Auxiliary methods and properties for account_type flags encapsulation
 

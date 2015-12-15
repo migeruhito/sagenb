@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import hashlib
 import os
 import random
 import re
@@ -13,6 +14,19 @@ from . import get_module
 from .templates import render_template
 
 _ = lazy_gettext
+
+
+def generate_salt():
+    """
+    Returns a salt for use in hashing.
+    """
+    return hex(random.getrandbits(256))[2:-1]
+
+
+def encrypt_password(password):
+    salt = generate_salt()
+    return 'sha256${}${}'.format(
+        salt, hashlib.sha256(salt + password).hexdigest())
 
 
 class AuthMethod():
