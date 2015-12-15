@@ -7,7 +7,8 @@ from flask.ext.babel import gettext
 from ..config import TRACEBACK
 
 valid_username_chars = r'a-zA-Z0-9_.@'
-valid_username_re = re.compile(r'[a-zA-Z_][{}]+'.format(valid_username_chars))
+valid_username_re = re.compile(r'^[{}]{{3,64}}$'.format(
+    valid_username_chars))
 invalid_username_re = re.compile('[^{}]'.format(valid_username_chars))
 valid_email_re = re.compile(r"""
     ^%(unquoted)s+(\.%(unquoted)s+)*    # unquoted local-part
@@ -64,13 +65,7 @@ def is_valid_username(username):
         sage: is_valid_username('dandrews@sagemath.org')
         True
     """
-
-    if not (len(username) > 2 and len(username) < 65):
-        return False
-    if not username[0] in string.letters:
-        return False
-    m = valid_username_re.match(username)
-    return m.start() == 0 and m.end() == len(username)
+    return valid_username_re.match(username) is not None
 
 
 def is_valid_password(password, username):

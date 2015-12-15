@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 
 import crypt
-import hashlib
 
 from ..config import SALT
 from ..util.auth import encrypt_password
 from ..util.auth import LdapAuth
+from ..util.text import is_valid_username
 
 from ..models import User
 
@@ -111,17 +111,14 @@ class UserManager(object):
             ...
             ValueError: no user 'hello/'
         """
-        if not isinstance(username, (str, unicode)) or '/' in username:
-            raise ValueError("no user '%s'" % username)
-        if username in self.users():
-            return self.users()[username]
-
+        if not is_valid_username(username):
+            raise ValueError('no user {!r}'.format(username))
         try:
-            return self._user(username)
-        except AttributeError:
+            return self.users()[username]
+        except KeyError:
             pass
 
-        raise LookupError("no user '{}'".format(username))
+        raise LookupError('no user {!r}'.format(username))
 
     def valid_login_names(self):
         """
@@ -414,8 +411,8 @@ class UserManager(object):
             else:
                 return False
         else:
-            salt, user_password = user_password.split('$')[1:]
-            if hashlib.sha256(salt + password).hexdigest() == user_password:
+            salt = user_password.split('$')[1]
+            if encrypt_password(password, salt) == user_password:
                 return True
         try:
             return self._check_password(username, password)
@@ -424,9 +421,10 @@ class UserManager(object):
 
 
 class ExtAuthUserManager(UserManager):
+    super_class = UserManager  # Use super() with python3
 
     def __init__(self, accounts=None, conf=None):
-        UserManager.__init__(self, accounts=accounts, conf=conf)
+        self.super_class.__init__(self, accounts=accounts, conf=conf)
 
         # keys must match to a T_BOOL option in server_config.py
         # so we can turn this auth method on/off
@@ -434,11 +432,16 @@ class ExtAuthUserManager(UserManager):
             'auth_ldap': LdapAuth(self._conf),
         }
 
-    def _user(self, username):
+    def user(self, username):
         """
         Check all auth methods that are enabled in the notebook's config.
         If a valid username is found, a new User object will be created.
         """
+        try:
+            return self.super_class.user(self, username)
+        except LookupError:
+            pass
+
         for a, method in self._auth_methods.iteritems():
             if self._conf[a] and method.check_user(username):
                 try:
@@ -451,7 +454,7 @@ class ExtAuthUserManager(UserManager):
                               force=True)
                 return self.users()[username]
 
-        raise LookupError("no user '{}'".format(username))
+        raise LookupError('no user {!r}'.format(username))
 
     def _check_password(self, username, password):
         """

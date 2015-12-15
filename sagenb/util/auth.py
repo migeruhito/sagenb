@@ -23,8 +23,9 @@ def generate_salt():
     return hex(random.getrandbits(256))[2:-1]
 
 
-def encrypt_password(password):
-    salt = generate_salt()
+def encrypt_password(password, salt=None):
+    if salt is None:
+        salt = generate_salt()
     return 'sha256${}${}'.format(
         salt, hashlib.sha256(salt + password).hexdigest())
 
