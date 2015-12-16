@@ -614,7 +614,7 @@ class Worksheet(object):
             sage: W.collaborators()
             ['hilbert', 'sage']
         """
-        users = self.notebook().user_manager.users()
+        users = self.notebook().user_manager.users
         owner = self.owner()
         collaborators = set([u for u in v if u in users and u != owner])
         self.__collaborators = sorted(collaborators)

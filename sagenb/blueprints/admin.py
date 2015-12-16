@@ -49,10 +49,8 @@ def users(reset=None):
         else:
             template_dict['reset'] = [reset, password]
 
-    template_dict['number_of_users'] = len(
-        g.notebook.user_manager.valid_login_names(
-        )) if len(g.notebook.user_manager.valid_login_names()) > 1 else None
-    users = sorted(g.notebook.user_manager.valid_login_names())
+    users = sorted(g.notebook.user_manager.valid_login_names)
+    template_dict['number_of_users'] = len(users) if len(users) > 1 else None
     del users[users.index('admin')]
     template_dict['users'] = [g.notebook.user_manager.user(username)
                               for username in users]
@@ -126,7 +124,7 @@ def add_user():
 
         chara = string.letters + string.digits
         password = ''.join([choice(chara) for i in range(8)])
-        if username in g.notebook.user_manager.usernames():
+        if username in g.notebook.user_manager.users:
             return render_template(os.path.join('html',
                                                 'settings',
                                                 'admin_add_user.html'),
@@ -197,7 +195,7 @@ def add_user_nui():
             'error': _('<strong>Invalid username!</strong>')
         })
 
-    if username in g.notebook.user_manager.usernames():
+    if username in g.notebook.user_manager.users:
         return encode_response({
             'error': _(
                 'The username <strong>%(username)s</strong> is already taken!',

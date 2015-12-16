@@ -252,7 +252,7 @@ class Notebook(object):
         Save this notebook server to disk.
         """
         S = self._storage
-        S.save_users(self.user_manager.users())
+        S.save_users(self.user_manager.users)
         S.save_server_conf(self.conf())
         self.user_manager.save(S)
         # Save the non-doc-browser worksheets.
@@ -285,7 +285,7 @@ class Notebook(object):
             # this uses code from all_wsts()
             user_manager = self.user_manager
             num_users = 0
-            for username in self.user_manager.users():
+            for username in self.user_manager.users:
                 num_users += 1
                 if num_users % 1000 == 0:
                     print 'Upgraded %d users' % num_users
@@ -472,7 +472,7 @@ class Notebook(object):
         """
         We should only call this if the user is admin!
         """
-        return [w for username in self.user_manager.users()
+        return [w for username in self.user_manager.users
                 if username not in ['_sage_', 'pub']
                 for w in self.user_wsts(username)]
 
@@ -1311,9 +1311,9 @@ def migrate_old_notebook_v1(dir):
             new_nb.conf().confs[t] = getattr(old_nb, '_Notebook__' + t)
 
     # Now update the user data from the old notebook to the new one:
-    print "Migrating %s user accounts..." % len(old_nb.user_manager.users())
-    users = new_nb.user_manager.users()
-    for username, old_user in old_nb.user_manager.users().iteritems():
+    print "Migrating %s user accounts..." % len(old_nb.user_manager.users)
+    users = new_nb.user_manager.users
+    for username, old_user in old_nb.user_manager.users.iteritems():
         new_user = User(old_user.username, '',
                         old_user.email, old_user.account_type)
         new_user.password = old_user.password
@@ -1422,7 +1422,7 @@ def migrate_old_notebook_v1(dir):
 
     # Migrating history
     new_nb._user_history = {}
-    for username in old_nb.user_manager.users().keys():
+    for username in old_nb.user_manager.users.keys():
         history_file = os.path.join(
             dir, 'worksheets', username, 'history.sobj')
         if os.path.exists(history_file):

@@ -44,25 +44,10 @@ class UserManager(object):
         """
         return all((
             other.__class__ is self.__class__,
-            self._users == other._users,
-            self._accounts == other._accounts,
+            self.users == other.users,
             ))
 
-    def user_list(self):
-        """
-        Returns a sorted list of the users that have logged into the notebook.
-
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U.create_default_users('password')
-            sage: U.user_list()
-            [_sage_, admin, guest, pub]
-        """
-        user_list = list(self.users().itervalues())
-        user_list.sort(key=lambda x: str(x))
-        return user_list
-
+    @property
     def users(self):
         """
         Returns a dictionary whose keys are the usernames and whose values are
@@ -75,11 +60,18 @@ class UserManager(object):
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
             sage: U.create_default_users('password')
-            sage: list(sorted(U.users().items()))
+            sage: list(sorted(U.users.items()))
             [('_sage_', _sage_), ('admin', admin), ('guest', guest),
              ('pub', pub)]
         """
         return self._users
+
+    @property
+    def valid_login_names(self):
+        """
+        Return a list of users that can log in.
+        """
+        return [x for x in self.users if x not in ['guest', '_sage_', 'pub']]
 
     def user(self, username):
         """
@@ -114,18 +106,15 @@ class UserManager(object):
         if not is_valid_username(username):
             raise ValueError('no user {!r}'.format(username))
         try:
-            return self.users()[username]
+            return self.users[username]
         except KeyError:
+            pass
+        try:
+            return self._user(username)
+        except AttributeError:
             pass
 
         raise LookupError('no user {!r}'.format(username))
-
-    def valid_login_names(self):
-        """
-        Return a list of users that can log in.
-        """
-        return [x for x in self.usernames() if x not in ['guest', '_sage_',
-                                                         'pub']]
 
     def user_exists(self, username):
         """
@@ -144,18 +133,7 @@ class UserManager(object):
             sage: U.user_exists('admin')
             True
         """
-        return username in self.users()
-
-    def usernames(self):
-        """
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U.create_default_users('password')
-            sage: u = U.usernames(); u.sort(); u
-            ['_sage_', 'admin', 'guest', 'pub']
-        """
-        return self.users().keys()
+        return username in self.users
 
     def user_is_admin(self, username):
         """
@@ -202,8 +180,8 @@ class UserManager(object):
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
             sage: U.create_default_users('password')
-            sage: U.user_list()
-            [_sage_, admin, guest, pub]
+            sage: U.users
+            {'sage': _sage_, 'admin': admin, 'guest': guest, 'pub': pub}
 
         """
         if verbose:
@@ -221,13 +199,13 @@ class UserManager(object):
             sage: from sagenb.notebook.user_manager import SimpleUserManager
             sage: U = SimpleUserManager()
             sage: U.create_default_users('password')
-            sage: U.user_list()
-            [_sage_, admin, guest, pub]
+            sage: U.users
+            {'sage': _sage_, 'admin': admin, 'guest': guest, 'pub': pub}
             sage: U.delete_user('pub')
-            sage: U.user_list()
-            [_sage_, admin, guest]
+            sage: U.users
+            {'sage': _sage_, 'admin': admin, 'guest': guest, 'pub': pub}
         """
-        us = self.users()
+        us = self.users
         if username in us:
             del us[username]
 
@@ -281,7 +259,7 @@ class UserManager(object):
         if not self.get_accounts() and not force:
             raise ValueError("creating new accounts disabled.")
 
-        us = self.users()
+        us = self.users
         if username in us:
             print("WARNING: User '%s' already exists -- and is now being "
                   "replaced." % username)
@@ -312,12 +290,12 @@ class UserManager(object):
         """
         if not self.get_accounts() and not force:
             raise ValueError("creating new accounts disabled.")
-        us = self.users()
+        us = self.users
         if user.username in us:
             print("WARNING: User '%s' already exists -- and is now being "
                   "replaced." % user.username)
 
-        self._users[user.username] = user
+        self.users[user.username] = user
 
     def copy_password(self, username, other_username):
         """
@@ -381,8 +359,8 @@ class UserManager(object):
             4
 
         """
-        return dict([(user.username, self.password(user.username))
-                     for user in self.user_list()])
+        return dict((user.username, user.password)
+                    for user in self.users.itervalues())
 
     def password(self, username):
         """
@@ -432,16 +410,11 @@ class ExtAuthUserManager(UserManager):
             'auth_ldap': LdapAuth(self._conf),
         }
 
-    def user(self, username):
+    def _user(self, username):
         """
         Check all auth methods that are enabled in the notebook's config.
         If a valid username is found, a new User object will be created.
         """
-        try:
-            return self.super_class.user(self, username)
-        except LookupError:
-            pass
-
         for a, method in self._auth_methods.iteritems():
             if self._conf[a] and method.check_user(username):
                 try:
@@ -452,7 +425,7 @@ class ExtAuthUserManager(UserManager):
                 self.add_user(username, password='', email=email,
                               account_type='user', external_auth=a,
                               force=True)
-                return self.users()[username]
+                return self.users[username]
 
         raise LookupError('no user {!r}'.format(username))
 
@@ -461,7 +434,7 @@ class ExtAuthUserManager(UserManager):
         Find auth method for user 'username' and
         use that auth method to check username/password combination.
         """
-        a = self.users()[username].external_auth
+        a = self.users[username].external_auth
         if a is not None and self._conf[a]:
             return self._auth_methods[a].check_password(username, password)
         return False

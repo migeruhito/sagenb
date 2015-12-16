@@ -300,7 +300,7 @@ class FilesystemDatastore(Datastore):
             sage: 'users.pickle' in os.listdir(ds._path)
             True
             sage: users = ds.load_users(U)
-            sage: U.users()
+            sage: U.users
             {'admin': admin, 'wstein': wstein}
         """
         for user in self._basic_to_users(
@@ -329,7 +329,7 @@ class FilesystemDatastore(Datastore):
             sage: 'users.pickle' in os.listdir(ds._path)
             True
             sage: users = ds.load_users(U)
-            sage: U.users()
+            sage: U.users
             {'admin': admin, 'wstein': wstein}
         """
         self._save(self._users_to_basic(users), 'users.pickle')
