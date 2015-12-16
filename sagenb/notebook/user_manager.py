@@ -341,27 +341,6 @@ class UserManager(object):
             encrypt_password(new_password) if encrypt else new_password)
         self._passwords[username] = self.user(username).password
 
-    def passwords(self):
-        """
-        Return a dictionary whose keys are the usernames and whose values are
-        the encrypted passwords associated to the user.
-
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U.create_default_users('passpass')
-            sage: list(sorted(U.passwords().items())) #random
-            [('_sage_', ''),
-             ('admin', ''),
-             ('guest', ''),
-             ('pub', '')]
-            sage: len(list(sorted(U.passwords().items())))
-            4
-
-        """
-        return dict((user.username, user.password)
-                    for user in self.users.itervalues())
-
     def password(self, username):
         """
         Return the stored password for username. Might be encrypted.
