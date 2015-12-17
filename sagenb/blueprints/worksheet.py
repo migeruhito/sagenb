@@ -25,6 +25,8 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
+from ..config import UN_GUEST
+from ..config import UN_PUB
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..util import tmp_filename
 from ..util import unicode_str
@@ -107,7 +109,7 @@ def get_cell_id():
 
 # notebook html
 
-def render_ws_template(ws=None, username='guest', admin=False, do_print=False,
+def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
                        publish=False):
     r"""
     Return the HTML evaluated for a worksheet.
@@ -561,7 +563,7 @@ def public_worksheet(id):
     if g.notebook.conf()['pub_interact']:
         worksheet = pub_worksheet(original_worksheet)
         owner = worksheet.owner()
-        worksheet.set_owner('pub')
+        worksheet.set_owner(UN_PUB)
         s = render_ws_template(ws=worksheet, username=g.username)
         worksheet.set_owner(owner)
     else:
@@ -1128,7 +1130,7 @@ def worksheet_copy(worksheet):
 
 @worksheet_command('edit_published_page')
 def worksheet_edit_published_page(worksheet):
-    # if user_type(self.username) == 'guest':
+    # if user_type(self.username) == UAT_GUEST:
     # return message_template('You must <a href="/">login first</a> in order
     # to edit this worksheet.')
 

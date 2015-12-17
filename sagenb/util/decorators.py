@@ -10,6 +10,7 @@ from flask import redirect
 from flask import g
 from flask.ext.babel import gettext
 
+from ..config import UN_GUEST
 from .templates import message as message_template
 
 _ = gettext
@@ -24,7 +25,7 @@ def login_required(f):
             # XXX: Do we have to specify this for the publised
             # worksheets here?
             if request.path.startswith('/home/_sage_/'):
-                g.username = 'guest'
+                g.username = UN_GUEST
                 return f(*args, **kwds)
             else:
                 return redirect(url_for('base.index', next=request.url))
@@ -51,7 +52,7 @@ def guest_or_login_required(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         if 'username' not in session:
-            g.username = 'guest'
+            g.username = UN_GUEST
         else:
             g.username = session['username']
         return f(*args, **kwds)

@@ -3,6 +3,14 @@ from __future__ import absolute_import
 import crypt
 
 from ..config import SALT
+from ..config import UAT_ADMIN
+from ..config import UAT_GUEST
+from ..config import UAT_USER
+from ..config import UN_ADMIN
+from ..config import UN_GUEST
+from ..config import UN_PUB
+from ..config import UN_SAGE
+from ..config import UN_SYSTEM
 from ..util.auth import encrypt_password
 from ..util.auth import LdapAuth
 from ..util.text import is_valid_username
@@ -71,7 +79,7 @@ class UserManager(object):
         """
         Return a list of users that can log in.
         """
-        return [x for x in self.users if x not in ['guest', '_sage_', 'pub']]
+        return [x for x in self.users if x not in UN_SYSTEM]
 
     def user(self, username):
         """
@@ -115,25 +123,6 @@ class UserManager(object):
             pass
 
         raise LookupError('no user {!r}'.format(username))
-
-    def user_exists(self, username):
-        """
-        Returns True if and only if the user \emph{username} has signed in
-        before.
-
-        Note that this should not be used to check to see if a username is
-        valid since there are UserManager backends (such as LDAP) where we
-        could have many valid usernames, but not all of them will have actually
-        logged into the notebook.
-
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
-            sage: U.create_default_users('password')
-            sage: U.user_exists('admin')
-            True
-        """
-        return username in self.users
 
     def user_is_admin(self, username):
         """
@@ -186,10 +175,10 @@ class UserManager(object):
         """
         if verbose:
             print "Creating default users."
-        self.add_user('pub', '', '', account_type='user', force=True)
-        self.add_user('_sage_', '', '', account_type='user', force=True)
-        self.add_user('guest', '', '', account_type='guest', force=True)
-        self.add_user('admin', passwd, '', account_type='admin', force=True)
+        self.add_user(UN_PUB, '', '', account_type=UAT_USER, force=True)
+        self.add_user(UN_SAGE, '', '', account_type=UAT_USER, force=True)
+        self.add_user(UN_GUEST, '', '', account_type=UAT_GUEST, force=True)
+        self.add_user(UN_ADMIN, passwd, '', account_type=UAT_ADMIN, force=True)
 
     def delete_user(self, username):
         """
@@ -378,6 +367,14 @@ class UserManager(object):
 
 
 class ExtAuthUserManager(UserManager):
+    """
+    For testing if the user \emph{username} has signed in before, you cant use
+    username in self.users, as with the super class.
+
+    Note that this should not be used to check to see if a username is valid
+    since in this UserManager backend we could have many valid usernames, but
+    not all of them will have actually logged into the notebook.
+    """
     super_class = UserManager  # Use super() with python3
 
     def __init__(self, accounts=None, conf=None):
@@ -402,7 +399,7 @@ class ExtAuthUserManager(UserManager):
                     email = None
 
                 self.add_user(username, password='', email=email,
-                              account_type='user', external_auth=a,
+                              account_type=UAT_USER, external_auth=a,
                               force=True)
                 return self.users[username]
 

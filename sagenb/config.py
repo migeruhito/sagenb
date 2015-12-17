@@ -148,10 +148,16 @@ POS_DEFAULT = 100
 
 # Users Globals
 SALT = 'aa'
-# User account types
+# User Account Types
 UAT_ADMIN = 'admin'
 UAT_USER = 'user'
 UAT_GUEST = 'guest'
+# User Names
+UN_ADMIN = 'admin'
+UN_GUEST = 'guest'
+UN_PUB = 'pub'
+UN_SAGE = '_sage_'
+UN_SYSTEM = (UN_GUEST, UN_SAGE, UN_PUB)
 
 # Notebook globals
 if get_module('sage') is not None:

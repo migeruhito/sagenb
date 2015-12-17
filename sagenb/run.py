@@ -20,9 +20,15 @@ import getpass
 import signal
 
 from sagenb.app import create_app
+from sagenb.config import min_password_length
 from sagenb.config import DOT_SAGENB
 from sagenb.config import SAGE_BROWSER
-from sagenb.config import min_password_length
+from sagenb.config import UAT_USER
+from sagenb.config import UAT_GUEST
+from sagenb.config import UN_ADMIN
+from sagenb.config import UN_GUEST
+from sagenb.config import UN_PUB
+from sagenb.config import UN_SAGE
 from sagenb.util import find_next_available_port
 from sagenb.util import open_page
 from sagenb.util import print_open_msg
@@ -344,21 +350,21 @@ class NotebookFrontend(object):
         else:
             nb.user_manager.set_accounts(nb.conf()['accounts'])
 
-        if (nb.user_manager.user_exists('root') and
-                not nb.user_manager.user_exists('admin')):
+        if ('root' in nb.user_manager.users and
+                UN_ADMIN not in nb.user_manager.users):
             # This is here only for backward compatibility with one
             # version of the notebook.
-            nb.create_user_with_same_password('admin', 'root')
+            nb.create_user_with_same_password(UN_ADMIN, 'root')
             # It would be a security risk to leave an escalated account around.
 
-        if not nb.user_manager.user_exists('admin'):
+        if UN_ADMIN not in nb.user_manager.users:
             self.conf['reset'] = True
 
         if self.conf['reset']:
             passwd = self.get_admin_passwd()
-            if nb.user_manager.user_exists('admin'):
-                nb.user_manager.set_password('admin', passwd)
-                print("Password changed for user 'admin'.")
+            if UN_ADMIN in nb.user_manager.users:
+                nb.user_manager.set_password(UN_ADMIN, passwd)
+                print("Password changed for user {!r}.".format(UN_ADMIN))
             else:
                 nb.user_manager.create_default_users(passwd)
                 print(
@@ -376,11 +382,11 @@ class NotebookFrontend(object):
         # For old notebooks, make sure that default users are always created.
         # This fixes issue #175 (https://github.com/sagemath/sagenb/issues/175)
         um = nb.user_manager
-        for user in ('_sage_', 'pub'):
-            if not um.user_exists(user):
-                um.add_user(user, '', '', account_type='user', force=True)
-        if not um.user_exists('guest'):
-            um.add_user('guest', '', '', account_type='guest', force=True)
+        for user in (UN_SAGE, UN_PUB):
+            if user not in um.users:
+                um.add_user(user, '', '', account_type=UAT_USER, force=True)
+        if UN_GUEST not in um.users:
+            um.add_user(UN_GUEST, '', '', account_type=UAT_GUEST, force=True)
 
         nb.set_server_pool(self.conf['server_pool'])
         nb.set_ulimit(self.conf['ulimit'])
@@ -579,7 +585,8 @@ class NotebookFrontend(object):
         print(
             '',
             '',
-            "Please choose a new password for the Sage Notebook 'admin' user.",
+            'Please choose a new password for the '
+            'Sage Notebook {!r} user'.format(UN_ADMIN),
             'Do _not_ choose a stupid password, since anybody who could guess '
             'your password',
             'and connect to your machine could access or delete your files.',
@@ -600,8 +607,8 @@ class NotebookFrontend(object):
             else:
                 break
 
-        print("Please login to the notebook with the username 'admin' and the "
-              'above password.')
+        print('Please login to the notebook with the username {!r} and the '
+              'above password.'.format(UN_ADMIN))
         return passwd
 
     def notebook_setup(self):

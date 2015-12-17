@@ -14,6 +14,7 @@ from flask import current_app
 from flask.ext.babel import gettext
 
 from ..config import SAGE_VERSION
+from ..config import UN_SYSTEM
 from ..notebook.smtpsend import send_mail
 from ..util.auth import challenge
 from ..util.auth import register_make_key
@@ -76,7 +77,7 @@ def login(template_dict={}):
         # It is critically important that it be impossible to login as the pub,
         # _sage_, or guest users.  This _sage_ user is a fake user that is used
         # internally by the notebook for the doc browser and other tasks.
-        if username in ['_sage_', 'guest', 'pub']:
+        if username in UN_SYSTEM:
             U = None
             template_dict['username_error'] = True
 
@@ -168,7 +169,7 @@ def register():
     if username:
         if not is_valid_username(username):
             template_dict['username_invalid'] = True
-        elif g.notebook.user_manager.user_exists(username):
+        elif username in g.notebook.user_manager.users:
             template_dict['username_taken'] = True
         else:
             template_dict['username'] = username

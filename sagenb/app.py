@@ -22,6 +22,7 @@ from .config import MATHJAX
 from .config import SAGE_VERSION
 from .config import SRC
 from .config import THEME_PATHS
+from .config import UAT_GUEST
 from .util.decorators import guest_or_login_required
 from .util import unicode_str
 from .util.templates import css_escape
@@ -69,7 +70,7 @@ def create_app(notebook, startup_token=None, debug=False):
     def log_exception(error):
         return message_template(
             gettext('''500: Internal server error.'''),
-            username=getattr(g, 'username', 'guest')), 500
+            username=getattr(g, 'username', UAT_GUEST)), 500
 
     # Template globals
     app.add_template_global(url_for)

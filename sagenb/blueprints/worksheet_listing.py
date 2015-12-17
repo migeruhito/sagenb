@@ -23,6 +23,7 @@ from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
 from ..config import SAGE_VERSION
+from ..config import UN_PUB
 from ..util import unicode_str
 from ..util import tmp_dir
 from ..util import tmp_filename
@@ -69,7 +70,7 @@ def render_ws_list_template(args, pub, username):
                 username, typ=typ, sort=sort, search=search, reverse=reverse)
         else:
             worksheets = g.notebook.user_selected_wsts(
-                'pub', sort=sort, search=search, reverse=reverse)
+                UN_PUB, sort=sort, search=search, reverse=reverse)
     except ValueError as E:
         # for example, the sort key was not valid
         print "Error displaying worksheet listing: ", E
@@ -78,7 +79,7 @@ def render_ws_list_template(args, pub, username):
     worksheet_filenames = [x.filename() for x in worksheets]
 
     if pub and (not username or username == tuple([])):
-        username = 'pub'
+        username = UN_PUB
 
     accounts = g.notebook.user_manager.get_accounts()
     sage_version = SAGE_VERSION
@@ -110,7 +111,7 @@ def worksheet_list():
     """
     r = {}
 
-    pub = 'pub' in request.args
+    pub = UN_PUB in request.args
     g.notebook.readonly_user(g.username)
     typ = request.args['type'] if 'type' in request.args else 'active'
     search = unicode_str(
@@ -128,7 +129,7 @@ def worksheet_list():
         else:
             r['worksheets'] = [
                 x.basic() for x in g.notebook.user_selected_wsts(
-                    'pub', sort=sort, search=search, reverse=reverse)]
+                    UN_PUB, sort=sort, search=search, reverse=reverse)]
 
     except ValueError as E:
         # for example, the sort key was not valid
@@ -136,7 +137,7 @@ def worksheet_list():
         return message_template(_("Error displaying worksheet listing."))
 
     # if pub and (not g.username or g.username == tuple([])):
-    #    r['username'] = 'pub'
+    #    r['username'] = UN_PUB
 
     r['accounts'] = g.notebook.user_manager.get_accounts()
     r['sage_version'] = SAGE_VERSION

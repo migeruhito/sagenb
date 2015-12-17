@@ -28,6 +28,8 @@ from docutils.core import publish_parts
 
 from .. import config
 from ..config import SYSTEMS
+from ..config import UN_PUB
+from ..config import UN_SAGE
 from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
 from ..util import cached_property
@@ -289,7 +291,7 @@ class Notebook(object):
                 num_users += 1
                 if num_users % 1000 == 0:
                     print 'Upgraded %d users' % num_users
-                if username in ['_sage_', 'pub']:
+                if username in (UN_SAGE, UN_PUB):
                     continue
                 try:
                     for w in self.user_wsts(username):
@@ -377,7 +379,7 @@ class Notebook(object):
         v = []
         a = ""
         for id_number in (idn for idn in os.listdir(path) if idn.isdigit()):
-            a = os.join('pub', id_number)
+            a = os.join(UN_PUB, id_number)
             if a not in self.__worksheets:
                 try:
                     self.__worksheets[a] = self._storage.load_worksheet(
@@ -435,8 +437,8 @@ class Notebook(object):
 
     def user_selected_wsts(self, user, typ="active", sort='last_edited',
                            reverse=False, search=None):
-        if user == 'pub':
-            W = self.user_wsts('pub')
+        if user == UN_PUB:
+            W = self.user_wsts(UN_PUB)
         elif typ == "trash":
             W = self.user_trashed_wsts(user)
         elif typ == "active":
@@ -473,7 +475,7 @@ class Notebook(object):
         We should only call this if the user is admin!
         """
         return [w for username in self.user_manager.users
-                if username not in ['_sage_', 'pub']
+                if username not in (UN_SAGE, UN_PUB)
                 for w in self.user_wsts(username)]
 
     # Worksheet controller
@@ -558,7 +560,7 @@ class Notebook(object):
         return self.create_wst('scratch', '_sage_')
 
     def create_wst(self, worksheet_name, username):
-        if username != 'pub' and self.user_manager.user_is_guest(username):
+        if username != UN_PUB and self.user_manager.user_is_guest(username):
             raise ValueError("guests cannot create new worksheets")
 
         W = self.worksheet(username)
@@ -1088,13 +1090,13 @@ class Notebook(object):
         W = None
 
         # Reuse an existing published version
-        for X in self.user_wsts('pub'):
+        for X in self.user_wsts(UN_PUB):
             if (X.worksheet_that_was_published() == worksheet):
                 W = X
 
         # Or create a new one.
         if W is None:
-            W = self.create_wst(worksheet.name(), 'pub')
+            W = self.create_wst(worksheet.name(), UN_PUB)
 
         # Copy cells, output, data, etc.
         self.initialize_wst(worksheet, W)

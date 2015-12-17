@@ -16,6 +16,9 @@ from flask import current_app
 from flask.ext.openid import OpenID
 from flask.ext.babel import gettext
 
+from ..config import UAT_USER
+from ..config import UN_ADMIN
+from ..config import UN_GUEST
 from ..models import User
 from ..util.templates import DynamicJs
 
@@ -60,7 +63,7 @@ def index():
     if (current_app.startup_token is not None and
             'startup_token' in request.args):
         if request.args['startup_token'] == current_app.startup_token:
-            g.username = session['username'] = 'admin'
+            g.username = session['username'] = UN_ADMIN
             session.modified = True
             current_app.startup_token = None
             return redirect(url_for('base.index'))
@@ -135,7 +138,7 @@ def live_history():
 def loginoid():
     if not g.notebook.conf()['openid']:
         return redirect(url_for('base.index'))
-    if g.username != 'guest':
+    if g.username != UN_GUEST:
         return redirect(request.values.get('next', url_for('base.index')))
     if request.method == 'POST':
         openid = request.form.get('url')
@@ -222,7 +225,7 @@ def set_profiles():
             if not is_valid_username(username):
                 parse_dict['username_invalid'] = True
                 raise ValueError("Invalid username")
-            if g.notebook.user_manager.user_exists(username):
+            if username in g.notebook.users:
                 parse_dict['username_taken'] = True
                 raise ValueError("Pre-existing username")
             if not is_valid_email(request.form.get('email')):
@@ -230,7 +233,7 @@ def set_profiles():
                 raise ValueError("Invalid email")
             try:
                 new_user = User(username, '', email=resp.email,
-                                account_type='user')
+                                account_type=UAT_USER)
                 g.notebook.user_manager.add_user_object(new_user)
             except ValueError as msg:
                 parse_dict['creation_error'] = True

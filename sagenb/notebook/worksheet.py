@@ -43,6 +43,7 @@ from .. import config
 from .cell import Cell, TextCell
 from ..config import INITIAL_NUM_CELLS
 from ..config import WARN_THRESHOLD
+from ..config import UN_PUB
 from ..util import walltime
 from ..util import ignore_nonexistent_files
 from ..util import next_available_id
@@ -1129,7 +1130,7 @@ class Worksheet(object):
             sage: W.is_published()
             True
         """
-        return self.owner() == 'pub'
+        return self.owner() == UN_PUB
 
     def worksheet_that_was_published(self):
         """
@@ -1809,8 +1810,8 @@ class Worksheet(object):
         try:
             return self.__owner
         except AttributeError:
-            self.__owner = 'pub'
-            return 'pub'
+            self.__owner = UN_PUB
+            return UN_PUB
 
     def is_owner(self, username):
         return self.owner() == username
