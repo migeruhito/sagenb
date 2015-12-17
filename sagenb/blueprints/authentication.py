@@ -47,11 +47,12 @@ def lookup_current_user():
 
 @authentication.route('/login', methods=['POST', 'GET'])
 def login(template_dict={}):
-    template_dict.update({'accounts': g.notebook.user_manager.get_accounts(),
-                          'recovery': g.notebook.conf()['email'],
+    nb_conf = g.notebook.conf()
+    template_dict.update({'accounts': nb_conf['accounts'],
+                          'recovery': nb_conf['email'],
                           'next': request.values.get('next', ''),
                           'sage_version': SAGE_VERSION,
-                          'openid': g.notebook.conf()['openid'],
+                          'openid': nb_conf['openid'],
                           'username_error': False,
                           'password_error': False})
 
@@ -66,8 +67,8 @@ def login(template_dict={}):
         # we only handle ascii usernames.
         if is_valid_username(username):
             try:
-                U = g.notebook.user_manager.user(username)
-            except (KeyError, LookupError):
+                U = g.notebook.user_manager[username]
+            except KeyError:
                 U = None
                 template_dict['username_error'] = True
         else:
@@ -122,7 +123,7 @@ waiting = {}
 @authentication.route('/register', methods=['GET', 'POST'])
 @with_lock
 def register():
-    if not g.notebook.user_manager.get_accounts():
+    if not g.notebook.conf()['accounts']:
         return redirect(url_for('base.index'))
 
     # VALIDATORS: is_valid_username, is_valid_password,
@@ -169,7 +170,7 @@ def register():
     if username:
         if not is_valid_username(username):
             template_dict['username_invalid'] = True
-        elif username in g.notebook.user_manager.users:
+        elif username in g.notebook.user_manager:
             template_dict['username_taken'] = True
         else:
             template_dict['username'] = username
@@ -238,17 +239,8 @@ def register():
                                             'registration.html'),
                                **template_dict)
 
-    # Create an account, if username is unique.
-    try:
-        g.notebook.user_manager.add_user(username, password, email_address)
-    except ValueError:
-        template_dict['username_taken'] = True
-        template_dict['error'] = 'E '
-
-        return render_template(os.path.join('html',
-                                            'accounts',
-                                            'registration.html'),
-                               **template_dict)
+    # Create an account.  All required fields should be valid.
+    g.notebook.user_manager.add_user(username, password, email_address)
 
     # XXX: Add logging support
     # log.msg("Created new user '%s'"%username)
@@ -273,9 +265,10 @@ def register():
             pass
 
     # Go to the login page.
-    template_dict = {'accounts': g.notebook.user_manager.get_accounts(),
+    nb_conf = g.notebook.conf()
+    template_dict = {'accounts': nb_conf['accounts'],
                      'welcome_user': username,
-                     'recovery': g.notebook.conf()['email'],
+                     'recovery': nb_conf['email'],
                      'sage_version': SAGE_VERSION}
 
     return render_template(os.path.join('html', 'login.html'), **template_dict)
@@ -295,7 +288,7 @@ def confirm():
     """)
     try:
         username = waiting[key]
-        user = g.notebook.user_manager.user(username)
+        user = g.notebook.user_manager[username]
         user.email_confirmed = True
     except KeyError:
         return message_template(invalid_confirm_key, '/register')
@@ -322,7 +315,7 @@ def forgot_pass():
         return message_template(msg, url_for('forgot_pass'))
 
     try:
-        user = g.notebook.user_manager.user(username)
+        user = g.notebook.user_manager[username]
     except KeyError:
         return error(_('Username is invalid.'))
 

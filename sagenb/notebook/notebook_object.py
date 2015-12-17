@@ -77,7 +77,7 @@ class NotebookObject:
               from sagenb.notebook.notebook import load_notebook
               nb = load_notebook("directory_to_run_sage_in")
               user_manager = nb.user_manager
-              user_manager.set_accounts(True)
+              nb.conf()['accounts'] = True
               user_manager.add_user("username", "password", "email@place",
                                     "user")
               nb.save()

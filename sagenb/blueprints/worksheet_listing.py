@@ -81,7 +81,7 @@ def render_ws_list_template(args, pub, username):
     if pub and (not username or username == tuple([])):
         username = UN_PUB
 
-    accounts = g.notebook.user_manager.get_accounts()
+    accounts = g.notebook.conf()['accounts']
     sage_version = SAGE_VERSION
     return render_template('html/worksheet_listing.html', **locals())
 
@@ -139,7 +139,7 @@ def worksheet_list():
     # if pub and (not g.username or g.username == tuple([])):
     #    r['username'] = UN_PUB
 
-    r['accounts'] = g.notebook.user_manager.get_accounts()
+    r['accounts'] = g.notebook.conf()['accounts']
     r['sage_version'] = SAGE_VERSION
     # r['pub'] = pub
 
@@ -150,8 +150,8 @@ def worksheet_list():
 @worksheet_listing.route('/home/<username>/')
 @login_required
 def home(username):
-    if not g.notebook.user_manager.user_is_admin(
-            g.username) and username != g.username:
+    if (not g.notebook.user_manager[g.username].is_admin and
+            username != g.username):
         return message_template(_("User '%(user)s' does not have permission "
                                   "to view the home page of '%(name)s'.",
                                   user=g.username, name=username))
@@ -177,7 +177,7 @@ def bare_home():
 
 def get_worksheets_from_request():
     # TODO: Is this neccessary?
-    g.notebook.user_manager.user(g.username)
+    g.notebook.user_manager[g.username]
 
     if 'filename' in request.form:
         filenames = [request.form['filename']]

@@ -69,8 +69,7 @@ def worksheet_view(f):
             if owner != '_sage_' and g.username != owner:
                 if not worksheet.is_published():
                     if (g.username not in worksheet.collaborators() and
-                            not g.notebook.user_manager.user_is_admin(
-                                g.username)):
+                            not g.notebook.user_manager[g.username].is_admin):
                         return message_template(
                             _("You do not have permission to access this "
                               "worksheet"))
@@ -150,7 +149,7 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
     nb = g.notebook
 
     if ws.docbrowser() or ws.is_published():
-        if ws.is_published() or nb.user_manager.user_is_guest(username):
+        if ws.is_published() or nb.user_manager[username].is_guest:
             template_name = 'guest_worksheet_page.html'
             publish = True
         else:
@@ -1169,16 +1168,16 @@ def worksheet_invite_collab(worksheet):
     # add worksheet to new collaborators
     for u in collaborators - old_collaborators:
         try:
-            user_manager.user(u).viewable_worksheets.add((owner, id_number))
-        except (ValueError, LookupError):
+            user_manager[u].viewable_worksheets.add((owner, id_number))
+        except KeyError:
             # user doesn't exist
             pass
     # remove worksheet from ex-collaborators
     for u in old_collaborators - collaborators:
         try:
-            user_manager.user(u).viewable_worksheets.discard(
+            user_manager[u].viewable_worksheets.discard(
                 (owner, id_number))
-        except (ValueError, LookupError):
+        except KeyError:
             # user doesn't exist
             pass
 

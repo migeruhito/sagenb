@@ -29,7 +29,7 @@ def settings_page():
     error = None
     redirect_to_home = None
     redirect_to_logout = None
-    nu = g.notebook.user_manager.user(g.username)
+    nu = g.notebook.user_manager[g.username]
 
     autosave = int(request.values.get('autosave', 0)) * 60
     if autosave:

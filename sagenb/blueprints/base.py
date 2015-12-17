@@ -19,7 +19,6 @@ from flask.ext.babel import gettext
 from ..config import UAT_USER
 from ..config import UN_ADMIN
 from ..config import UN_GUEST
-from ..models import User
 from ..util.templates import DynamicJs
 
 from ..util.auth import challenge
@@ -160,7 +159,7 @@ def create_or_login(resp):
             resp.identity_url)
         session['username'] = g.username = username
         session.modified = True
-    except (KeyError, LookupError):
+    except KeyError:
         session['openid_response'] = resp
         session.modified = True
         return redirect(url_for('set_profiles'))
@@ -225,19 +224,19 @@ def set_profiles():
             if not is_valid_username(username):
                 parse_dict['username_invalid'] = True
                 raise ValueError("Invalid username")
-            if username in g.notebook.users:
+            if username in g.notebook.user_manager:
                 parse_dict['username_taken'] = True
                 raise ValueError("Pre-existing username")
             if not is_valid_email(request.form.get('email')):
                 parse_dict['email_invalid'] = True
                 raise ValueError("Invalid email")
-            try:
-                new_user = User(username, '', email=resp.email,
-                                account_type=UAT_USER)
-                g.notebook.user_manager.add_user_object(new_user)
-            except ValueError as msg:
+            if g.notebook.conf()['accounts']:
+                g.notebook.user_manager.add_user(
+                    username, '', email=resp.email, account_type=UAT_USER)
+            else:
                 parse_dict['creation_error'] = True
-                raise ValueError("Error in creating user\n%s" % msg)
+                raise ValueError('Error in creating user\n'
+                                 'creating new accounts disabled')
             g.notebook.user_manager.create_new_openid(
                 resp.identity_url, username)
             session['username'] = g.username = username

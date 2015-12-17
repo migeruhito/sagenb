@@ -346,23 +346,21 @@ class NotebookFrontend(object):
         nb.conf()['openid'] = self.conf['openid']
 
         if self.conf['accounts'] is not None:
-            nb.user_manager.set_accounts(self.conf['accounts'])
-        else:
-            nb.user_manager.set_accounts(nb.conf()['accounts'])
+            nb.conf()['accounts'] = (self.conf['accounts'])
 
-        if ('root' in nb.user_manager.users and
-                UN_ADMIN not in nb.user_manager.users):
+        if ('root' in nb.user_manager and
+                UN_ADMIN not in nb.user_manager):
             # This is here only for backward compatibility with one
             # version of the notebook.
             nb.create_user_with_same_password(UN_ADMIN, 'root')
             # It would be a security risk to leave an escalated account around.
 
-        if UN_ADMIN not in nb.user_manager.users:
+        if UN_ADMIN not in nb.user_manager:
             self.conf['reset'] = True
 
         if self.conf['reset']:
             passwd = self.get_admin_passwd()
-            if UN_ADMIN in nb.user_manager.users:
+            if UN_ADMIN in nb.user_manager:
                 nb.user_manager.set_password(UN_ADMIN, passwd)
                 print("Password changed for user {!r}.".format(UN_ADMIN))
             else:
@@ -383,10 +381,10 @@ class NotebookFrontend(object):
         # This fixes issue #175 (https://github.com/sagemath/sagenb/issues/175)
         um = nb.user_manager
         for user in (UN_SAGE, UN_PUB):
-            if user not in um.users:
-                um.add_user(user, '', '', account_type=UAT_USER, force=True)
-        if UN_GUEST not in um.users:
-            um.add_user(UN_GUEST, '', '', account_type=UAT_GUEST, force=True)
+            if user not in um:
+                um.add_user(user, '', '', account_type=UAT_USER)
+        if UN_GUEST not in um:
+            um.add_user(UN_GUEST, '', '', account_type=UAT_GUEST)
 
         nb.set_server_pool(self.conf['server_pool'])
         nb.set_ulimit(self.conf['ulimit'])

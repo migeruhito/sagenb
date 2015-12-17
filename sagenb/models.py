@@ -623,6 +623,10 @@ class User(object):
                     *self.account_types))
         self.__account_type = account_type
 
+    @property
+    def external_auth(self):
+        return self.__external_auth
+
     def basic(self):
         """
         Return a basic Python data structure from which self can be
@@ -640,10 +644,6 @@ class User(object):
             'viewable_worksheets': self.viewable_worksheets,
             'conf': self.conf.basic(),
             }
-
-    @property
-    def external_auth(self):
-        return self.__external_auth
 
     def __eq__(self, other):
         return all((
@@ -692,7 +692,7 @@ class User(object):
 
     def grant_admin(self):
         if not self.is_guest:
-            self._account_type = UAT_ADMIN
+            self.account_type = UAT_ADMIN
 
     def revoke_admin(self):
         if not self.is_guest:

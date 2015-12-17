@@ -300,12 +300,12 @@ class FilesystemDatastore(Datastore):
             sage: 'users.pickle' in os.listdir(ds._path)
             True
             sage: users = ds.load_users(U)
-            sage: U.users
+            sage: U
             {'admin': admin, 'wstein': wstein}
         """
         for user in self._basic_to_users(
                 self._load('users.pickle')).itervalues():
-            user_manager.add_user_object(user, force=True)
+            user_manager[user.username] = user
             user_manager.set_password(
                 user.username, user.password, encrypt=False)
         return user_manager
@@ -329,7 +329,7 @@ class FilesystemDatastore(Datastore):
             sage: 'users.pickle' in os.listdir(ds._path)
             True
             sage: users = ds.load_users(U)
-            sage: U.users
+            sage: U
             {'admin': admin, 'wstein': wstein}
         """
         self._save(self._users_to_basic(users), 'users.pickle')

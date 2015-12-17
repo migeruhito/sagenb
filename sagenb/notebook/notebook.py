@@ -254,7 +254,7 @@ class Notebook(object):
         Save this notebook server to disk.
         """
         S = self._storage
-        S.save_users(self.user_manager.users)
+        S.save_users(self.user_manager)
         S.save_server_conf(self.conf())
         self.user_manager.save(S)
         # Save the non-doc-browser worksheets.
@@ -287,7 +287,7 @@ class Notebook(object):
             # this uses code from all_wsts()
             user_manager = self.user_manager
             num_users = 0
-            for username in self.user_manager.users:
+            for username in self.user_manager:
                 num_users += 1
                 if num_users % 1000 == 0:
                     print 'Upgraded %d users' % num_users
@@ -300,7 +300,7 @@ class Notebook(object):
                         collaborators = w.collaborators()
                         for u in collaborators:
                             try:
-                                user_manager.user(u).viewable_worksheets.add(
+                                user_manager[u].viewable_worksheets.add(
                                     (owner, id_number))
                             except KeyError:
                                 # user doesn't exist
@@ -351,7 +351,7 @@ class Notebook(object):
     def add_to_user_history(self, entry, username):
         history = self.user_history(username)
         history.append(entry)
-        maxlen = self.user_manager.user_conf(username)['max_history_length']
+        maxlen = self.user_manager[username]['max_history_length']
         while len(history) > maxlen:
             del history[0]
 
@@ -379,7 +379,7 @@ class Notebook(object):
         v = []
         a = ""
         for id_number in (idn for idn in os.listdir(path) if idn.isdigit()):
-            a = os.join(UN_PUB, id_number)
+            a = '/'.join((UN_PUB, id_number))
             if a not in self.__worksheets:
                 try:
                     self.__worksheets[a] = self._storage.load_worksheet(
@@ -399,7 +399,7 @@ class Notebook(object):
         """
         # Should return worksheets from self.__worksheets if possible
         worksheets = self.user_wsts(username)
-        user_vw = self.user_manager.user(username).viewable_worksheets
+        user_vw = self.user_manager[username].viewable_worksheets
         viewable_worksheets = (
             self._storage.load_worksheet(owner, id) for owner, id in user_vw)
         # we double-check that we can actually view these worksheets
@@ -419,7 +419,7 @@ class Notebook(object):
         return self._with_running_worksheets(worksheets)
 
     def user_viewable_wsts(self, username):
-        if self.user_manager.user_is_admin(username):
+        if self.user_manager[username].is_admin:
             return self.all_wsts
         return self._user_viewable_wsts(username)
 
@@ -474,7 +474,7 @@ class Notebook(object):
         """
         We should only call this if the user is admin!
         """
-        return [w for username in self.user_manager.users
+        return [w for username in self.user_manager
                 if username not in (UN_SAGE, UN_PUB)
                 for w in self.user_wsts(username)]
 
@@ -489,7 +489,7 @@ class Notebook(object):
         """
         Find the next worksheet id for the given user.
         """
-        u = self.user_manager.user(username).conf()
+        u = self.user_manager[username]
         id_number = u['next_worksheet_id_number']
         if id_number == -1:  # need to initialize
             id_number = max([-1].extend(
@@ -560,7 +560,7 @@ class Notebook(object):
         return self.create_wst('scratch', '_sage_')
 
     def create_wst(self, worksheet_name, username):
-        if username != UN_PUB and self.user_manager.user_is_guest(username):
+        if username != UN_PUB and self.user_manager[username].is_guest:
             raise ValueError("guests cannot create new worksheets")
 
         W = self.worksheet(username)
@@ -1313,9 +1313,9 @@ def migrate_old_notebook_v1(dir):
             new_nb.conf().confs[t] = getattr(old_nb, '_Notebook__' + t)
 
     # Now update the user data from the old notebook to the new one:
-    print "Migrating %s user accounts..." % len(old_nb.user_manager.users)
-    users = new_nb.user_manager.users
-    for username, old_user in old_nb.user_manager.users.iteritems():
+    print "Migrating %s user accounts..." % len(old_nb.user_manager)
+    users = new_nb.user_manager
+    for username, old_user in old_nb.user_manager.iteritems():
         new_user = User(old_user.username, '',
                         old_user.email, old_user.account_type)
         new_user.password = old_user.password
@@ -1424,7 +1424,7 @@ def migrate_old_notebook_v1(dir):
 
     # Migrating history
     new_nb._user_history = {}
-    for username in old_nb.user_manager.users.keys():
+    for username in old_nb.user_manager.keys():
         history_file = os.path.join(
             dir, 'worksheets', username, 'history.sobj')
         if os.path.exists(history_file):

@@ -615,7 +615,7 @@ class Worksheet(object):
             sage: W.collaborators()
             ['hilbert', 'sage']
         """
-        users = self.notebook().user_manager.users
+        users = self.notebook().user_manager
         owner = self.owner()
         collaborators = set([u for u in v if u in users and u != owner])
         self.__collaborators = sorted(collaborators)
@@ -2075,7 +2075,7 @@ class Worksheet(object):
         return os.path.join(path, name)
 
     def user_autosave_interval(self, username):
-        return self.notebook().user(username)['autosave_interval']
+        return self.notebook()[username]['autosave_interval']
 
     def autosave(self, username):
         return
