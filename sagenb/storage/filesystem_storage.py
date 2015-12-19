@@ -290,8 +290,8 @@ class FilesystemDatastore(Datastore):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U = UserManager()
             sage: users = {'admin':User('admin','abc','a@b.c','admin'),
                            'wstein':User('wstein','xyz','b@c.d','user')}
             sage: from sagenb.storage import FilesystemDatastore
@@ -319,8 +319,8 @@ class FilesystemDatastore(Datastore):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U = UserManager()
             sage: users = {'admin':User('admin','abc','a@b.c','admin'),
                            'wstein':User('wstein','xyz','b@c.d','user')}
             sage: from sagenb.storage import FilesystemDatastore

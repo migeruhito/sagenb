@@ -30,16 +30,15 @@ class UserManager(dict):
 
         """
         dict.__init__(self)
-        self._users = {}
         self._passwords = {}
         self._conf = {'accounts': accounts} if conf is None else conf
 
     def __eq__(self, other):
         """
         EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U1 = SimpleUserManager()
-            sage: U2 = SimpleUserManager(accounts=False)
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U1 = UserManager()
+            sage: U2 = UserManager(accounts=False)
             sage: U1 == U2
             False
             sage: U1 == U2
@@ -69,8 +68,8 @@ class UserManager(dict):
         current notebook.
 
         EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U = UserManager()
             sage: U.create_default_users('password')
             sage: U
             {'sage': _sage_, 'admin': admin, 'guest': guest, 'pub': pub}
@@ -93,8 +92,8 @@ class UserManager(dict):
             account_type -- one of 'user', 'admin', or 'guest'
 
         EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U = UserManager()
             sage: U.add_user(
             'william', 'password', 'email@address.com', account_type='admin')
             sage: U.add_user(
@@ -107,33 +106,11 @@ class UserManager(dict):
                               external_auth)
         self.set_password(username, password)
 
-    def copy_password(self, username, other_username):
-        """
-        Sets the password of user to be the password of other_user.
-
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: UM = SimpleUserManager(accounts=True)
-            sage: UM.create_default_users('passpass')
-            sage: UM.add_user('william', 'password', 'email@address.com')
-            sage: UM.check_password('admin','passpass')
-            True
-            sage: UM.check_password('william','password')
-            True
-            sage: UM.copy_password('william', 'admin')
-            sage: UM.check_password('william','passpass')
-            True
-
-        """
-        O = self[other_username]
-        passwd = O.password
-        self.set_password(username, passwd, encrypt=False)
-
     def set_password(self, username, new_password, encrypt=True):
         """
         EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U = UserManager()
             sage: U.create_default_users('passpass')
             sage: U.check_password('admin','passpass')
             True
@@ -155,8 +132,8 @@ class UserManager(dict):
         """
         Return the stored password for username. Might be encrypted.
         EXAMPLES:
-            sage: from sagenb.notebook.user_manager import SimpleUserManager
-            sage: U = SimpleUserManager()
+            sage: from sagenb.notebook.user_manager import UserManager
+            sage: U = UserManager()
             sage: U.create_default_users('passpass')
             sage: U.check_password('admin','passpass')
             True
