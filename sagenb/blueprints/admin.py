@@ -43,7 +43,7 @@ def users(reset=None):
     if reset:
         password = random_password()
         try:
-            g.notebook.user_manager.set_password(reset, password)
+            g.notebook.user_manager[reset].password = password
         except KeyError:
             pass
         else:
@@ -152,7 +152,7 @@ def reset_user_password():
     password = random_password()
     try:
         # U = g.notebook.user_manager[user]
-        g.notebook.user_manager.set_password(user, password)
+        g.notebook.user_manager[user].password = password
     except KeyError:
         pass
 

@@ -1,8 +1,6 @@
 from __future__ import absolute_import
 
-import crypt
 
-from ..config import SALT
 from ..config import UAT_ADMIN
 from ..config import UAT_GUEST
 from ..config import UAT_USER
@@ -11,10 +9,8 @@ from ..config import UN_GUEST
 from ..config import UN_PUB
 from ..config import UN_SAGE
 from ..config import UN_SYSTEM
-from ..util.auth import encrypt_password
+from ..controllers import User
 from ..util.auth import LdapAuth
-
-from ..models import User
 
 
 class UserManager(dict):
@@ -30,7 +26,6 @@ class UserManager(dict):
 
         """
         dict.__init__(self)
-        self._passwords = {}
         self._conf = {'accounts': accounts} if conf is None else conf
 
     def __eq__(self, other):
@@ -102,62 +97,14 @@ class UserManager(dict):
             sage: U['william']
             william
         """
-        self[username] = User(username, password, email, account_type,
-                              external_auth)
-        self.set_password(username, password)
-
-    def set_password(self, username, new_password, encrypt=True):
-        """
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import UserManager
-            sage: U = UserManager()
-            sage: U.create_default_users('passpass')
-            sage: U.check_password('admin','passpass')
-            True
-            sage: U.set_password('admin', 'password')
-            sage: U.check_password('admin','password')
-            True
-            sage: U.set_password(
-                'admin', 'test'); U.check_password('admin','test')
-            True
-            sage: U.set_password(
-                'admin', 'test', encrypt=False); U.password('admin')
-            'test'
-        """
-        self[username].password = (
-            encrypt_password(new_password) if encrypt else new_password)
-        self._passwords[username] = self[username].password
-
-    def password(self, username):
-        """
-        Return the stored password for username. Might be encrypted.
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import UserManager
-            sage: U = UserManager()
-            sage: U.create_default_users('passpass')
-            sage: U.check_password('admin','passpass')
-            True
-        """
-        return self._passwords.get(username, None)
+        self[username] = User.new(username, password, email, account_type,
+                                  external_auth)
 
     def check_password(self, username, password):
-        # the empty password is always false
-        if username == "pub" or password == '':
-            return False
-        user_password = self.password(username)
-        if user_password is None and self[username].external_auth is None:
-            print "User %s has None password" % username
-            return False
-        if user_password.find('$') == -1:
-            if user_password == crypt.crypt(password, SALT):
-                self.set_password(username, password)
-                return True
-            else:
-                return False
-        else:
-            salt = user_password.split('$')[1]
-            if encrypt_password(password, salt) == user_password:
-                return True
+        check = self[username].check_password(password)
+        if check is not None:
+            return check
+
         try:
             return self._check_password(username, password)
         except AttributeError:

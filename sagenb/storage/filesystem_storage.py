@@ -49,13 +49,13 @@ from hashlib import md5
 # TODO: sage dependency
 from sage.misc.temporary_file import atomic_write
 
-from ..models import User
+from ..controllers import User
+from ..models import ServerConfiguration
 from ..util import set_restrictive_permissions
 from ..util import encoded_str
 from ..notebook.worksheet import Worksheet_from_basic
 
 from .abstract_storage import Datastore
-from ..models import ServerConfiguration
 
 
 def is_safe(a):
@@ -227,7 +227,7 @@ class FilesystemDatastore(Datastore):
         return dict([(name, User.from_basic(basic)) for name, basic in obj])
 
     def _users_to_basic(self, users):
-        new = list(sorted([[name, U.basic()]
+        new = list(sorted([[name, U.basic]
                            for name, U in users.iteritems()]))
         return new
 
@@ -305,9 +305,7 @@ class FilesystemDatastore(Datastore):
         """
         for user in self._basic_to_users(
                 self._load('users.pickle')).itervalues():
-            user_manager[user.username] = user
-            user_manager.set_password(
-                user.username, user.password, encrypt=False)
+            user_manager.add_user(user)
         return user_manager
 
     def save_users(self, users):

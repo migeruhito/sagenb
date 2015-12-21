@@ -514,13 +514,6 @@ class UserConfiguration(Configuration):
 class User(object):
     account_types = (UAT_ADMIN, UAT_USER, UAT_GUEST)
 
-    @classmethod
-    def from_basic(cls, basic):
-        conf = basic.pop('conf')
-        conf = UserConfiguration.from_basic(conf)
-        new = cls(conf=conf, **basic)
-        return new
-
     def __init__(self,
                  username, password='', email='',
                  account_type='admin', external_auth=None,
@@ -568,37 +561,6 @@ class User(object):
         return self.__username
 
     @property
-    def password(self):
-        """
-        Deprecated. Use user_manager object instead.
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: User('andrew', 'tEir&tiwk!', 'andrew@matrixstuff.com',
-                       'user').password #random
-        """
-        return self.__password
-
-    @password.setter
-    def password(self, password):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: user = User('bob', 'Aisfa!!', 'bob@sagemath.net', 'admin')
-            sage: old = user.password
-            sage: user.password = 'Crrc!'
-            sage: old != user.password
-            True
-        """
-        if password == '':
-            # won't get as a password -- i.e., this account is closed.
-            self.__password = 'x'
-        else:
-            self.__password = password
-            self._temporary_password = ''
-
-    @property
     def account_type(self):
         """
         EXAMPLES::
@@ -626,74 +588,3 @@ class User(object):
     @property
     def external_auth(self):
         return self.__external_auth
-
-    def basic(self):
-        """
-        Return a basic Python data structure from which self can be
-        reconstructed.
-        """
-        return {
-            'username': self.username,
-            'password': self.password,
-            'email': self.email,
-            'email_confirmed': self.email_confirmed,
-            'account_type': self.account_type,
-            'external_auth': self.external_auth,
-            'temporary_password': self._temporary_password,
-            'is_suspended': self.is_suspended,
-            'viewable_worksheets': self.viewable_worksheets,
-            'conf': self.conf.basic(),
-            }
-
-    def __eq__(self, other):
-        return all((
-            self.__class__ is other.__class__,
-            self.username == other.username,
-            self.email == other.email,
-            self.conf == other.conf,
-            self.account_type == other.account_type))
-
-    def __repr__(self):
-        return self.username
-
-    def __getitem__(self, *args):
-        return self.conf.__getitem__(*args)
-
-    def __setitem__(self, *args):
-        self.conf.__setitem__(*args)
-
-    # Auxiliary methods and properties for account_type flags encapsulation
-
-    @property
-    def is_admin(self):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: User('A', account_type='admin').is_admin
-            True
-            sage: User('B', account_type='user').is_admin
-            False
-        """
-        return self.account_type == UAT_ADMIN
-
-    @property
-    def is_guest(self):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: User('A', account_type='guest').is_guest
-            True
-            sage: User('B', account_type='user').is_guest
-            False
-        """
-        return self.account_type == UAT_GUEST
-
-    def grant_admin(self):
-        if not self.is_guest:
-            self.account_type = UAT_ADMIN
-
-    def revoke_admin(self):
-        if not self.is_guest:
-            self.account_type = UAT_USER

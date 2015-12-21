@@ -343,7 +343,7 @@ def forgot_pass():
         return error(
             _("The new password couldn't be sent to %(dest)s.", dest=destaddr))
     else:
-        g.notebook.user_manager.set_password(username, password)
+        g.notebook.user_manager[username].password = password
 
     return message_template(
         _("A new password has been sent to your e-mail address."),

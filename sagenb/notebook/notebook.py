@@ -44,7 +44,7 @@ from ..util.text import extract_title
 from ..util.text import extract_text
 
 from ..models import ServerConfiguration
-from ..models import User
+from ..controllers import User
 from .notification import logger
 from .notification import TwistedEmailHandler
 from .user_manager import OpenIDUserManager
@@ -1267,6 +1267,7 @@ def load_notebook(dir, interface=None, port=None, secure=None,
     return nb
 
 
+# TODO: This must be rewritten
 def migrate_old_notebook_v1(dir):
     """
     Back up and migrates an old saved version of notebook to the new one
@@ -1322,11 +1323,11 @@ def migrate_old_notebook_v1(dir):
         transfer_attributes(
             old_user, new_user,
             [('_User__email_confirmed', 'email_confirmed'),
-             ('_User__temporary_password', '_temporary_password'),
+             # ('_User__temporary_password', '_temporary_password'),
              ('_User__is_suspended', 'is_suspended')])
         # Fix the __conf field, which is also an instance of a class
         new_user.conf.confs = old_user.conf.confs
-        users[new_user.username] = new_user
+        users.add_user(new_user)
 
     # Set the worksheets of the new notebook equal to the ones from
     # the old one.
