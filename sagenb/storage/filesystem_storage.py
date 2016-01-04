@@ -180,6 +180,7 @@ class FilesystemDatastore(Datastore):
     # Loading and saving basic Python objects to disk.
     # The input filename is always relative to self._path.
     #########################################################################
+
     def _load(self, filename):
         with open(self._abspath(filename)) as f:
             result = cPickle.load(f)
@@ -223,6 +224,7 @@ class FilesystemDatastore(Datastore):
     # Conversions to and from basic Python database (so that json
     # storage will work).
     #########################################################################
+
     def _basic_to_users(self, obj):
         return dict([(name, User.from_basic(basic)) for name, basic in obj])
 
@@ -303,9 +305,9 @@ class FilesystemDatastore(Datastore):
             sage: U
             {'admin': admin, 'wstein': wstein}
         """
-        for user in self._basic_to_users(
-                self._load('users.pickle')).itervalues():
-            user_manager.add_user(user)
+        for username, user in self._basic_to_users(
+                self._load('users.pickle')).iteritems():
+            user_manager[username] = user
         return user_manager
 
     def save_users(self, users):

@@ -50,44 +50,44 @@ class User(object):
         Expose model.password write only and encrypt if password, else
         set to ''
         """
-        self.__model.password = encrypt_password(passwd) if passwd else ''
+        self.__user_model.password = encrypt_password(passwd) if passwd else ''
 
     password = property(fset=__set_password)
 
     @property
     def email(self):
-        return self.__model.email
+        return self.__user_model.email
 
     @email.setter
     def email(self, email):
-        self.__model.email = email
+        self.__user_model.email = email
 
     @property
     def email_confirmed(self):
-        return self.__model.email_confirmed
+        return self.__user_model.email_confirmed
 
     @email_confirmed.setter
     def email_confirmed(self, emailc):
-        self.__model.email_confirmed = emailc
+        self.__user_model.email_confirmed = emailc
 
     # Utility methods
 
     def __eq__(self, other):
         return all((
-            self.__model.__class__ is other.__model.__class__,
-            self.__model.username == other.__model.username,
-            self.__model.email == other.__model.email,
-            self.__model.conf == other.__model.conf,
-            self.__model.account_type == other.__model.account_type))
+            self.__user_model.__class__ is other.__user_model.__class__,
+            self.__user_model.username == other.__user_model.username,
+            self.__user_model.email == other.__user_model.email,
+            self.__user_model.conf == other.__user_model.conf,
+            self.__user_model.account_type == other.__user_model.account_type))
 
     def __repr__(self):
         return self.username
 
     def __getitem__(self, *args):
-        return self.__model.conf.__getitem__(*args)
+        return self.__user_model.conf.__getitem__(*args)
 
     def __setitem__(self, *args):
-        self.__model.conf.__setitem__(*args)
+        self.__user_model.conf.__setitem__(*args)
 
     @property
     def basic(self):
@@ -96,16 +96,16 @@ class User(object):
         reconstructed.
         """
         return {
-            'username': self.__model.username,
-            'password': self.__model.password,
-            'email': self.__model.email,
-            'email_confirmed': self.__model.email_confirmed,
-            'account_type': self.__model.account_type,
-            'external_auth': self.__model.external_auth,
-            'temporary_password': self.__model._temporary_password,
-            'is_suspended': self.__model.is_suspended,
-            'viewable_worksheets': self.__model.viewable_worksheets,
-            'conf': self.__model.conf.basic(),
+            'username': self.__user_model.username,
+            'password': self.__user_model.password,
+            'email': self.__user_model.email,
+            'email_confirmed': self.__user_model.email_confirmed,
+            'account_type': self.__user_model.account_type,
+            'external_auth': self.__user_model.external_auth,
+            'temporary_password': self.__user_model._temporary_password,
+            'is_suspended': self.__user_model.is_suspended,
+            'viewable_worksheets': self.__user_model.viewable_worksheets,
+            'conf': self.__user_model.conf.basic(),
             }
 
     @property
@@ -150,10 +150,10 @@ class User(object):
         # the empty password is always false
         if self.username == "pub" or password == '':
             return False
-        if self.__model.external_auth is not None:
+        if self.__user_model.external_auth is not None:
             return None
 
-        my_passwd = self.__model.password
+        my_passwd = self.__user_model.password
         if not my_passwd:
             return False
         if '$' not in my_passwd:
