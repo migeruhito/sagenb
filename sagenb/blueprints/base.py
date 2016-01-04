@@ -135,7 +135,7 @@ def live_history():
 @guest_or_login_required
 @oid.loginhandler
 def loginoid():
-    if not g.notebook.conf()['openid']:
+    if not g.notebook.conf['openid']:
         return redirect(url_for('base.index'))
     if g.username != UN_GUEST:
         return redirect(request.values.get('next', url_for('base.index')))
@@ -152,7 +152,7 @@ def loginoid():
 @oid.after_login
 @with_lock
 def create_or_login(resp):
-    if not g.notebook.conf()['openid']:
+    if not g.notebook.conf['openid']:
         return redirect(url_for('base.index'))
     try:
         username = g.notebook.user_manager.get_username_from_openid(
@@ -168,12 +168,12 @@ def create_or_login(resp):
 
 @base.route('/openid_profiles', methods=['POST', 'GET'])
 def set_profiles():
-    if not g.notebook.conf()['openid']:
+    if not g.notebook.conf['openid']:
         return redirect(url_for('base.index'))
 
-    show_challenge = g.notebook.conf()['challenge']
+    show_challenge = g.notebook.conf['challenge']
     if show_challenge:
-        chal = challenge(g.notebook.conf(),
+        chal = challenge(g.notebook.conf,
                          is_secure=g.notebook.secure,
                          remote_ip=request.environ['REMOTE_ADDR'])
 
@@ -230,7 +230,7 @@ def set_profiles():
             if not is_valid_email(request.form.get('email')):
                 parse_dict['email_invalid'] = True
                 raise ValueError("Invalid email")
-            if g.notebook.conf()['accounts']:
+            if g.notebook.conf['accounts']:
                 g.notebook.user_manager.add_user(
                     username, '', email=resp.email, account_type=UAT_USER)
             else:

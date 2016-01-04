@@ -217,7 +217,7 @@ def add_user_nui():
 def notebook_settings():
     updated = {}
     if 'form' in request.values:
-        updated = g.notebook.conf().update_from_form(request.values)
+        updated = g.notebook.conf.update_from_form(request.values)
 
     # Changes theme
     if 'theme' in request.values:
@@ -226,15 +226,15 @@ def notebook_settings():
         base.dynamic_javascript.clear_cache()
         new_theme = request.values['theme']
         if new_theme not in current_app.theme_manager.themes:
-            g.notebook.conf()['theme'] = current_app.config['DEFAULT_THEME']
+            g.notebook.conf['theme'] = current_app.config['DEFAULT_THEME']
         else:
-            g.notebook.conf()['theme'] = new_theme
+            g.notebook.conf['theme'] = new_theme
         # Call this to search for new themes
         # current_app.theme_manager.refresh()
 
     template_dict = {}
     template_dict['sage_version'] = SAGE_VERSION
-    template_dict['auto_table'] = g.notebook.conf().html_table(updated)
+    template_dict['auto_table'] = g.notebook.conf.html_table(updated)
     template_dict['admin'] = g.notebook.user_manager[g.username].is_admin
     template_dict['username'] = g.username
 

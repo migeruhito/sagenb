@@ -72,8 +72,17 @@ class User(object):
         return self.__user_model.email_confirmed
 
     @email_confirmed.setter
-    def email_confirmed(self, emailc):
-        self.__user_model.email_confirmed = emailc
+    def email_confirmed(self, value):
+        self.__user_model.email_confirmed = value
+
+    @property
+    def is_suspended(self):
+        return self.__user_model.is_suspended
+
+    @is_suspended.setter
+    def is_suspended(self, value):
+        self.__user_model.is_suspended = value
+
 
     # Utility methods
 

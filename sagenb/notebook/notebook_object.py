@@ -77,7 +77,7 @@ class NotebookObject:
               from sagenb.notebook.notebook import load_notebook
               nb = load_notebook("directory_to_run_sage_in")
               user_manager = nb.user_manager
-              nb.conf()['accounts'] = True
+              nb.conf['accounts'] = True
               user_manager.add_user("username", "password", "email@place",
                                     "user")
               nb.save()
@@ -366,7 +366,7 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050,
         except pexpect.EOF:
             pass
         p.close(force=True)
-        shutil.rmtree(nb._dir)
+        shutil.rmtree(nb.dir)
     p.dispose = dispose
     if verbose:
         print "Notebook started."

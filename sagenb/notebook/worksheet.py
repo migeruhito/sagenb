@@ -802,7 +802,7 @@ class Worksheet(object):
         """
         old_filename = self.__filename
         self.__filename = filename
-        self.__dir = os.path.join(self.notebook()._dir, filename)
+        self.__dir = os.path.join(self.notebook().dir, filename)
         self.notebook().change_wst_key(old_filename, filename)
 
     def filename(self):
@@ -818,7 +818,7 @@ class Worksheet(object):
             sage: W = nb.create_wst('A Test Worksheet', 'admin')
             sage: W.filename()
             'admin/0'
-            sage: os.path.isdir(os.path.join(nb._dir, 'home', W.filename()))
+            sage: os.path.isdir(os.path.join(nb.dir, 'home', W.filename()))
             True
         """
         return self.__filename

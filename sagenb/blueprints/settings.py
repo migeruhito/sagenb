@@ -62,7 +62,7 @@ def settings_page():
             g.notebook.user_manager[g.username].password = new
             redirect_to_logout = True
 
-    if g.notebook.conf()['email']:
+    if g.notebook.conf['email']:
         newemail = request.values.get('new-email', None)
         if newemail:
             if is_valid_email(newemail):
@@ -89,7 +89,7 @@ def settings_page():
         (i, ' selected') if nu['autosave_interval'] / 60 == i else (i, '')
         for i in range(1, 10, 2))
 
-    td['email'] = g.notebook.conf()['email']
+    td['email'] = g.notebook.conf['email']
     if td['email']:
         td['email_address'] = nu.email or 'None'
         if nu.email_confirmed:

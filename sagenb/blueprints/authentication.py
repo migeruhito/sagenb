@@ -47,7 +47,7 @@ def lookup_current_user():
 
 @authentication.route('/login', methods=['POST', 'GET'])
 def login(template_dict={}):
-    nb_conf = g.notebook.conf()
+    nb_conf = g.notebook.conf
     template_dict.update({'accounts': nb_conf['accounts'],
                           'recovery': nb_conf['email'],
                           'next': request.values.get('next', ''),
@@ -123,7 +123,7 @@ waiting = {}
 @authentication.route('/register', methods=['GET', 'POST'])
 @with_lock
 def register():
-    if not g.notebook.conf()['accounts']:
+    if not g.notebook.conf['accounts']:
         return redirect(url_for('base.index'))
 
     # VALIDATORS: is_valid_username, is_valid_password,
@@ -148,14 +148,14 @@ def register():
     empty_form_dict = {}
     template_dict = {}
 
-    if g.notebook.conf()['email']:
+    if g.notebook.conf['email']:
         required.add('email')
         empty_form_dict['email'] = True
 
-    if g.notebook.conf()['challenge']:
+    if g.notebook.conf['challenge']:
         required.add('challenge')
         empty_form_dict['challenge'] = True
-        chal = challenge(g.notebook.conf(),
+        chal = challenge(g.notebook.conf,
                          is_secure=g.notebook.secure,
                          remote_ip=request.environ['REMOTE_ADDR'])
         empty_form_dict['challenge_html'] = chal.html()
@@ -195,7 +195,7 @@ def register():
 
     # Email address.
     email_address = ''
-    if g.notebook.conf()['email']:
+    if g.notebook.conf['email']:
         email_address = request.values.get('email', None)
         if email_address:
             if not is_valid_email(email_address):
@@ -208,7 +208,7 @@ def register():
             empty.add('email')
 
     # Challenge (e.g., reCAPTCHA).
-    if g.notebook.conf()['challenge']:
+    if g.notebook.conf['challenge']:
         status = chal.is_valid_response(req_args=request.values)
         if status.is_valid is True:
             validated.add('challenge')
@@ -246,7 +246,7 @@ def register():
     # log.msg("Created new user '%s'"%username)
 
     # POST-VALIDATION hooks.  All required fields should be valid.
-    if g.notebook.conf()['email']:
+    if g.notebook.conf['email']:
 
         # TODO: make this come from the server settings
         key = register_make_key()
@@ -265,7 +265,7 @@ def register():
             pass
 
     # Go to the login page.
-    nb_conf = g.notebook.conf()
+    nb_conf = g.notebook.conf
     template_dict = {'accounts': nb_conf['accounts'],
                      'welcome_user': username,
                      'recovery': nb_conf['email'],
@@ -277,7 +277,7 @@ def register():
 @authentication.route('/confirm')
 @with_lock
 def confirm():
-    if not g.notebook.conf()['email']:
+    if not g.notebook.conf['email']:
         return message_template(_('The confirmation system is not active.'))
     key = int(request.values.get('key', '-1'))
 
@@ -302,7 +302,7 @@ def confirm():
 @authentication.route('/forgotpass')
 @with_lock
 def forgot_pass():
-    if not g.notebook.conf()['email']:
+    if not g.notebook.conf['email']:
         return message_template(
             _('The account recovery system is not active.'))
 

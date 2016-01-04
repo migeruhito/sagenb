@@ -142,7 +142,7 @@ def render_template(template, **context):
         sage: from sagenb.util.templates import render_template
         sage: type(render_template)
     """
-    theme = g.notebook.conf()['theme']
+    theme = g.notebook.conf['theme']
     return render_theme_template(theme, template, **context)
 
 

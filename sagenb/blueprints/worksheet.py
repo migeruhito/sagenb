@@ -559,7 +559,7 @@ def public_worksheet(id):
         return message_template(
             _("Requested public worksheet does not exist"))
 
-    if g.notebook.conf()['pub_interact']:
+    if g.notebook.conf['pub_interact']:
         worksheet = pub_worksheet(original_worksheet)
         owner = worksheet.owner()
         worksheet.set_owner(UN_PUB)
@@ -1049,7 +1049,7 @@ def worksheet_cell_update(worksheet):
         print 'Segmentation fault detected in output!'
 
     r['output'] = cell.output_text(html=True) + ' '
-    r['output_wrapped'] = cell.output_text(g.notebook.conf()['word_wrap_cols'],
+    r['output_wrapped'] = cell.output_text(g.notebook.conf['word_wrap_cols'],
                                            html=True) + ' '
     r['introspect_html'] = cell.introspect_html()
 
@@ -1637,7 +1637,7 @@ doc_worksheet_number = -1
 
 def doc_worksheet():
     global doc_worksheet_number
-    doc_worksheet_number = doc_worksheet_number % g.notebook.conf()[
+    doc_worksheet_number = doc_worksheet_number % g.notebook.conf[
         'doc_pool_size']
     W = None
     for X in g.notebook.user_wsts('_sage_'):

@@ -35,7 +35,7 @@ INPUT:
 <!-- Jmol - embedded 3D graphics **needs to be before jmol_lib.js** -->
 <script type="text/javascript" src="/jsmol/JSmol.min.nojq.js"></script>
 
-{% if not worksheet.is_published() or worksheet.notebook().conf()['pub_interact'] %}
+{% if not worksheet.is_published() or worksheet.notebook().conf['pub_interact'] %}
 <script type="text/javascript" src="/javascript/sage/js/notebook_lib.js"></script>
 <script type="text/javascript" src="/javascript/dynamic/notebook_dynamic.js"></script>
 {% elif worksheet.is_published() %}
@@ -62,7 +62,7 @@ INPUT:
 <script  type="text/javascript">
     worksheet_filename = "{{ worksheet.filename() }}";
     worksheet_name = {{ worksheet.name() | repr_str | safe }};
-    {% if not worksheet.is_published() or worksheet.notebook().conf()['pub_interact'] %}
+    {% if not worksheet.is_published() or worksheet.notebook().conf['pub_interact'] %}
         server_ping_while_alive();
     {% endif %}
 </script>

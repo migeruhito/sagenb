@@ -90,7 +90,7 @@ def create_app(notebook, startup_token=None, debug=False):
                 'sage_version': SAGE_VERSION,
                 'MATHJAX': MATHJAX,
                 'JEDITABLE_TINYMCE': JEDITABLE_TINYMCE,
-                'conf': notebook.conf()}
+                'conf': notebook.conf}
 
     # Register the Blueprints
     app.register_blueprint(admin)
@@ -112,24 +112,24 @@ def create_app(notebook, startup_token=None, debug=False):
     # Check if saved default language exists. If not fallback to default
     @app.before_first_request
     def check_default_lang():
-        def_lang = notebook.conf()['default_language']
+        def_lang = notebook.conf['default_language']
         trans_ids = [str(trans) for trans in babel.list_translations()]
         if def_lang not in trans_ids:
-            notebook.conf()['default_language'] = None
+            notebook.conf['default_language'] = None
 
     # register callback function for locale selection
     # this function must be modified to add per user language support
     @babel.localeselector
     def get_locale():
-        return g.notebook.conf()['default_language']
+        return g.notebook.conf['default_language']
 
     # Themes
     app.config['THEME_PATHS'] = THEME_PATHS
     app.config['DEFAULT_THEME'] = DEFAULT_THEME
     Themes(app, app_identifier='sagenb', loaders=[theme_paths_loader])
-    name = notebook.conf()['theme']
+    name = notebook.conf['theme']
     if name not in app.theme_manager.themes:
-        notebook.conf()['theme'] = app.config['DEFAULT_THEME']
+        notebook.conf['theme'] = app.config['DEFAULT_THEME']
 
     # autoindex v0.3 doesnt seem to work with modules
     # routing with app directly does the trick

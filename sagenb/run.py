@@ -333,20 +333,20 @@ class NotebookFrontend(object):
             secure=self.conf['secure'])
         nb = self.notebook
 
-        self.conf['directory'] = nb._dir
+        self.conf['directory'] = nb.dir
 
         if not self.conf['quiet']:
-            print('The notebook files are stored in:', nb._dir)
+            print('The notebook files are stored in:', nb.dir)
 
         if self.conf['timeout'] is not None:
-            nb.conf()['idle_timeout'] = self.conf['timeout']
+            nb.conf['idle_timeout'] = self.conf['timeout']
         if self.conf['doc_timeout'] is not None:
-            nb.conf()['doc_timeout'] = self.conf['doc_timeout']
+            nb.conf['doc_timeout'] = self.conf['doc_timeout']
 
-        nb.conf()['openid'] = self.conf['openid']
+        nb.conf['openid'] = self.conf['openid']
 
         if self.conf['accounts'] is not None:
-            nb.conf()['accounts'] = (self.conf['accounts'])
+            nb.conf['accounts'] = (self.conf['accounts'])
 
         if ('root' in nb.user_manager and
                 UN_ADMIN not in nb.user_manager):

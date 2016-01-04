@@ -52,33 +52,25 @@ from .worksheet import update_worksheets
 
 
 class WorksheetDict(dict):
+    wst_name_re = re.compile(r'^([^/]+)/(\d+)$')
 
-    def __init__(self, notebook, *args, **kwds):
-        self.notebook = notebook
-        self._storage = notebook._storage
+    def __init__(self, storage, *args, **kwds):
+        self._storage = storage
         dict.__init__(self, *args, **kwds)
 
-    def __getitem__(self, item):
-        if item in self:
-            return dict.__getitem__(self, item)
-
-        try:
-            if '/' not in item:
-                raise KeyError(item)
-        except TypeError:
+    def __missing__(self, item):
+        m = self.wst_name_re.match(item)
+        if m is None:
             raise KeyError(item)
+        username, id = m.groups()
+        id = int(id)
 
-        username, id = item.split('/')
-        try:
-            id = int(id)
-        except ValueError:
-            raise KeyError(item)
         try:
             worksheet = self._storage.load_worksheet(username, id)
         except ValueError:
             raise KeyError(item)
 
-        dict.__setitem__(self, item, worksheet)
+        self[item] = worksheet
         return worksheet
 
 
@@ -91,8 +83,8 @@ class NotebookUpdater(object):
 
     def __init__(self, notebook):
         self.notebook = notebook
-        self.save_interval = notebook.conf()['save_interval']
-        self.idle_interval = notebook.conf()['idle_check_interval']
+        self.save_interval = notebook.conf['save_interval']
+        self.idle_interval = notebook.conf['idle_check_interval']
         self.last_save_time = walltime()
         self.last_idle_time = walltime()
 
@@ -133,43 +125,48 @@ class Notebook(object):
 
     def __init__(self, dir, user_manager=None):
         self.systems = SYSTEMS
-        # TODO: This come from notebook.misc. Must by a conf parameter
+        # TODO: This come from notebook.misc. Must be a conf parameter
         self.DIR = None
 
-        if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
+        if dir.endswith('/'):
             dir = dir[:-1]
 
         if not dir.endswith('.sagenb'):
-            raise ValueError("dir (=%s) must end with '.sagenb'" % dir)
+            raise ValueError("dir (={}) must end with '.sagenb'".format(dir))
 
-        self._dir = dir
+        self.dir = dir
 
-        # For now we only support the FilesystemDatastore storage
-        # backend.
         S = FilesystemDatastore(dir)
         self._storage = S
 
         # Now set the configuration, loaded from the datastore.
         try:
-            self.__conf = S.load_server_conf()
+            self.conf = S.load_server_conf()
         except IOError:
-            # Worksheet has never been saved before, so the server conf doesn't
-            # exist.
-            self.__worksheets = WorksheetDict(self)
+            C = ServerConfiguration()
+            # if we are newly creating a notebook, then we want to
+            # have a default model version of 1, currently
+            # we can't just set the default value in server_conf.py
+            # to 1 since it would then be 1 for notebooks without the
+            # model_version property
+            # TODO: distinguish between a new server config default values
+            #  and default values for missing properties
+            C['model_version'] = 1
+            self.conf = C
 
         self.user_manager = UserManager(
-            auth_ldap=self.conf()['auth_ldap'],
-            ldap_uri=self.conf()['ldap_uri'],
-            ldap_basedn=self.conf()['ldap_basedn'],
-            ldap_binddn=self.conf()['ldap_binddn'],
-            ldap_bindpw=self.conf()['ldap_bindpw'],
-            ldap_gssapi=self.conf()['ldap_gssapi'],
-            ldap_username_attrib=self.conf()['ldap_username_attrib'],
-            ldap_timeout=self.conf()['ldap_timeout'],
+            auth_ldap=self.conf['auth_ldap'],
+            ldap_uri=self.conf['ldap_uri'],
+            ldap_basedn=self.conf['ldap_basedn'],
+            ldap_binddn=self.conf['ldap_binddn'],
+            ldap_bindpw=self.conf['ldap_bindpw'],
+            ldap_gssapi=self.conf['ldap_gssapi'],
+            ldap_username_attrib=self.conf['ldap_username_attrib'],
+            ldap_timeout=self.conf['ldap_timeout'],
             ) if user_manager is None else user_manager
 
         # Set up email notification logger
-        logger.addHandler(TwistedEmailHandler(self.conf(), logging.ERROR))
+        logger.addHandler(TwistedEmailHandler(self.conf, logging.ERROR))
         # also log to stderr
         logger.addHandler(logging.StreamHandler())
 
@@ -180,17 +177,17 @@ class Notebook(object):
             pass
 
         # Set the list of worksheets
-        W = WorksheetDict(self)
+        W = WorksheetDict(S)
         self.__worksheets = W
 
         # Store / Refresh public worksheets
         for id_number in os.listdir(self._storage._abspath(
-                self._storage._user_path("pub"))):
+                S._user_path("pub"))):
             if id_number.isdigit():
                 a = "pub/" + str(id_number)
-                if a not in self.__worksheets:
+                if a not in W:
                     try:
-                        self.__worksheets[a] = self._storage.load_worksheet(
+                        W[a] = self._storage.load_worksheet(
                             "pub", int(id_number))
                     except Exception:
                         print "Warning: problem loading %s/%s: %s" % (
@@ -210,24 +207,6 @@ class Notebook(object):
     @cached_property
     def system_names(self):
         return tuple(system[0] for system in self.systems)
-
-    # App configuration
-
-    def conf(self):
-        try:
-            return self.__conf
-        except AttributeError:
-            C = ServerConfiguration()
-            # if we are newly creating a notebook, then we want to
-            # have a default model version of 1, currently
-            # we can't just set the default value in server_conf.py
-            # to 1 since it would then be 1 for notebooks without the
-            # model_version property
-            # TODO: distinguish between a new server config default values
-            #  and default values for missing properties
-            C['model_version'] = 1
-            self.__conf = C
-            return C
 
     # App controller
 
@@ -263,7 +242,7 @@ class Notebook(object):
         """
         S = self._storage
         S.save_users(self.user_manager)
-        S.save_server_conf(self.conf())
+        S.save_server_conf(self.conf)
         self.user_manager.save(S)
         # Save the non-doc-browser worksheets.
         for n, W in self.__worksheets.items():
@@ -289,7 +268,7 @@ class Notebook(object):
           Original flask notebook
         - Version 1: shared worksheet data cached in the User object
         """
-        model_version = self.conf()['model_version']
+        model_version = self.conf['model_version']
         if model_version is None or model_version < 1:
             print "Upgrading model version to version 1"
             # this uses code from all_wsts()
@@ -328,9 +307,9 @@ class Notebook(object):
                     print >> sys.stderr, traceback.format_exc()
                     pass
             print 'Done upgrading to model version 1'
-            self.conf()['model_version'] = 1
+            self.conf['model_version'] = 1
 
-    # App cotroller. The notebook history.
+    # App controller. The notebook history.
 
     def user_history(self, username):
         if not hasattr(self, '_user_history'):
@@ -573,7 +552,7 @@ class Notebook(object):
 
         W = self.worksheet(username)
 
-        W.system = self.user_manager(username).conf()['default_system']
+        W.system = self.user_manager[username]['default_system']
         W.set_name(worksheet_name)
         self.save_worksheet(W)
         self.__worksheets[W.filename()] = W
@@ -1130,10 +1109,10 @@ class Notebook(object):
     # Information about the pool of worksheet compute servers
 
     def server_pool(self):
-        return self.conf()['server_pool']
+        return self.conf['server_pool']
 
     def set_server_pool(self, servers):
-        self.conf()['server_pool'] = servers
+        self.conf['server_pool'] = servers
 
     def get_ulimit(self):
         try:
@@ -1210,8 +1189,8 @@ class Notebook(object):
         update_worksheets()
 
     def quit_idle_worksheet_processes(self):
-        timeout = self.conf()['idle_timeout']
-        doc_timeout = self.conf()['doc_timeout']
+        timeout = self.conf['idle_timeout']
+        doc_timeout = self.conf['doc_timeout']
 
         for W in self.__worksheets.values():
             if W.compute_process_has_been_started():
@@ -1316,10 +1295,10 @@ def migrate_old_notebook_v1(dir):
 
     # Transfer all the notebook attributes to our new notebook object
 
-    new_nb.conf().confs = old_nb.conf().confs
+    new_nb.conf.confs = old_nb.conf.confs
     for t in ['pretty_print', 'server_pool', 'ulimit', 'system']:
         if hasattr(old_nb, '_Notebook__' + t):
-            new_nb.conf().confs[t] = getattr(old_nb, '_Notebook__' + t)
+            new_nb.conf.confs[t] = getattr(old_nb, '_Notebook__' + t)
 
     # Now update the user data from the old notebook to the new one:
     print "Migrating %s user accounts..." % len(old_nb.user_manager)
@@ -1413,7 +1392,7 @@ def migrate_old_notebook_v1(dir):
 
         return new_ws
 
-    worksheets = WorksheetDict(new_nb)
+    worksheets = WorksheetDict(new_nb._storage)
     num_worksheets = len(old_nb._Notebook__worksheets)
     print "Migrating (at most) %s worksheets..." % num_worksheets
     tm = walltime()

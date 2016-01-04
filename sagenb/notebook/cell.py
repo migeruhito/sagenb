@@ -1071,7 +1071,7 @@ class Cell(Cell_generic):
             sage: nb.delete()
         """
         try:
-            return self.notebook().conf()['word_wrap_cols']
+            return self.notebook().conf['word_wrap_cols']
         except AttributeError:
             return 70
 
@@ -1770,7 +1770,7 @@ class Cell(Cell_generic):
         r['output'] = self.output_text()
         r['output_html'] = self.output_html()
         r['output_wrapped'] = self.output_text(
-            self.notebook().conf()['word_wrap_cols'])
+            self.notebook().conf['word_wrap_cols'])
         r['percent_directives'] = self.percent_directives()
         r['system'] = self.system()
         r['auto'] = self.is_auto_cell()
@@ -2423,7 +2423,7 @@ class Cell(Cell_generic):
             u'...cell_outer_0...2+3...5...'
         """
         if wrap is None:
-            wrap = self.notebook().conf()['word_wrap_cols']
+            wrap = self.notebook().conf['word_wrap_cols']
 
         return render_template(os.path.join('html', 'notebook', 'cell.html'),
                                cell=self, wrap=wrap, div_wrap=div_wrap,

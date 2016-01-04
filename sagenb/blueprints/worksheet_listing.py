@@ -81,7 +81,7 @@ def render_ws_list_template(args, pub, username):
     if pub and (not username or username == tuple([])):
         username = UN_PUB
 
-    accounts = g.notebook.conf()['accounts']
+    accounts = g.notebook.conf['accounts']
     sage_version = SAGE_VERSION
     return render_template('html/worksheet_listing.html', **locals())
 
@@ -139,7 +139,7 @@ def worksheet_list():
     # if pub and (not g.username or g.username == tuple([])):
     #    r['username'] = UN_PUB
 
-    r['accounts'] = g.notebook.conf()['accounts']
+    r['accounts'] = g.notebook.conf['accounts']
     r['sage_version'] = SAGE_VERSION
     # r['pub'] = pub
 
