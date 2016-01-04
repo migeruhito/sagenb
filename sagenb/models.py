@@ -29,6 +29,7 @@ from .config import TRANSLATIONS
 from .config import UAT_ADMIN
 from .config import UAT_GUEST
 from .config import UAT_USER
+from .config import UN_ADMIN
 from .util import import_from
 from .util import N_
 
@@ -577,7 +578,7 @@ class User(object):
 
     @account_type.setter
     def account_type(self, account_type):
-        if self.username == 'admin':
+        if self.username == UN_ADMIN:
             account_type = UAT_ADMIN
         elif account_type not in self.account_types:
             raise ValueError(

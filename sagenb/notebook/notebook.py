@@ -157,8 +157,16 @@ class Notebook(object):
             # exist.
             self.__worksheets = WorksheetDict(self)
 
-        self.user_manager = (OpenIDUserManager(conf=self.conf())
-                             if user_manager is None else user_manager)
+        self.user_manager = OpenIDUserManager(
+            auth_ldap=self.conf()['auth_ldap'],
+            ldap_uri=self.conf()['ldap_uri'],
+            ldap_basedn=self.conf()['ldap_basedn'],
+            ldap_binddn=self.conf()['ldap_binddn'],
+            ldap_bindpw=self.conf()['ldap_bindpw'],
+            ldap_gssapi=self.conf()['ldap_gssapi'],
+            ldap_username_attrib=self.conf()['ldap_username_attrib'],
+            ldap_timeout=self.conf()['ldap_timeout'],
+            ) if user_manager is None else user_manager
 
         # Set up email notification logger
         logger.addHandler(TwistedEmailHandler(self.conf(), logging.ERROR))

@@ -35,10 +35,6 @@ class AuthMethod():
     Abstract class for authmethods that are used by ExtAuthUserManager
     All auth methods must implement the following methods
     """
-
-    def __init__(self, conf):
-        self._conf = conf
-
     def check_user(self, username):
         raise NotImplementedError
 
@@ -73,15 +69,31 @@ class LdapAuth(AuthMethod):
             def wrapped_f(self, *args, **kwargs):
                 if get_module('ldap') is None:
                     print "cannot 'import ldap', disabling LDAP auth"
-                    self._conf['auth_ldap'] = False
+                    self.enabled = False
                     return default_return
                 else:
                     return f(self, *args, **kwargs)
             return wrapped_f
         return wrap
 
-    def __init__(self, conf):
-        AuthMethod.__init__(self, conf)
+    def __init__(self,
+                 auth_ldap=False,
+                 ldap_uri='ldap://example.net:389/',
+                 ldap_basedn='ou=users,dc=example,dc=net',
+                 ldap_binddn='cn=manager,dc=example,dc=net',
+                 ldap_bindpw='secret',
+                 ldap_gssapi=False,
+                 ldap_username_attrib='cn',
+                 ldap_timeout=5,
+                 ):
+                self.enabled = auth_ldap
+                self.ldap_uri = ldap_uri
+                self.ldap_basedn = ldap_basedn
+                self.ldap_binddn = ldap_binddn
+                self.ldap_bindpw = ldap_bindpw
+                self.ldap_gssapi = ldap_gssapi
+                self.ldap_username_attrib = ldap_username_attrib
+                self.ldap_timeout = ldap_timeout
 
     def _ldap_search(self, query, attrlist=None, sizelimit=20):
         """
@@ -89,22 +101,22 @@ class LdapAuth(AuthMethod):
         """
         import ldap
         from ldap.sasl import gssapi
-        conn = ldap.initialize(self._conf['ldap_uri'])
+        conn = ldap.initialize(self.ldap_uri)
 
         try:
-            if self._conf['ldap_gssapi']:
+            if self.ldap_gssapi:
                 token = gssapi()
                 conn.sasl_interactive_bind_s('', token)
             else:
                 conn.simple_bind_s(
-                    self._conf['ldap_binddn'], self._conf['ldap_bindpw'])
+                    self.ldap_binddn, self.ldap_bindpw)
 
             result = conn.search_ext_s(
-                self._conf['ldap_basedn'],
+                self.ldap_basedn,
                 ldap.SCOPE_SUBTREE,
                 filterstr=query,
                 attrlist=attrlist,
-                timeout=self._conf['ldap_timeout'],
+                timeout=self.ldap_timeout,
                 sizelimit=sizelimit)
         except ldap.LDAPError, e:
             print 'LDAP Error: %s' % str(e)
@@ -122,7 +134,7 @@ class LdapAuth(AuthMethod):
         from ldap.filter import filter_format
 
         query = filter_format(
-            '(%s=%s)', (self._conf['ldap_username_attrib'], username))
+            '(%s=%s)', (self.ldap_username_attrib, username))
 
         result = self._ldap_search(query, attrlist)
 
@@ -147,7 +159,7 @@ class LdapAuth(AuthMethod):
             return False
 
         # try to bind with found DN
-        conn = ldap.initialize(uri=self._conf['ldap_uri'])
+        conn = ldap.initialize(uri=self.ldap_uri)
         try:
             conn.simple_bind_s(dn, password)
             return True

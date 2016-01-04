@@ -14,20 +14,14 @@ from ..util.auth import LdapAuth
 
 
 class UserManager(dict):
-    super_class = dict  # Use super() with python3
+    """
+    EXAMPLES:
+        sage: from sagenb.notebook.user_manager import UserManager
+        sage: U = UserManager()
+        sage: U == loads(dumps(U))
+        True
 
-    def __init__(self, accounts=True, conf=None):
-        """
-        EXAMPLES:
-            sage: from sagenb.notebook.user_manager import UserManager
-            sage: U = UserManager()
-            sage: U == loads(dumps(U))
-            True
-
-        """
-        dict.__init__(self)
-        self._conf = {'accounts': accounts} if conf is None else conf
-
+    """
     def __eq__(self, other):
         """
         EXAMPLES:
@@ -120,25 +114,40 @@ class ExtAuthUserManager(UserManager):
     since in this UserManager backend we could have many valid usernames, but
     not all of them will have actually logged into the notebook.
     """
-    super_class = UserManager  # Use super() with python3
-
-    def __init__(self, accounts=None, conf=None):
-        self.super_class.__init__(self, accounts=accounts, conf=conf)
+    def __init__(self,
+                 auth_ldap=False,
+                 ldap_uri='ldap://example.net:389/',
+                 ldap_basedn='ou=users,dc=example,dc=net',
+                 ldap_binddn='cn=manager,dc=example,dc=net',
+                 ldap_bindpw='secret',
+                 ldap_gssapi=False,
+                 ldap_username_attrib='cn',
+                 ldap_timeout=5,
+                 ):
+        UserManager.__init__(self)  # Use super() with python3
 
         # keys must match to a T_BOOL option in server_config.py
         # so we can turn this auth method on/off
         self._auth_methods = {
-            'auth_ldap': LdapAuth(self._conf),
+            'auth_ldap': LdapAuth(
+                auth_ldap=auth_ldap,
+                ldap_uri=ldap_uri,
+                ldap_basedn=ldap_basedn,
+                ldap_binddn=ldap_binddn,
+                ldap_bindpw=ldap_bindpw,
+                ldap_gssapi=ldap_gssapi,
+                ldap_username_attrib=ldap_username_attrib,
+                ldap_timeout=ldap_timeout,
+                ),
         }
 
     def __missing__(self, username):
-        print('hello')
         """
         Check all auth methods that are enabled in the notebook's config.
         If a valid username is found, a new User object will be created.
         """
         for a, method in self._auth_methods.iteritems():
-            if self._conf[a] and method.check_user(username):
+            if method.enabled and method.check_user(username):
                 try:
                     email = method.get_attrib(username, 'email')
                 except KeyError:
@@ -156,14 +165,13 @@ class ExtAuthUserManager(UserManager):
         use that auth method to check username/password combination.
         """
         a = self[username].external_auth
-        if a is not None and self._conf[a]:
+        if a is not None and self._auth_methods[a].enabled:
             return self._auth_methods[a].check_password(username, password)
         return False
 
 
 class OpenIDUserManager(ExtAuthUserManager):
-
-    def __init__(self, accounts=True, conf=None):
+    def __init__(self, **kwargs):
         """
         Creates an user_manager that supports OpenID identities
         EXAMPLES:
@@ -173,7 +181,7 @@ class OpenIDUserManager(ExtAuthUserManager):
             sage: UM.check_password('admin','passpass')
             True
         """
-        ExtAuthUserManager.__init__(self, accounts=accounts, conf=conf)
+        ExtAuthUserManager.__init__(self, **kwargs)  # Use super() with python3
         self._openid = {}
 
     def load(self, datastore):
