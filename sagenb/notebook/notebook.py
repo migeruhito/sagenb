@@ -45,9 +45,9 @@ from ..util.text import extract_text
 
 from ..models import ServerConfiguration
 from ..controllers import User
+from ..controllers import UserManager
 from .notification import logger
 from .notification import TwistedEmailHandler
-from .user_manager import OpenIDUserManager
 from .worksheet import update_worksheets
 
 
@@ -157,7 +157,7 @@ class Notebook(object):
             # exist.
             self.__worksheets = WorksheetDict(self)
 
-        self.user_manager = OpenIDUserManager(
+        self.user_manager = UserManager(
             auth_ldap=self.conf()['auth_ldap'],
             ldap_uri=self.conf()['ldap_uri'],
             ldap_basedn=self.conf()['ldap_basedn'],
