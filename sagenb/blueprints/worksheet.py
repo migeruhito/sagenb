@@ -672,7 +672,8 @@ def worksheet_system(worksheet, system):
 
 @worksheet_command('pretty_print/<enable>')
 def worksheet_pretty_print(worksheet, enable):
-    worksheet.set_pretty_print(enable)
+    enable = False if enable == 'false' or enable is False else True
+    worksheet.pretty_print = enable
     return 'success'
 
 

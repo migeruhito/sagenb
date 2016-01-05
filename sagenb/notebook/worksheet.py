@@ -113,7 +113,8 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
 class Worksheet(object):
     _last_identifier = re.compile(r'[a-zA-Z0-9._]*$')
 
-    def __init__(self, name=None, id_number=None,
+    def __init__(self,
+                 name=None, id_number=None,
                  notebook_worksheet_directory=None, system='sage',
                  owner=None, pretty_print=False,
                  auto_publish=False, create_directories=True, live_3D=False):
@@ -163,7 +164,7 @@ class Worksheet(object):
         """
         # Record the basic properties of the worksheet
         self.system = system
-        self.__pretty_print = pretty_print
+        self.__pretty_print = pretty_print  # property
         self.__owner = owner
         self.__viewers = []
         self.__collaborators = []
@@ -330,7 +331,7 @@ class Worksheet(object):
             'viewers': self.viewers(),
             'collaborators': self.collaborators(),
             'auto_publish': self.is_auto_publish(),
-            'pretty_print': self.pretty_print(),
+            'pretty_print': self.pretty_print,
             'live_3D': self.live_3D(),
             'ratings': self.ratings(),
             'tags': self.tags(),
@@ -974,6 +975,7 @@ class Worksheet(object):
             self.system = system_names[0]
             return 0
 
+    @property
     def pretty_print(self):
         """
         Return True if output should be pretty printed by default.
@@ -988,21 +990,18 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.pretty_print()
+            sage: W.pretty_print
             False
-            sage: W.set_pretty_print('true')
-            sage: W.pretty_print()
+            sage: W.pretty_print = True
+            sage: W.pretty_print
             True
             sage: W.quit()
             sage: nb.delete()
         """
-        try:
-            return self.__pretty_print
-        except AttributeError:
-            self.__pretty_print = False
-            return self.__pretty_print
+        return self.__pretty_print
 
-    def set_pretty_print(self, check='false'):
+    @pretty_print.setter
+    def pretty_print(self, check='false'):
         """
         Set whether or not output should be pretty printed by default.
 
@@ -1025,19 +1024,15 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.set_pretty_print('false')
-            sage: W.pretty_print()
+            sage: W.set_pretty_print = False
+            sage: W.pretty_print
             False
-            sage: W.set_pretty_print('true')
-            sage: W.pretty_print()
+            sage: W.set_pretty_print = True
+            sage: W.pretty_print
             True
             sage: W.quit()
             sage: nb.delete()
         """
-        if check == 'false':
-            check = False
-        else:
-            check = True
         self.__pretty_print = check
         self.eval_asap_no_output("pretty_print_default(%r)" % check)
 
@@ -2460,6 +2455,7 @@ class Worksheet(object):
     # "basic" method for the *old* sage notebook codebase.  At that
     # point I'll be able to greatly simplify worksheet migration and
     # totally refactor anything I want in the new sagenb code.
+
     def last_edited(self):
         try:
             return self.__last_edited[0]
@@ -2940,7 +2936,7 @@ class Worksheet(object):
         # Check to see if the typeset/pretty print button is checked.
         # If so, send code to initialize the worksheet to have the
         # right pretty printing mode.
-        if self.pretty_print():
+        if self.pretty_print:
             S.execute('pretty_print_default(True)', mode='raw')
 
         if not self.is_published():
