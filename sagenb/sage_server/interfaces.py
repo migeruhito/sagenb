@@ -417,7 +417,7 @@ class SageServerExpect(SageServerABC):
         if self._expect is None:
             self._is_computing = False
         else:
-            self._so_far += self._expect.before
+            self._so_far = self._expect.before
 
         v = re.findall('{}.*{}'.format(self._start_label, self._prompt),
                        self._so_far, re.DOTALL)
