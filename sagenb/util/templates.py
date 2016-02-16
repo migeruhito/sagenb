@@ -23,6 +23,7 @@ from .keymaps_js import get_keyboard
 from ..config import mathjax_macros
 from ..config import KEYS
 from ..config import SAGE_URL
+from ..config import SAGE_VERSION
 from flask import json
 
 css_illegal_re = re.compile(r'[^-A-Za-z_0-9]')
@@ -150,7 +151,11 @@ def render_template(template, **context):
 
 def message(msg, cont='/', username=None, **kwds):
     """Returns an error message to the user."""
-    template_dict = {'msg': msg, 'cont': cont, 'username': username}
+    template_dict = {
+        'msg': msg, 'cont': cont,
+        'username': username,
+        'sage_version': SAGE_VERSION
+        }
     template_dict.update(kwds)
     return render_template(os.path.join('html', 'error_message.html'),
                            **template_dict)

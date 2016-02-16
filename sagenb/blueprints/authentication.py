@@ -296,7 +296,8 @@ def confirm():
         """<h1>Email address confirmed for user %(username)s</h1>""",
         username=username)
     del waiting[key]
-    return message_template(success, title=_('Email Confirmed'))
+    return message_template(success, title=_('Email Confirmed'),
+                            username=username)
 
 
 @authentication.route('/forgotpass')

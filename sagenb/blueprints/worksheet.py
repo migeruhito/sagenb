@@ -61,7 +61,8 @@ def worksheet_view(f):
                 g.notebook.filename_wst(worksheet_filename))
         except KeyError:
             return message_template(
-                _("You do not have permission to access this worksheet"))
+                _("You do not have permission to access this worksheet"),
+                username=g.username)
 
         with worksheet_locks[worksheet]:
             owner = worksheet.owner()
@@ -72,7 +73,8 @@ def worksheet_view(f):
                             not g.notebook.user_manager[g.username].is_admin):
                         return message_template(
                             _("You do not have permission to access this "
-                              "worksheet"))
+                              "worksheet"),
+                            username=g.username)
 
             if not worksheet.is_published():
                 worksheet.set_active(g.username)
@@ -137,7 +139,8 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
         u'...Test...cell_input...if (e.shiftKey)...state_number...'
     """
     if ws is None:
-        return message_template(_("The worksheet does not exist"))
+        return message_template(_("The worksheet does not exist"),
+                                username=username)
 
     # New UI
     try:
@@ -577,7 +580,8 @@ def public_worksheet_download(id, title):
         worksheet = g.notebook.filename_wst(worksheet_filename)
     except KeyError:
         return message_template(
-            _("You do not have permission to access this worksheet"))
+            _("You do not have permission to access this worksheet"),
+            username=g.username)
     return unconditional_download(worksheet, title)
 
 
@@ -588,7 +592,8 @@ def public_worksheet_cells(id, filename):
         worksheet = g.notebook.filename_wst(worksheet_filename)
     except KeyError:
         return message_template(
-            _("You do not have permission to access this worksheet"))
+            _("You do not have permission to access this worksheet"),
+            username=g.username)
     return send_from_directory(worksheet.cells_directory(), filename)
 
 
@@ -1163,7 +1168,8 @@ def worksheet_invite_collab(worksheet):
         # to prevent abuse, you can't add more than 500 collaborators at a time
         return message_template(
             _("Error: can't add more than 500 collaborators at a time"),
-            cont=url_for_worksheet(worksheet))
+            cont=url_for_worksheet(worksheet),
+            username=g.username)
     worksheet.set_collaborators(collaborators)
     user_manager = g.notebook.user_manager
     # add worksheet to new collaborators
@@ -1219,7 +1225,7 @@ def worksheet_revisions(worksheet):
             W.edit_save(txt)
             return redirect(url_for_worksheet(W))
         else:
-            return message_template(_('Error'))
+            return message_template(_('Error'), username=g.username)
 
 
 ########################################################
@@ -1262,7 +1268,8 @@ def worksheet_jsmol_data(worksheet):
             return ';base64,' + base64.encodestring(x)
     else:
         current_app.logger.error('Invalid JSmol encoding %s', encoding)
-        return message_template(_('Invalid JSmol encoding: ' + str(encoding)))
+        return message_template(_('Invalid JSmol encoding: ' + str(encoding)),
+                                username=g.username)
 
     if call == u'getRawDataFromDatabase':
         # Annoyingly, JMol prepends the worksheet url (not: the
@@ -1273,7 +1280,8 @@ def worksheet_jsmol_data(worksheet):
         if match is None:
             current_app.logger.error(
                 'Invalid JSmol query %s, does not match %s', query, pattern)
-            return message_template(_('Invalid JSmol query: ' + query))
+            return message_template(_('Invalid JSmol query: ' + query),
+                                    username=g.username)
         cell_id = match.group('cell_id')
         filename = match.group('filename')
         # appended query is only for cache busting
@@ -1285,7 +1293,8 @@ def worksheet_jsmol_data(worksheet):
             response = make_response(encoder(data))
     else:
         current_app.logger.error('Invalid JSmol request %s', call)
-        return message_template(_('Invalid JSmol request: ' + str(call)))
+        return message_template(_('Invalid JSmol request: ' + str(call)),
+                                username=g.username)
 
     # Taken from upstream jsmol.php
     is_binary = '.gz' in query
@@ -1316,7 +1325,7 @@ def worksheed_data_folder(worksheet, filename):
 def worksheet_data(worksheet, filename):
     dir = os.path.abspath(worksheet.data_directory())
     if not os.path.exists(dir):
-        return message_template(_('No data files'))
+        return message_template(_('No data files'), username=g.username)
     else:
         return send_from_directory(worksheet.data_directory(), filename)
 
@@ -1332,7 +1341,7 @@ def worksheet_datafile(worksheet):
         os.unlink(path)
         return message_template(
             _("Successfully deleted '%(filename)s'", filename=filename),
-            cont=url_for_worksheet(worksheet))
+            cont=url_for_worksheet(worksheet), username=g.username)
     else:
         return html_download_or_delete_datafile(
             worksheet, g.username, filename)
@@ -1367,12 +1376,14 @@ def worksheet_link_datafile(worksheet):
             g.username):
         return message_template(
             _("illegal link attempt!"),
-            worksheet_datafile.url_for(worksheet, name=data_filename))
+            worksheet_datafile.url_for(worksheet, name=data_filename),
+            username=g.username)
     if os.path.exists(target):
         return message_template(
             _("The data filename already exists in other worksheet\nDelete "
               "the file in the other worksheet before creating a link."),
-            worksheet_datafile.url_for(worksheet, name=data_filename))
+            worksheet_datafile.url_for(worksheet, name=data_filename),
+            username=g.username)
     os.link(src, target)
     return redirect(worksheet_datafile.url_for(worksheet, name=data_filename))
     # return redirect(url_for_worksheet(target_ws) +
@@ -1402,7 +1413,7 @@ def worksheet_do_upload_data(worksheet):
     if 'file' not in request.files:
         return message_template(
             _('Error uploading file (missing field "file"). %(backlinks)s',
-                backlinks=backlinks), worksheet_url)
+                backlinks=backlinks), worksheet_url, username=g.username)
     else:
         file = request.files['file']
 
@@ -1411,7 +1422,8 @@ def worksheet_do_upload_data(worksheet):
         if field not in request.values:
             return message_template(
                 _('Error uploading file (missing %(field)s arg).%(backlinks)s',
-                    field=field, backlinks=backlinks), worksheet_url)
+                    field=field, backlinks=backlinks),
+                worksheet_url, username=g.username)
 
     name = request.values.get('name', '').strip()
     new_field = request.values.get('new', '').strip()
@@ -1433,7 +1445,7 @@ def worksheet_do_upload_data(worksheet):
         if not parsedurl[0] in ('http', 'https', 'ftp'):
             return message_template(
                 _('URL must start with http, https, or ftp.%(backlinks)s',
-                    backlinks=backlinks), worksheet_url)
+                    backlinks=backlinks), worksheet_url, username=g.username)
         download = urllib2.urlopen(parsedurl.geturl())
 
     # XXX: disk access
@@ -1443,7 +1455,9 @@ def worksheet_do_upload_data(worksheet):
             return message_template(
                 _('Suspicious filename "%(filename)s" encountered uploading '
                   'file.%(backlinks)s',
-                  filename=name, backlinks=backlinks), worksheet_url)
+                  filename=name, backlinks=backlinks),
+                worksheet_url,
+                username=g.username)
         os.unlink(dest)
 
     response = redirect(worksheet_datafile.url_for(worksheet, name=name))
@@ -1545,7 +1559,7 @@ def worksheet_rate(worksheet):
     if rating < 0 or rating >= 5:
         return message_template(
             _("Gees -- You can't fool the rating system that easily!"),
-            url_for_worksheet(worksheet))
+            url_for_worksheet(worksheet), username=g.username)
 
     comment = request.values['comment']
     worksheet.rate(rating, comment, g.username)
@@ -1554,7 +1568,8 @@ def worksheet_rate(worksheet):
     You can <a href="rating_info">see all ratings of this worksheet.</a>
     """, worksheet_name=worksheet.name())
     # XXX: Hardcoded url
-    return message_template(s.strip(), '/pub/', title=_('Rating Accepted'))
+    return message_template(s.strip(), '/pub/', title=_('Rating Accepted'),
+                            username=g.username)
 
 
 ########################################################
@@ -1670,7 +1685,8 @@ def extract_title(html_page):
 def worksheet_file(path):
     # Create a live Sage worksheet from the given path.
     if not os.path.exists(path):
-        return message_template(_('Document does not exist.'))
+        return message_template(_('Document does not exist.'),
+                                username=g.username)
 
     doc_page_html = open(path).read()
     doc_page = SphinxHTMLProcessor().process_doc_html(doc_page_html)

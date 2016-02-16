@@ -73,7 +73,8 @@ def settings_page():
                 error = _('Invalid e-mail address.')
 
     if error:
-        return message_template(error, url_for('settings_page'))
+        return message_template(error, url_for('settings_page'),
+                                username=g.username)
 
     if redirect_to_logout:
         return redirect(url_for('authentication.logout'))

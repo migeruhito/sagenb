@@ -42,7 +42,8 @@ def admin_required(f):
         if not g.notebook.user_manager[g.username].is_admin:
             return message_template(
                 _("You do not have permission to access this location"),
-                cont=url_for('base.index'))
+                cont=url_for('base.index'),
+                username=g.username)
         return f(*args, **kwds)
 
     return wrapper
