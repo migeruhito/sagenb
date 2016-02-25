@@ -13,7 +13,7 @@ from flask.ext.babel import lazy_gettext
 
 from .util import get_module
 from .util import import_from
-from .util import sage_var  # if py3, from shutil import which
+from .util import sage_var
 from .util import which  # if py3, from shutil import which
 
 # Global variables across the application
