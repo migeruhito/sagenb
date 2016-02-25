@@ -180,8 +180,8 @@ INPUT:
 
                 {% set shared = False %}
 
-                {% if worksheet.collaborator_names() %}
-                / {{ worksheet.collaborator_names(5) }}
+                {% if worksheet.collaborators %}
+                / {{ worksheet.collaborators|join_max(5) }}
                 {% set shared = True %}
                 {% endif %}
 

@@ -284,7 +284,7 @@ class Notebook(object):
                     for w in self.user_wsts(username):
                         owner = w.owner()
                         id_number = w.id_number()
-                        collaborators = w.collaborators()
+                        collaborators = w.collaborators
                         for u in collaborators:
                             try:
                                 user_manager[u].viewable_worksheets.add(
@@ -1349,7 +1349,7 @@ def migrate_old_notebook_v1(dir):
 
         obj = {'name': old_ws.name(), 'system': old_ws.system(),
                'viewers': old_ws.viewers(),
-               'collaborators': old_ws.collaborators(),
+               'collaborators': old_ws.collaborators,
                'pretty_print': old_ws.pretty_print,
                'ratings': old_ws.ratings(),
                'auto_publish': old_ws.is_auto_publish(), 'tags': tags,

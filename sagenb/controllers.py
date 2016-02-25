@@ -83,6 +83,11 @@ class User(object):
     def is_suspended(self, value):
         self.__user_model.is_suspended = value
 
+    @property
+    def viewable_worksheets(self):
+        return self.__user_model.viewable_worksheets
+
+
 
     # Utility methods
 

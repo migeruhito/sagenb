@@ -31,6 +31,7 @@ from .util.templates import prettify_time_ago
 from .util.templates import number_of_rows
 from .util.templates import message as message_template
 from .util.templates import render_template
+from .util.templates import join_max
 
 from .blueprints.base import oid
 
@@ -79,6 +80,7 @@ def create_app(notebook, startup_token=None, debug=False):
     app.add_template_filter(number_of_rows)
     app.add_template_filter(convert_time_to_string)
     app.add_template_filter(prettify_time_ago)
+    app.add_template_filter(join_max)
     app.add_template_filter(max)
     app.add_template_filter(lambda x: repr(unicode_str(x))[1:],
                             name='repr_str')

@@ -69,7 +69,7 @@ def worksheet_view(f):
 
             if owner != '_sage_' and g.username != owner:
                 if not worksheet.is_published():
-                    if (g.username not in worksheet.collaborators() and
+                    if (g.username not in worksheet.collaborators and
                             not g.notebook.user_manager[g.username].is_admin):
                         return message_template(
                             _("You do not have permission to access this "
@@ -1159,19 +1159,23 @@ def worksheet_share(worksheet):
 
 @worksheet_command('invite_collab')
 def worksheet_invite_collab(worksheet):
+    user_manager = g.notebook.user_manager
     owner = worksheet.owner()
     id_number = worksheet.id_number()
-    old_collaborators = set(worksheet.collaborators())
-    collaborators = set([u.strip() for u in request.values.get(
-        'collaborators', '').split(',') if u != owner])
+    old_collaborators = set(worksheet.collaborators)
+    collaborators = (u.strip() for u in request.values.get(
+        'collaborators', '').split(','))
+    collaborators = set(u for u in collaborators
+                        if u in user_manager and u != owner)
+
+    print('\n{0}\n{1}\n{0}\n'.format('='*80, collaborators))
     if len(collaborators - old_collaborators) > 500:
         # to prevent abuse, you can't add more than 500 collaborators at a time
         return message_template(
             _("Error: can't add more than 500 collaborators at a time"),
             cont=url_for_worksheet(worksheet),
             username=g.username)
-    worksheet.set_collaborators(collaborators)
-    user_manager = g.notebook.user_manager
+    worksheet.collaborators = collaborators
     # add worksheet to new collaborators
     for u in collaborators - old_collaborators:
         try:

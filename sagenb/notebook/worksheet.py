@@ -167,7 +167,7 @@ class Worksheet(object):
         self.__pretty_print = pretty_print  # property
         self.__owner = owner
         self.__viewers = []
-        self.__collaborators = []
+        self.__collaborators = []  # property
         self.__autopublish = auto_publish
         self.__saved_by_info = {}
         self.__live_3D = live_3D
@@ -329,7 +329,7 @@ class Worksheet(object):
             'system': self.system,
             'owner': self.owner(),
             'viewers': self.viewers(),
-            'collaborators': self.collaborators(),
+            'collaborators': self.collaborators,
             'auto_publish': self.is_auto_publish(),
             'pretty_print': self.pretty_print,
             'live_3D': self.live_3D(),
@@ -535,6 +535,7 @@ class Worksheet(object):
 
     # Basic properties
 
+    @property
     def collaborators(self):
         """
         Return a (reference to the) list of the collaborators who can also
@@ -548,48 +549,16 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('test1', 'admin')
-            sage: C = W.collaborators(); C
+            sage: C = W.collaborators; C
             []
             sage: C.append('sage')
-            sage: W.collaborators()
+            sage: W.collaborators
             ['sage']
         """
-        try:
-            return self.__collaborators
-        except AttributeError:
-            self.__collaborators = []
-            return self.__collaborators
+        return self.__collaborators
 
-    def collaborator_names(self, max=None):
-        """
-        Returns a string of the non-owner collaborators on this worksheet.
-
-        INPUT:
-
-        -  ``max`` - an integer. If this is specified, then
-           only max number of collaborators are shown.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: C = W.collaborators(); C
-            []
-            sage: C.append('sage')
-            sage: C.append('wstein')
-            sage: W.collaborator_names()
-            'sage, wstein'
-            sage: W.collaborator_names(max=1)
-            'sage, ...'
-        """
-        collaborators = [x for x in self.collaborators() if x != self.owner()]
-        if max is not None and len(collaborators) > max:
-            collaborators = collaborators[:max] + ['...']
-        return ", ".join(collaborators)
-
-    def set_collaborators(self, v):
+    @collaborators.setter
+    def collaborators(self, v):
         """
         Set the list of collaborators to those listed in the list v of
         strings.
@@ -608,17 +577,15 @@ class Worksheet(object):
             sage: nb.user_manager.add_user(
                 'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('test1', 'admin')
-            sage: W.set_collaborators(['sage', 'admin', 'hilbert', 'sage'])
+            sage: W.set_collaborators = ['sage', 'admin', 'hilbert', 'sage']
 
         Note that repeats are not added multiple times and admin - the
         owner - isn't added::
 
-            sage: W.collaborators()
+            sage: W.collaborators
             ['hilbert', 'sage']
         """
-        users = self.notebook().user_manager
-        owner = self.owner()
-        collaborators = set([u for u in v if u in users and u != owner])
+        collaborators = set(v).difference(self.owner())
         self.__collaborators = sorted(collaborators)
 
     def viewers(self):
@@ -700,10 +667,10 @@ class Worksheet(object):
             sage: W.viewers()
             []
             sage: W.add_collaborator('hilbert')
-            sage: W.collaborators()
+            sage: W.collaborators
             ['admin', 'hilbert']
             sage: W.delete_notebook_specific_data()
-            sage: W.collaborators()
+            sage: W.collaborators
             ['admin']
         """
         self.__attached = {}
@@ -1451,7 +1418,7 @@ class Worksheet(object):
             sage: W.everyone_has_deleted_this_worksheet()
             True
         """
-        for user in self.collaborators() + [self.owner()]:
+        for user in self.collaborators + [self.owner()]:
             # When the worksheet has been deleted by the owner,
             # self.owner() returns None, so we have to be careful
             # about that case.
@@ -1813,7 +1780,7 @@ class Worksheet(object):
 
     def set_owner(self, owner):
         self.__owner = owner
-        if owner not in self.collaborators():
+        if owner not in self.collaborators:
             self.__collaborators.append(owner)
 
     def is_only_viewer(self, user):
@@ -1830,7 +1797,7 @@ class Worksheet(object):
             return True
 
     def is_collaborator(self, user):
-        return user in self.collaborators()
+        return user in self.collaborators
 
     def user_can_edit(self, user):
         """
@@ -1930,7 +1897,7 @@ class Worksheet(object):
 
             sage: nb.delete()
         """
-        if user in self.collaborators():
+        if user in self.collaborators:
             self.__collaborators.remove(user)
         if user in self.__viewers:
             self.__viewers.remove(user)
@@ -1987,10 +1954,10 @@ class Worksheet(object):
             sage: nb.user_manager.add_user(
                 'diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Collaborator test', 'admin')
-            sage: W.collaborators()
+            sage: W.collaborators
             []
             sage: W.add_collaborator('diophantus')
-            sage: W.collaborators()
+            sage: W.collaborators
             ['diophantus']
         """
         try:

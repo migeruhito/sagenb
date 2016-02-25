@@ -123,6 +123,14 @@ def number_of_rows(txt, ncols):
     return nrows
 
 
+def join_max(it, maxi=None, sep=', '):
+    it = list(it)
+    if maxi is not None and len(it) > maxi:
+        it = it[:maxi]
+        it.append('...')
+    return sep.join(it)
+
+
 # theme template rendering
 
 def render_template(template, **context):
