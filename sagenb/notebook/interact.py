@@ -155,6 +155,7 @@ VERSION 3:
 from __future__ import absolute_import
 
 import cgi
+import collections
 import inspect
 import math
 import types
@@ -162,7 +163,7 @@ import types
 # TODO: sage dependency
 from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import decorator_defaults
-from sage.misc.all import srange
+from sage.all import srange
 from sage.misc.sage_eval import sage_eval
 from sage.plot.colors import Color
 from sage.structure.element import is_Matrix
@@ -2531,7 +2532,7 @@ def interact(f, layout=None, width='800px'):
     * ``u = list`` - buttons if ``len(list)`` at most `5`;
       otherwise, drop down
 
-    * ``u = generator`` - a slider (up to `10000` steps)
+    * ``u = iterator`` (e.g. a generator) - a slider (up to `10000` steps)
 
     * ``u = bool`` - a checkbox
 
@@ -3912,7 +3913,7 @@ def automatic_control(default):
                 default[0], str):
             label, default = default
         if isinstance(default, tuple) and len(default) == 2 and isinstance(
-                default[1], (tuple, list, types.GeneratorType)):
+                default[1], (tuple, list, collections.Iterator)):
             default_value, default = default
 
     if isinstance(default, control):
@@ -3926,7 +3927,7 @@ def automatic_control(default):
     elif isinstance(default, list):
         C = selector(default, default=default_value,
                      label=label, buttons=len(default) <= 5)
-    elif isinstance(default, types.GeneratorType):
+    elif isinstance(default, collections.Iterator):
         C = slider(list_of_first_n(default, 10000),
                    default=default_value, label=label)
     elif isinstance(default, Color):
