@@ -2,14 +2,18 @@
 from __future__ import absolute_import
 
 import re
+from signal import alarm
 import urllib2
 
 
 # TODO: sage dependency
 from sage.misc.sage_timeit import sage_timeit
 # TODO: sage dependency
-from sage.misc.all import alarm, cancel_alarm
 from sagenb.util import walltime
+
+
+def cancel_alarm():
+    alarm(0)
 
 
 TIMEOUT = 'timeout'
@@ -150,4 +154,3 @@ class PubStressTest:
             if method.startswith('test_'):
                 v[method] = getattr(self, method)()
         return v
-
