@@ -619,35 +619,6 @@ class Worksheet(object):
             self.__viewers = []
             return self.__viewers
 
-    def viewer_names(self, max=None):
-        """
-        Returns a string of the non-owner viewers on this worksheet.
-
-        INPUT:
-
-        -  ``max`` - an integer. If this is specified, then
-           only max number of viewers are shown.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: C = W.viewers(); C
-            []
-            sage: C.append('sage')
-            sage: C.append('wstein')
-            sage: W.viewer_names()
-            'sage, wstein'
-            sage: W.viewer_names(max=1)
-            'sage, ...'
-        """
-        viewers = [x for x in self.viewers() if x != self.owner()]
-        if max is not None and len(viewers) > max:
-            viewers = viewers[:max] + ['...']
-        return ", ".join(viewers)
-
     def delete_notebook_specific_data(self):
         """
         Delete data from this worksheet this is specific to a certain
