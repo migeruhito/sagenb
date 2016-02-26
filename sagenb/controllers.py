@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import crypt
 
 from .models import User as UserModel
+from .models import Worksheet as WstModel
 from .models import UserConfiguration
 from .config import SALT
 from .config import UAT_ADMIN
@@ -374,3 +375,37 @@ class UserManager(dict):
         Return the user object corresponding ot a given identity_url
         """
         return self[self.get_username_from_openid(identity_url)]
+
+
+class Worksheet(object):
+    @classmethod
+    def from_basic(cls, basic):
+        return cls(WstModel(**basic))
+
+    def __init__(self, wst_model):
+        self.__wst_model = wst_model
+
+    # Expose model attributes
+
+    # Utility methods
+
+    @property
+    def basic(self):
+        return {
+            'id_number': self.__wst_model.id_number,
+            'owner': self.__wst_model.owner,
+            'name': self.__wst_model.name,
+            'system': self.__wst_model.system,
+            'pretty_print': self.__wst_model.pretty_print,
+            'live_3D': self.__wst_model.live_3D,
+            'auto_publish': self.__wst_model.auto_publish,
+            'last_change': self.__wst_model.last_change,
+            'saved_by_info': self.__wst_model.saved_by_info,
+            'tags': self.__wst_model.tags,
+            'collaborators': self.__wst_model.collaborators,
+            'viewers': self.__wst_model.viewers,
+            'published_id_number': self.__wst_model.published_id_number,
+            'worksheet_that_was_published':
+                self.__wst_model.worksheet_that_was_published,
+            'ratings': self.__wst_model.ratings,
+            }
