@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 
 import copy
+import time
 
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
@@ -32,6 +33,7 @@ from .config import UAT_USER
 from .config import UN_ADMIN
 from .util import import_from
 from .util import N_
+from .util import set_default
 
 _ = lazy_gettext
 
@@ -530,13 +532,12 @@ class User(object):
                  # users integrity is checked in a more apropriate way.
                  **kwargs
                  ):
-        self.__username = username  # Read only -> property
-        # property
+        self.__username = username  # property readonly
         self.password = password
         self.email = email
         self.email_confirmed = email_confirmed  # Boolean
         self.account_type = account_type  # property
-        self.__external_auth = external_auth  # Read only -> property
+        self.__external_auth = external_auth  # property readonly
         self._temporary_password = temporary_password
         self.is_suspended = is_suspended
         self.viewable_worksheets = (
@@ -589,3 +590,36 @@ class User(object):
     @property
     def external_auth(self):
         return self.__external_auth
+
+
+class Worksheet(object):
+    def __init__(self,
+                 id_number, owner, name=u'', system='sage',
+
+                 pretty_print=False, live_3D=False, auto_publish=False,
+                 last_change=None, saved_by_info={}, tags={},
+                 collaborators=[], viewers=[],
+                 published_id_number=None, worksheet_that_was_published=None,
+                 ratings=[],
+                 # TODO: There are a spurious User__username field in the
+                 # cpickled users this **kwargs get rid of this and other
+                 # spurious fields. This must be removed when the pickled
+                 # users integrity is checked in a more apropriate way.
+                 **kwargs
+                 ):
+        self.id_number = id_number
+        self.owner = owner
+        self.name = name
+        self.system = system
+        self.pretty_print = pretty_print
+        self.live_3D = live_3D
+        self.auto_publish = auto_publish
+        self.last_change = set_default(last_change, (owner, time.time()))
+        self.saved_by_info = saved_by_info
+        self.tags = tags
+        self.collaborators = collaborators
+        self.viewers = viewers
+        self.published_id_number = published_id_number
+        self.worksheet_that_was_published = set_default(
+            worksheet_that_was_published, (owner, id_number))
+        self.ratings = ratings

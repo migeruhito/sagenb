@@ -528,3 +528,7 @@ def sort_worksheet_list(v, sort, reverse):
                reverse=reverse)
     else:
         raise ValueError('Invalid sort key {!r}'.format(sort))
+
+
+def set_default(val, default):
+    return default if val is None else val
