@@ -87,8 +87,6 @@ class User(object):
     def viewable_worksheets(self):
         return self.__user_model.viewable_worksheets
 
-
-
     # Utility methods
 
     def __eq__(self, other):
@@ -321,7 +319,7 @@ class UserManager(dict):
             return self._auth_methods[a].check_password(username, password)
         return False
 
-    #openID
+    # openID
 
     def load(self, datastore):
         """

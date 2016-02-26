@@ -527,7 +527,7 @@ class User(object):
                  # TODO: There are a spurious User__username field in the
                  # cpickled users this **kwargs get rid of this and other
                  # spurious fields. This must be removed when the pickled
-                 # users integrity be checked in a more apropriate way.
+                 # users integrity is checked in a more apropriate way.
                  **kwargs
                  ):
         self.__username = username  # Read only -> property
