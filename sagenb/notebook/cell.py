@@ -1045,6 +1045,7 @@ class Cell(Cell_generic):
         return os.path.join(self._worksheet.directory(), 'cells',
                             str(self.id()))
 
+    @property
     def word_wrap_cols(self):
         """
         Returns the number of columns for word wrapping this compute
@@ -1101,7 +1102,7 @@ class Cell(Cell_generic):
             11
         """
         if ncols == 0:
-            ncols = self.word_wrap_cols()
+            ncols = self.word_wrap_cols
         plaintext_output = u''
 
         self._in = unicode_str(self._in)
@@ -1769,8 +1770,7 @@ class Cell(Cell_generic):
         r['input'] = self._in
         r['output'] = self.output_text()
         r['output_html'] = self.output_html()
-        r['output_wrapped'] = self.output_text(
-            self.notebook().conf['word_wrap_cols'])
+        r['output_wrapped'] = self.output_text(self.word_wrap_cols)
         r['percent_directives'] = self.percent_directives()
         r['system'] = self.system()
         r['auto'] = self.is_auto_cell()
@@ -2435,7 +2435,7 @@ class Cell(Cell_generic):
             u'...cell_outer_0...2+3...5...'
         """
         if wrap is None:
-            wrap = self.notebook().conf['word_wrap_cols']
+            wrap = self.word_wrap_cols
 
         return render_template(os.path.join('html', 'notebook', 'cell.html'),
                                cell=self, wrap=wrap, div_wrap=div_wrap,
