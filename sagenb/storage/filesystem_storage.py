@@ -385,7 +385,7 @@ class FilesystemDatastore(Datastore):
             sage: DS.save_worksheet(W)
         """
         username = worksheet.owner()
-        id_number = worksheet.id_number()
+        id_number = worksheet.id_number
         basic = self._worksheet_to_basic(worksheet)
         if not hasattr(
                 worksheet, '_last_basic') or worksheet._last_basic != basic:

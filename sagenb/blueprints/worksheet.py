@@ -151,7 +151,7 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
 
     nb = g.notebook
 
-    if ws.docbrowser() or ws.is_published():
+    if ws.docbrowser or ws.is_published():
         if ws.is_published() or nb.user_manager[username].is_guest:
             template_name = 'guest_worksheet_page.html'
             publish = True
@@ -666,7 +666,7 @@ def worksheet_rename(worksheet):
 
 @worksheet_command('alive')
 def worksheet_alive(worksheet):
-    return str(worksheet.state_number())
+    return str(worksheet.state_number)
 
 
 @worksheet_command('system/<system>')
@@ -802,7 +802,7 @@ def worksheet_cell_list(worksheet):
     worksheet, which consists of a list of cells.
     """
     r = {}
-    r['state_number'] = worksheet.state_number()
+    r['state_number'] = worksheet.state_number
     # TODO: Send and actually use the body's HTML.
     r['html_cell_list'] = ''
     # New UI
@@ -1161,7 +1161,7 @@ def worksheet_share(worksheet):
 def worksheet_invite_collab(worksheet):
     user_manager = g.notebook.user_manager
     owner = worksheet.owner()
-    id_number = worksheet.id_number()
+    id_number = worksheet.id_number
     old_collaborators = set(worksheet.collaborators)
     collaborators = (u.strip() for u in request.values.get(
         'collaborators', '').split(','))
@@ -1663,7 +1663,7 @@ def doc_worksheet():
     for X in g.notebook.user_wsts('_sage_'):
         if X.compute_process_has_been_started():
             continue
-        if X.id_number() == doc_worksheet_number:
+        if X.id_number == doc_worksheet_number:
             W = X
             W.clear()
             break

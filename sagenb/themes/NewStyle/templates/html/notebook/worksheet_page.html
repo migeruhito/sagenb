@@ -20,7 +20,7 @@ INPUT:
            id="insert_new_last_compute_cell" 
            title="{{ gettext('Click to insert new compute cell.') }}">
        </div>
-        {% if not worksheet.docbrowser() %}
+        {% if not worksheet.docbrowser %}
       <div class="ui-icon ui-icon-comment wksht-icon_button" 
            id="insert_new_last_text_cell"
            title="{{ gettext('Click to insert new rich-text cell.') }}">
@@ -30,7 +30,7 @@ INPUT:
     <div class="insert_new_cell" id="insert_last_cell">
     </div>  
     <script type="text/javascript">
-        state_number = {{ worksheet.state_number() }};
+        state_number = {{ worksheet.state_number }};
         cell_id_list = {{ worksheet.cell_id_list() }};
         queue_id_list = {{ worksheet.queue_id_list() }};
         {% if worksheet.is_only_viewer(username) %}
@@ -48,7 +48,7 @@ INPUT:
             insert_new_cell_after(cell_id_list[cell_id_list.length - 1]);
         });
     
-        {% if not worksheet.docbrowser() %}
+        {% if not worksheet.docbrowser %}
         $("#insert_new_last_text_cell").bind("click", function (e) {
             insert_new_text_cell_after(cell_id_list[cell_id_list.length - 1]);
         });

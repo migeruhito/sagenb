@@ -12,7 +12,7 @@ INPUT:
 - publish - a boolean; whether this is a published cell
 #}
 <span id="cell_outer_{{ cell.id() }}">
-    {% if not do_print and not publish and not cell.worksheet().docbrowser() %}
+    {% if not do_print and not publish and not cell.worksheet().docbrowser %}
             <div class="insert_new_cell" id="insert_new_cell_before{{ cell.id() }}">
               <div class="ui-icon ui-icon-circle-plus wksht-icon_button" 
                 id="insert_new_compute_cell_before{{ cell.id() }}" 
@@ -41,7 +41,7 @@ INPUT:
     <div class="text_cell" id="cell_text_{{ cell.id() }}">
       {{ cell.plain_text() | safe }}
     </div>
-{% if JEDITABLE_TINYMCE and not cell.worksheet().is_published() and not cell.worksheet().docbrowser() and not do_print and not publish %}
+{% if JEDITABLE_TINYMCE and not cell.worksheet().is_published() and not cell.worksheet().docbrowser and not do_print and not publish %}
     <script type="text/javascript">
        $("#cell_text_{{ cell.id() }}").unbind('dblclick').editable(function (value, settings) {
             evaluate_text_cell_input({{ '%r'|format(cell.id()) }}, value, settings);

@@ -28,7 +28,7 @@ INPUT:
     {% set url       = "edit_published_page" %}
 {% endif %}
 
-{% set download_name = worksheet.download_name() %}
+{% set download_name = worksheet.download_name %}
 
 {% block published_link_rel %}
 <link rel="alternate" type="application/sage" title="{{ render_title() }}" href="download/{{ download_name }}.sws" />

@@ -185,8 +185,8 @@ INPUT:
                 {% set shared = True %}
                 {% endif %}
 
-                {% if worksheet.viewers() %}
-                / {{ worksheet.viewers()|join_max(5) }}
+                {% if worksheet.viewers %}
+                / {{ worksheet.viewers|join_max(5) }}
                 {% set shared = True %}
                 {% endif %}
 

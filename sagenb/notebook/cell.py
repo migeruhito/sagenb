@@ -2576,7 +2576,7 @@ class Cell(Cell_generic):
         #
         # So we need to prepend the worksheet URL, in order
         # for the zip to be accessed correctly.
-        if self.worksheet().docbrowser():
+        if self.worksheet().docbrowser:
             jmol_name = os.path.join(self.directory(), F)
             with open(jmol_name, 'r') as f:
                 jmol_script = f.read()

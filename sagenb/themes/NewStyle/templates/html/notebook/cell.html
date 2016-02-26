@@ -34,7 +34,7 @@ INPUT:
                 id="insert_new_compute_cell_before{{ cell.id() }}" 
                 title="{{ gettext('Click to insert new compute cell.') }}">
               </div>
-              {% if not cell.worksheet().docbrowser() %}
+              {% if not cell.worksheet().docbrowser %}
               <div class="ui-icon ui-icon-comment wksht-icon_button" 
                 id="insert_new_text_cell_before{{ cell.id() }}"
                 title="{{ gettext('Click to insert new rich-text cell.') }}">
@@ -47,7 +47,7 @@ INPUT:
                 $("#insert_new_compute_cell_before{{ cell.id() }}").bind("click",function (e) {
                     insert_new_cell_before({{ '%r'|format(cell.id()) }});
                 });
-                {% if not cell.worksheet().docbrowser() %}
+                {% if not cell.worksheet().docbrowser %}
                 $("#insert_new_text_cell_before{{ cell.id() }}").bind("click",function (e) {
                    insert_new_text_cell_before({{ '%r'|format(cell.id()) }});
                 });

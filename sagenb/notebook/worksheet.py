@@ -166,13 +166,13 @@ class Worksheet(object):
         self.system = system
         self.__pretty_print = pretty_print  # property
         self.__owner = owner
-        self.__viewers = []
+        self.__viewers = []  # property readonly
         self.__collaborators = []  # property
         self.__autopublish = auto_publish
         self.__saved_by_info = {}
         self.__live_3D = live_3D
         # state sequence number, used for sync
-        self.__state_number = 0
+        self.__state_number = 0  # property readonly + increase()
 
         # Initialize the cell id counter.
         self.__next_id = 0
@@ -187,7 +187,7 @@ class Worksheet(object):
         # set the directory in which the worksheet files will be stored.  We
         # also add the hash of the name, since the cleaned name loses info,
         # e.g., it could be all _'s if all characters are funny.
-        self.__id_number = int(id_number)
+        self.__id_number = int(id_number)  # property readonly
         filename = os.path.join(owner, str(id_number))
         self.__filename = filename
         self.__dir = os.path.join(notebook_worksheet_directory, str(id_number))
@@ -196,23 +196,14 @@ class Worksheet(object):
         self.clear()
 
     def increase_state_number(self):
-        if self.is_published() or self.docbrowser():
-            return
-
-        try:
+        if not self.is_published() and not self.docbrowser:
             self.__state_number += 1
-        except AttributeError:
-            self.__state_number = 0
 
+    @property
     def state_number(self):
-        if self.is_published() or self.docbrowser():
+        if self.is_published() or self.docbrowser:
             return 0
-
-        try:
-            return self.__state_number
-        except AttributeError:
-            self.__state_number = 0
-            return 0
+        return self.__state_number
 
     def create_directories(self):
         # creating directories should be a function of the storage backend, not
@@ -223,6 +214,7 @@ class Worksheet(object):
             set_restrictive_permissions(self.snapshot_directory())
             set_restrictive_permissions(self.cells_directory())
 
+    @property
     def id_number(self):
         """
         Return the id number of this worksheet, which is an integer.
@@ -231,16 +223,12 @@ class Worksheet(object):
 
             sage: from sagenb.notebook.worksheet import Worksheet
             sage: W = Worksheet('test', 2, tmp_dir(), owner='sageuser')
-            sage: W.id_number()
+            sage: W.id_number
             2
-            sage: type(W.id_number())
+            sage: type(W.id_number)
             <type 'int'>
         """
-        try:
-            return self.__id_number
-        except AttributeError:
-            self.__id_number = int(os.path.split(self.__filename)[1])
-            return self.__id_number
+        return self.__id_number
 
     def basic(self):
         """
@@ -325,10 +313,10 @@ class Worksheet(object):
         """
         d = {
             'name': unicode(self.name()),
-            'id_number': int(self.id_number()),
+            'id_number': int(self.id_number),
             'system': self.system,
             'owner': self.owner(),
-            'viewers': self.viewers(),
+            'viewers': self.viewers,
             'collaborators': self.collaborators,
             'auto_publish': self.is_auto_publish(),
             'pretty_print': self.pretty_print,
@@ -339,7 +327,7 @@ class Worksheet(object):
             'saved_by_info': getattr(self, '__saved_by_info', {}),
             'worksheet_that_was_published': getattr(
                 self, '__worksheet_came_from', (self.owner(),
-                                                self.id_number())),
+                                                self.id_number)),
             # New UI
             'last_change_pretty': prettify_time_ago(
                 time.time() - self.last_change()[1]),
@@ -473,7 +461,7 @@ class Worksheet(object):
             sage: W.__repr__()
             'admin/0: [Cell 0: in=2+3, out=\n5, Cell 10: in=2+8, out=\n10]'
         """
-        return '%s/%s: %s' % (self.owner(), self.id_number(), self.cell_list())
+        return '%s/%s: %s' % (self.owner(), self.id_number, self.cell_list())
 
     def __len__(self):
         r"""
@@ -496,6 +484,7 @@ class Worksheet(object):
         """
         return len(self.cell_list())
 
+    @property
     def worksheet_html_filename(self):
         """
         Return path to the underlying plane text file that defines the
@@ -503,12 +492,14 @@ class Worksheet(object):
         """
         return os.path.join(self.__dir, 'worksheet.html')
 
+    @property
     def download_name(self):
         """
         Return the download name of this worksheet.
         """
         return os.path.split(self.name())[-1]
 
+    @property
     def docbrowser(self):
         """
         Return True if this is a docbrowser worksheet.
@@ -522,13 +513,13 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('test1', 'admin')
-            sage: W.docbrowser()
+            sage: W.docbrowser
             False
 
         We create a worksheet for which docbrowser is True::
 
             sage: W = nb.create_wst('doc_browser_0', '_sage_')
-            sage: W.docbrowser()
+            sage: W.docbrowser
             True
         """
         return self.owner() == '_sage_'
@@ -588,6 +579,7 @@ class Worksheet(object):
         collaborators = set(v).difference(self.owner())
         self.__collaborators = sorted(collaborators)
 
+    @property
     def viewers(self):
         """
         Return list of viewers of this worksheet.
@@ -607,46 +599,13 @@ class Worksheet(object):
                 'hilbert','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('test1', 'admin')
             sage: W.add_viewer('hilbert')
-            sage: W.viewers()
+            sage: W.viewers
             ['hilbert']
             sage: W.add_viewer('sage')
-            sage: W.viewers()
+            sage: W.viewers
             ['hilbert', 'sage']
         """
-        try:
-            return self.__viewers
-        except AttributeError:
-            self.__viewers = []
-            return self.__viewers
-
-    def delete_notebook_specific_data(self):
-        """
-        Delete data from this worksheet this is specific to a certain
-        notebook. This means deleting the attached files, collaborators,
-        and viewers.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.user_manager.add_user(
-                'hilbert','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: W.add_viewer('hilbert')
-            sage: W.delete_notebook_specific_data()
-            sage: W.viewers()
-            []
-            sage: W.add_collaborator('hilbert')
-            sage: W.collaborators
-            ['admin', 'hilbert']
-            sage: W.delete_notebook_specific_data()
-            sage: W.collaborators
-            ['admin']
-        """
-        self.__attached = {}
-        self.__collaborators = [self.owner()]
-        self.__viewers = []
+        return self.__viewers
 
     def name(self, username=None):
         ur"""
@@ -1191,7 +1150,7 @@ class Worksheet(object):
         if isinstance(W, tuple):
             self.__worksheet_came_from = W
         else:
-            self.__worksheet_came_from = (W.owner(), W.id_number())
+            self.__worksheet_came_from = (W.owner(), W.id_number)
 
     def rate(self, x, comment, username):
         """
@@ -1585,7 +1544,7 @@ class Worksheet(object):
             True
         """
         self.set_user_view(user, WS_ARCHIVED)
-        if self.viewers() == [user]:
+        if self.viewers == [user]:
             self.quit()
 
     def set_active(self, user):
@@ -1630,7 +1589,7 @@ class Worksheet(object):
             True
         """
         self.set_user_view(user, WS_TRASH)
-        if self.viewers() == [user]:
+        if self.viewers == [user]:
             self.quit()
 
     def move_out_of_trash(self, user):
@@ -1702,18 +1661,16 @@ class Worksheet(object):
 
     def set_owner(self, owner):
         self.__owner = owner
-        if owner not in self.collaborators:
-            self.__collaborators.append(owner)
 
     def is_only_viewer(self, user):
         try:
-            return user in self.__viewers
+            return user in self.viewers
         except AttributeError:
             return False
 
     def is_viewer(self, user):
         try:
-            return (user in self.__viewers or user in self.__collaborators or
+            return (user in self.viewers or user in self.collaborators or
                     user == self.publisher())
         except AttributeError:
             return True
@@ -1789,7 +1746,7 @@ class Worksheet(object):
             sage: W.add_viewer('wstein')
             sage: W.owner()
             'sage'
-            sage: W.viewers()
+            sage: W.viewers
             ['wstein']
 
         We delete the sage user from the worksheet W. This makes wstein the
@@ -1798,7 +1755,7 @@ class Worksheet(object):
         ::
 
             sage: W.delete_user('sage')
-            sage: W.viewers()
+            sage: W.viewers
             ['wstein']
             sage: W.owner()
             'wstein'
@@ -1810,7 +1767,7 @@ class Worksheet(object):
             sage: W.delete_user('wstein')
             sage: W.owner() is None
             True
-            sage: W.viewers()
+            sage: W.viewers
             []
 
         Finally, we clean up.
@@ -1820,14 +1777,14 @@ class Worksheet(object):
             sage: nb.delete()
         """
         if user in self.collaborators:
-            self.__collaborators.remove(user)
-        if user in self.__viewers:
-            self.__viewers.remove(user)
+            self.collaborators.remove(user)
+        if user in self.viewers:
+            self.viewers.remove(user)
         if self.__owner == user:
-            if len(self.__collaborators) > 0:
-                self.__owner = self.__collaborators[0]
-            elif len(self.__viewers) > 0:
-                self.__owner = self.__viewers[0]
+            if len(self.collaborators) > 0:
+                self.__owner = self.collaborators[0]
+            elif len(self.viewers) > 0:
+                self.__owner = self.viewers[0]
             else:
                 # Now there is nobody to take over ownership.  We
                 # assign the owner None, which means nobody owns it.
@@ -1851,14 +1808,11 @@ class Worksheet(object):
                 'diophantus','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Viewer test', 'admin')
             sage: W.add_viewer('diophantus')
-            sage: W.viewers()
+            sage: W.viewers
             ['diophantus']
         """
-        try:
-            if user not in self.__viewers:
-                self.__viewers.append(user)
-        except AttributeError:
-            self.__viewers = [user]
+        if user not in self.viewers:
+            self.viewers.append(user)
 
     def add_collaborator(self, user):
         """
@@ -1882,11 +1836,8 @@ class Worksheet(object):
             sage: W.collaborators
             ['diophantus']
         """
-        try:
-            if user not in self.__collaborators:
-                self.__collaborators.append(user)
-        except AttributeError:
-            self.__collaborators = [user]
+        if user not in self.collaborators:
+            self.collaborators.append(user)
 
     # Searching
 
@@ -1905,7 +1856,7 @@ class Worksheet(object):
         - a boolean
         """
         # Load the worksheet data file from disk.
-        filename = self.worksheet_html_filename()
+        filename = self.worksheet_html_filename
 
         if os.path.exists(filename):
             contents = open(filename).read().decode('utf-8', 'ignore')
@@ -1941,7 +1892,7 @@ class Worksheet(object):
         filename = os.path.join(path, '%s.bz2' % basename)
         if E is None:
             E = self.edit_text()
-        worksheet_html = self.worksheet_html_filename()
+        worksheet_html = self.worksheet_html_filename
         open(filename, 'w').write(bz2.compress(E.encode('utf-8', 'ignore')))
         open(worksheet_html, 'w').write(self.body().encode('utf-8', 'ignore'))
         self.limit_snapshots()
@@ -2014,7 +1965,7 @@ class Worksheet(object):
             pass
 
     def revert_to_last_saved_state(self):
-        filename = self.worksheet_html_filename()
+        filename = self.worksheet_html_filename
         if os.path.exists(filename):
             E = open(filename).read()
         else:
@@ -2486,7 +2437,7 @@ class Worksheet(object):
             return self.__cells
         except AttributeError:
             # load from disk
-            worksheet_html = self.worksheet_html_filename()
+            worksheet_html = self.worksheet_html_filename
             if not os.path.exists(worksheet_html):
                 self.__cells = []
             else:

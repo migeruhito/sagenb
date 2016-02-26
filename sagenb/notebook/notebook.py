@@ -283,7 +283,7 @@ class Notebook(object):
                 try:
                     for w in self.user_wsts(username):
                         owner = w.owner()
-                        id_number = w.id_number()
+                        id_number = w.id_number
                         collaborators = w.collaborators
                         for u in collaborators:
                             try:
@@ -480,7 +480,7 @@ class Notebook(object):
         id_number = u['next_worksheet_id_number']
         if id_number == -1:  # need to initialize
             id_number = max([-1].extend(
-                w.id_number() for w in self.user_wsts(username)))
+                w.id_number for w in self.user_wsts(username)))
         u['next_worksheet_id_number'] = id_number + 1
         return id_number
 
@@ -629,7 +629,7 @@ class Notebook(object):
         W = self.filename_wst(worksheet_filename)
         S.save_worksheet(W)
         username = W.owner()
-        id_number = W.id_number()
+        id_number = W.id_number
         S.export_wst(username, id_number, output_filename, title=title)
 
     def import_wst(self, filename, owner):
@@ -1194,7 +1194,7 @@ class Notebook(object):
 
         for W in self.__worksheets.values():
             if W.compute_process_has_been_started():
-                if W.docbrowser():
+                if W.docbrowser:
                     W.quit_if_idle(doc_timeout)
                 else:
                     W.quit_if_idle(timeout)
@@ -1348,7 +1348,7 @@ def migrate_old_notebook_v1(dir):
         ws_pub = (ws_pub[0], int(ws_pub[1]))
 
         obj = {'name': old_ws.name(), 'system': old_ws.system(),
-               'viewers': old_ws.viewers(),
+               'viewers': old_ws.viewers,
                'collaborators': old_ws.collaborators,
                'pretty_print': old_ws.pretty_print,
                'ratings': old_ws.ratings(),
@@ -1398,7 +1398,7 @@ def migrate_old_notebook_v1(dir):
     tm = walltime()
     i = 0
     for ws_name, old_ws in old_nb._Notebook__worksheets.iteritems():
-        if old_ws.docbrowser():
+        if old_ws.docbrowser:
             continue
         i += 1
         if i % 25 == 0:
