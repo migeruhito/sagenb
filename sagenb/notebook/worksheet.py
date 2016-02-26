@@ -695,55 +695,6 @@ class Worksheet(object):
         name = unicode_str(name)
         self.__name = name
 
-    def set_filename_without_owner(self, nm):
-        r"""
-        Set this worksheet filename (actually directory) by getting the
-        owner from the pre-stored owner via ``self.owner()``.
-
-        INPUT:
-
-        -  ``nm`` - string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.filename()
-            'admin/0'
-            sage: W.set_filename_without_owner('5')
-            sage: W.filename()
-            'admin/5'
-        """
-        filename = os.path.join(self.owner(), nm)
-        self.set_filename(filename)
-
-    def set_filename(self, filename):
-        """
-        Set the worksheet filename (actually directory).
-
-        INPUT:
-
-        -  ``filename`` - string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.filename()
-            'admin/0'
-            sage: W.set_filename('admin/10')
-            sage: W.filename()
-            'admin/10'
-        """
-        old_filename = self.__filename
-        self.__filename = filename
-        self.__dir = os.path.join(self.notebook().dir, filename)
-        self.notebook().change_wst_key(old_filename, filename)
-
     def filename(self):
         """
         Return the filename (really directory) where the files associated
