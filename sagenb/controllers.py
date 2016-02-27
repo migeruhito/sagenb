@@ -39,8 +39,8 @@ class User(object):
         user.password = password
         return user
 
-    def __init__(self, user_model):
-        self.__user_model = user_model
+    def __init__(self, data_model):
+        self.__data_model = data_model
 
     # Expose model attributes
 
@@ -49,63 +49,67 @@ class User(object):
         """
         Expose model.username read only
         """
-        return self.__user_model.username
+        return self.__data_model.username
 
     def __set_password(self, passwd):
         """
         Expose model.password write only and encrypt if password, else
         set to ''
         """
-        self.__user_model.password = encrypt_password(passwd) if passwd else ''
+        self.__data_model.password = encrypt_password(passwd) if passwd else ''
 
     password = property(fset=__set_password)
 
     @property
     def email(self):
-        return self.__user_model.email
+        return self.__data_model.email
 
     @email.setter
     def email(self, email):
-        self.__user_model.email = email
+        self.__data_model.email = email
+
+    @property
+    def external_auth(self):
+        return self.__data_model.external_auth
 
     @property
     def email_confirmed(self):
-        return self.__user_model.email_confirmed
+        return self.__data_model.email_confirmed
 
     @email_confirmed.setter
     def email_confirmed(self, value):
-        self.__user_model.email_confirmed = value
+        self.__data_model.email_confirmed = value
 
     @property
     def is_suspended(self):
-        return self.__user_model.is_suspended
+        return self.__data_model.is_suspended
 
     @is_suspended.setter
     def is_suspended(self, value):
-        self.__user_model.is_suspended = value
+        self.__data_model.is_suspended = value
 
     @property
     def viewable_worksheets(self):
-        return self.__user_model.viewable_worksheets
+        return self.__data_model.viewable_worksheets
 
     # Utility methods
 
     def __eq__(self, other):
         return all((
-            self.__user_model.__class__ is other.__user_model.__class__,
-            self.__user_model.username == other.__user_model.username,
-            self.__user_model.email == other.__user_model.email,
-            self.__user_model.conf == other.__user_model.conf,
-            self.__user_model.account_type == other.__user_model.account_type))
+            self.__data_model.__class__ is other.__data_model.__class__,
+            self.__data_model.username == other.__data_model.username,
+            self.__data_model.email == other.__data_model.email,
+            self.__data_model.conf == other.__data_model.conf,
+            self.__data_model.account_type == other.__data_model.account_type))
 
     def __repr__(self):
         return self.username
 
     def __getitem__(self, *args):
-        return self.__user_model.conf.__getitem__(*args)
+        return self.__data_model.conf.__getitem__(*args)
 
     def __setitem__(self, *args):
-        self.__user_model.conf.__setitem__(*args)
+        self.__data_model.conf.__setitem__(*args)
 
     @property
     def basic(self):
@@ -114,16 +118,16 @@ class User(object):
         reconstructed.
         """
         return {
-            'username': self.__user_model.username,
-            'password': self.__user_model.password,
-            'email': self.__user_model.email,
-            'email_confirmed': self.__user_model.email_confirmed,
-            'account_type': self.__user_model.account_type,
-            'external_auth': self.__user_model.external_auth,
-            'temporary_password': self.__user_model._temporary_password,
-            'is_suspended': self.__user_model.is_suspended,
-            'viewable_worksheets': self.__user_model.viewable_worksheets,
-            'conf': self.__user_model.conf.basic(),
+            'username': self.__data_model.username,
+            'password': self.__data_model.password,
+            'email': self.__data_model.email,
+            'email_confirmed': self.__data_model.email_confirmed,
+            'account_type': self.__data_model.account_type,
+            'external_auth': self.__data_model.external_auth,
+            'temporary_password': self.__data_model.temporary_password,
+            'is_suspended': self.__data_model.is_suspended,
+            'viewable_worksheets': self.__data_model.viewable_worksheets,
+            'conf': self.__data_model.conf.basic(),
             }
 
     @property
@@ -141,7 +145,7 @@ class User(object):
             sage: User('B', account_type='user').is_admin
             False
         """
-        return self.__user_model.account_type == UAT_ADMIN
+        return self.__data_model.account_type == UAT_ADMIN
 
     @property
     def is_guest(self):
@@ -154,24 +158,24 @@ class User(object):
             sage: User('B', account_type='user').is_guest
             False
         """
-        return self.__user_model.account_type == UAT_GUEST
+        return self.__data_model.account_type == UAT_GUEST
 
     def grant_admin(self):
         if not self.is_guest:
-            self.__user_model.account_type = UAT_ADMIN
+            self.__data_model.account_type = UAT_ADMIN
 
     def revoke_admin(self):
         if not self.is_guest:
-            self.__user_model.account_type = UAT_USER
+            self.__data_model.account_type = UAT_USER
 
     def check_password(self, password):
         # the empty password is always false
         if self.username == "pub" or password == '':
             return False
-        if self.__user_model.external_auth is not None:
+        if self.__data_model.external_auth is not None:
             return None
 
-        my_passwd = self.__user_model.password
+        my_passwd = self.__data_model.password
         if not my_passwd:
             return False
         if '$' not in my_passwd:
@@ -382,8 +386,8 @@ class Worksheet(object):
     def from_basic(cls, basic):
         return cls(WstModel(**basic))
 
-    def __init__(self, wst_model):
-        self.__wst_model = wst_model
+    def __init__(self, data_model):
+        self.__data_model = data_model
 
     # Expose model attributes
 
@@ -392,20 +396,20 @@ class Worksheet(object):
     @property
     def basic(self):
         return {
-            'id_number': self.__wst_model.id_number,
-            'owner': self.__wst_model.owner,
-            'name': self.__wst_model.name,
-            'system': self.__wst_model.system,
-            'pretty_print': self.__wst_model.pretty_print,
-            'live_3D': self.__wst_model.live_3D,
-            'auto_publish': self.__wst_model.auto_publish,
-            'last_change': self.__wst_model.last_change,
-            'saved_by_info': self.__wst_model.saved_by_info,
-            'tags': self.__wst_model.tags,
-            'collaborators': self.__wst_model.collaborators,
-            'viewers': self.__wst_model.viewers,
-            'published_id_number': self.__wst_model.published_id_number,
+            'id_number': self.__data_model.id_number,
+            'owner': self.__data_model.owner,
+            'name': self.__data_model.name,
+            'system': self.__data_model.system,
+            'pretty_print': self.__data_model.pretty_print,
+            'live_3D': self.__data_model.live_3D,
+            'auto_publish': self.__data_model.auto_publish,
+            'last_change': self.__data_model.last_change,
+            'saved_by_info': self.__data_model.saved_by_info,
+            'tags': self.__data_model.tags,
+            'collaborators': self.__data_model.collaborators,
+            'viewers': self.__data_model.viewers,
+            'published_id_number': self.__data_model.published_id_number,
             'worksheet_that_was_published':
-                self.__wst_model.worksheet_that_was_published,
-            'ratings': self.__wst_model.ratings,
+            self.__data_model.worksheet_that_was_published,
+            'ratings': self.__data_model.ratings,
             }

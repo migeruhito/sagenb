@@ -1310,7 +1310,7 @@ def migrate_old_notebook_v1(dir):
         transfer_attributes(
             old_user, new_user,
             [('_User__email_confirmed', 'email_confirmed'),
-             # ('_User__temporary_password', '_temporary_password'),
+             # ('_User__temporary_password', 'temporary_password'),
              ('_User__is_suspended', 'is_suspended')])
         # Fix the __conf field, which is also an instance of a class
         new_user.conf.confs = old_user.conf.confs

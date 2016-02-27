@@ -532,35 +532,16 @@ class User(object):
                  # users integrity is checked in a more apropriate way.
                  **kwargs
                  ):
-        self.__username = username  # property readonly
+        self.username = username
         self.password = password
         self.email = email
         self.email_confirmed = email_confirmed  # Boolean
-        self.account_type = account_type  # property
-        self.__external_auth = external_auth  # property readonly
-        self._temporary_password = temporary_password
+        self.__account_type = account_type  # property unused
+        self.external_auth = external_auth
+        self.temporary_password = temporary_password  # unused
         self.is_suspended = is_suspended
-        self.viewable_worksheets = (
-            set() if viewable_worksheets is None else viewable_worksheets)
-        self.conf = UserConfiguration() if conf is None else conf
-
-    @property
-    def username(self):
-        """
-        EXAMPLES::
-
-            sage: from sagenb.notebook.user import User
-            sage: User('andrew', 'tEir&tiwk!', 'andrew@matrixstuff.com',
-                       'user').username
-            'andrew'
-            sage: User('sarah', 'Miaasc!', 'sarah@ellipticcurves.org',
-                       'user').username
-            'sarah'
-            sage: User('bob', 'Aisfa!!', 'bob@sagemath.net',
-                       'admin').username
-            'bob'
-        """
-        return self.__username
+        self.viewable_worksheets = set_default(viewable_worksheets, set())
+        self.conf = set_default(conf, UserConfiguration())
 
     @property
     def account_type(self):
@@ -587,18 +568,14 @@ class User(object):
                     *self.account_types))
         self.__account_type = account_type
 
-    @property
-    def external_auth(self):
-        return self.__external_auth
-
 
 class Worksheet(object):
     def __init__(self,
                  id_number, owner, name=u'', system='sage',
 
                  pretty_print=False, live_3D=False, auto_publish=False,
-                 last_change=None, saved_by_info={}, tags={},
-                 collaborators=[], viewers=[],
+                 last_change=None, saved_by_info=None, tags=None,
+                 collaborators=None, viewers=None,
                  published_id_number=None, worksheet_that_was_published=None,
                  ratings=[],
                  # TODO: There are a spurious User__username field in the
@@ -615,10 +592,10 @@ class Worksheet(object):
         self.live_3D = live_3D
         self.auto_publish = auto_publish
         self.last_change = set_default(last_change, (owner, time.time()))
-        self.saved_by_info = saved_by_info
-        self.tags = tags
-        self.collaborators = collaborators
-        self.viewers = viewers
+        self.saved_by_info = set_default(saved_by_info, dict())
+        self.tags = set_default(tags, dict())
+        self.collaborators = set_default(collaborators, list())
+        self.viewers = set_default(viewers, list())
         self.published_id_number = published_id_number
         self.worksheet_that_was_published = set_default(
             worksheet_that_was_published, (owner, id_number))
