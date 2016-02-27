@@ -171,9 +171,9 @@ INPUT:
             <td class="owner_collab">
 
                 {% if not pub %}
-                {{ worksheet.owner() }}
+                {{ worksheet.owner }}
                 {% else %}
-                {{worksheet.worksheet_that_was_published().owner()}}
+                {{worksheet.worksheet_that_was_published().owner}}
                 {% endif %}
                 
                 {% if not pub and typ != 'trash' %}
@@ -190,7 +190,7 @@ INPUT:
                 {% set shared = True %}
                 {% endif %}
 
-                {% if (worksheet.owner() != username) or username == 'admin' %}
+                {% if (worksheet.owner != username) or username == 'admin' %}
                 {% set shared = False %}
                 {% endif %}
                 

@@ -189,7 +189,7 @@ def get_worksheets_from_request():
     worksheets = []
     for filename in filenames:
         W = g.notebook.filename_wst(filename)
-        if W.owner() != g.username:
+        if W.owner != g.username:
             # TODO BUG: if trying to stop a shared worksheet, this check means
             # that only the owner can stop from the worksheet listing (using
             # /send_to_stop), but any shared person can stop the worksheet by

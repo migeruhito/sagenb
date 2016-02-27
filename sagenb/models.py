@@ -536,7 +536,7 @@ class User(object):
         self.password = password
         self.email = email
         self.email_confirmed = email_confirmed  # Boolean
-        self.__account_type = account_type  # property unused
+        self.__account_type = account_type  # property unused?
         self.external_auth = external_auth
         self.temporary_password = temporary_password  # unused
         self.is_suspended = is_suspended

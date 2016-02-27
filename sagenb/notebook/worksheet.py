@@ -163,17 +163,17 @@ class Worksheet(object):
             admin/0: [Cell 1: in=, out=]
         """
         # Record the basic properties of the worksheet
+        self.owner = owner
         self.system = system
-        self.__pretty_print = pretty_print  # property
-        self.__owner = owner
-        self.__viewers = []  # property readonly
-        self.__collaborators = []  # property
-        self.__autopublish = auto_publish
-        self.__saved_by_info = {}
         self.__live_3D = live_3D
+        self.__autopublish = auto_publish
+        self.__pretty_print = pretty_print  # property
+        self.__saved_by_info = {}
+        self.__collaborators = []  # property
+        self.__viewers = []  # property readonly
+
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
-
         # Initialize the cell id counter.
         self.__next_id = 0
 
@@ -315,7 +315,7 @@ class Worksheet(object):
             'name': unicode(self.name()),
             'id_number': int(self.id_number),
             'system': self.system,
-            'owner': self.owner(),
+            'owner': self.owner,
             'viewers': self.viewers,
             'collaborators': self.collaborators,
             'auto_publish': self.is_auto_publish(),
@@ -326,7 +326,7 @@ class Worksheet(object):
             'last_change': self.last_change(),
             'saved_by_info': getattr(self, '__saved_by_info', {}),
             'worksheet_that_was_published': getattr(
-                self, '__worksheet_came_from', (self.owner(),
+                self, '__worksheet_came_from', (self.owner,
                                                 self.id_number)),
             # New UI
             'last_change_pretty': prettify_time_ago(
@@ -390,7 +390,7 @@ class Worksheet(object):
                 self.__id_number = value
                 if 'owner' in obj:
                     owner = obj['owner']
-                    self.__owner = owner
+                    self.owner = owner
                     filename = os.path.join(owner, str(value))
                     self.__filename = filename
                     self.__dir = os.path.join(
@@ -461,7 +461,7 @@ class Worksheet(object):
             sage: W.__repr__()
             'admin/0: [Cell 0: in=2+3, out=\n5, Cell 10: in=2+8, out=\n10]'
         """
-        return '%s/%s: %s' % (self.owner(), self.id_number, self.cell_list())
+        return '%s/%s: %s' % (self.owner, self.id_number, self.cell_list())
 
     def __len__(self):
         r"""
@@ -522,7 +522,7 @@ class Worksheet(object):
             sage: W.docbrowser
             True
         """
-        return self.owner() == '_sage_'
+        return self.owner == '_sage_'
 
     # Basic properties
 
@@ -576,7 +576,7 @@ class Worksheet(object):
             sage: W.collaborators
             ['hilbert', 'sage']
         """
-        collaborators = set(v).difference(self.owner())
+        collaborators = set(v).difference(self.owner)
         self.__collaborators = sorted(collaborators)
 
     @property
@@ -849,7 +849,7 @@ class Worksheet(object):
         return self.__pretty_print
 
     @pretty_print.setter
-    def pretty_print(self, check='false'):
+    def pretty_print(self, check):
         """
         Set whether or not output should be pretty printed by default.
 
@@ -969,11 +969,11 @@ class Worksheet(object):
             sage: W = nb.create_wst('Publish Test', 'admin')
             sage: W.is_published()
             False
-            sage: W.set_owner('pub')
+            sage: W.owner = 'pub'
             sage: W.is_published()
             True
         """
-        return self.owner() == UN_PUB
+        return self.owner == UN_PUB
 
     def worksheet_that_was_published(self):
         """
@@ -1021,7 +1021,7 @@ class Worksheet(object):
             sage: S.publisher()
             'admin'
         """
-        return self.worksheet_that_was_published().owner()
+        return self.worksheet_that_was_published().owner
 
     def is_publisher(self, username):
         """
@@ -1150,7 +1150,7 @@ class Worksheet(object):
         if isinstance(W, tuple):
             self.__worksheet_came_from = W
         else:
-            self.__worksheet_came_from = (W.owner(), W.id_number)
+            self.__worksheet_came_from = (W.owner, W.id_number)
 
     def rate(self, x, comment, username):
         """
@@ -1299,9 +1299,9 @@ class Worksheet(object):
             sage: W.everyone_has_deleted_this_worksheet()
             True
         """
-        for user in self.collaborators + [self.owner()]:
+        for user in self.collaborators + [self.owner]:
             # When the worksheet has been deleted by the owner,
-            # self.owner() returns None, so we have to be careful
+            # self.owner returns None, so we have to be careful
             # about that case.
             if user is not None and not self.is_trashed(user):
                 return False
@@ -1370,7 +1370,7 @@ class Worksheet(object):
         try:
             d = dict(self.__user_view)
         except AttributeError:
-            self.user_view(self.owner())
+            self.user_view(self.owner)
             d = copy.copy(self.__user_view)
         for user, val in d.iteritems():
             if not isinstance(val, list):
@@ -1649,18 +1649,8 @@ class Worksheet(object):
 
     # Owner/viewer/user management
 
-    def owner(self):
-        try:
-            return self.__owner
-        except AttributeError:
-            self.__owner = UN_PUB
-            return UN_PUB
-
     def is_owner(self, username):
-        return self.owner() == username
-
-    def set_owner(self, owner):
-        self.__owner = owner
+        return self.owner == username
 
     def is_only_viewer(self, user):
         try:
@@ -1744,7 +1734,7 @@ class Worksheet(object):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Sage', owner='sage')
             sage: W.add_viewer('wstein')
-            sage: W.owner()
+            sage: W.owner
             'sage'
             sage: W.viewers
             ['wstein']
@@ -1757,7 +1747,7 @@ class Worksheet(object):
             sage: W.delete_user('sage')
             sage: W.viewers
             ['wstein']
-            sage: W.owner()
+            sage: W.owner
             'wstein'
 
         Then we delete wstein from W, which makes the owner None.
@@ -1765,7 +1755,7 @@ class Worksheet(object):
         ::
 
             sage: W.delete_user('wstein')
-            sage: W.owner() is None
+            sage: W.owner is None
             True
             sage: W.viewers
             []
@@ -1780,16 +1770,16 @@ class Worksheet(object):
             self.collaborators.remove(user)
         if user in self.viewers:
             self.viewers.remove(user)
-        if self.__owner == user:
+        if self.owner == user:
             if len(self.collaborators) > 0:
-                self.__owner = self.collaborators[0]
+                self.owner = self.collaborators[0]
             elif len(self.viewers) > 0:
-                self.__owner = self.viewers[0]
+                self.owner = self.viewers[0]
             else:
                 # Now there is nobody to take over ownership.  We
                 # assign the owner None, which means nobody owns it.
                 # It will get purged elsewhere.
-                self.__owner = None
+                self.owner = None
 
     def add_viewer(self, user):
         """
@@ -1864,7 +1854,7 @@ class Worksheet(object):
             contents = u' '
 
         try:
-            r = [unicode(x.lower()) for x in [self.owner(),
+            r = [unicode(x.lower()) for x in [self.owner,
                                               self.publisher(),
                                               self.name(), contents]]
             r = u" ".join(r)
@@ -2301,7 +2291,7 @@ class Worksheet(object):
             return self.__last_edited[0]
         except AttributeError:
             t = time.time()
-            self.__last_edited = (t, self.owner())
+            self.__last_edited = (t, self.owner)
             return t
 
     def date_edited(self):
@@ -2312,14 +2302,14 @@ class Worksheet(object):
             return self.__date_edited[0]
         except AttributeError:
             t = time.localtime()
-            self.__date_edited = (t, self.owner())
+            self.__date_edited = (t, self.owner)
             return t
 
     def last_to_edit(self):
         try:
             return self.__last_edited[1]
         except AttributeError:
-            return self.owner()
+            return self.owner
 
     def record_edit(self, user):
         self.__last_edited = (time.time(), user)

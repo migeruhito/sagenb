@@ -65,7 +65,7 @@ def worksheet_view(f):
                 username=g.username)
 
         with worksheet_locks[worksheet]:
-            owner = worksheet.owner()
+            owner = worksheet.owner
 
             if owner != '_sage_' and g.username != owner:
                 if not worksheet.is_published():
@@ -91,7 +91,7 @@ def url_for_worksheet(worksheet):
     """
     Returns the url for a given worksheet.
     """
-    return url_for('worksheet.worksheet_v', username=worksheet.owner(),
+    return url_for('worksheet.worksheet_v', username=worksheet.owner,
                    id=worksheet.filename_without_owner())
 
 
@@ -564,10 +564,10 @@ def public_worksheet(id):
 
     if g.notebook.conf['pub_interact']:
         worksheet = pub_worksheet(original_worksheet)
-        owner = worksheet.owner()
-        worksheet.set_owner(UN_PUB)
+        owner = worksheet.owner
+        worksheet.owner = UN_PUB
         s = render_ws_template(ws=worksheet, username=g.username)
-        worksheet.set_owner(owner)
+        worksheet.owner = owner
     else:
         s = render_ws_template(ws=original_worksheet, username=g.username)
     return s
@@ -1140,7 +1140,7 @@ def worksheet_edit_published_page(worksheet):
     # to edit this worksheet.')
 
     ws = worksheet.worksheet_that_was_published()
-    if ws.owner() == g.username:
+    if ws.owner == g.username:
         W = ws
     else:
         W = g.notebook.copy_wst(worksheet, g.username)
@@ -1160,7 +1160,7 @@ def worksheet_share(worksheet):
 @worksheet_command('invite_collab')
 def worksheet_invite_collab(worksheet):
     user_manager = g.notebook.user_manager
-    owner = worksheet.owner()
+    owner = worksheet.owner
     id_number = worksheet.id_number
     old_collaborators = set(worksheet.collaborators)
     collaborators = (u.strip() for u in request.values.get(
@@ -1376,7 +1376,7 @@ def worksheet_link_datafile(worksheet):
         target_worksheet_filename)
     target = os.path.abspath(os.path.join(
         target_ws.data_directory(), data_filename))
-    if target_ws.owner() != g.username and not target_ws.is_collaborator(
+    if target_ws.owner != g.username and not target_ws.is_collaborator(
             g.username):
         return message_template(
             _("illegal link attempt!"),

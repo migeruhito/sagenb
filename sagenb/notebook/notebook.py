@@ -282,7 +282,7 @@ class Notebook(object):
                     continue
                 try:
                     for w in self.user_wsts(username):
-                        owner = w.owner()
+                        owner = w.owner
                         id_number = w.id_number
                         collaborators = w.collaborators
                         for u in collaborators:
@@ -609,7 +609,7 @@ class Notebook(object):
         X = self.user_viewable_wsts(username)
         for W in (ws for ws in X if ws.is_trashed(username)):
             W.delete_user(username)
-            if W.owner() is None:
+            if W.owner is None:
                 self.delete_wst(W.filename())
 
     def export_wst(self, worksheet_filename, output_filename, title=None):
@@ -628,7 +628,7 @@ class Notebook(object):
         S = self._storage
         W = self.filename_wst(worksheet_filename)
         S.save_worksheet(W)
-        username = W.owner()
+        username = W.owner
         id_number = W.id_number
         S.export_wst(username, id_number, output_filename, title=title)
 
@@ -852,7 +852,7 @@ class Notebook(object):
             sage: W = nb._import_wst_html(name, 'admin')
             sage: W.name()
             u'Test notebook -- test'
-            sage: W.owner()
+            sage: W.owner
             'admin'
             sage: W.cell_list()
             [TextCell 1: <div class="document">
@@ -929,7 +929,7 @@ class Notebook(object):
             sage: W = nb._import_wst_rst(name, 'admin')
             sage: W.name()
             u'Test Notebook'
-            sage: W.owner()
+            sage: W.owner
             'admin'
             sage: W.cell_list()
             [TextCell 2: <h1 class="title">Test Notebook</h1>
@@ -1014,7 +1014,7 @@ class Notebook(object):
             sage: W = nb._import_wst_docutils_html(name, 'admin')
             sage: W.name()
             u'Test Notebook'
-            sage: W.owner()
+            sage: W.owner
             'admin'
             sage: W.cell_list()
             [TextCell 2: <h1 class="title">Test Notebook</h1>
@@ -1324,7 +1324,7 @@ def migrate_old_notebook_v1(dir):
         Migrates an old worksheet to the new format.
         """
         old_ws_dirname = old_ws._Worksheet__filename.partition(os.path.sep)[-1]
-        new_ws = new_nb.worksheet(old_ws.owner(), old_ws_dirname)
+        new_ws = new_nb.worksheet(old_ws.owner, old_ws_dirname)
 
         # some ugly creation of new attributes from what used to be stored
         tags = {}

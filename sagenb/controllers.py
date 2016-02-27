@@ -47,13 +47,13 @@ class User(object):
     @property
     def username(self):
         """
-        Expose model.username read only
+        Expose data_model.username read only
         """
         return self.__data_model.username
 
     def __set_password(self, passwd):
         """
-        Expose model.password write only and encrypt if password, else
+        Expose data_model.password write only and encrypt if password, else
         set to ''
         """
         self.__data_model.password = encrypt_password(passwd) if passwd else ''
@@ -62,6 +62,9 @@ class User(object):
 
     @property
     def email(self):
+        """
+        Expose data_model.email read-write
+        """
         return self.__data_model.email
 
     @email.setter
@@ -70,10 +73,16 @@ class User(object):
 
     @property
     def external_auth(self):
+        """
+        Expose data_model.external_auth readonly
+        """
         return self.__data_model.external_auth
 
     @property
     def email_confirmed(self):
+        """
+        Expose data_model.email_confirmed read-write
+        """
         return self.__data_model.email_confirmed
 
     @email_confirmed.setter
@@ -82,6 +91,9 @@ class User(object):
 
     @property
     def is_suspended(self):
+        """
+        Expose data_model.is_suspended read-write
+        """
         return self.__data_model.is_suspended
 
     @is_suspended.setter
@@ -90,6 +102,9 @@ class User(object):
 
     @property
     def viewable_worksheets(self):
+        """
+        Expose data_model.viewable_worksheet readonly
+        """
         return self.__data_model.viewable_worksheets
 
     # Utility methods
