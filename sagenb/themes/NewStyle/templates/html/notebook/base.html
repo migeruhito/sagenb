@@ -82,7 +82,7 @@ INPUT:
            title="{{ gettext('Click to rename this worksheet') }}">
             {{ worksheet.name() }}
         </a>
-        <div><span class="lastedit">{{ gettext('last edited') }} {{ time.last_edited(worksheet.last_edited(), worksheet.last_to_edit()) }}</span></div>
+        <div><span class="lastedit">{{ gettext('last edited') }} {{ time.last_edited(worksheet.last_edited, worksheet.last_to_edit) }}</span></div>
         {% if worksheet.warn_about_other_person_editing(username) and username != 'guest' and not worksheet.docbrowser and not worksheet.is_published() %}
         <span class="pingdown">({{ gettext('Someone else is viewing this worksheet') }})</span>
         {% endif %}
@@ -143,7 +143,7 @@ INPUT:
                class="worksheet" value="pretty_print" {{ "checked" if worksheet.pretty_print else "" }} />&nbsp;{{ gettext('Typeset') }}
         <input id="3D_check", type="checkbox" title="{{ gettext('Load 3-D Live. Not recommended for worksheets with > 2 3-D Plots.') }}"
                onchange="live_3D_check(this.checked);"
-               class="worksheet" value="live_3D" {{ "checked" if worksheet.live_3D() else "" }} />&nbsp;{{ gettext('Load 3-D Live') }}
+               class="worksheet" value="live_3D" {{ "checked" if worksheet.live_3D else "" }} />&nbsp;{{ gettext('Load 3-D Live') }}
         <input id="3D_use_java", type="checkbox" title="{{ gettext('Use java for 3-D. Only applies to this running of worksheet.') }}"
                onchange="3D_use_java_check(this.checked);"
                class="worksheet" value="3D_use_java"/>&nbsp;{{ gettext('Use java for 3-D') }}

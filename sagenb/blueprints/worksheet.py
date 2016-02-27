@@ -512,7 +512,7 @@ def pub_worksheet(source):
     # TODO: Independent pub pool and server settings.
     proxy = doc_worksheet()
     proxy.set_name(source.name())
-    proxy.set_last_change(*source.last_change())
+    proxy.last_change = source.last_change
     proxy.set_worksheet_that_was_published(
         source.worksheet_that_was_published())
     g.notebook.initialize_wst(source, proxy)
@@ -684,10 +684,7 @@ def worksheet_pretty_print(worksheet, enable):
 
 @worksheet_command('live_3D/<enable>')
 def worksheet_live_3D(worksheet, enable):
-    if enable == 'true':
-        worksheet.set_live_3D(True)
-    else:
-        worksheet.set_live_3D(False)
+    worksheet.set_live_3D = enable == 'true'
     return 'success'
 
 
@@ -1501,7 +1498,7 @@ def worksheet_publish(worksheet):
     # automatically when saved
     if 'yes' in request.values and 'auto' in request.values:
         g.notebook.publish_wst(worksheet, g.username)
-        worksheet.set_auto_publish(True)
+        worksheet.auto_publish = True
         return redirect(worksheet_publish.url_for(worksheet))
     # Just publishes worksheet
     elif 'yes' in request.values:
@@ -1517,12 +1514,12 @@ def worksheet_publish(worksheet):
         return redirect(worksheet_publish.url_for(worksheet))
     # Sets worksheet to be published automatically when saved
     elif 'auto' in request.values:
-        worksheet.set_auto_publish(not worksheet.is_auto_publish())
+        worksheet.auto_publish = not worksheet.auto_publish
         return redirect(worksheet_publish.url_for(worksheet))
     # Returns boolean of "Is this worksheet set to be published automatically
     # when saved?"
     elif 'is_auto' in request.values:
-        return str(worksheet.is_auto_publish())
+        return str(worksheet.auto_publish)
     # Returns the publication page
     else:
         # Page for when worksheet already published
@@ -1535,7 +1532,7 @@ def worksheet_publish(worksheet):
                 '' if not g.notebook.secure else 's',
                 hostname,
                 worksheet.published_version().filename())
-            dtime = worksheet.published_version().date_edited()
+            dtime = worksheet.published_version().date_edited
             return html_afterpublish_window(
                 worksheet, g.username, addr, dtime)
         # Page for when worksheet is not already published

@@ -61,7 +61,7 @@ INPUT:
 </ul>
 <hr class="usercontrol" />
 <h1 class="title">{{ worksheet.name() }}</h1>
-<h2 class="lastedit">{{ time.since_last_edited(worksheet.time_since_last_edited(), worksheet.last_to_edit()) }}</h2>
+<h2 class="lastedit">{{ time.since_last_edited(worksheet.time_since_last_edited, worksheet.last_to_edit) }}</h2>
 {% include theme("html/notebook/worksheet.html") %}
 <script>
 {%- if conf['pub_interact'] %}

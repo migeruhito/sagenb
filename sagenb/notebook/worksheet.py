@@ -165,13 +165,17 @@ class Worksheet(object):
         # Record the basic properties of the worksheet
         self.owner = owner
         self.system = system
-        self.__live_3D = live_3D
-        self.__autopublish = auto_publish
         self.__pretty_print = pretty_print  # property
-        self.__saved_by_info = {}
+        self.live_3D = live_3D
+        self.auto_publish = auto_publish
+        self.last_change = (self.owner, time.time())
+        self.__saved_by_info = {}  # property readonly
         self.__collaborators = []  # property
         self.__viewers = []  # property readonly
+        self.__ratings = []  # property readonly
 
+        # State variables
+        self.__last_autosave = time.time()
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
         # Initialize the cell id counter.
@@ -318,19 +322,19 @@ class Worksheet(object):
             'owner': self.owner,
             'viewers': self.viewers,
             'collaborators': self.collaborators,
-            'auto_publish': self.is_auto_publish(),
+            'auto_publish': self.auto_publish,
             'pretty_print': self.pretty_print,
-            'live_3D': self.live_3D(),
-            'ratings': self.ratings(),
+            'live_3D': self.live_3D,
+            'ratings': self.ratings,
             'tags': self.tags(),
-            'last_change': self.last_change(),
-            'saved_by_info': getattr(self, '__saved_by_info', {}),
+            'last_change': self.last_change,
+            'saved_by_info': self.saved_by_info,
             'worksheet_that_was_published': getattr(
                 self, '__worksheet_came_from', (self.owner,
                                                 self.id_number)),
             # New UI
             'last_change_pretty': prettify_time_ago(
-                time.time() - self.last_change()[1]),
+                time.time() - self.last_change[1]),
             'filename': self.filename(),
             'running': self.compute_process_has_been_started(),
             'attached_data_files': self.attached_data_files(),
@@ -345,7 +349,7 @@ class Worksheet(object):
         # New UI
         if d['published']:
             d['published_time'] = strftime(
-                "%B %d, %Y %I:%M %p", self.published_version().date_edited())
+                "%B %d, %Y %I:%M %p", self.published_version().date_edited)
         # New UI end
 
         return d
@@ -400,11 +404,11 @@ class Worksheet(object):
                 # ugly
                 setattr(self, '_Worksheet__' + key, value)
             elif key == 'auto_publish':
-                self.__autopublish = value
+                self.auto_publish = value
             elif key == 'tags':
                 self.set_tags(value)
             elif key == 'last_change':
-                self.set_last_change(value[0], value[1])
+                self.last_change = value
             elif key == 'published_id_number' and value is not None:
                 self.set_published_version('pub/%s' % value)
             elif key == 'worksheet_that_was_published':
@@ -884,74 +888,7 @@ class Worksheet(object):
         self.__pretty_print = check
         self.eval_asap_no_output("pretty_print_default(%r)" % check)
 
-    # 3-D plots
-
-    def live_3D(self):
-        """
-        Return True if the 3-D plots should be loaded live (interactive) by
-        default.
-
-        OUTPUT:
-
-        -  ``bool`` - True of False
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.live_3D()
-            False
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        try:
-            return self.__live_3D
-        except AttributeError:
-            self.__live_3D = False
-            return self.__live_3D
-
-    def set_live_3D(self, check=False):
-        """
-        Set whether or not 3-D plots should be live by default.  Not a good
-        idea for worksheets with more than 1 or 2 3-D plots.
-
-        INPUT:
-
-        -  ``check`` - boolean
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.set_live_3D(False)
-            sage: W.live_3D()
-            False
-            sage: W.set_live_3D(True)
-            sage: W.live_3D()
-            True
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        self.__live_3D = check
-
     # Publication
-
-    def is_auto_publish(self):
-        """
-        Returns True if this worksheet should be automatically published.
-        """
-        try:
-            return self.__autopublish
-        except AttributeError:
-            self.__autopublish = False
-            return False
-
-    def set_auto_publish(self, x):
-        self.__autopublish = x
 
     def is_published(self):
         """
@@ -1175,18 +1112,18 @@ class Worksheet(object):
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('Publish Test', 'admin')
             sage: W.rate(3, 'this is great', 'hilbert')
-            sage: W.ratings()
+            sage: W.ratings
             [('hilbert', 3, 'this is great')]
 
         Note that only the last rating by a user counts::
 
             sage: W.rate(1, 'this lacks content', 'riemann')
             sage: W.rate(0, 'this lacks content', 'riemann')
-            sage: W.ratings()
+            sage: W.ratings
             [('hilbert', 3, 'this is great'),
              ('riemann', 0, 'this lacks content')]
         """
-        r = self.ratings()
+        r = self.ratings
         x = int(x)
         for i in range(len(r)):
             if r[i][0] == username:
@@ -1219,10 +1156,11 @@ class Worksheet(object):
             True
         """
         try:
-            return username in [x[0] for x in self.ratings()]
+            return username in [x[0] for x in self.ratings]
         except TypeError:
             return False
 
+    @property
     def ratings(self):
         """
         Return all the ratings of this worksheet.
@@ -1237,20 +1175,15 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: W.ratings()
+            sage: W.ratings
             []
             sage: W.rate(0, 'this lacks content', 'riemann')
             sage: W.rate(3, 'this is great', 'hilbert')
-            sage: W.ratings()
+            sage: W.ratings
             [('riemann', 0, 'this lacks content'),
              ('hilbert', 3, 'this is great')]
         """
-        try:
-            return self.__ratings
-        except AttributeError:
-            v = []
-            self.__ratings = v
-            return v
+        return self.__ratings
 
     def rating(self):
         """
@@ -1271,7 +1204,7 @@ class Worksheet(object):
             sage: W.rating()
             1.5
         """
-        r = [x[1] for x in self.ratings()]
+        r = [x[1] for x in self.ratings]
         if len(r) == 0:
             rating = -1    # means "not rated"
         else:
@@ -1886,13 +1819,8 @@ class Worksheet(object):
         open(filename, 'w').write(bz2.compress(E.encode('utf-8', 'ignore')))
         open(worksheet_html, 'w').write(self.body().encode('utf-8', 'ignore'))
         self.limit_snapshots()
-        try:
-            X = self.__saved_by_info
-        except AttributeError:
-            X = {}
-            self.__saved_by_info = X
-        X[basename] = user
-        if self.is_auto_publish():
+        self.saved_by_info[basename] = user
+        if self.auto_publish:
             self.notebook().publish_wst(self, user)
 
     def get_snapshot_text_filename(self, name):
@@ -1904,11 +1832,7 @@ class Worksheet(object):
 
     def autosave(self, username):
         return
-        try:
-            last = self.__last_autosave
-        except AttributeError:
-            self.__last_autosave = time.time()
-            return
+        last = self.__last_autosave
         t = time.time()
         if t - last >= self.user_autosave_interval(username):
             self.__last_autosave = t
@@ -1920,12 +1844,9 @@ class Worksheet(object):
         E = bz2.decompress(open(filename).read())
         self.edit_save(E)
 
-    def _saved_by_info(self, x, username=None):
-        try:
-            u = self.__saved_by_info[x]
-            return u
-        except (KeyError, AttributeError):
-            return ''
+    @property
+    def saved_by_info(self):
+        return self.__saved_by_info
 
     def snapshot_data(self):
         try:
@@ -1938,10 +1859,10 @@ class Worksheet(object):
         v = []
         for x in self.__filenames:
             base = os.path.splitext(x)[0]
-            if self._saved_by_info(x):
+            if self.saved_by_info[x]:
                 v.append((_('%(t)s ago by %(le)s',) %
                           {'t': prettify_time_ago(t - float(base)),
-                           'le': self._saved_by_info(base)},
+                           'le': self.saved_by_info[base]},
                           x))
             else:
                 v.append((_('%(seconds)s ago',
@@ -2230,94 +2151,28 @@ class Worksheet(object):
 
     # Last edited
 
-    def last_change(self):
-        """
-        Return information about when this worksheet was last changed
-        and by whom.
-
-        OUTPUT:
-
-            - ``username`` -- string of username who last edited this
-              worksheet
-
-            - ``float`` -- seconds since epoch of the time when this
-              worksheet was last edited
-        """
-        return (self.last_to_edit(), self.last_edited())
-
-    def set_last_change(self, username, tm):
-        """
-        Set the time and who last changed this worksheet.
-
-        INPUT:
-
-            - ``username`` -- (string) name of a user
-
-            - ``tm`` -- (float) seconds since epoch
-
-        EXAMPLES::
-
-            sage: W = sagenb.notebook.worksheet.Worksheet(
-                'test', 0, tmp_dir(), owner='sage')
-            sage: W.last_change()
-            ('sage', ...)
-            sage: W.set_last_change('john', 1255029800)
-            sage: W.last_change()
-            ('john', 1255029800.0)
-
-        We make sure these other functions have been correctly updated::
-
-            sage: W.last_edited()
-            1255029800.0
-            sage: W.last_to_edit()
-            'john'
-            sage: W.date_edited() # Output depends on timezone
-            time.struct_time(tm_year=2009, tm_mon=10, ...)
-            sage: t = W.time_since_last_edited() # just test that call works
-        """
-        username = str(username)
-        tm = float(tm)
-        self.__date_edited = (time.localtime(tm), username)
-        self.__last_edited = (tm, username)
-
-    # TODO: all code below needs to be re-organized, but without
-    # breaking old worksheet migration.  Do this after I wrote a
-    # "basic" method for the *old* sage notebook codebase.  At that
-    # point I'll be able to greatly simplify worksheet migration and
-    # totally refactor anything I want in the new sagenb code.
-
+    @property
     def last_edited(self):
-        try:
-            return self.__last_edited[0]
-        except AttributeError:
-            t = time.time()
-            self.__last_edited = (t, self.owner)
-            return t
+        return self.last_change[1]
 
+    @property
     def date_edited(self):
         """
         Returns the date the worksheet was last edited.
         """
-        try:
-            return self.__date_edited[0]
-        except AttributeError:
-            t = time.localtime()
-            self.__date_edited = (t, self.owner)
-            return t
+        return time.localtime(self.last_change[1])
 
+    @property
     def last_to_edit(self):
-        try:
-            return self.__last_edited[1]
-        except AttributeError:
-            return self.owner
+        return self.last_change[0]
+
+    @property
+    def time_since_last_edited(self):
+        return time.time() - self.last_edited
 
     def record_edit(self, user):
-        self.__last_edited = (time.time(), user)
-        self.__date_edited = (time.localtime(), user)
+        self.last_change = (user, time.time())
         self.autosave(user)
-
-    def time_since_last_edited(self):
-        return time.time() - self.last_edited()
 
     def warn_about_other_person_editing(self, username,
                                         threshold=WARN_THRESHOLD):
@@ -2335,8 +2190,8 @@ class Worksheet(object):
            no activity on this worksheet for this many seconds, then editing
            is considered safe.
         """
-        if self.time_since_last_edited() < threshold:
-            user = self.last_to_edit()
+        if self.time_since_last_edited < threshold:
+            user = self.last_to_edit
             if user != username:
                 return True, user
         return False

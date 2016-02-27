@@ -577,7 +577,7 @@ class Worksheet(object):
                  last_change=None, saved_by_info=None, tags=None,
                  collaborators=None, viewers=None,
                  published_id_number=None, worksheet_that_was_published=None,
-                 ratings=[],
+                 ratings=None,
                  # TODO: There are a spurious User__username field in the
                  # cpickled users this **kwargs get rid of this and other
                  # spurious fields. This must be removed when the pickled
@@ -599,4 +599,4 @@ class Worksheet(object):
         self.published_id_number = published_id_number
         self.worksheet_that_was_published = set_default(
             worksheet_that_was_published, (owner, id_number))
-        self.ratings = ratings
+        self.ratings = set_default(ratings, list())

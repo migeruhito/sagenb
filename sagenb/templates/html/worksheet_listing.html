@@ -209,7 +209,7 @@ INPUT:
                 {% endif %}
             </td>
             <td>
-                {{ time.nice_last_edited(worksheet.last_edited(), worksheet.time_since_last_edited(), worksheet.last_to_edit()) }}
+                {{ time.nice_last_edited(worksheet.last_edited, worksheet.time_since_last_edited, worksheet.last_to_edit) }}
             </td>
         </tr>
         {% endfor %}

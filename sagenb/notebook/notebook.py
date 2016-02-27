@@ -1337,7 +1337,7 @@ def migrate_old_notebook_v1(dir):
                     tags[user_] = [val]
         except AttributeError:
             pass
-        last_change = (old_ws.last_to_edit(), old_ws.last_edited())
+        last_change = (old_ws.last_to_edit, old_ws.last_edited)
         try:
             published_id_number = int(os.path.split(
                 old_ws._Worksheet__published_version)[1])
@@ -1351,8 +1351,8 @@ def migrate_old_notebook_v1(dir):
                'viewers': old_ws.viewers,
                'collaborators': old_ws.collaborators,
                'pretty_print': old_ws.pretty_print,
-               'ratings': old_ws.ratings(),
-               'auto_publish': old_ws.is_auto_publish(), 'tags': tags,
+               'ratings': old_ws.ratings,
+               'auto_publish': old_ws.auto_publish, 'tags': tags,
                'last_change': last_change,
                'published_id_number': published_id_number,
                'worksheet_that_was_published': ws_pub

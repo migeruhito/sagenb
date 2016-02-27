@@ -517,7 +517,7 @@ def sort_worksheet_list(v, sort, reverse):
     - the sorted list
     """
     def key_last_edited(a):
-        return -a.last_edited()
+        return -a.last_edited
     if sort == 'last_edited':
         v.sort(key=key_last_edited, reverse=reverse)
     elif sort in ['name', 'owner']:

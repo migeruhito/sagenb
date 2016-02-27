@@ -2,7 +2,7 @@
 
 {% block page_id %}after-publish-page{% endblock %}
 
-{% set checked = 'checked="true"' if worksheet.is_auto_publish() else '' %}
+{% set checked = 'checked="true"' if worksheet.auto_publish else '' %}
 
 {% block sharebar_title %}
 <p>{{ gettext('Worksheet is publicly viewable at <a href="%(u)s" style="color:#FFF" target="_blank">%(u)s', u=url) | safe }}</a></p>
