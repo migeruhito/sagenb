@@ -175,7 +175,6 @@ class Worksheet(object):
         self.__ratings = []  # property readonly
 
         # State variables
-        self.__last_autosave = time.time()
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
         # Initialize the cell id counter.
@@ -1830,14 +1829,6 @@ class Worksheet(object):
     def user_autosave_interval(self, username):
         return self.notebook()[username]['autosave_interval']
 
-    def autosave(self, username):
-        return
-        last = self.__last_autosave
-        t = time.time()
-        if t - last >= self.user_autosave_interval(username):
-            self.__last_autosave = t
-            self.save_snapshot(username)
-
     def revert_to_snapshot(self, name):
         path = self.snapshot_directory()
         filename = os.path.join(path, '%s.txt' % name)
@@ -2172,7 +2163,6 @@ class Worksheet(object):
 
     def record_edit(self, user):
         self.last_change = (user, time.time())
-        self.autosave(user)
 
     def warn_about_other_person_editing(self, username,
                                         threshold=WARN_THRESHOLD):
