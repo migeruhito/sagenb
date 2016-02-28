@@ -510,12 +510,12 @@ def html_plain_text_window(worksheet, username):
 
 def pub_worksheet(source):
     # TODO: Independent pub pool and server settings.
+    nb = g.notebook
     proxy = doc_worksheet()
     proxy.set_name(source.name())
     proxy.last_change = source.last_change
-    proxy.set_worksheet_that_was_published(
-        source.worksheet_that_was_published())
-    g.notebook.initialize_wst(source, proxy)
+    proxy.worksheet_that_was_published = nb.came_from_wst(source)
+    nb.initialize_wst(source, proxy)
     proxy.set_tags({'_pub_': [True]})
     proxy.save()
     return proxy
@@ -1136,7 +1136,7 @@ def worksheet_edit_published_page(worksheet):
     # return message_template('You must <a href="/">login first</a> in order
     # to edit this worksheet.')
 
-    ws = worksheet.worksheet_that_was_published()
+    ws = g.notebook.came_from_wst(worksheet)
     if ws.owner == g.username:
         W = ws
     else:

@@ -15,7 +15,7 @@ INPUT:
 {% block page_id %}guest-worksheet-page{% endblock %}
 {% block body_classes %}{% if conf['pub_interact'] %}active-worksheet{% endif %}{% endblock %}
 
-{% set original_worksheet = worksheet.worksheet_that_was_published() %}
+{% set original_worksheet = notebook.came_from_wst(worksheet) %}
 {% if original_worksheet.is_collaborator(username) or original_worksheet.is_owner(username) %}
     {% set edit_text = "Edit this." %}
     {% set edit_text = gettext('Edit this.') %}

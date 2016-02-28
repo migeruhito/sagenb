@@ -173,7 +173,7 @@ INPUT:
                 {% if not pub %}
                 {{ worksheet.owner }}
                 {% else %}
-                {{worksheet.worksheet_that_was_published().owner}}
+                {{worksheet.worksheet_that_was_published[0]}}
                 {% endif %}
                 
                 {% if not pub and typ != 'trash' %}

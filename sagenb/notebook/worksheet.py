@@ -114,7 +114,7 @@ class Worksheet(object):
     _last_identifier = re.compile(r'[a-zA-Z0-9._]*$')
 
     def __init__(self,
-                 name=None, id_number=None,
+                 name=None, id_number=-1,
                  notebook_worksheet_directory=None, system='sage',
                  owner=None, pretty_print=False,
                  auto_publish=False, create_directories=True, live_3D=False):
@@ -163,6 +163,7 @@ class Worksheet(object):
             admin/0: [Cell 1: in=, out=]
         """
         # Record the basic properties of the worksheet
+        self.__id_number = int(id_number)  # property readonly
         self.owner = owner
         self.system = system
         self.__pretty_print = pretty_print  # property
@@ -172,6 +173,8 @@ class Worksheet(object):
         self.__saved_by_info = {}  # property readonly
         self.__collaborators = []  # property
         self.__viewers = []  # property readonly
+        self.__worksheet_that_was_published = (self.owner,
+                                               self.id_number)  # property
         self.__ratings = []  # property readonly
 
         # State variables
@@ -190,7 +193,6 @@ class Worksheet(object):
         # set the directory in which the worksheet files will be stored.  We
         # also add the hash of the name, since the cleaned name loses info,
         # e.g., it could be all _'s if all characters are funny.
-        self.__id_number = int(id_number)  # property readonly
         filename = os.path.join(owner, str(id_number))
         self.__filename = filename
         self.__dir = os.path.join(notebook_worksheet_directory, str(id_number))
@@ -328,9 +330,8 @@ class Worksheet(object):
             'tags': self.tags(),
             'last_change': self.last_change,
             'saved_by_info': self.saved_by_info,
-            'worksheet_that_was_published': getattr(
-                self, '__worksheet_came_from', (self.owner,
-                                                self.id_number)),
+            'worksheet_that_was_published':
+            self.worksheet_that_was_published,
             # New UI
             'last_change_pretty': prettify_time_ago(
                 time.time() - self.last_change[1]),
@@ -411,7 +412,7 @@ class Worksheet(object):
             elif key == 'published_id_number' and value is not None:
                 self.set_published_version('pub/%s' % value)
             elif key == 'worksheet_that_was_published':
-                self.set_worksheet_that_was_published(value)
+                self.worksheet_that_was_published = value
         self.create_directories()
 
     def __cmp__(self, other):
@@ -889,6 +890,39 @@ class Worksheet(object):
 
     # Publication
 
+    @property
+    def worksheet_that_was_published(self):
+        return self.__worksheet_that_was_published
+
+    @worksheet_that_was_published.setter
+    def worksheet_that_was_published(self, W):
+        """
+        Set the owner and id_number of the worksheet that was
+        published to get self.
+
+        INPUT:
+
+            - ``W`` -- worksheet or 2-tuple ('owner', id_number)
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('Publish Test', 'admin')
+            sage: P = nb.publish_wst(W, 'admin')
+            sage: nb.came_from_wst(P) is W
+            True
+
+        We fake things and make it look like P published itself::
+
+            sage: P.worksheet_that_was_published = P
+            sage: nb.came_from_wst(P) is P
+            True
+        """
+        self.__worksheet_that_was_published = (W if isinstance(W, tuple)
+                                               else (W.owner, W.id_number))
+
     def is_published(self):
         """
         Return True if this worksheet is a published worksheet.
@@ -911,36 +945,6 @@ class Worksheet(object):
         """
         return self.owner == UN_PUB
 
-    def worksheet_that_was_published(self):
-        """
-        Return a fresh copy of the worksheet that was published
-        to get this worksheet, if this worksheet was
-        published. Otherwise just return this worksheet.
-
-        OUTPUT: Worksheet
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: W.worksheet_that_was_published() is W
-            True
-            sage: S = nb.publish_wst(W, 'admin')
-            sage: S.worksheet_that_was_published() is S
-            False
-            sage: S.worksheet_that_was_published() is W
-            True
-        """
-        try:
-            return self.notebook().filename_wst(
-                '%s/%s' % self.__worksheet_came_from)
-        except Exception:   # things can go wrong (especially with old migrated
-                            # Sage notebook servers!), but we don't want such
-                            # problems to crash the notebook server.
-            return self
-
     def publisher(self):
         """
         Return username of user that published this worksheet.
@@ -957,7 +961,7 @@ class Worksheet(object):
             sage: S.publisher()
             'admin'
         """
-        return self.worksheet_that_was_published().owner
+        return self.worksheet_that_was_published[0]
 
     def is_publisher(self, username):
         """
@@ -1057,36 +1061,6 @@ class Worksheet(object):
                 raise ValueError
         except AttributeError:
             raise ValueError("no published version")
-
-    def set_worksheet_that_was_published(self, W):
-        """
-        Set the owner and id_number of the worksheet that was
-        published to get self.
-
-        INPUT:
-
-            - ``W`` -- worksheet or 2-tuple ('owner', id_number)
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: P = nb.publish_wst(W, 'admin')
-            sage: P.worksheet_that_was_published() is W
-            True
-
-        We fake things and make it look like P published itself::
-
-            sage: P.set_worksheet_that_was_published(P)
-            sage: P.worksheet_that_was_published() is P
-            True
-        """
-        if isinstance(W, tuple):
-            self.__worksheet_came_from = W
-        else:
-            self.__worksheet_came_from = (W.owner, W.id_number)
 
     def rate(self, x, comment, username):
         """

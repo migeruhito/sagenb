@@ -456,6 +456,38 @@ class Notebook(object):
         except KeyError:
             raise KeyError("No worksheet with filename '%s'" % filename)
 
+    def id_wst(self, own_id):
+        return self.filename_wst('{}/{}'.format(*own_id))
+
+    def came_from_wst(self, wst):
+        """
+        Return a fresh copy of the worksheet that was published
+        to get wst, if wst was
+        published. Otherwise just return wst.
+
+        OUTPUT: Worksheet
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('Publish Test', 'admin')
+            sage: nb.came_from_wst(P) is W
+            True
+            sage: S = nb.publish_wst(W, 'admin')
+            sage: nb.came_from_wst(P) is S
+            False
+            sage: nb.came_from_wst(P) is W
+            True
+        """
+        try:
+            return self.id_wst(wst.worksheet_that_was_published)
+        except Exception:   # things can go wrong (especially with old migrated
+                            # Sage notebook servers!), but we don't want such
+                            # problems to crash the notebook server.
+            return wst
+
     @property
     def all_wsts(self):
         """
@@ -1078,7 +1110,7 @@ class Notebook(object):
 
         # Reuse an existing published version
         for X in self.user_wsts(UN_PUB):
-            if (X.worksheet_that_was_published() == worksheet):
+            if self.came_from_wst(X) == worksheet:
                 W = X
 
         # Or create a new one.
@@ -1089,7 +1121,7 @@ class Notebook(object):
         self.initialize_wst(worksheet, W)
 
         # Update metadata.
-        W.set_worksheet_that_was_published(worksheet)
+        W.worksheet_that_was_published = worksheet
         W.move_to_archive(username)
         worksheet.set_published_version(W.filename())
         W.record_edit(username)
@@ -1255,6 +1287,7 @@ def load_notebook(dir, interface=None, port=None, secure=None,
 
 
 # TODO: This must be rewritten
+
 def migrate_old_notebook_v1(dir):
     """
     Back up and migrates an old saved version of notebook to the new one
@@ -1344,8 +1377,7 @@ def migrate_old_notebook_v1(dir):
         except AttributeError:
             published_id_number = None
 
-        ws_pub = old_ws.worksheet_that_was_published().filename().split('/')
-        ws_pub = (ws_pub[0], int(ws_pub[1]))
+        ws_pub = old_ws.worksheet_that_was_published
 
         obj = {'name': old_ws.name(), 'system': old_ws.system(),
                'viewers': old_ws.viewers,
