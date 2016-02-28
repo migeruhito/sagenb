@@ -165,6 +165,7 @@ class Worksheet(object):
         # Record the basic properties of the worksheet
         self.__id_number = int(id_number)  # property readonly
         self.owner = owner
+        self.name = name  # property
         self.system = system
         self.__pretty_print = pretty_print  # property
         self.live_3D = live_3D
@@ -173,6 +174,7 @@ class Worksheet(object):
         self.__saved_by_info = {}  # property readonly
         self.__collaborators = []  # property
         self.__viewers = []  # property readonly
+        self.published_id_number = None
         self.__worksheet_that_was_published = (self.owner,
                                                self.id_number)  # property
         self.__ratings = []  # property readonly
@@ -182,20 +184,16 @@ class Worksheet(object):
         self.__state_number = 0  # property readonly + increase()
         # Initialize the cell id counter.
         self.__next_id = 0
-
         if name is None:
             # A fresh worksheet
             self.clear()
             return
-
-        self.set_name(name)
-
         # set the directory in which the worksheet files will be stored.  We
         # also add the hash of the name, since the cleaned name loses info,
         # e.g., it could be all _'s if all characters are funny.
-        filename = os.path.join(owner, str(id_number))
-        self.__filename = filename
+        self.__filename = os.path.join(owner, str(id_number))
         self.__dir = os.path.join(notebook_worksheet_directory, str(id_number))
+
         if create_directories:
             self.create_directories()
         self.clear()
@@ -317,21 +315,22 @@ class Worksheet(object):
              ('worksheet_that_was_published', ('sage', 0))]
         """
         d = {
-            'name': unicode(self.name()),
-            'id_number': int(self.id_number),
-            'system': self.system,
+            'id_number': self.id_number,
             'owner': self.owner,
-            'viewers': self.viewers,
-            'collaborators': self.collaborators,
-            'auto_publish': self.auto_publish,
+            'name': self.name,
+            'system': self.system,
             'pretty_print': self.pretty_print,
             'live_3D': self.live_3D,
-            'ratings': self.ratings,
-            'tags': self.tags(),
+            'auto_publish': self.auto_publish,
             'last_change': self.last_change,
             'saved_by_info': self.saved_by_info,
+            'tags': self.tags(),
+            'collaborators': self.collaborators,
+            'viewers': self.viewers,
+            'published_id_number': self.published_id_number,
             'worksheet_that_was_published':
             self.worksheet_that_was_published,
+            'ratings': self.ratings,
             # New UI
             'last_change_pretty': prettify_time_ago(
                 time.time() - self.last_change[1]),
@@ -339,14 +338,7 @@ class Worksheet(object):
             'running': self.compute_process_has_been_started(),
             'attached_data_files': self.attached_data_files(),
             'published': self.has_published_version(),
-            # New UI end
-        }
-        try:
-            d['published_id_number'] = int(os.path.split(
-                self.__published_version)[1])
-        except AttributeError:
-            d['published_id_number'] = None
-        # New UI
+            }
         if d['published']:
             d['published_time'] = strftime(
                 "%B %d, %Y %I:%M %p", self.published_version().date_edited)
@@ -389,7 +381,7 @@ class Worksheet(object):
             if key == 'name':
                 if repr(value) == '<_LazyString broken>':
                     value = ''
-                self.set_name(value)
+                self.name = value
             elif key == 'id_number':
                 self.__id_number = value
                 if 'owner' in obj:
@@ -410,7 +402,7 @@ class Worksheet(object):
             elif key == 'last_change':
                 self.last_change = value
             elif key == 'published_id_number' and value is not None:
-                self.set_published_version('pub/%s' % value)
+                self.published_id_number = value
             elif key == 'worksheet_that_was_published':
                 self.worksheet_that_was_published = value
         self.create_directories()
@@ -501,7 +493,7 @@ class Worksheet(object):
         """
         Return the download name of this worksheet.
         """
-        return os.path.split(self.name())[-1]
+        return os.path.split(self.name)[-1]
 
     @property
     def docbrowser(self):
@@ -611,6 +603,7 @@ class Worksheet(object):
         """
         return self.__viewers
 
+    @property
     def name(self, username=None):
         ur"""
         Return the name of this worksheet.
@@ -623,19 +616,16 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.name()
+            sage: W.name
             u'A Test Worksheet'
             sage: W = nb.create_wst('ěščřžýáíéďĎ', 'admin')
-            sage: W.name()
+            sage: W.name
             u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
-        try:
-            return self.__name
-        except AttributeError:
-            self.__name = gettext("Untitled")
-            return self.__name
+        return self.__name
 
-    def set_name(self, name):
+    @name.setter
+    def name(self, name):
         """
         Set the name of this worksheet.
 
@@ -649,14 +639,13 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.set_name('A renamed worksheet')
-            sage: W.name()
+            sage: W.name = 'A renamed worksheet'
+            sage: W.name
             u'A renamed worksheet'
         """
-        if len(name.strip()) == 0:
+        if not name:
             name = gettext('Untitled')
-        name = unicode_str(name)
-        self.__name = name
+        self.__name = unicode_str(name)
 
     def filename(self):
         """
@@ -1004,35 +993,13 @@ class Worksheet(object):
             sage: W.has_published_version()
             True
         """
-        try:
-            self.published_version()
-            return True
-        except ValueError:
-            return False
+        return self.published_id_number is not None
 
-    def set_published_version(self, filename):
-        """
-        Set the published version of this worksheet to be the worksheet
-        with given filename.
-
-        INPUT:
-
-        -  ``filename`` - string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: P = nb.publish_wst(W, 'admin')  # indirect test
-            sage: W._Worksheet__published_version
-            'pub/0'
-            sage: W.set_published_version('pub/1')
-            sage: W._Worksheet__published_version
-            'pub/1'
-        """
-        self.__published_version = filename
+    @property
+    def published_filename(self):
+        if self.published_id_number is None:
+            return
+        return os.path.join(UN_PUB, str(self.published_id_number))
 
     def published_version(self):
         """
@@ -1051,16 +1018,17 @@ class Worksheet(object):
             sage: W.published_version() is P
             True
         """
-        try:
-            filename = self.__published_version
-            try:
-                W = self.notebook().filename_wst(filename)
-                return W
-            except KeyError:
-                del self.__published_version
-                raise ValueError
-        except AttributeError:
+        if self.published_id_number is None:
             raise ValueError("no published version")
+
+        filename = self.published_filename
+        try:
+            W = self.notebook().filename_wst(filename)
+        except KeyError:
+            self.__published_id_number = None
+            raise ValueError
+
+        return W
 
     def rate(self, x, comment, username):
         """
@@ -1762,7 +1730,7 @@ class Worksheet(object):
         try:
             r = [unicode(x.lower()) for x in [self.owner,
                                               self.publisher(),
-                                              self.name(), contents]]
+                                              self.name, contents]]
             r = u" ".join(r)
         except UnicodeDecodeError:
             return False
@@ -1895,7 +1863,7 @@ class Worksheet(object):
         s = ''
         if banner:
             s += "#" * 80 + '\n'
-            s += "# Worksheet: %s" % self.name() + '\n'
+            s += "# Worksheet: %s" % self.name + '\n'
             s += "#" * 80 + '\n\n'
 
         for C in self.cell_list():
@@ -1965,7 +1933,7 @@ class Worksheet(object):
         text.replace('\r\n', '\n')
 
         name, text = extract_text(text)
-        self.set_name(name)
+        self.name = name
 
         self.system, text = extract_text(text, start='system:', default='sage')
 
@@ -2006,7 +1974,7 @@ class Worksheet(object):
             sage/0: [Cell 0: in=2+3, out=
             5, Cell 1: in=2+8, out=
             10]
-            sage: W.name()
+            sage: W.name
             u'Test Edit Save'
 
         We check that loading a worksheet whose last cell is a
@@ -2109,7 +2077,7 @@ class Worksheet(object):
                     c.delete_output()
 
     def truncated_name(self, max=30):
-        name = self.name()
+        name = self.name
         if len(name) > max:
             name = name[:max] + ' ...'
         return name
@@ -2922,7 +2890,7 @@ class Worksheet(object):
         if timeout > 0 and self.time_idle() > timeout:
             # worksheet name may contain unicode, so we use %r, which prints
             # the \xXX form for unicode characters
-            print "Quitting ignored worksheet process for %r." % self.name()
+            print "Quitting ignored worksheet process for %r." % self.name
             self.quit()
 
     def time_idle(self):

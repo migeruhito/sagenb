@@ -202,6 +202,19 @@ class Notebook(object):
         # Old stuff
         self.updater = NotebookUpdater(self)
 
+    # Repair broken notebooks. This is for migrations from official notebooks
+
+    def repair(self):
+        # repair notebooks with old unpublish method with missing published
+        # worksheets
+        for wst in self.all_wsts:
+            if wst.published_id_number is not None:
+                try:
+                    self.filename_wst(wst.published_filename)
+                except KeyError:
+                    wst.published_id_number = None
+                    wst.save()
+
     # App query
 
     @cached_property
@@ -585,7 +598,7 @@ class Notebook(object):
         W = self.worksheet(username)
 
         W.system = self.user_manager[username]['default_system']
-        W.set_name(worksheet_name)
+        W.name = worksheet_name
         self.save_worksheet(W)
         self.__worksheets[W.filename()] = W
 
@@ -594,8 +607,8 @@ class Notebook(object):
     def copy_wst(self, ws, owner):
         W = self.create_wst('default', owner)
         self.initialize_wst(ws, W)
-        name = "Copy of %s" % ws.name()
-        W.set_name(name)
+        name = "Copy of %s" % ws.name
+        W.name = name
         return W
 
     def delete_wst(self, filename):
@@ -696,7 +709,7 @@ class Notebook(object):
 
         W is our newly-created worksheet, with the 2+3 cell in it::
 
-            sage: W.name()
+            sage: W.name
             u'foo'
             sage: W.cell_list()
             [TextCell 0: foo, Cell 1: in=2+3, out=]
@@ -882,7 +895,7 @@ class Notebook(object):
             ... '</body></html>']))
             sage: fd.close()
             sage: W = nb._import_wst_html(name, 'admin')
-            sage: W.name()
+            sage: W.name
             u'Test notebook -- test'
             sage: W.owner
             'admin'
@@ -959,7 +972,7 @@ class Notebook(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_wst_rst(name, 'admin')
-            sage: W.name()
+            sage: W.name
             u'Test Notebook'
             sage: W.owner
             'admin'
@@ -1044,7 +1057,7 @@ class Notebook(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_wst_docutils_html(name, 'admin')
-            sage: W.name()
+            sage: W.name
             u'Test Notebook'
             sage: W.owner
             'admin'
@@ -1115,7 +1128,7 @@ class Notebook(object):
 
         # Or create a new one.
         if W is None:
-            W = self.create_wst(worksheet.name(), UN_PUB)
+            W = self.create_wst(worksheet.name, UN_PUB)
 
         # Copy cells, output, data, etc.
         self.initialize_wst(worksheet, W)
@@ -1123,19 +1136,23 @@ class Notebook(object):
         # Update metadata.
         W.worksheet_that_was_published = worksheet
         W.move_to_archive(username)
-        worksheet.set_published_version(W.filename())
+        worksheet.published_id_number = W.id_number
         W.record_edit(username)
-        W.set_name(worksheet.name())
+        W.name = worksheet.name
         self.__worksheets[W.filename()] = W
         W.save()
         return W
+
+    def unpublish_wst(self, worksheet):
+        self.delete_wst(worksheet.published_filename)
+        worksheet.published_id_number = None
 
     def save_worksheet(self, W, conf_only=False):
         self._storage.save_worksheet(W, conf_only=conf_only)
 
     def delete_doc_browser_worksheets(self):
         for w in self.user_wsts('_sage_'):
-            if w.name().startswith('doc_browser'):
+            if w.name.startswith('doc_browser'):
                 self.delete_wst(w.filename())
 
     # Information about the pool of worksheet compute servers
@@ -1379,7 +1396,7 @@ def migrate_old_notebook_v1(dir):
 
         ws_pub = old_ws.worksheet_that_was_published
 
-        obj = {'name': old_ws.name(), 'system': old_ws.system(),
+        obj = {'name': old_ws.name, 'system': old_ws.system(),
                'viewers': old_ws.viewers,
                'collaborators': old_ws.collaborators,
                'pretty_print': old_ws.pretty_print,

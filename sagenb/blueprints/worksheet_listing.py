@@ -122,14 +122,12 @@ def worksheet_list():
 
     try:
         if not pub:
-            r['worksheets'] = [
-                x.basic() for x in g.notebook.user_selected_wsts(
-                    g.username, typ=typ, sort=sort, search=search,
-                    reverse=reverse)]
+            worksheets = g.notebook.user_selected_wsts(
+                g.username, typ=typ, sort=sort, search=search, reverse=reverse)
         else:
-            r['worksheets'] = [
-                x.basic() for x in g.notebook.user_selected_wsts(
-                    UN_PUB, sort=sort, search=search, reverse=reverse)]
+            worksheets = g.notebook.user_selected_wsts(
+                UN_PUB, sort=sort, search=search, reverse=reverse)
+        r['worksheets'] = [x.basic() for x in worksheets]
 
     except ValueError as E:
         # for example, the sort key was not valid
@@ -275,7 +273,7 @@ def download_worksheets():
     for worksheet in worksheets:
         sws_filename = tmp_filename() + '.sws'
         g.notebook.export_wst(worksheet.filename(), sws_filename)
-        entry_name = worksheet.name()
+        entry_name = worksheet.name
         if entry_name in worksheet_names:
             i = 2
             while ("%s_%s" % (entry_name, i)) in worksheet_names:
@@ -496,7 +494,7 @@ def upload_worksheet():
                         W = g.notebook.import_wst(
                             tmpfilename, g.username)
                         if new_name:
-                            W.set_name("%s - %s" % (new_name, W.name()))
+                            W.name = "%s - %s" % (new_name, W.name)
                     else:
                         print("Unknown extension, file %s is "
                               "ignored" % subfilename)
@@ -545,6 +543,6 @@ def upload_worksheet():
             username=g.username)
 
     if new_name:
-        W.set_name(new_name)
+        W.name = new_name
 
     return redirect(url_for_worksheet(W))

@@ -226,7 +226,7 @@ def html_specific_revision(username, ws, rev):
     filename = ws.get_snapshot_text_filename(rev)
     txt = bz2.decompress(open(filename).read())
     W = nb.scratch_wst
-    W.set_name('Revision of ' + ws.name())
+    W.name = 'Revision of ' + ws.name
     W.delete_cells_directory()
     W.edit_save(txt)
 
@@ -512,7 +512,7 @@ def pub_worksheet(source):
     # TODO: Independent pub pool and server settings.
     nb = g.notebook
     proxy = doc_worksheet()
-    proxy.set_name(source.name())
+    proxy.name = source.name
     proxy.last_change = source.last_change
     proxy.worksheet_that_was_published = nb.came_from_wst(source)
     nb.initialize_wst(source, proxy)
@@ -660,7 +660,7 @@ def worksheet_command(target, **route_kwds):
 
 @worksheet_command('rename')
 def worksheet_rename(worksheet):
-    worksheet.set_name(request.values['name'])
+    worksheet.name = request.values['name']
     return 'done'
 
 
@@ -769,7 +769,7 @@ def worksheet_properties(worksheet):
         r['published_url'] = 'http%s://%s/home/%s' % (
             '' if not g.notebook.secure else 's',
             hostname,
-            worksheet.published_version().filename())
+            worksheet.published_filename)
 
     return encode_response(r)
 
@@ -1034,7 +1034,7 @@ def worksheet_cell_update(worksheet):
         # Update the log.
         t = time.strftime('%Y-%m-%d at %H:%M',
                           time.localtime(time.time()))
-        H = "Worksheet '%s' (%s)\n" % (worksheet.name(), t)
+        H = "Worksheet '%s' (%s)\n" % (worksheet.name, t)
         H += cell.edit_text(ncols=g.notebook.HISTORY_NCOLS, prompts=False,
                             max_out=g.notebook.HISTORY_MAX_OUTPUT)
         g.notebook.add_to_user_history(H, g.username)
@@ -1141,7 +1141,7 @@ def worksheet_edit_published_page(worksheet):
         W = ws
     else:
         W = g.notebook.copy_wst(worksheet, g.username)
-        W.set_name(worksheet.name())
+        W.name = worksheet.name
 
     return redirect(url_for_worksheet(W))
 
@@ -1409,7 +1409,7 @@ def worksheet_do_upload_data(worksheet):
         'worksheet"><strong>%(worksheet_name)s</strong></a>.',
         upload_url=upload_url,
         worksheet_url=worksheet_url,
-        worksheet_name=worksheet.name())
+        worksheet_name=worksheet.name)
 
     if 'file' not in request.files:
         return message_template(
@@ -1496,21 +1496,22 @@ def worksheet_publish(worksheet):
     """
     # Publishes worksheet and also sets worksheet to be published
     # automatically when saved
+    nb = g.notebook
     if 'yes' in request.values and 'auto' in request.values:
-        g.notebook.publish_wst(worksheet, g.username)
+        nb.publish_wst(worksheet, g.username)
         worksheet.auto_publish = True
         return redirect(worksheet_publish.url_for(worksheet))
     # Just publishes worksheet
     elif 'yes' in request.values:
-        g.notebook.publish_wst(worksheet, g.username)
+        nb.publish_wst(worksheet, g.username)
         return redirect(worksheet_publish.url_for(worksheet))
     # Stops publication of worksheet
     elif 'stop' in request.values:
-        g.notebook.delete_wst(worksheet.published_version().filename())
+        nb.unpublish_wst(worksheet)
         return redirect(worksheet_publish.url_for(worksheet))
     # Re-publishes worksheet
     elif 're' in request.values:
-        g.notebook.publish_wst(worksheet, g.username)
+        nb.publish_wst(worksheet, g.username)
         return redirect(worksheet_publish.url_for(worksheet))
     # Sets worksheet to be published automatically when saved
     elif 'auto' in request.values:
@@ -1525,14 +1526,14 @@ def worksheet_publish(worksheet):
         # Page for when worksheet already published
         if worksheet.has_published_version():
             hostname = request.headers.get(
-                'host', g.notebook.interface + ':' + str(g.notebook.port))
+                'host', nb.interface + ':' + str(nb.port))
 
             # XXX: We shouldn't hardcode this.
             addr = 'http%s://%s/home/%s' % (
-                '' if not g.notebook.secure else 's',
+                '' if not nb.secure else 's',
                 hostname,
-                worksheet.published_version().filename())
-            dtime = worksheet.published_version().date_edited
+                worksheet.published_filename)
+            dtime = nb.filename_wst(worksheet.published_filename).date_edited
             return html_afterpublish_window(
                 worksheet, g.username, addr, dtime)
         # Page for when worksheet is not already published
@@ -1567,7 +1568,7 @@ def worksheet_rate(worksheet):
     s = _("""
     Thank you for rating the worksheet <b><i>%(worksheet_name)s</i></b>!
     You can <a href="rating_info">see all ratings of this worksheet.</a>
-    """, worksheet_name=worksheet.name())
+    """, worksheet_name=worksheet.name)
     # XXX: Hardcoded url
     return message_template(s.strip(), '/pub/', title=_('Rating Accepted'),
                             username=g.username)
@@ -1698,7 +1699,7 @@ def worksheet_file(path):
     W = doc_worksheet()
     W.edit_save(doc_page)
     W.system = 'sage'
-    W.set_name(title)
+    W.name = title
     W.save()
     W.quit()
 

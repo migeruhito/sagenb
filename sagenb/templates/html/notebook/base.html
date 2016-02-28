@@ -9,7 +9,7 @@ INPUT:
 - select    - a string containing the control that is selected
 #}
 
-{% block title %}{{ worksheet.name() }}{% endblock %}
+{% block title %}{{ worksheet.name }}{% endblock %}
 
 
 {% block javascript %}
@@ -61,7 +61,7 @@ INPUT:
 {% if worksheet.filename() %}
 <script  type="text/javascript">
     worksheet_filename = "{{ worksheet.filename() }}";
-    worksheet_name = {{ worksheet.name() | repr_str | safe }};
+    worksheet_name = {{ worksheet.name | repr_str | safe }};
     {% if not worksheet.is_published() or notebook.conf['pub_interact'] %}
         server_ping_while_alive();
     {% endif %}
@@ -80,7 +80,7 @@ INPUT:
         <a id="worksheet_title" class="worksheet_title"
            onClick="rename_worksheet(); return false;"
            title="{{ gettext('Click to rename this worksheet') }}">
-            {{ worksheet.name() }}
+            {{ worksheet.name }}
         </a>
         <div><span class="lastedit">{{ gettext('last edited') }} {{ time.last_edited(worksheet.last_edited, worksheet.last_to_edit) }}</span></div>
         {% if worksheet.warn_about_other_person_editing(username) and username != 'guest' and not worksheet.docbrowser and not worksheet.is_published() %}

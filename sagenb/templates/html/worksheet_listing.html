@@ -161,7 +161,7 @@ INPUT:
             </td>
 
             <td class="worksheet_link">
-                <a title="{{ worksheet.name() }}" id="name-{{ name|css_escape }}" class="worksheetname" href="/home/{{ name }}/">
+                <a title="{{ worksheet.name }}" id="name-{{ name|css_escape }}" class="worksheetname" href="/home/{{ name }}/">
                     {% if worksheet.compute_process_has_been_started() %}({{ gettext('running') }}){% endif %}
                     {{ worksheet.truncated_name(50) }}
                 </a>
@@ -201,7 +201,7 @@ INPUT:
                 {% endif %}
 
                 {% if worksheet.has_published_version() %}
-                <a href="/home/{{ worksheet.published_version().filename() }}">
+                <a href="/home/{{ worksheet.published_filename }}">
                     ({{ gettext('published') }})
                 </a>
                 {% endif %}
