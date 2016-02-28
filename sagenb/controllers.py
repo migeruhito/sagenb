@@ -411,8 +411,8 @@ class Worksheet(object):
     @property
     def basic(self):
         return {
-            'id_number': self.__data_model.id_number,
             'owner': self.__data_model.owner,
+            'id_number': self.__data_model.id_number,
             'name': self.__data_model.name,
             'system': self.__data_model.system,
             'pretty_print': self.__data_model.pretty_print,

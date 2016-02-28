@@ -571,7 +571,7 @@ class User(object):
 
 class Worksheet(object):
     def __init__(self,
-                 id_number, owner, name=u'', system='sage',
+                 owner, id_number, name=u'', system='sage',
 
                  pretty_print=False, live_3D=False, auto_publish=False,
                  last_change=None, saved_by_info=None, tags=None,
@@ -584,8 +584,8 @@ class Worksheet(object):
                  # users integrity is checked in a more apropriate way.
                  **kwargs
                  ):
-        self.id_number = id_number
         self.owner = owner
+        self.id_number = id_number
         self.name = name
         self.system = system
         self.pretty_print = pretty_print

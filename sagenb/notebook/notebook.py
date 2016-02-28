@@ -564,7 +564,7 @@ class Notebook(object):
         W.edit_save(src.edit_text())
         W.save()
 
-    def worksheet(self, username, id_number=None):
+    def worksheet(self, username, id_number=None, **kwargs):
         """
         Create a new worksheet with given id_number belonging to the
         user with given username, or return an already existing
@@ -583,7 +583,7 @@ class Notebook(object):
         try:
             W = S.load_worksheet(username, id_number)
         except ValueError:
-            W = S.create_worksheet(username, id_number)
+            W = S.create_worksheet(username, id_number, **kwargs)
         self.__worksheets[W.filename()] = W
         return W
 
@@ -1374,7 +1374,6 @@ def migrate_old_notebook_v1(dir):
         Migrates an old worksheet to the new format.
         """
         old_ws_dirname = old_ws._Worksheet__filename.partition(os.path.sep)[-1]
-        new_ws = new_nb.worksheet(old_ws.owner, old_ws_dirname)
 
         # some ugly creation of new attributes from what used to be stored
         tags = {}
@@ -1406,8 +1405,7 @@ def migrate_old_notebook_v1(dir):
                'published_id_number': published_id_number,
                'worksheet_that_was_published': ws_pub
                }
-
-        new_ws.reconstruct_from_basic(obj)
+        new_ws = new_nb.worksheet(old_ws.owner, old_ws_dirname, **obj)
 
         base = os.path.join(dir, 'worksheets', old_ws.filename())
         worksheet_file = os.path.join(base, 'worksheet.txt')

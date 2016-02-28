@@ -379,7 +379,8 @@ class FilesystemDatastore(Datastore):
 
             sage: from sagenb.notebook.worksheet import Worksheet
             sage: tmp = tmp_dir()
-            sage: W = Worksheet('test', 2, tmp, system='gap', owner='sageuser')
+            sage: W = Worksheet('sageuser', 2, name='test', system='gap',
+                notebook_worksheet_directory=tmp)
             sage: from sagenb.storage import FilesystemDatastore
             sage: DS = FilesystemDatastore(tmp)
             sage: DS.save_worksheet(W)
@@ -400,7 +401,7 @@ class FilesystemDatastore(Datastore):
             with atomic_write(self._abspath(filename)) as f:
                 f.write(worksheet.body().encode('utf-8', 'ignore'))
 
-    def create_worksheet(self, username, id_number):
+    def create_worksheet(self, username, id_number, **kwargs):
         """
         Create worksheet with given id_number belonging to the given user.
 
@@ -423,9 +424,8 @@ class FilesystemDatastore(Datastore):
                              (username, id_number))
 
         # We create the worksheet
-        W = self._basic_to_worksheet(
-            {'owner': username, 'id_number': id_number})
-        W.clear()
+        kwargs.update({'owner': username, 'id_number': id_number})
+        W = self._basic_to_worksheet(kwargs)
         return W
 
     def load_worksheet(self, username, id_number):
@@ -658,7 +658,8 @@ class FilesystemDatastore(Datastore):
             sage: FilesystemDatastore(tmp).worksheets('foobar')
             []
             sage: from sagenb.notebook.worksheet import Worksheet
-            sage: W = Worksheet('test', 2, tmp, system='gap', owner='sageuser')
+            sage: W = Worksheet('sageuser', 2, name='test', system='gap',
+                notebook_worksheet_directory=tmp)
             sage: from sagenb.storage import FilesystemDatastore
             sage: DS = FilesystemDatastore(tmp)
             sage: DS.save_worksheet(W)

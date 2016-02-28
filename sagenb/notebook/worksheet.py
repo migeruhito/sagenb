@@ -29,7 +29,6 @@ from __future__ import absolute_import
 
 import bz2
 import calendar
-import copy
 import os
 import re
 import shutil
@@ -46,6 +45,7 @@ from ..config import UN_PUB
 from ..util import walltime
 from ..util import ignore_nonexistent_files
 from ..util import next_available_id
+from ..util import set_default
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
 from ..util.templates import format_completions_as_html
@@ -96,27 +96,34 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
 
             sage: import sagenb.notebook.worksheet
             sage: W = sagenb.notebook.worksheet.Worksheet(
-                'test', 0, tmp_dir(), system='gap', owner='sageuser',
-                pretty_print=True, auto_publish=True)
+                'sageuser', 0, 
+                name='test', notebook_worksheet_directory=tmp_dir(),
+                system='gap', pretty_print=True, auto_publish=True)
             sage: _=W.new_cell_after(0); B = W.basic()
             sage: W0 = sagenb.notebook.worksheet.Worksheet_from_basic(
                 B, tmp_dir())
             sage: W0.basic() == B
             True
     """
-    W = Worksheet()
-    W.reconstruct_from_basic(obj, notebook_worksheet_directory)
-    return W
+    obj['notebook_worksheet_directory'] = notebook_worksheet_directory
+    return Worksheet(**obj)
 
 
 class Worksheet(object):
     _last_identifier = re.compile(r'[a-zA-Z0-9._]*$')
 
     def __init__(self,
-                 name=None, id_number=-1,
-                 notebook_worksheet_directory=None, system='sage',
-                 owner=None, pretty_print=False,
-                 auto_publish=False, create_directories=True, live_3D=False):
+                 owner, id_number, name=None, system='sage',
+
+                 pretty_print=False, live_3D=False, auto_publish=False,
+                 last_change=None, saved_by_info=None, tags=None,
+                 collaborators=None, viewers=None,
+                 published_id_number=None, worksheet_that_was_published=None,
+                 ratings=None,
+
+                 notebook_worksheet_directory=None, create_directories=True,
+                 **kwargs
+                 ):
         ur"""
         Create and initialize a new worksheet.
 
@@ -162,36 +169,36 @@ class Worksheet(object):
             admin/0: [Cell 1: in=, out=]
         """
         # Record the basic properties of the worksheet
-        self.__id_number = int(id_number)  # property readonly
         self.owner = owner
+        self.__id_number = int(id_number)  # property ro
         self.name = name  # property
         self.system = system
         self.__pretty_print = pretty_print  # property
         self.live_3D = live_3D
         self.auto_publish = auto_publish
-        self.last_change = (self.owner, time.time())
-        self.__saved_by_info = {}  # property readonly
-        self.__collaborators = []  # property
-        self.__viewers = []  # property readonly
-        self.published_id_number = None
-        self.__worksheet_that_was_published = (self.owner,
-                                               self.id_number)  # property
-        self.__ratings = []  # property readonly
+        self.last_change = set_default(last_change, (self.owner, time.time()))
+        self.__saved_by_info = set_default(saved_by_info, {})  # property ro
+        self.tags = set_default(tags, {self.owner: [WS_ACTIVE]})
+        self.__collaborators = set_default(collaborators, [])  # property
+        self.__viewers = set_default(viewers, [])  # property ro
+        self.published_id_number = published_id_number
+        self.__worksheet_that_was_published = set_default(
+            worksheet_that_was_published, (owner, id_number))  # property
+        self.__ratings = set_default(ratings, [])  # property ro
 
         # State variables
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
         # Initialize the cell id counter.
         self.__next_id = 0
-        if name is None:
-            # A fresh worksheet
-            self.clear()
-            return
+        self.__filename = os.path.join(owner, str(id_number))
+
         # set the directory in which the worksheet files will be stored.  We
         # also add the hash of the name, since the cleaned name loses info,
         # e.g., it could be all _'s if all characters are funny.
-        self.__filename = os.path.join(owner, str(id_number))
-        self.__dir = os.path.join(notebook_worksheet_directory, str(id_number))
+        self.__dir = notebook_worksheet_directory
+        if self.__dir is not None:
+            self.__dir = os.path.join(self.__dir, str(id_number))
 
         if create_directories:
             self.create_directories()
@@ -225,6 +232,8 @@ class Worksheet(object):
 
             sage: from sagenb.notebook.worksheet import Worksheet
             sage: W = Worksheet('test', 2, tmp_dir(), owner='sageuser')
+            sage: W = Worksheet('sageuser', 2, name='test',
+                notebook_worksheet_directory=tmp_dir())
             sage: W.id_number
             2
             sage: type(W.id_number)
@@ -296,7 +305,7 @@ class Worksheet(object):
 
             sage: import sagenb.notebook.worksheet
             sage: W = sagenb.notebook.worksheet.Worksheet(
-                'test', 0, tmp_dir(), owner='sage')
+                'sage', 0, name='test', notebook_worksheet_directory=tmp_dir())
             sage: sorted((W.basic().items()))
             [('auto_publish', False), ('collaborators', []),
              ('id_number', 0), ('last_change', ('sage', ...)),
@@ -316,7 +325,7 @@ class Worksheet(object):
             'auto_publish': self.auto_publish,
             'last_change': self.last_change,
             'saved_by_info': self.saved_by_info,
-            'tags': self.tags(),
+            'tags': self.tags,
             'collaborators': self.collaborators,
             'viewers': self.viewers,
             'published_id_number': self.published_id_number,
@@ -325,67 +334,6 @@ class Worksheet(object):
             'ratings': self.ratings,
             }
         return d
-
-    def reconstruct_from_basic(self, obj, notebook_worksheet_directory=None):
-        """
-        Reconstruct as much of the worksheet's configuration as
-        possible from the properties that happen to be set in the
-        basic dictionary obj.
-
-        INPUT:
-
-            - ``obj`` -- a dictionary of basic Python objects
-
-            - ``notebook_worksheet_directory`` -- must be given if
-              ``id_number`` is a key of obj; otherwise not.
-
-        EXAMPLES::
-
-            sage: import sagenb.notebook.worksheet
-            sage: W = sagenb.notebook.worksheet.Worksheet(
-                'test', 0, tmp_dir(), system='gap', owner='sageuser',
-                pretty_print=True, auto_publish=True)
-            sage: W.new_cell_after(0)
-            Cell 1: in=, out=
-            sage: b = W.basic()
-            sage: W0 = sagenb.notebook.worksheet.Worksheet()
-            sage: W0.reconstruct_from_basic(b, tmp_dir())
-            sage: W0.basic() == W.basic()
-            True
-        """
-        try:
-            del self.__cells
-        except AttributeError:
-            pass
-        for key, value in obj.iteritems():
-            if key == 'name':
-                if repr(value) == '<_LazyString broken>':
-                    value = ''
-                self.name = value
-            elif key == 'id_number':
-                self.__id_number = value
-                if 'owner' in obj:
-                    owner = obj['owner']
-                    self.owner = owner
-                    filename = os.path.join(owner, str(value))
-                    self.__filename = filename
-                    self.__dir = os.path.join(
-                        notebook_worksheet_directory, str(value))
-            elif key in ['system', 'owner', 'viewers', 'collaborators',
-                         'pretty_print', 'ratings', 'live_3D']:
-                # ugly
-                setattr(self, '_Worksheet__' + key, value)
-            elif key == 'auto_publish':
-                self.auto_publish = value
-            elif key == 'tags':
-                self.set_tags(value)
-            elif key == 'last_change':
-                self.last_change = value
-            elif key == 'published_id_number' and value is not None:
-                self.published_id_number = value
-            elif key == 'worksheet_that_was_published':
-                self.worksheet_that_was_published = value
-        self.create_directories()
 
     def __cmp__(self, other):
         """
@@ -623,7 +571,7 @@ class Worksheet(object):
             sage: W.name
             u'A renamed worksheet'
         """
-        if not name:
+        if not name or repr(name) == '<_LazyString broken>':
             name = gettext('Untitled')
         self.__name = unicode_str(name)
 
@@ -1179,46 +1127,7 @@ class Worksheet(object):
             sage: W.user_view('foo')
             1
         """
-        try:
-            return self.__user_view[user]
-        except AttributeError:
-            self.__user_view = {}
-        except KeyError:
-            pass
-        self.__user_view[user] = WS_ACTIVE
-        return WS_ACTIVE
-
-    def tags(self):
-        """
-        A temporary trivial tags implementation.
-        """
-        try:
-            d = dict(self.__user_view)
-        except AttributeError:
-            self.user_view(self.owner)
-            d = copy.copy(self.__user_view)
-        for user, val in d.iteritems():
-            if not isinstance(val, list):
-                d[user] = [val]
-        return d
-
-    def set_tags(self, tags):
-        """
-        Set the tags -- for now we ignore everything except WS_ACTIVE,
-        WS_ARCHIVED, WS_TRASH.
-
-        INPUT:
-
-            - ``tags`` -- dictionary with keys usernames and values a
-              list of tags, where a tag is a string or WS_ARCHIVED,
-              WS_ACTIVE, WS_TRASH.
-        """
-        d = {}
-        for user, v in tags.iteritems():
-            if len(v) >= 1:
-                d[user] = v[0]  # must be a single int for now, until
-                # the tag system is implemented
-        self.__user_view = d
+        return self.tags.setdefault(user, [WS_ACTIVE])[0]
 
     def set_user_view(self, user, x):
         """
@@ -1241,14 +1150,7 @@ class Worksheet(object):
             sage: W.user_view('admin') == sagenb.notebook.worksheet.ARCHIVED
             True
         """
-        if not isinstance(user, (str, unicode)):
-            raise TypeError("user (=%s) must be a string" % user)
-        try:
-            self.__user_view[user] = x
-        except (KeyError, AttributeError):
-            self.user_view(user)
-            self.__user_view[user] = x
-
+        self.tags[user] = [x]
         # it is important to save the configuration and changing the
         # views, e.g., moving to trash, etc., since the user can't
         # easily click save without changing the view back.
