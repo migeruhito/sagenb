@@ -31,6 +31,9 @@ from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..util import tmp_filename
 from ..util import unicode_str
 from ..util.docHTMLProcessor import SphinxHTMLProcessor
+# New UI
+from ..util.newui import extended_wst_basic
+# New UI end
 from ..util.templates import encode_response
 from ..util.templates import message as message_template
 from ..util.templates import prettify_time_ago
@@ -759,15 +762,16 @@ def worksheet_properties(worksheet):
     """
     Send worksheet properties as a JSON object
     """
-    r = worksheet.basic()
+    nb = g.notebook
+    r = extended_wst_basic(worksheet, nb)
 
     if worksheet.has_published_version():
         hostname = request.headers.get(
             'host',
-            g.notebook.interface + ':' + str(g.notebook.port))
+            nb.interface + ':' + str(g.notebook.port))
 
         r['published_url'] = 'http%s://%s/home/%s' % (
-            '' if not g.notebook.secure else 's',
+            '' if not nb.secure else 's',
             hostname,
             worksheet.published_filename)
 
@@ -804,7 +808,7 @@ def worksheet_cell_list(worksheet):
     r['html_cell_list'] = ''
     # New UI
     r['cell_list'] = [c.basic() for c in worksheet.cell_list()]
-    # Newi UI end
+    # New UI end
 
     return encode_response(r)
 

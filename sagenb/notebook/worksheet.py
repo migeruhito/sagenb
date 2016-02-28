@@ -34,7 +34,6 @@ import os
 import re
 import shutil
 import time
-from time import strftime
 
 from flask.ext.babel import gettext
 
@@ -267,9 +266,6 @@ class Worksheet(object):
             'auto_publish'
                 Whether or not this worksheet should automatically be
                 republished when changed.
-            'published'
-            'published_time'
-
             'pretty_print'
                 Appearance
                 default
@@ -295,10 +291,6 @@ class Worksheet(object):
                 information about when this worksheet was last changed,
                 and by whom
                     last_change = ('username', time.time())
-            'last_change_pretty'
-            'filename'
-            'running'
-            'attached_data_files'
 
         EXAMPLES::
 
@@ -331,19 +323,7 @@ class Worksheet(object):
             'worksheet_that_was_published':
             self.worksheet_that_was_published,
             'ratings': self.ratings,
-            # New UI
-            'last_change_pretty': prettify_time_ago(
-                time.time() - self.last_change[1]),
-            'filename': self.filename(),
-            'running': self.compute_process_has_been_started(),
-            'attached_data_files': self.attached_data_files(),
-            'published': self.has_published_version(),
             }
-        if d['published']:
-            d['published_time'] = strftime(
-                "%B %d, %Y %I:%M %p", self.published_version().date_edited)
-        # New UI end
-
         return d
 
     def reconstruct_from_basic(self, obj, notebook_worksheet_directory=None):
@@ -1000,35 +980,6 @@ class Worksheet(object):
         if self.published_id_number is None:
             return
         return os.path.join(UN_PUB, str(self.published_id_number))
-
-    def published_version(self):
-        """
-        If this worksheet was published, return the published version of
-        this worksheet. Otherwise, raise a ValueError.
-
-        OUTPUT: a worksheet (or raise a ValueError)
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: P = nb.publish_wst(W, 'admin')
-            sage: W.published_version() is P
-            True
-        """
-        if self.published_id_number is None:
-            raise ValueError("no published version")
-
-        filename = self.published_filename
-        try:
-            W = self.notebook().filename_wst(filename)
-        except KeyError:
-            self.__published_id_number = None
-            raise ValueError
-
-        return W
 
     def rate(self, x, comment, username):
         """

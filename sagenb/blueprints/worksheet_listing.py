@@ -30,6 +30,9 @@ from ..util import tmp_filename
 from ..util import walltime
 from ..util.decorators import login_required
 from ..util.decorators import guest_or_login_required
+# New UI
+from ..util.newui import extended_wst_basic
+# New UI end
 from ..util.templates import encode_response
 from ..util.templates import message as message_template
 from ..util.templates import render_template
@@ -109,10 +112,11 @@ def worksheet_list():
 
     a string
     """
+    nb = g.notebook
     r = {}
 
     pub = UN_PUB in request.args
-    g.notebook.readonly_user(g.username)
+    nb.readonly_user(g.username)
     typ = request.args['type'] if 'type' in request.args else 'active'
     search = unicode_str(
         request.args['search']) if 'search' in request.args else None
@@ -122,12 +126,12 @@ def worksheet_list():
 
     try:
         if not pub:
-            worksheets = g.notebook.user_selected_wsts(
+            worksheets = nb.user_selected_wsts(
                 g.username, typ=typ, sort=sort, search=search, reverse=reverse)
         else:
-            worksheets = g.notebook.user_selected_wsts(
+            worksheets = nb.user_selected_wsts(
                 UN_PUB, sort=sort, search=search, reverse=reverse)
-        r['worksheets'] = [x.basic() for x in worksheets]
+        r['worksheets'] = [extended_wst_basic(x, nb) for x in worksheets]
 
     except ValueError as E:
         # for example, the sort key was not valid
@@ -137,7 +141,7 @@ def worksheet_list():
     # if pub and (not g.username or g.username == tuple([])):
     #    r['username'] = UN_PUB
 
-    r['accounts'] = g.notebook.conf['accounts']
+    r['accounts'] = nb.conf['accounts']
     r['sage_version'] = SAGE_VERSION
     # r['pub'] = pub
 
