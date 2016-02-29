@@ -957,7 +957,7 @@ def worksheet_eval(worksheet):
 
     r['id'] = id = get_cell_id()
     cell = worksheet.get_cell_with_id(id)
-    public = worksheet.tags().get('_pub_', [False])[
+    public = worksheet.tags.get('_pub_', [False])[
         0]  # this is set in pub_worksheet
 
     if public and not cell.is_interactive_cell():
@@ -1078,7 +1078,7 @@ def worksheet_introspect(worksheet):
     r = {}
     r['id'] = id = get_cell_id()
 
-    if worksheet.tags().get('_pub_', [False])[0]:  # tags set in pub_worksheet
+    if worksheet.tags.get('_pub_', [False])[0]:  # tags set in pub_worksheet
         r['command'] = 'error'
         r['message'] = 'Cannot evaluate public cell introspection.'
         return encode_response(r)
