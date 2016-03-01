@@ -202,7 +202,9 @@ class Worksheet(object):
 
         if create_directories:
             self.create_directories()
-        self.clear()
+        self.__comp_is_running = False
+        self.__queue = []
+        # self.__cells -> property (cached)
 
     def increase_state_number(self):
         if not self.is_published() and not self.docbrowser:
@@ -385,7 +387,7 @@ class Worksheet(object):
             sage: W.__repr__()
             'admin/0: [Cell 0: in=2+3, out=\n5, Cell 10: in=2+8, out=\n10]'
         """
-        return '%s/%s: %s' % (self.owner, self.id_number, self.cell_list())
+        return '%s/%s: %s' % (self.owner, self.id_number, self.cells)
 
     def __len__(self):
         r"""
@@ -406,7 +408,7 @@ class Worksheet(object):
             sage: len(W)
             2
         """
-        return len(self.cell_list())
+        return len(self.cells)
 
     @property
     def worksheet_html_filename(self):
@@ -1355,7 +1357,7 @@ class Worksheet(object):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\n3^20\n}}}')
-            sage: W.cell_list()[0].evaluate()
+            sage: W.cells[0].evaluate()
             sage: W.check_comp(
                 )    # random output -- depends on computer speed
             sage: sorted(os.listdir(W.directory()))
@@ -1719,7 +1721,7 @@ class Worksheet(object):
             s += "# Worksheet: %s" % self.name + '\n'
             s += "#" * 80 + '\n\n'
 
-        for C in self.cell_list():
+        for C in self.cells:
             t = C.plain_text(prompts=prompts).strip('\n')
             if t != '':
                 s += '\n' + t
@@ -1729,7 +1731,7 @@ class Worksheet(object):
         """
         Return text version of the input to the worksheet.
         """
-        return '\n\n---\n\n'.join([C.input_text() for C in self.cell_list()])
+        return '\n\n---\n\n'.join([C.input_text() for C in self.cells])
 
     # Editing the worksheet in plain text format (export and import)
 
@@ -1741,7 +1743,7 @@ class Worksheet(object):
                the worksheet.
         """
         s = ''
-        for C in self.cell_list():
+        for C in self.cells:
             t = C.edit_text().strip()
             if t:
                 s += '\n\n' + t
@@ -1916,7 +1918,7 @@ class Worksheet(object):
                 cells.append(C)
 
         self.__cells = cells
-        # Set the next id.  This *depends* on self.cell_list() being
+        # Set the next id.  This *depends* on self.cells being
         # set!!
         self.set_cell_counter()
 
@@ -1925,7 +1927,7 @@ class Worksheet(object):
             self.append_new_cell()
 
         if not self.is_published():
-            for c in self.cell_list():
+            for c in self.cells:
                 if c.is_interactive_cell():
                     c.delete_output()
 
@@ -2008,7 +2010,7 @@ class Worksheet(object):
             sage: W.cell_id_list()
             [0, 10]
         """
-        return [C.id() for C in self.cell_list()]
+        return [C.id() for C in self.cells]
 
     def compute_cell_id_list(self):
         """
@@ -2018,7 +2020,7 @@ class Worksheet(object):
 
         - a new list of integers and/or strings
         """
-        return [C.id() for C in self.cell_list() if C.is_compute_cell()]
+        return [C.id() for C in self.cells if C.is_compute_cell()]
 
     def onload_id_list(self):
         """
@@ -2032,7 +2034,29 @@ class Worksheet(object):
 
         - a new list of integer and/or string IDs
         """
-        return [C.id() for C in self.cell_list() if C.is_interactive_cell()]
+        return [C.id() for C in self.cells if C.is_interactive_cell()]
+
+    @property
+    def cells(self):
+        try:
+            return self.__cells
+        except AttributeError:
+            worksheet_html = self.worksheet_html_filename
+            if not os.path.exists(worksheet_html):
+                self.__cells = []
+                for i in range(INITIAL_NUM_CELLS):
+                    self.append_new_cell()
+            else:
+                self.edit_save(open(worksheet_html).read())
+        return self.__cells
+
+    @cells.setter
+    def cells(self, cls):
+        self.__cells = cls
+
+    @cells.deleter
+    def cells(self):
+        del self.__cells
 
     def cell_list(self):
         r"""
@@ -2055,7 +2079,7 @@ class Worksheet(object):
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('Test Edit Save', 'admin')
             sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
-            sage: v = W.cell_list(); v
+            sage: v = W.cells; v
             [Cell 0: in=2+3, out=
             5, Cell 1: in=2+8, out=
             10]
@@ -2098,7 +2122,7 @@ class Worksheet(object):
             Cell 1: in=2+3, out=
             5
         """
-        return [C for C in self.cell_list() if C.is_compute_cell()]
+        return [C for C in self.cells if C.is_compute_cell()]
 
     def append_new_cell(self):
         """
@@ -2123,7 +2147,7 @@ class Worksheet(object):
             admin/0: [Cell 1: in=, out=, Cell 2: in=, out=]
         """
         C = self._new_cell()
-        self.cell_list().append(C)
+        self.__cells.append(C)
         return C
 
     def new_cell_before(self, id, input=''):
@@ -2142,7 +2166,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.Cell` instance
         """
-        cells = self.cell_list()
+        cells = self.cells
         for i in range(len(cells)):
             if cells[i].id() == id:
                 C = self._new_cell(input=input)
@@ -2169,7 +2193,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.TextCell` instance
         """
-        cells = self.cell_list()
+        cells = self.cells
         for i in range(len(cells)):
             if cells[i].id() == id:
                 C = self._new_text_cell(plain_text=input)
@@ -2195,7 +2219,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.Cell` instance
         """
-        cells = self.cell_list()
+        cells = self.cells
         for i in range(len(cells)):
             if cells[i].id() == id:
                 C = self._new_cell(input=input)
@@ -2221,7 +2245,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.TextCell` instance
         """
-        cells = self.cell_list()
+        cells = self.cells
         for i in range(len(cells)):
             if cells[i].id() == id:
                 C = self._new_text_cell(plain_text=input)
@@ -2255,7 +2279,7 @@ class Worksheet(object):
                 '{{{id=dont_delete_me|\n2*3\n///\n6\n}}}\n')
             sage: W.cell_id_list()
             ['foo', 9, 'dont_delete_me']
-            sage: C = W.cell_list()[1]           # save a reference to the cell
+            sage: C = W.cells[1]           # save a reference to the cell
             sage: C.output_text(raw=True)
             u'\n10'
             sage: open(os.path.join(C.directory(), 'bar'), 'w').write('hello')
@@ -2273,7 +2297,7 @@ class Worksheet(object):
             sage: W.cell_id_list()
             ['foo', 'dont_delete_me']
         """
-        cells = self.cell_list()
+        cells = self.cells
         for i in range(len(cells)):
             if cells[i].id() == id:
 
@@ -2338,9 +2362,9 @@ class Worksheet(object):
         # We do this to avoid getting a stale Sage that uses old code.
         self.save()
         self.clear_queue()
-        del self.__cells
+        del self.cells
 
-        for cell in self.cell_list():
+        for cell in self.cells:
             try:
                 dir = cell._directory_name()
             except AttributeError:
@@ -2513,7 +2537,7 @@ class Worksheet(object):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\n3^20\n}}}')
-            sage: W.cell_list()[0].evaluate()
+            sage: W.cells[0].evaluate()
             sage: W.check_comp(
                 )     # random output -- depends on computer speed
             ('d', Cell 0: in=3^20, out=
@@ -2666,7 +2690,7 @@ class Worksheet(object):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\nfactor(2^997-1)\n}}}')
-            sage: W.cell_list()[0].evaluate()
+            sage: W.cells[0].evaluate()
 
         It's running still::
 
@@ -2818,7 +2842,7 @@ class Worksheet(object):
         self.start_next_comp()
 
     def _enqueue_auto_cells(self):
-        for c in self.cell_list():
+        for c in self.cells:
             if c.is_auto_cell():
                 self.enqueue(c)
 
@@ -2831,7 +2855,7 @@ class Worksheet(object):
 
     def set_cell_counter(self):
         self.__next_id = 1 + \
-            max([C.id() for C in self.cell_list()
+            max([C.id() for C in self.cells
                  if isinstance(C.id(), int)] + [-1])
 
     def _new_text_cell(self, plain_text, id=None):
@@ -2859,7 +2883,7 @@ class Worksheet(object):
         return Cell(id, input, '', self)
 
     def append(self, L):
-        self.cell_list().append(L)
+        self.cells.append(L)
 
     # Accessing existing cells
 
@@ -2867,7 +2891,7 @@ class Worksheet(object):
         """
         Gets a pre-existing cell with this id, or returns None.
         """
-        for c in self.cell_list():
+        for c in self.cells:
             if c.id() == id:
                 return c
         return None
@@ -2901,11 +2925,11 @@ class Worksheet(object):
         return status, cell
 
     def is_last_id_and_previous_is_nonempty(self, id):
-        if self.cell_list()[-1].id() != id:
+        if self.cells[-1].id() != id:
             return False
-        if len(self.cell_list()) == 1:
+        if len(self.cells) == 1:
             return False
-        if len(self.cell_list()[-2].output_text(ncols=0)) == 0:
+        if len(self.cells[-2].output_text(ncols=0)) == 0:
             return False
         return True
 
@@ -3049,7 +3073,7 @@ class Worksheet(object):
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save(
                 '{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
-            sage: c0, c1 = W.cell_list()
+            sage: c0, c1 = W.cells
             sage: W.get_cell_system(c0)
             'sage'
             sage: W.get_cell_system(c1)
@@ -3057,7 +3081,7 @@ class Worksheet(object):
             sage: W.edit_save(
                 '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: W.system = 'gap'
-            sage: c0, c1 = W.cell_list()
+            sage: c0, c1 = W.cells
             sage: W.get_cell_system(c0)
             u'sage'
             sage: W.get_cell_system(c1)
@@ -3118,7 +3142,7 @@ class Worksheet(object):
 
             sage: W.edit_save(
                 '{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
-            sage: c0, c1 = W.cell_list()
+            sage: c0, c1 = W.cells
             sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, u'2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
@@ -3148,7 +3172,7 @@ class Worksheet(object):
             sage: W.edit_save(
                 '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: W.system = 'gap'
-            sage: c0, c1 = W.cell_list()
+            sage: c0, c1 = W.cells
             sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
             (False, u'2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
@@ -3182,14 +3206,14 @@ class Worksheet(object):
     # Showing and hiding all cells
 
     def show_all(self):
-        for C in self.cell_list():
+        for C in self.cells:
             try:
                 C.set_cell_output_type('wrap')
             except AttributeError:   # for backwards compatibility
                 pass
 
     def hide_all(self):
-        for C in self.cell_list():
+        for C in self.cells:
             try:
                 C.set_cell_output_type('hidden')
             except AttributeError:
@@ -3217,16 +3241,16 @@ class Worksheet(object):
 
         We have two cells::
 
-            sage: W.cell_list()
+            sage: W.cells
             [Cell 0: in=2+3, out=
             5, Cell 1: in=open('afile', 'w').write('some text')
             print 'hello', out=
             ]
-            sage: C0 = W.cell_list()[1]
+            sage: C0 = W.cells[1]
             sage: open(os.path.join(C0.directory(), 'xyz'), 'w').write('bye')
             sage: C0.files()
             ['xyz']
-            sage: C1 = W.cell_list()[1]
+            sage: C1 = W.cells[1]
             sage: C1.evaluate()
             sage: W.check_comp(
                 )     # random output -- depends on computer speed
@@ -3248,7 +3272,7 @@ class Worksheet(object):
         We now delete the output, observe that it is gone::
 
             sage: W.delete_all_output('sage')
-            sage: W.cell_list()
+            sage: W.cells
             [Cell 0: in=2+3, out=,
              Cell 1: in=open('afile', 'w').write('some text')
             print 'hello', out=]
@@ -3271,5 +3295,5 @@ class Worksheet(object):
         if not self.user_can_edit(username):
             raise ValueError(
                 "user '%s' not allowed to edit this worksheet" % username)
-        for C in self.cell_list():
+        for C in self.cells:
             C.delete_output()

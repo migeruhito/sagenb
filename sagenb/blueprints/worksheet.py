@@ -807,7 +807,7 @@ def worksheet_cell_list(worksheet):
     # TODO: Send and actually use the body's HTML.
     r['html_cell_list'] = ''
     # New UI
-    r['cell_list'] = [c.basic() for c in worksheet.cell_list()]
+    r['cell_list'] = [c.basic() for c in worksheet.cells]
     # New UI end
 
     return encode_response(r)
@@ -1709,6 +1709,6 @@ def worksheet_file(path):
 
     # FIXME: For some reason, an extra cell gets added so we
     # remove it here.
-    W.cell_list().pop()
+    W.cells.pop()
 
     return render_ws_template(ws=W, username=g.username)

@@ -711,7 +711,7 @@ class Notebook(object):
 
             sage: W.name
             u'foo'
-            sage: W.cell_list()
+            sage: W.cells
             [TextCell 0: foo, Cell 1: in=2+3, out=]
         """
         if not os.path.exists(filename):
@@ -899,7 +899,7 @@ class Notebook(object):
             u'Test notebook -- test'
             sage: W.owner
             'admin'
-            sage: W.cell_list()
+            sage: W.cells
             [TextCell 1: <div class="document">
                   <div class="documentwrapper">
                     <div class="bodywrapper">
@@ -910,7 +910,7 @@ class Notebook(object):
             2, TextCell 2: </div>
             <BLANKLINE>
             </div></div></div></div>]
-            sage: cell = W.cell_list()[1]
+            sage: cell = W.cells[1]
             sage: cell.input_text()
             u'1+1'
             sage: cell.output_text()
@@ -929,7 +929,7 @@ class Notebook(object):
 
         # FIXME: An extra compute cell is always added to the end.
         # Pop it off.
-        cells = worksheet.cell_list()
+        cells = worksheet.cells
         cells.pop()
 
         return worksheet
@@ -976,13 +976,13 @@ class Notebook(object):
             u'Test Notebook'
             sage: W.owner
             'admin'
-            sage: W.cell_list()
+            sage: W.cells
             [TextCell 2: <h1 class="title">Test Notebook</h1>
             <BLANKLINE>
             <p>Let's do some computations:</p>, Cell 0: in=2+2, out=
             4, Cell 1: in=x^2, out=
             x^2]
-            sage: cell = W.cell_list()[1]
+            sage: cell = W.cells[1]
             sage: cell.input_text()
             u'2+2'
             sage: cell.output_text()
@@ -1061,13 +1061,13 @@ class Notebook(object):
             u'Test Notebook'
             sage: W.owner
             'admin'
-            sage: W.cell_list()
+            sage: W.cells
             [TextCell 2: <h1 class="title">Test Notebook</h1>
             <BLANKLINE>
             <p>Let's do some computations:</p>, Cell 0: in=2+2, out=
             4, Cell 1: in=x^2, out=
             x^2]
-            sage: cell = W.cell_list()[1]
+            sage: cell = W.cells[1]
             sage: cell.input_text()
             u'2+2'
             sage: cell.output_text()

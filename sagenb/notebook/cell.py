@@ -335,7 +335,7 @@ class Cell_generic(object):
             False
             sage: nb.delete()
         """
-        return self._worksheet.cell_list()[-1] == self
+        return self._worksheet.cells[-1] == self
 
     def next_id(self):
         """
@@ -364,7 +364,7 @@ class Cell_generic(object):
             2
             sage: nb.delete()
         """
-        L = self._worksheet.cell_list()
+        L = self._worksheet.cells
         try:
             k = L.index(self)
         except ValueError:
@@ -777,7 +777,7 @@ class Cell(Cell_generic):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\nplot(sin(x),(x,0,5))\n///\n20\n}}}')
-            sage: C = W.cell_list()[0]
+            sage: C = W.cells[0]
             sage: C.evaluate()
             sage: W.check_comp(
                 wait=9999)     # random output -- depends on computer speed
@@ -817,7 +817,7 @@ class Cell(Cell_generic):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\n2+3\n///\n20\n}}}')
-            sage: C = W.cell_list()[0]
+            sage: C = W.cells[0]
             sage: C
             Cell 0: in=2+3, out=
             20
@@ -2318,7 +2318,7 @@ class Cell(Cell_generic):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save('{{{\n3^5\n}}}')
-            sage: C = W.cell_list()[0]; C
+            sage: C = W.cells[0]; C
             Cell 0: in=3^5, out=
             sage: C.evaluate(username='sage')
             sage: W.check_comp(
