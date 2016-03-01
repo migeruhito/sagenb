@@ -2058,46 +2058,6 @@ class Worksheet(object):
     def cells(self):
         del self.__cells
 
-    def cell_list(self):
-        r"""
-        Returns a reference to the list of this worksheet's cells.
-
-        OUTPUT:
-
-        - a list of :class:`sagenb.notebook.cell.Cell_generic`
-          instances
-
-        .. note::
-
-           This function loads the cell list from disk (the file
-           worksheet.html) if it isn't available in memory.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Test Edit Save', 'admin')
-            sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
-            sage: v = W.cells; v
-            [Cell 0: in=2+3, out=
-            5, Cell 1: in=2+8, out=
-            10]
-            sage: v[0]
-            Cell 0: in=2+3, out=
-            5
-        """
-        try:
-            return self.__cells
-        except AttributeError:
-            # load from disk
-            worksheet_html = self.worksheet_html_filename
-            if not os.path.exists(worksheet_html):
-                self.__cells = []
-            else:
-                self.set_body(open(worksheet_html).read())
-            return self.__cells
-
     def compute_cell_list(self):
         r"""
         Returns a list of this worksheet's compute cells.
