@@ -156,7 +156,7 @@ UAT_GUEST = 'guest'
 UN_ADMIN = 'admin'
 UN_GUEST = 'guest'
 UN_PUB = 'pub'
-UN_SAGE = '_sage_'
+UN_SAGE = '_sage_'  # User name for doc browser worksheets
 UN_SYSTEM = (UN_GUEST, UN_SAGE, UN_PUB)
 
 # Notebook globals

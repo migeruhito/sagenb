@@ -27,7 +27,7 @@ class User(object):
         return new
 
     @classmethod
-    def new(cls, username, password='', email='', account_type='admin',
+    def new(cls, username, password='', email='', account_type=UAT_ADMIN,
             external_auth=None):
         """
         create a new user model with encrypted password and return the
@@ -155,9 +155,10 @@ class User(object):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: User('A', account_type='admin').is_admin
+            sage: from sagenb.config import UAT_ADMIN, UAT_USER
+            sage: User('A', account_type=UAT_ADMIN).is_admin
             True
-            sage: User('B', account_type='user').is_admin
+            sage: User('B', account_type=UAT_USER).is_admin
             False
         """
         return self.__data_model.account_type == UAT_ADMIN
@@ -168,9 +169,10 @@ class User(object):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: User('A', account_type='guest').is_guest
+            sage: from sagenb.config import UAT_GUEST, UAT_USER
+            sage: User('A', account_type=UAT_GUEST).is_guest
             True
-            sage: User('B', account_type='user').is_guest
+            sage: User('B', account_type=UAT_USER).is_guest
             False
         """
         return self.__data_model.account_type == UAT_GUEST
@@ -313,15 +315,16 @@ class UserManager(dict):
             username -- the username
             password -- the password
             email -- the email address
-            account_type -- one of 'user', 'admin', or 'guest'
+            account_type -- one of UAT_USER, UAT_ADMIN, or UAT_GUEST
 
         EXAMPLES:
             sage: from sagenb.notebook.user_manager import UserManager
+            sage: from sagenb.config import UAT_ADMIN, UAT_USER
             sage: U = UserManager()
             sage: U.add_user(
-            'william', 'password', 'email@address.com', account_type='admin')
+            'william', 'password', 'email@address.com', account_type=UAT_ADMIN)
             sage: U.add_user(
-            'william', 'password', 'email@address.com', account_type='admin')
+            'william', 'password', 'email@address.com', account_type=UAT_ADMIN)
            WARNING: User 'william' already exists -- and is now being replaced.
             sage: U['william']
             william

@@ -519,7 +519,7 @@ class User(object):
 
     def __init__(self,
                  username, password='', email='',
-                 account_type='admin', external_auth=None,
+                 account_type=UAT_ADMIN, external_auth=None,
 
                  email_confirmed=False,
                  is_suspended=False,
@@ -549,11 +549,11 @@ class User(object):
         EXAMPLES::
 
             sage: from sagenb.notebook.user import User
-            sage: User('A', account_type='admin').account_type
+            sage: User('A', account_type=UAT_ADMIN).account_type
             'admin'
-            sage: User('B', account_type='user').account_type
+            sage: User('B', account_type=UAT_USER).account_type
             'user'
-            sage: User('C', account_type='guest').account_type
+            sage: User('C', account_type=UAT_GUEST).account_type
             'guest'
         """
         return self.__account_type

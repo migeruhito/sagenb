@@ -15,6 +15,7 @@ from flask.ext.babel import gettext
 from . import base
 
 from ..config import SAGE_VERSION
+from ..config import UN_ADMIN
 
 from ..util.decorators import admin_required
 from ..util.decorators import with_lock
@@ -51,7 +52,7 @@ def users(reset=None):
 
     users = sorted(g.notebook.user_manager.login_allowed_usernames)
     template_dict['number_of_users'] = len(users) if len(users) > 1 else None
-    del users[users.index('admin')]
+    del users[users.index(UN_ADMIN)]
     template_dict['users'] = [g.notebook.user_manager[username]
                               for username in users]
     template_dict['admin'] = g.notebook.user_manager[g.username].is_admin
@@ -77,7 +78,7 @@ def suspend_user(user):
 @admin_required
 @with_lock
 def del_user(user):
-    if user != 'admin':
+    if user != UN_ADMIN:
         try:
             del g.notebook.user_manager[user]
         except KeyError:

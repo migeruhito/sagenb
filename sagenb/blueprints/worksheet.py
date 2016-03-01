@@ -122,7 +122,7 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
 
     - ``ws`` - a Worksheet (default: None)
 
-    - ``username`` - a string (default: 'guest')
+    - ``username`` - a string (default: UN_GUEST)
 
     - ``admin`` - a bool (default: False)
 
@@ -134,11 +134,12 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
-        sage: render_ws_template(W, 'admin')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
+        sage: render_ws_template(W, UN_ADMIN)
         u'...Test...cell_input...if (e.shiftKey)...state_number...'
     """
     if ws is None:
@@ -187,14 +188,15 @@ def html_worksheet_revision_list(username, worksheet):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: W.body()
         u'\n\n{{{id=1|\n\n///\n}}}'
-        sage: W.save_snapshot('admin')
-        sage: nb.html_worksheet_revision_list('admin', W)
+        sage: W.save_snapshot(UN_ADMIN)
+        sage: nb.html_worksheet_revision_list(UN_ADMIN, W)
         u'...Revision...Last Edited...ago...'
     """
     data = worksheet.snapshot_data()  # pairs ('how long ago', key)
@@ -268,11 +270,12 @@ def html_share(worksheet, username):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
-        sage: nb.html_share(W, 'admin')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
+        sage: nb.html_share(W, UN_ADMIN)
         u'...currently shared...add or remove collaborators...'
     """
     return render_template(
@@ -300,11 +303,12 @@ def html_download_or_delete_datafile(ws, username, filename):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
-        sage: nb.html_download_or_delete_datafile(W, 'admin', 'bar')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
+        sage: nb.html_download_or_delete_datafile(W, UN_ADMIN, 'bar')
         u'...Data file: bar...DATA is a special variable...uploaded...'
     """
     ext = os.path.splitext(filename)[1].lower()
@@ -345,11 +349,12 @@ def html_edit_window(worksheet, username):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
-        sage: nb.html_edit_window(W, 'admin')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
+        sage: nb.html_edit_window(W, UN_ADMIN)
         u'...textarea class="plaintextedit"...{{{id=1|...//...}}}...'
     """
 
@@ -377,11 +382,12 @@ def html_beforepublish_window(worksheet, username):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
-        sage: nb.html_beforepublish_window(W, 'admin')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
+        sage: nb.html_beforepublish_window(W, UN_ADMIN)
         u'...want to publish this worksheet?...re-publish when changes...'
     """
     return render_template(
@@ -436,11 +442,12 @@ def html_upload_data_window(ws, username):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
-        sage: nb.html_upload_data_window(W, 'admin')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
+        sage: nb.html_upload_data_window(W, UN_ADMIN)
         u'...Upload or Create Data File...Browse...url...name of a new...'
     """
     return render_template(
@@ -461,10 +468,11 @@ def html_ratings_info(ws, username=None):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Publish Test', 'admin')
+        sage: W = nb.create_wst('Publish Test', UN_ADMIN)
         sage: W.rate(0, 'this lacks content', 'riemann')
         sage: W.rate(3, 'this is great', 'hilbert')
         sage: W.html_ratings_info()
@@ -494,11 +502,12 @@ def html_plain_text_window(worksheet, username):
 
     EXAMPLES::
 
+        sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
-        sage: W = nb.create_wst('Test', 'admin')
-        sage: nb.html_plain_text_window(W, 'admin')
+        sage: W = nb.create_wst('Test', UN_ADMIN)
+        sage: nb.html_plain_text_window(W, UN_ADMIN)
         u'...pre class="plaintext"...cell_intext...textfield...'
     """
     plain_text = worksheet.plain_text(prompts=True, banner=False)
