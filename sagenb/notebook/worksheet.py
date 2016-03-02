@@ -48,7 +48,7 @@ from ..util import next_available_id
 from ..util import set_default
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
-from ..util import writable_cached_property
+from ..util import cached_property
 from ..util.templates import format_completions_as_html
 from ..util.templates import prettify_time_ago
 from ..util.text import ignore_prompts_and_output
@@ -190,7 +190,7 @@ class Worksheet(object):
         # State variables
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
-        # self.__next_id  writable_cached_property
+        # self.__next_id  cached_property (writable)
         # self.__cells -> property (cached)
         self.__filename = os.path.join(owner, str(id_number))  # property ro
         # set the directory in which the worksheet files will be stored.
@@ -650,7 +650,7 @@ class Worksheet(object):
         if not self.is_published() and not self.docbrowser:
             self.__state_number += 1
 
-    @writable_cached_property
+    @cached_property(writable=True)
     def next_id(self):
         return 1 + max([C.id() for C in self.cells
                         if isinstance(C.id(), int)] + [-1])

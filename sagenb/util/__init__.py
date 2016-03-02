@@ -429,48 +429,40 @@ def system_command(cmd, msg=None):
     subprocess.call([cmd], shell=True)
 
 
-def cached_property(function):
-    attr_name = '__{}'.format(function.__name__)
+def cached_property(writable=False, invalidate=()):
+    def invalidate_cache(self):
+        for attr in invalidate:
+            delattr(self, attr)
 
-    def get_cached_property(self):
-        try:
-            output = getattr(self, attr_name)
-        except AttributeError:
-            output = function(self)
-            setattr(self, attr_name, output)
-        return output
+    def wrapper(function):
+        attr_name = '__{}'.format(function.__name__)
 
-    def del_cached_property(self):
-        try:
-            delattr(self, attr_name)
-        except AttributeError:
-            pass
+        def get_cached_property(self):
+            try:
+                output = getattr(self, attr_name)
+            except AttributeError:
+                invalidate_cache(self)
+                output = function(self)
+                setattr(self, attr_name, output)
+            return output
 
-    return property(fget=get_cached_property, fdel=del_cached_property)
+        def del_cached_property(self):
+            invalidate_cache(self)
+            try:
+                delattr(self, attr_name)
+            except AttributeError:
+                pass
 
+        if writable:
+            def set_cached_property(self, value):
+                invalidate_cache(self)
+                setattr(self, attr_name, value)
+        else:
+            set_cached_property = None
 
-def writable_cached_property(function):
-    attr_name = '__{}'.format(function.__name__)
-
-    def get_cached_property(self):
-        try:
-            output = getattr(self, attr_name)
-        except AttributeError:
-            output = function(self)
-            setattr(self, attr_name, output)
-        return output
-
-    def del_cached_property(self):
-        try:
-            delattr(self, attr_name)
-        except AttributeError:
-            pass
-
-    def set_cached_property(self, value):
-        setattr(self, attr_name, value)
-
-    return property(fget=get_cached_property, fset=set_cached_property,
-                    fdel=del_cached_property)
+        return property(fget=get_cached_property, fset=set_cached_property,
+                        fdel=del_cached_property)
+    return wrapper
 
 
 def next_available_id(v):

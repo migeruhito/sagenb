@@ -177,7 +177,7 @@ class DynamicJs(object):
         self.__localization = {}
         self.__keyboard = {}
 
-    @cached_property
+    @cached_property()
     def javascript(self):
         """
         Return javascript library for the Sage Notebook.  This is done by
@@ -231,7 +231,7 @@ class DynamicJs(object):
 
         return self.__localization[locale]
 
-    @cached_property
+    @cached_property()
     def mathjax(self):
         data = render_template('js/mathjax_sage.js',
                                theme_mathjax_macros=mathjax_macros)

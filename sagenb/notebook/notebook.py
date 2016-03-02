@@ -217,7 +217,7 @@ class Notebook(object):
 
     # App query
 
-    @cached_property
+    @cached_property()
     def system_names(self):
         return tuple(system[0] for system in self.systems)
 
@@ -587,7 +587,7 @@ class Notebook(object):
         self.__worksheets[W.filename] = W
         return W
 
-    @cached_property
+    @cached_property()
     def scratch_wst(self):
         return self.create_wst('scratch', '_sage_')
 
