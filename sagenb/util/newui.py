@@ -11,7 +11,7 @@ def extended_wst_basic(wst, nb):
     d = wst.basic()
     d.update({
         'last_change_pretty': prettify_time_ago(time() - wst.last_edited),
-        'filename': wst.filename(),
+        'filename': wst.filename,
         'running': wst.compute_process_has_been_started(),
         'attached_data_files': wst.attached_data_files(),
         'published': wst.has_published_version(),

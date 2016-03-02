@@ -79,7 +79,7 @@ def render_ws_list_template(args, pub, username):
         print "Error displaying worksheet listing: ", E
         return message_template(_("Error displaying worksheet listing."))
 
-    worksheet_filenames = [x.filename() for x in worksheets]
+    worksheet_filenames = [x.filename for x in worksheets]
 
     if pub and (not username or username == tuple([])):
         username = UN_PUB
@@ -276,7 +276,7 @@ def download_worksheets():
     zip = zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_STORED)
     for worksheet in worksheets:
         sws_filename = tmp_filename() + '.sws'
-        g.notebook.export_wst(worksheet.filename(), sws_filename)
+        g.notebook.export_wst(worksheet.filename, sws_filename)
         entry_name = worksheet.name
         if entry_name in worksheet_names:
             i = 2

@@ -371,7 +371,7 @@ class Notebook(object):
         that instead since worksheets that are already running should be
         noted as such.
         """
-        return [self.__worksheets.get(w.filename(), w) for w in worksheets]
+        return [self.__worksheets.get(w.filename, w) for w in worksheets]
 
     @property
     def _pub_wsts(self):
@@ -550,15 +550,15 @@ class Notebook(object):
         #      shutil.copytree(src.data_directory(), W.data_directory())
 
         for sub in ['cells', 'data', 'snapshots']:
-            target_dir = os.path.join(W.directory(), sub)
+            target_dir = os.path.join(W.directory, sub)
             if os.path.exists(target_dir):
                 shutil.rmtree(target_dir, ignore_errors=True)
 
         # Copy images, data files, etc.
         for sub in ['cells', 'data']:
-            source_dir = os.path.join(src.directory(), sub)
+            source_dir = os.path.join(src.directory, sub)
             if os.path.exists(source_dir):
-                target_dir = os.path.join(W.directory(), sub)
+                target_dir = os.path.join(W.directory, sub)
                 shutil.copytree(source_dir, target_dir)
 
         W.edit_save(src.edit_text())
@@ -584,7 +584,7 @@ class Notebook(object):
             W = S.load_worksheet(username, id_number)
         except ValueError:
             W = S.create_worksheet(username, id_number, **kwargs)
-        self.__worksheets[W.filename()] = W
+        self.__worksheets[W.filename] = W
         return W
 
     @cached_property
@@ -600,7 +600,7 @@ class Notebook(object):
         W.system = self.user_manager[username]['default_system']
         W.name = worksheet_name
         self.save_worksheet(W)
-        self.__worksheets[W.filename()] = W
+        self.__worksheets[W.filename] = W
 
         return W
 
@@ -627,7 +627,7 @@ class Notebook(object):
                            filename)
 
         W.quit()
-        shutil.rmtree(W.directory(), ignore_errors=False)
+        shutil.rmtree(W.directory, ignore_errors=False)
 
     def empty_trash(self, username):
         """
@@ -655,7 +655,7 @@ class Notebook(object):
         for W in (ws for ws in X if ws.is_trashed(username)):
             W.delete_user(username)
             if W.owner is None:
-                self.delete_wst(W.filename())
+                self.delete_wst(W.filename)
 
     def export_wst(self, worksheet_filename, output_filename, title=None):
         """
@@ -752,7 +752,7 @@ class Notebook(object):
         else:
             # We only support txt, sws, html and rst files
             raise ValueError("unknown extension '%s'" % ext)
-        self.__worksheets[W.filename()] = W
+        self.__worksheets[W.filename] = W
         return W
 
     def _import_wst_txt(self, filename, owner):
@@ -816,24 +816,24 @@ class Notebook(object):
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('{{{id=0\n2+3\n}}}')
             sage: W = nb.import_wst(name, 'admin')
-            sage: W.filename()
+            sage: W.filename
             'admin/0'
-            sage: sorted([w.filename() for w in nb.all_wsts])
+            sage: sorted([w.filename for w in nb.all_wsts])
             ['admin/0']
 
         We then export the worksheet to an sws file.::
 
             sage: sws = os.path.join(tmp_dir(), 'tmp.sws')
-            sage: nb.export_wst(W.filename(), sws)
+            sage: nb.export_wst(W.filename, sws)
 
         Now we import the sws.::
 
             sage: W = nb._import_wst_sws(sws, 'admin')
-            sage: nb._Notebook__worksheets[W.filename()] = W
+            sage: nb._Notebook__worksheets[W.filename] = W
 
         Yes, it's there now (as a new worksheet)::
 
-            sage: sorted([w.filename() for w in nb.get_all_worksheets()])
+            sage: sorted([w.filename for w in nb.get_all_worksheets()])
             ['admin/0', 'admin/1']
         """
         id_number = self.new_id_number(username)
@@ -1139,7 +1139,7 @@ class Notebook(object):
         worksheet.published_id_number = W.id_number
         W.record_edit(username)
         W.name = worksheet.name
-        self.__worksheets[W.filename()] = W
+        self.__worksheets[W.filename] = W
         W.save()
         return W
 
@@ -1153,7 +1153,7 @@ class Notebook(object):
     def delete_doc_browser_worksheets(self):
         for w in self.user_wsts('_sage_'):
             if w.name.startswith('doc_browser'):
-                self.delete_wst(w.filename())
+                self.delete_wst(w.filename)
 
     # Information about the pool of worksheet compute servers
 
@@ -1223,13 +1223,6 @@ class Notebook(object):
 
     # Computing control
 
-    def set_not_computing(self):
-        # unpickled, no worksheets will think they are
-        # being computed, since they clearly aren't (since
-        # the server just started).
-        for W in self.__worksheets.values():
-            W.set_not_computing()
-
     def quit(self):
         for W in self.__worksheets.values():
             W.quit()
@@ -1250,7 +1243,7 @@ class Notebook(object):
 
     def quit_worksheet(self, W):
         try:
-            del self.__worksheets[W.filename()]
+            del self.__worksheets[W.filename]
         except KeyError:
             pass
 
@@ -1407,7 +1400,7 @@ def migrate_old_notebook_v1(dir):
                }
         new_ws = new_nb.worksheet(old_ws.owner, old_ws_dirname, **obj)
 
-        base = os.path.join(dir, 'worksheets', old_ws.filename())
+        base = os.path.join(dir, 'worksheets', old_ws.filename)
         worksheet_file = os.path.join(base, 'worksheet.txt')
         if os.path.exists(worksheet_file):
             text = open(worksheet_file).read()
@@ -1454,7 +1447,7 @@ def migrate_old_notebook_v1(dir):
                   "remaining)" % (
                       i, num_worksheets, walltime(tm) * (1 / percent - 1)))
         new_ws = migrate_old_worksheet(old_ws)
-        worksheets[new_ws.filename()] = new_ws
+        worksheets[new_ws.filename] = new_ws
     new_nb._Notebook__worksheets = worksheets
 
     # Migrating history

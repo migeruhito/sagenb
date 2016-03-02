@@ -286,7 +286,7 @@ class Cell_generic(object):
             'sage/0'
             sage: nb.delete()
          """
-        return self._worksheet.filename()
+        return self._worksheet.filename
 
     def notebook(self):
         """
@@ -1042,7 +1042,7 @@ class Cell(Cell_generic):
             '.../home/sage/0/cells/0'
             sage: nb.delete()
         """
-        return os.path.join(self._worksheet.directory(), 'cells',
+        return os.path.join(self._worksheet.directory, 'cells',
                             str(self.id()))
 
     @property

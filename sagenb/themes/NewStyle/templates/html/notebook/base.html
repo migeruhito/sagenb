@@ -58,9 +58,9 @@ INPUT:
 {% endif %}
 
 <script type="text/javascript">user_name= "{{ username }}";</script>
-{% if worksheet.filename() %}
+{% if worksheet.filename %}
 <script  type="text/javascript">
-    worksheet_filename = "{{ worksheet.filename() }}";
+    worksheet_filename = "{{ worksheet.filename }}";
     worksheet_name = {{ worksheet.name | repr_str | safe }};
     {% if not worksheet.is_published() or notebook.conf['pub_interact'] %}
         server_ping_while_alive();
@@ -103,7 +103,7 @@ INPUT:
             <option title="{{ gettext('Print this worksheet') }}" value="print_worksheet();">{{ gettext('Print') }}</option>
             <option title="{{ gettext('Rename this worksheet') }}" value="rename_worksheet();">{{ gettext('Rename worksheet') }}</option>
             <option title="{{ gettext('Copy this worksheet') }}" value="copy_worksheet();">{{ gettext('Copy worksheet') }}</option>
-            <option title="{{ gettext('Move this worksheet to the trash') }}" value="delete_worksheet('{{ worksheet.filename() }}');">{{ gettext('Delete worksheet') }}</option>
+            <option title="{{ gettext('Move this worksheet to the trash') }}" value="delete_worksheet('{{ worksheet.filename }}');">{{ gettext('Delete worksheet') }}</option>
         </select>
 
         <select class="worksheet"  onchange="go_option(this);"  id="action-menu">

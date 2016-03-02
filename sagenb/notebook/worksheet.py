@@ -48,6 +48,7 @@ from ..util import next_available_id
 from ..util import set_default
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
+from ..util import writable_cached_property
 from ..util.templates import format_completions_as_html
 from ..util.templates import prettify_time_ago
 from ..util.text import ignore_prompts_and_output
@@ -189,41 +190,93 @@ class Worksheet(object):
         # State variables
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
-        # Initialize the cell id counter.
-        self.__next_id = 0
-        self.__filename = os.path.join(owner, str(id_number))
-
-        # set the directory in which the worksheet files will be stored.  We
-        # also add the hash of the name, since the cleaned name loses info,
-        # e.g., it could be all _'s if all characters are funny.
-        self.__dir = notebook_worksheet_directory
-        if self.__dir is not None:
-            self.__dir = os.path.join(self.__dir, str(id_number))
+        # self.__next_id  writable_cached_property
+        # self.__cells -> property (cached)
+        self.__filename = os.path.join(owner, str(id_number))  # property ro
+        # set the directory in which the worksheet files will be stored.
+        self.__directory = notebook_worksheet_directory  # property ro
+        if self.__directory is not None:
+            self.__directory = os.path.join(self.__directory, str(id_number))
+        self.__computing = False
+        self.__queue = []
 
         if create_directories:
             self.create_directories()
-        self.__comp_is_running = False
-        self.__queue = []
-        # self.__cells -> property (cached)
 
-    def increase_state_number(self):
-        if not self.is_published() and not self.docbrowser:
-            self.__state_number += 1
+    def __cmp__(self, other):
+        """
+        We compare two worksheets.
 
-    @property
-    def state_number(self):
-        if self.is_published() or self.docbrowser:
-            return 0
-        return self.__state_number
+        INPUT:
 
-    def create_directories(self):
-        # creating directories should be a function of the storage backend, not
-        # here
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-            set_restrictive_permissions(self.__dir, allow_execute=True)
-            set_restrictive_permissions(self.snapshot_directory())
-            set_restrictive_permissions(self.cells_directory())
+        -  ``self, other`` - worksheets
+
+        OUTPUT:
+
+        -  ``-1,0,1`` - comparison is on the underlying
+           file names.
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(
+                ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W2 = nb.create_wst('test2', 'admin')
+            sage: W1 = nb.create_wst('test1', 'admin')
+            sage: cmp(W1, W2)
+            1
+            sage: cmp(W2, W1)
+            -1
+        """
+        try:
+            return cmp(self.filename, other.filename)
+        except AttributeError:
+            return cmp(type(self), type(other))
+
+    def __repr__(self):
+        r"""
+        Return string representation of this worksheet, which is simply the
+        string representation of the underlying list of cells.
+
+        OUTPUT: string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('test1', 'admin')
+            sage: W.__repr__()
+            'admin/0: [Cell 1: in=, out=]'
+            sage: W.edit_save(
+                '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
+            sage: W.__repr__()
+            'admin/0: [Cell 0: in=2+3, out=\n5, Cell 10: in=2+8, out=\n10]'
+        """
+        return '%s/%s: %s' % (self.owner, self.id_number, self.cells)
+
+    def __len__(self):
+        r"""
+        Return the number of cells in this worksheet.
+
+        OUTPUT: int
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('test1', 'admin')
+            sage: len(W)
+            1
+            sage: W.edit_save(
+                '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
+            sage: len(W)
+            2
+        """
+        return len(self.cells)
+
+    # Basic properties
 
     @property
     def id_number(self):
@@ -242,6 +295,254 @@ class Worksheet(object):
             <type 'int'>
         """
         return self.__id_number
+
+    @property
+    def name(self, username=None):
+        ur"""
+        Return the name of this worksheet.
+
+        OUTPUT: string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('A Test Worksheet', 'admin')
+            sage: W.name
+            u'A Test Worksheet'
+            sage: W = nb.create_wst('ěščřžýáíéďĎ', 'admin')
+            sage: W.name
+            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+        """
+        return self.__name
+
+    @name.setter
+    def name(self, name):
+        """
+        Set the name of this worksheet.
+
+        INPUT:
+
+        -  ``name`` - string
+
+        EXAMPLES: We create a worksheet and change the name::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('A Test Worksheet', 'admin')
+            sage: W.name = 'A renamed worksheet'
+            sage: W.name
+            u'A renamed worksheet'
+        """
+        if not name or repr(name) == '<_LazyString broken>':
+            name = gettext('Untitled')
+        self.__name = unicode_str(name)
+
+    @property
+    def pretty_print(self):
+        """
+        Return True if output should be pretty printed by default.
+
+        OUTPUT:
+
+        -  ``bool`` - True of False
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('A Test Worksheet', 'admin')
+            sage: W.pretty_print
+            False
+            sage: W.pretty_print = True
+            sage: W.pretty_print
+            True
+            sage: W.quit()
+            sage: nb.delete()
+        """
+        return self.__pretty_print
+
+    @pretty_print.setter
+    def pretty_print(self, check):
+        """
+        Set whether or not output should be pretty printed by default.
+
+        INPUT:
+
+        -  ``check`` - string (default: 'false'); either 'true'
+           or 'false'.
+
+        .. note::
+
+           The reason the input is a string and lower case instead of
+           a Python bool is because this gets called indirectly from
+           JavaScript. (And, Jason Grout wrote this and didn't realize
+           how unpythonic this design is - it should be redone to use
+           True/False.)
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('A Test Worksheet', 'admin')
+            sage: W.set_pretty_print = False
+            sage: W.pretty_print
+            False
+            sage: W.set_pretty_print = True
+            sage: W.pretty_print
+            True
+            sage: W.quit()
+            sage: nb.delete()
+        """
+        self.__pretty_print = check
+        self.eval_asap_no_output("pretty_print_default(%r)" % check)
+
+    @property
+    def saved_by_info(self):
+        return self.__saved_by_info
+
+    @property
+    def collaborators(self):
+        """
+        Return a (reference to the) list of the collaborators who can also
+        view and modify this worksheet.
+
+        OUTPUT: list
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('test1', 'admin')
+            sage: C = W.collaborators; C
+            []
+            sage: C.append('sage')
+            sage: W.collaborators
+            ['sage']
+        """
+        return self.__collaborators
+
+    @collaborators.setter
+    def collaborators(self, v):
+        """
+        Set the list of collaborators to those listed in the list v of
+        strings.
+
+        INPUT:
+
+        -  ``v`` - a list of strings
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager.add_user(
+                'hilbert','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('test1', 'admin')
+            sage: W.set_collaborators = ['sage', 'admin', 'hilbert', 'sage']
+
+        Note that repeats are not added multiple times and admin - the
+        owner - isn't added::
+
+            sage: W.collaborators
+            ['hilbert', 'sage']
+        """
+        collaborators = set(v).difference(self.owner)
+        self.__collaborators = sorted(collaborators)
+
+    @property
+    def viewers(self):
+        """
+        Return list of viewers of this worksheet.
+
+        OUTPUT:
+
+        -  ``list`` - of string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: nb.user_manager.add_user(
+                'hilbert','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('test1', 'admin')
+            sage: W.add_viewer('hilbert')
+            sage: W.viewers
+            ['hilbert']
+            sage: W.add_viewer('sage')
+            sage: W.viewers
+            ['hilbert', 'sage']
+        """
+        return self.__viewers
+
+    @property
+    def worksheet_that_was_published(self):
+        return self.__worksheet_that_was_published
+
+    @worksheet_that_was_published.setter
+    def worksheet_that_was_published(self, W):
+        """
+        Set the owner and id_number of the worksheet that was
+        published to get self.
+
+        INPUT:
+
+            - ``W`` -- worksheet or 2-tuple ('owner', id_number)
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('Publish Test', 'admin')
+            sage: P = nb.publish_wst(W, 'admin')
+            sage: nb.came_from_wst(P) is W
+            True
+
+        We fake things and make it look like P published itself::
+
+            sage: P.worksheet_that_was_published = P
+            sage: nb.came_from_wst(P) is P
+            True
+        """
+        self.__worksheet_that_was_published = (W if isinstance(W, tuple)
+                                               else (W.owner, W.id_number))
+
+    @property
+    def ratings(self):
+        """
+        Return all the ratings of this worksheet.
+
+        OUTPUT:
+
+        -  ``list`` - a reference to the list of ratings.
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('Publish Test', 'admin')
+            sage: W.ratings
+            []
+            sage: W.rate(0, 'this lacks content', 'riemann')
+            sage: W.rate(3, 'this is great', 'hilbert')
+            sage: W.ratings
+            [('riemann', 0, 'this lacks content'),
+             ('hilbert', 3, 'this is great')]
+        """
+        return self.__ratings
 
     def basic(self):
         """
@@ -337,40 +638,76 @@ class Worksheet(object):
             }
         return d
 
-    def __cmp__(self, other):
+    # State variables
+
+    @property
+    def state_number(self):
+        if self.is_published() or self.docbrowser:
+            return 0
+        return self.__state_number
+
+    def increase_state_number(self):
+        if not self.is_published() and not self.docbrowser:
+            self.__state_number += 1
+
+    @writable_cached_property
+    def next_id(self):
+        return 1 + max([C.id() for C in self.cells
+                        if isinstance(C.id(), int)] + [-1])
+
+    @property
+    def cells(self):
+        try:
+            return self.__cells
+        except AttributeError:
+            del self.next_id  # Invalidate next_id cache
+            worksheet_html = self.worksheet_html_filename
+            if not os.path.exists(worksheet_html):
+                self.__cells = []
+                for i in range(INITIAL_NUM_CELLS):
+                    self.append_new_cell()
+            else:
+                with open(worksheet_html) as f:
+                    self.edit_save(f.read())
+        return self.__cells
+
+    @cells.setter
+    def cells(self, cls):
+        del self.next_id  # Invalidate next_id cache
+        self.__cells = cls
+
+    @cells.deleter
+    def cells(self):
+        del self.next_id  # Invalidate next_id cache
+        try:
+            del self.__cells
+        except AttributeError:
+            pass
+
+    @property
+    def filename(self):
         """
-        We compare two worksheets.
-
-        INPUT:
-
-        -  ``self, other`` - worksheets
-
-        OUTPUT:
-
-        -  ``-1,0,1`` - comparison is on the underlying
-           file names.
+        Return the filename (really directory) where the files associated
+        to this worksheet are stored.
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir(
-                ext='.sagenb'))
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
-            sage: W2 = nb.create_wst('test2', 'admin')
-            sage: W1 = nb.create_wst('test1', 'admin')
-            sage: cmp(W1, W2)
-            1
-            sage: cmp(W2, W1)
-            -1
+            sage: W = nb.create_wst('A Test Worksheet', 'admin')
+            sage: W.filename
+            'admin/0'
+            sage: os.path.isdir(os.path.join(nb.dir, 'home', W.filename))
+            True
         """
-        try:
-            return cmp(self.filename(), other.filename())
-        except AttributeError:
-            return cmp(type(self), type(other))
+        return self.__filename
 
-    def __repr__(self):
-        r"""
-        Return string representation of this worksheet, which is simply the
-        string representation of the underlying list of cells.
+    @property
+    def directory(self):
+        """
+        Return the full path to the directory where this worksheet is
+        stored.
 
         OUTPUT: string
 
@@ -379,36 +716,22 @@ class Worksheet(object):
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: W.__repr__()
-            'admin/0: [Cell 1: in=, out=]'
-            sage: W.edit_save(
-                '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
-            sage: W.__repr__()
-            'admin/0: [Cell 0: in=2+3, out=\n5, Cell 10: in=2+8, out=\n10]'
+            sage: W = nb.create_wst('A Test Worksheet', 'admin')
+            sage: W.directory
+            '.../home/admin/0'
         """
-        return '%s/%s: %s' % (self.owner, self.id_number, self.cells)
+        return self.__directory
 
-    def __len__(self):
-        r"""
-        Return the number of cells in this worksheet.
+    # end state variales
 
-        OUTPUT: int
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: len(W)
-            1
-            sage: W.edit_save(
-                '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
-            sage: len(W)
-            2
-        """
-        return len(self.cells)
+    def create_directories(self):
+        # creating directories should be a function of the storage backend, not
+        # here
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
+            set_restrictive_permissions(self.directory, allow_execute=True)
+            set_restrictive_permissions(self.snapshot_directory())
+            set_restrictive_permissions(self.cells_directory())
 
     @property
     def worksheet_html_filename(self):
@@ -416,7 +739,7 @@ class Worksheet(object):
         Return path to the underlying plane text file that defines the
         worksheet.
         """
-        return os.path.join(self.__dir, 'worksheet.html')
+        return os.path.join(self.directory, 'worksheet.html')
 
     @property
     def download_name(self):
@@ -450,187 +773,6 @@ class Worksheet(object):
         """
         return self.owner == '_sage_'
 
-    # Basic properties
-
-    @property
-    def collaborators(self):
-        """
-        Return a (reference to the) list of the collaborators who can also
-        view and modify this worksheet.
-
-        OUTPUT: list
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: C = W.collaborators; C
-            []
-            sage: C.append('sage')
-            sage: W.collaborators
-            ['sage']
-        """
-        return self.__collaborators
-
-    @collaborators.setter
-    def collaborators(self, v):
-        """
-        Set the list of collaborators to those listed in the list v of
-        strings.
-
-        INPUT:
-
-        -  ``v`` - a list of strings
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager.add_user(
-                'hilbert','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: W.set_collaborators = ['sage', 'admin', 'hilbert', 'sage']
-
-        Note that repeats are not added multiple times and admin - the
-        owner - isn't added::
-
-            sage: W.collaborators
-            ['hilbert', 'sage']
-        """
-        collaborators = set(v).difference(self.owner)
-        self.__collaborators = sorted(collaborators)
-
-    @property
-    def viewers(self):
-        """
-        Return list of viewers of this worksheet.
-
-        OUTPUT:
-
-        -  ``list`` - of string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager.add_user(
-                'hilbert','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: W.add_viewer('hilbert')
-            sage: W.viewers
-            ['hilbert']
-            sage: W.add_viewer('sage')
-            sage: W.viewers
-            ['hilbert', 'sage']
-        """
-        return self.__viewers
-
-    @property
-    def name(self, username=None):
-        ur"""
-        Return the name of this worksheet.
-
-        OUTPUT: string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.name
-            u'A Test Worksheet'
-            sage: W = nb.create_wst('ěščřžýáíéďĎ', 'admin')
-            sage: W.name
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
-        """
-        return self.__name
-
-    @name.setter
-    def name(self, name):
-        """
-        Set the name of this worksheet.
-
-        INPUT:
-
-        -  ``name`` - string
-
-        EXAMPLES: We create a worksheet and change the name::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.name = 'A renamed worksheet'
-            sage: W.name
-            u'A renamed worksheet'
-        """
-        if not name or repr(name) == '<_LazyString broken>':
-            name = gettext('Untitled')
-        self.__name = unicode_str(name)
-
-    def filename(self):
-        """
-        Return the filename (really directory) where the files associated
-        to this worksheet are stored.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.filename()
-            'admin/0'
-            sage: os.path.isdir(os.path.join(nb.dir, 'home', W.filename()))
-            True
-        """
-        return self.__filename
-
-    def filename_without_owner(self):
-        """
-        Return the part of the worksheet filename after the last /, i.e.,
-        without any information about the owner of this worksheet.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.filename_without_owner()
-            '0'
-            sage: W.filename()
-            'admin/0'
-        """
-        return os.path.split(self.__filename)[-1]
-
-    def directory(self):
-        """
-        Return the full path to the directory where this worksheet is
-        stored.
-
-        OUTPUT: string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.directory()
-            '.../home/admin/0'
-        """
-        return self.__dir
-
     def data_directory(self):
         """
         Return path to directory where worksheet data is stored.
@@ -646,7 +788,7 @@ class Worksheet(object):
             sage: W.data_directory()
             '.../home/admin/0/data'
         """
-        d = os.path.join(self.directory(), 'data')
+        d = os.path.join(self.directory, 'data')
         if not os.path.exists(d):
             os.makedirs(d)
         return d
@@ -691,7 +833,7 @@ class Worksheet(object):
             sage: W.cells_directory()
             '.../home/admin/0/cells'
         """
-        path = os.path.join(self.directory(), 'cells')
+        path = os.path.join(self.directory, 'cells')
         if not os.path.exists(path):
             os.makedirs(path)
         return path
@@ -746,101 +888,7 @@ class Worksheet(object):
             self.system = system_names[0]
             return 0
 
-    @property
-    def pretty_print(self):
-        """
-        Return True if output should be pretty printed by default.
-
-        OUTPUT:
-
-        -  ``bool`` - True of False
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.pretty_print
-            False
-            sage: W.pretty_print = True
-            sage: W.pretty_print
-            True
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        return self.__pretty_print
-
-    @pretty_print.setter
-    def pretty_print(self, check):
-        """
-        Set whether or not output should be pretty printed by default.
-
-        INPUT:
-
-        -  ``check`` - string (default: 'false'); either 'true'
-           or 'false'.
-
-        .. note::
-
-           The reason the input is a string and lower case instead of
-           a Python bool is because this gets called indirectly from
-           JavaScript. (And, Jason Grout wrote this and didn't realize
-           how unpythonic this design is - it should be redone to use
-           True/False.)
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.set_pretty_print = False
-            sage: W.pretty_print
-            False
-            sage: W.set_pretty_print = True
-            sage: W.pretty_print
-            True
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        self.__pretty_print = check
-        self.eval_asap_no_output("pretty_print_default(%r)" % check)
-
     # Publication
-
-    @property
-    def worksheet_that_was_published(self):
-        return self.__worksheet_that_was_published
-
-    @worksheet_that_was_published.setter
-    def worksheet_that_was_published(self, W):
-        """
-        Set the owner and id_number of the worksheet that was
-        published to get self.
-
-        INPUT:
-
-            - ``W`` -- worksheet or 2-tuple ('owner', id_number)
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: P = nb.publish_wst(W, 'admin')
-            sage: nb.came_from_wst(P) is W
-            True
-
-        We fake things and make it look like P published itself::
-
-            sage: P.worksheet_that_was_published = P
-            sage: nb.came_from_wst(P) is P
-            True
-        """
-        self.__worksheet_that_was_published = (W if isinstance(W, tuple)
-                                               else (W.owner, W.id_number))
 
     def is_published(self):
         """
@@ -1001,31 +1049,6 @@ class Worksheet(object):
             return username in [x[0] for x in self.ratings]
         except TypeError:
             return False
-
-    @property
-    def ratings(self):
-        """
-        Return all the ratings of this worksheet.
-
-        OUTPUT:
-
-        -  ``list`` - a reference to the list of ratings.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: W.ratings
-            []
-            sage: W.rate(0, 'this lacks content', 'riemann')
-            sage: W.rate(3, 'this is great', 'hilbert')
-            sage: W.ratings
-            [('riemann', 0, 'this lacks content'),
-             ('hilbert', 3, 'this is great')]
-        """
-        return self.__ratings
 
     def rating(self):
         """
@@ -1360,14 +1383,14 @@ class Worksheet(object):
             sage: W.cells[0].evaluate()
             sage: W.check_comp(
                 )    # random output -- depends on computer speed
-            sage: sorted(os.listdir(W.directory()))
+            sage: sorted(os.listdir(W.directory))
             ['cells', 'data', 'worksheet.html', 'worksheet_conf.pickle']
             sage: W.save_snapshot('admin')
-            sage: sorted(os.listdir(W.directory()))
+            sage: sorted(os.listdir(W.directory))
             ['cells', 'data', 'snapshots', 'worksheet.html',
              'worksheet_conf.pickle']
             sage: W.delete_cells_directory()
-            sage: sorted(os.listdir(W.directory()))
+            sage: sorted(os.listdir(W.directory))
             ['data', 'snapshots', 'worksheet.html', 'worksheet_conf.pickle']
             sage: W.quit()
             sage: nb.delete()
@@ -1632,10 +1655,6 @@ class Worksheet(object):
         E = bz2.decompress(open(filename).read())
         self.edit_save(E)
 
-    @property
-    def saved_by_info(self):
-        return self.__saved_by_info
-
     def snapshot_data(self):
         try:
             self.__filenames
@@ -1673,7 +1692,7 @@ class Worksheet(object):
         self.edit_save(E)
 
     def snapshot_directory(self):
-        path = os.path.join(os.path.abspath(self.__dir), 'snapshots')
+        path = os.path.join(os.path.abspath(self.directory), 'snapshots')
         if not os.path.exists(path):
             os.makedirs(path)
         return path
@@ -1848,14 +1867,14 @@ class Worksheet(object):
             sage: W.edit_save('{{{\n1+1\n///\n}}}')
             sage: W.cell_id_list()
             [0]
-            sage: W.next_id()
+            sage: W.next_id
             1
             sage: W.edit_save("{{{\n1+1\n///\n}}}\n\n<p>a text cell</p>")
             sage: len(set(W.cell_id_list())) == 3
             True
             sage: W.cell_id_list()
             [0, 1, 2]
-            sage: W.next_id()
+            sage: W.next_id
             3
         """
         self.reset_interact_state()
@@ -1917,10 +1936,7 @@ class Worksheet(object):
                     C.update_html_output(output)
                 cells.append(C)
 
-        self.__cells = cells
-        # Set the next id.  This *depends* on self.cells being
-        # set!!
-        self.set_cell_counter()
+        self.cells = cells
 
         # There must be at least one cell.
         if len(cells) == 0 or cells[-1].is_text_cell():
@@ -2036,28 +2052,6 @@ class Worksheet(object):
         """
         return [C.id() for C in self.cells if C.is_interactive_cell()]
 
-    @property
-    def cells(self):
-        try:
-            return self.__cells
-        except AttributeError:
-            worksheet_html = self.worksheet_html_filename
-            if not os.path.exists(worksheet_html):
-                self.__cells = []
-                for i in range(INITIAL_NUM_CELLS):
-                    self.append_new_cell()
-            else:
-                self.edit_save(open(worksheet_html).read())
-        return self.__cells
-
-    @cells.setter
-    def cells(self, cls):
-        self.__cells = cls
-
-    @cells.deleter
-    def cells(self):
-        del self.__cells
-
     def compute_cell_list(self):
         r"""
         Returns a list of this worksheet's compute cells.
@@ -2107,7 +2101,7 @@ class Worksheet(object):
             admin/0: [Cell 1: in=, out=, Cell 2: in=, out=]
         """
         C = self._new_cell()
-        self.__cells.append(C)
+        self.cells.append(C)
         return C
 
     def new_cell_before(self, id, input=''):
@@ -2242,7 +2236,7 @@ class Worksheet(object):
             sage: C = W.cells[1]           # save a reference to the cell
             sage: C.output_text(raw=True)
             u'\n10'
-            sage: open(os.path.join(C.directory(), 'bar'), 'w').write('hello')
+            sage: open(os.path.join(C.directory, 'bar'), 'w').write('hello')
             sage: C.files()
             ['bar']
             sage: C.files_html('')
@@ -2281,25 +2275,11 @@ class Worksheet(object):
     # Managing whether computing is happening: stop, start, clear, etc.
 
     def clear(self):
-        self.__comp_is_running = False
+        self.__computing = False
         self.__queue = []
-        self.__cells = []
+        self.cells = []
         for i in range(INITIAL_NUM_CELLS):
             self.append_new_cell()
-
-    def computing(self):
-        """
-        Return whether or not a cell is currently being run in the
-        worksheet Sage process.
-        """
-        try:
-            return self.__comp_is_running
-        except AttributeError:
-            return False
-
-    def set_not_computing(self):
-        self.__comp_is_running = False
-        self.__queue = []
 
     def quit(self):
         try:
@@ -2411,7 +2391,7 @@ class Worksheet(object):
         if len(self.__queue) == 0:
             return
 
-        if self.__comp_is_running:
+        if self.__computing:
             # self._record_that_we_are_computing()
             return
 
@@ -2473,7 +2453,7 @@ class Worksheet(object):
         C._before_preparse = input + I
         input += self.preparse_input(I, C)
 
-        self.__comp_is_running = True
+        self.__computing = True
         mode = ('sage' if cell_system == 'sage' and not C.introspect()
                 else 'python')
         self.sage().execute(
@@ -2513,7 +2493,7 @@ class Worksheet(object):
         C = self.__queue[0]
 
         if C.interrupted():
-            self.__comp_is_running = False
+            self.__computing = False
             del self.__queue[0]
             return 'd', C
 
@@ -2522,7 +2502,7 @@ class Worksheet(object):
         except RuntimeError:
             # verbose(
             #  "Computation was interrupted or failed. Restarting.\n%s" % msg)
-            self.__comp_is_running = False
+            self.__computing = False
             self.start_next_comp()
             return 'w', C
 
@@ -2569,7 +2549,7 @@ class Worksheet(object):
                                       '</html>', '')
 
         # Finished a computation.
-        self.__comp_is_running = False
+        self.__computing = False
         del self.__queue[0]
 
         if C.is_no_output():
@@ -2699,7 +2679,7 @@ class Worksheet(object):
         for C in self.__queue:
             C.interrupt()
         self.__queue = []
-        self.__comp_is_running = False
+        self.__computing = False
 
     def restart_sage(self):
         """
@@ -2711,7 +2691,7 @@ class Worksheet(object):
 
     def worksheet_command(self, cmd):
         # return URL in the web browser of the given cmd
-        return '/home/%s/%s' % (self.filename(), cmd)
+        return '/home/%s/%s' % (self.filename, cmd)
 
     # Idle timeout
 
@@ -2790,7 +2770,7 @@ class Worksheet(object):
         # Now enqueue the requested cell.
         if not (C in self.__queue):
             if C.is_asap():
-                if self.computing():
+                if self.__computing:
                     i = 1
                 else:
                     i = 0
@@ -2806,22 +2786,10 @@ class Worksheet(object):
             if c.is_auto_cell():
                 self.enqueue(c)
 
-    def next_id(self):
-        try:
-            return self.__next_id
-        except AttributeError:
-            self.set_cell_counter()
-            return self.__next_id
-
-    def set_cell_counter(self):
-        self.__next_id = 1 + \
-            max([C.id() for C in self.cells
-                 if isinstance(C.id(), int)] + [-1])
-
     def _new_text_cell(self, plain_text, id=None):
         if id is None:
-            id = self.next_id()
-            self.__next_id += 1
+            id = self.next_id
+            self.next_id += 1
         return TextCell(id, plain_text, self)
 
     def next_hidden_id(self):
@@ -2838,8 +2806,8 @@ class Worksheet(object):
             if hidden:
                 id = self.next_hidden_id()
             else:
-                id = self.next_id()
-                self.__next_id += 1
+                id = self.next_id
+                self.next_id += 1
         return Cell(id, input, '', self)
 
     def append(self, L):
@@ -3065,7 +3033,7 @@ class Worksheet(object):
         # to redesign so works even if compute worksheet process is
         # remote!
         id = self.next_block_id()
-        code = os.path.join(self.directory(), 'code')
+        code = os.path.join(self.directory, 'code')
         if not os.path.exists(code):
             os.makedirs(code)
         spyx = os.path.abspath(os.path.join(code, 'sage%s.spyx' % id))

@@ -95,7 +95,7 @@ def url_for_worksheet(worksheet):
     Returns the url for a given worksheet.
     """
     return url_for('worksheet.worksheet_v', username=worksheet.owner,
-                   id=worksheet.filename_without_owner())
+                   id=str(worksheet.id_number))
 
 
 def get_cell_id():
@@ -661,7 +661,7 @@ def worksheet_command(target, **route_kwds):
         # Maybe we can refactor this some?
         def wc_url_for(worksheet, *args, **kwds):
             kwds['username'] = g.username
-            kwds['id'] = worksheet.filename_without_owner()
+            kwds['id'] = str(worksheet.id_number)
             return url_for('.{}'.format(f.__name__), *args, **kwds)
 
         wrapper.url_for = wc_url_for
@@ -1603,7 +1603,7 @@ def unconditional_download(worksheet, title):
 
     try:
         # XXX: Accessing the hard disk.
-        g.notebook.export_wst(worksheet.filename(), filename, title)
+        g.notebook.export_wst(worksheet.filename, filename, title)
     except KeyError:
         return message_template(_('No such worksheet.'))
 

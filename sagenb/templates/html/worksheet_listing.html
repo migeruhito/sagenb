@@ -141,7 +141,7 @@ INPUT:
         {% else %}
 
         {% for worksheet in worksheets %}
-        {% set name = worksheet.filename() %}
+        {% set name = worksheet.filename %}
         <tr>
             <td class="entry">
                 {% if pub %}
@@ -195,9 +195,9 @@ INPUT:
                 {% endif %}
                 
                 {% if shared %}
-                <a class="share" href="/home/{{ worksheet.filename() }}/share">{{ gettext('Add or Delete') }}</a>
+                <a class="share" href="/home/{{ worksheet.filename }}/share">{{ gettext('Add or Delete') }}</a>
                 {% else %}
-                <a class="share" href="/home/{{ worksheet.filename() }}/share">{{ gettext('Share now') }}</a>
+                <a class="share" href="/home/{{ worksheet.filename }}/share">{{ gettext('Share now') }}</a>
                 {% endif %}
 
                 {% if worksheet.has_published_version() %}
