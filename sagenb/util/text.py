@@ -317,7 +317,8 @@ def after_first_word(s):
 
 
 def extract_cells(text):
-    text, last_text_cell = split_last_text_re.findall(text)[0]
+    split_last = split_last_text_re.findall(text)
+    text, last_text_cell = split_last[0] if split_last else ('', text.strip())
     cells = []
     for txt, meta, inp, outp in extract_cells_re.findall(text):
         if txt:
@@ -326,7 +327,7 @@ def extract_cells(text):
         idx = None if 'id' not in meta else int(meta['id'])
         cells.append(('compute', (idx, inp, outp)))
     if last_text_cell:
-        cells.append(last_text_cell)
+        cells.append(('plain', last_text_cell))
     return cells
 
 
