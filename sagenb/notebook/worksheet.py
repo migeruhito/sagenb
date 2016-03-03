@@ -42,6 +42,7 @@ from .cell import Cell, TextCell
 from ..config import INITIAL_NUM_CELLS
 from ..config import WARN_THRESHOLD
 from ..config import UN_PUB
+from ..config import UN_SAGE
 from ..util import cached_property
 from ..util import ignore_nonexistent_files
 from ..util import next_available_id
@@ -745,6 +746,7 @@ class Worksheet(object):
         EXAMPLES: We first create a standard worksheet for which docbrowser
         is of course False::
 
+            sage: from sagenb.config import UN_SAGE
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
@@ -754,11 +756,11 @@ class Worksheet(object):
 
         We create a worksheet for which docbrowser is True::
 
-            sage: W = nb.create_wst('doc_browser_0', '_sage_')
+            sage: W = nb.create_wst('doc_browser_0', UN_SAGE)
             sage: W.docbrowser
             True
         """
-        return self.owner == '_sage_'
+        return self.owner == UN_SAGE
 
     def data_directory(self):
         """

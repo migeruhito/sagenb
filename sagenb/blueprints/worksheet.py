@@ -27,6 +27,7 @@ from werkzeug.utils import secure_filename
 
 from ..config import UN_GUEST
 from ..config import UN_PUB
+from ..config import UN_SAGE
 from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..util import tmp_filename
 from ..util import unicode_str
@@ -70,7 +71,7 @@ def worksheet_view(f):
         with worksheet_locks[worksheet]:
             owner = worksheet.owner
 
-            if owner != '_sage_' and g.username != owner:
+            if owner != UN_SAGE and g.username != owner:
                 if not worksheet.is_published():
                     if (g.username not in worksheet.collaborators and
                             not g.notebook.user_manager[g.username].is_admin):
@@ -638,7 +639,7 @@ def worksheet_command(target, **route_kwds):
             # Public worksheets #
             #####################
             # _sage_ is used by live docs and published interacts
-            if username_id and username_id[0] in ['_sage_']:
+            if username_id and username_id[0] in [UN_SAGE]:
                 if target.split('/')[0] not in published_commands_allowed:
                     raise NotImplementedError(
                         "User _sage_ can not access URL %s" % target)
@@ -1671,7 +1672,7 @@ def doc_worksheet():
     doc_worksheet_number = doc_worksheet_number % g.notebook.conf[
         'doc_pool_size']
     W = None
-    for X in g.notebook.user_wsts('_sage_'):
+    for X in g.notebook.user_wsts(UN_SAGE):
         if X.compute_process_has_been_started():
             continue
         if X.id_number == doc_worksheet_number:
@@ -1682,7 +1683,7 @@ def doc_worksheet():
     if W is None:
         # The first argument here is the worksheet's title, which the
         # caller should set with W.set_name.
-        W = g.notebook.create_wst('', '_sage_')
+        W = g.notebook.create_wst('', UN_SAGE)
     return W
 
 

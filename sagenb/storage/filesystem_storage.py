@@ -49,6 +49,7 @@ from hashlib import md5
 # TODO: sage dependency
 from sage.misc.temporary_file import atomic_write
 
+from ..config import UN_SAGE
 from ..controllers import User
 from ..models import ServerConfiguration
 from ..util import set_restrictive_permissions
@@ -472,7 +473,7 @@ class FilesystemDatastore(Datastore):
                       username, id_number, traceback.format_exc()))
             W = self._basic_to_worksheet(
                 {'owner': username, 'id_number': id_number})
-            if username == '_sage_':
+            if username == UN_SAGE:
                 # save the default configuration, since this may be loaded by a
                 # random other user since *anyone* looking at docs will load
                 # all _sage_ worksheets

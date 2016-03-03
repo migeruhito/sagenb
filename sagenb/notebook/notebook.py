@@ -589,7 +589,7 @@ class Notebook(object):
 
     @cached_property()
     def scratch_wst(self):
-        return self.create_wst('scratch', '_sage_')
+        return self.create_wst('scratch', UN_SAGE)
 
     def create_wst(self, worksheet_name, username):
         if username != UN_PUB and self.user_manager[username].is_guest:
@@ -1151,7 +1151,7 @@ class Notebook(object):
         self._storage.save_worksheet(W, conf_only=conf_only)
 
     def delete_doc_browser_worksheets(self):
-        for w in self.user_wsts('_sage_'):
+        for w in self.user_wsts(UN_SAGE):
             if w.name.startswith('doc_browser'):
                 self.delete_wst(w.filename)
 
