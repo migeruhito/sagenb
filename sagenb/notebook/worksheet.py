@@ -189,8 +189,8 @@ class Worksheet(object):
         # State variables
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
-        # self.__next_id  cached_property (writable)
-        # self.__cells -> cached_property (writable, invalidates next_id)
+        # self.___next_id___  cached_property (writable)
+        # self.___cells___ -> cached_property (writable, invalidates next_id)
         self.__filename = os.path.join(owner, str(id_number))  # property ro
         # set the directory in which the worksheet files will be stored.
         self.__directory = notebook_worksheet_directory  # property ro
@@ -1757,11 +1757,7 @@ class Worksheet(object):
         """
         Return True if the body if this worksheet has been loaded from disk.
         """
-        try:
-            self.__cells
-            return True
-        except AttributeError:
-            return False
+        return hasattr(self, '___cells___')
 
     def reset_interact_state(self):
         """

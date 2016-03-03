@@ -435,7 +435,7 @@ def cached_property(writable=False, invalidate=()):
             delattr(self, attr)
 
     def wrapper(function):
-        attr_name = '__{}'.format(function.__name__)
+        attr_name = '___{}___'.format(function.__name__)
 
         def get_cached_property(self):
             try:
