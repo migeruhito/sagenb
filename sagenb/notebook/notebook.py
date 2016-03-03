@@ -561,7 +561,7 @@ class Notebook(object):
                 target_dir = os.path.join(W.directory, sub)
                 shutil.copytree(source_dir, target_dir)
 
-        W.edit_save(src.edit_text())
+        W.edit_save(src.body)
         W.save()
 
     def worksheet(self, username, id_number=None, **kwargs):

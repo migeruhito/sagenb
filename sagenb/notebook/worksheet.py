@@ -42,18 +42,17 @@ from .cell import Cell, TextCell
 from ..config import INITIAL_NUM_CELLS
 from ..config import WARN_THRESHOLD
 from ..config import UN_PUB
-from ..util import walltime
+from ..util import cached_property
 from ..util import ignore_nonexistent_files
 from ..util import next_available_id
 from ..util import set_default
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
-from ..util import cached_property
+from ..util import walltime
 from ..util.templates import format_completions_as_html
 from ..util.templates import prettify_time_ago
+from ..util.text import extract_cells
 from ..util.text import ignore_prompts_and_output
-from ..util.text import extract_text_before_first_compute_cell
-from ..util.text import extract_first_compute_cell
 from ..util.text import split_search_string_into_keywords
 from ..util.text import extract_text
 
@@ -191,7 +190,7 @@ class Worksheet(object):
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
         # self.__next_id  cached_property (writable)
-        # self.__cells -> property (cached)
+        # self.__cells -> cached_property (writable, invalidates next_id)
         self.__filename = os.path.join(owner, str(id_number))  # property ro
         # set the directory in which the worksheet files will be stored.
         self.__directory = notebook_worksheet_directory  # property ro
@@ -652,37 +651,25 @@ class Worksheet(object):
 
     @cached_property(writable=True)
     def next_id(self):
-        return 1 + max([C.id() for C in self.cells
+        return self.next_id_for_cells(self.cells)
+
+    def next_id_for_cells(self, cells):
+        return 1 + max([C.id() for C in cells
                         if isinstance(C.id(), int)] + [-1])
 
-    @property
+    @cached_property(writable=True, invalidate=('next_id',))
     def cells(self):
-        try:
-            return self.__cells
-        except AttributeError:
-            del self.next_id  # Invalidate next_id cache
-            worksheet_html = self.worksheet_html_filename
-            if not os.path.exists(worksheet_html):
-                self.__cells = []
-                for i in range(INITIAL_NUM_CELLS):
-                    self.append_new_cell()
-            else:
-                with open(worksheet_html) as f:
-                    self.edit_save(f.read())
-        return self.__cells
-
-    @cells.setter
-    def cells(self, cls):
-        del self.next_id  # Invalidate next_id cache
-        self.__cells = cls
-
-    @cells.deleter
-    def cells(self):
-        del self.next_id  # Invalidate next_id cache
-        try:
-            del self.__cells
-        except AttributeError:
-            pass
+        worksheet_html = self.worksheet_html_filename
+        if not os.path.exists(worksheet_html):
+            cells = []
+            for i in range(INITIAL_NUM_CELLS):
+                cells.append(self._new_cell(self.next_id_for_cells(cells)))
+        else:
+            self.reset_interact_state()
+            with open(worksheet_html) as f:
+                text = f.read()
+            cells = self.body_to_cells(text)
+        return cells
 
     @property
     def filename(self):
@@ -1633,10 +1620,10 @@ class Worksheet(object):
         basename = str(int(time.time()))
         filename = os.path.join(path, '%s.bz2' % basename)
         if E is None:
-            E = self.edit_text()
+            E = self.body
         worksheet_html = self.worksheet_html_filename
         open(filename, 'w').write(bz2.compress(E.encode('utf-8', 'ignore')))
-        open(worksheet_html, 'w').write(self.body().encode('utf-8', 'ignore'))
+        open(worksheet_html, 'w').write(self.body.encode('utf-8', 'ignore'))
         self.limit_snapshots()
         self.saved_by_info[basename] = user
         if self.auto_publish:
@@ -1754,22 +1741,17 @@ class Worksheet(object):
 
     # Editing the worksheet in plain text format (export and import)
 
+    @property
     def body(self):
         """
         OUTPUT:
 
             -- ``string`` -- Plain text representation of the body of
-               the worksheet.
+               the worksheet with {{{}}} wiki-formatting, suitable for hand
+               editing.
         """
-        s = ''
-        for C in self.cells:
-            t = C.edit_text().strip()
-            if t:
-                s += '\n\n' + t
-        return s
-
-    def set_body(self, body):
-        self.edit_save(body)
+        return '\n\n'.join(
+            t for t in (C.edit_text().strip() for C in self.cells) if t)
 
     def body_is_loaded(self):
         """
@@ -1780,13 +1762,6 @@ class Worksheet(object):
             return True
         except AttributeError:
             return False
-
-    def edit_text(self):
-        """
-        Returns a plain-text version of the worksheet with {{{}}}
-        wiki-formatting, suitable for hand editing.
-        """
-        return self.body()
 
     def reset_interact_state(self):
         """
@@ -1812,6 +1787,112 @@ class Worksheet(object):
         self.system, text = extract_text(text, start='system:', default='sage')
 
         self.edit_save(text)
+
+    def body_to_cells(self, text, ignore_ids=False):
+        r"""
+        Set the contents of this worksheet to the worksheet defined by
+        the plain text string text, which should be a sequence of HTML
+        and code blocks.
+
+        INPUT:
+
+        -  ``text`` - a string
+
+        -  ``ignore_ids`` - bool (default: False); if True
+           ignore all the IDs in the {{{}}} code block.
+
+
+        EXAMPLES:
+
+        We create a new test notebook and a worksheet.
+
+        ::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test Edit Save', 'sage')
+
+        We set the contents of the worksheet using the edit_save command.
+
+        ::
+
+            sage: W.edit_save('{{{\n2+3\n///\n5\n}}}\n{{{\n2+8\n///\n10\n}}}')
+            sage: W
+            sage/0: [Cell 0: in=2+3, out=
+            5, Cell 1: in=2+8, out=
+            10]
+            sage: W.name
+            u'Test Edit Save'
+
+        We check that loading a worksheet whose last cell is a
+        :class:`~sagenb.notebook.cell.TextCell` properly increments
+        the worksheet's cell count (see Sage trac ticket `#8443`_).
+
+        .. _#8443: http://trac.sagemath.org/sage_trac/ticket/8443
+
+        ::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage', 'sage', 'sage@sagemath.org', force=True)
+            sage: W = nb.create_wst('Test trac #8443', 'sage')
+            sage: W.edit_save('{{{\n1+1\n///\n}}}')
+            sage: W.cell_id_list()
+            [0]
+            sage: W.next_id
+            1
+            sage: W.edit_save("{{{\n1+1\n///\n}}}\n\n<p>a text cell</p>")
+            sage: len(set(W.cell_id_list())) == 3
+            True
+            sage: W.cell_id_list()
+            [0, 1, 2]
+            sage: W.next_id
+            3
+        """
+        text = text.replace('\r\n', '\n')
+        data = extract_cells(text)
+
+        id_gen = next_available_id(
+            set(x[0]
+                for typ, x in data if typ == 'compute' and x[0] is not None))
+        used_ids = set()
+
+        cells = []
+        for typ, T in data:
+            if typ == 'plain':
+                id = id_gen.next()
+                C = self._new_text_cell(T, id=id)
+            elif typ == 'compute':
+                id, input, output = T
+                if not ignore_ids and id is not None:
+                    html = True
+                    if id in used_ids:
+                        id = id_gen.next()
+                else:
+                    html = False
+                    id = id_gen.next()
+                C = Cell(id, '', '', self)
+                C = self._new_cell(id)
+                C.set_input_text(input)
+                C.set_output_text(output, '')
+                if html:
+                    C.update_html_output(output)
+
+            cells.append(C)
+            used_ids.add(id)
+
+        # There must be at least one cell.
+        if len(cells) == 0 or cells[-1].is_text_cell():
+            cells.append(self._new_cell(id_gen.next()))
+
+        if not self.is_published():
+            for c in cells:
+                if c.is_interactive_cell():
+                    c.delete_output()
+        return cells
 
     def edit_save(self, text, ignore_ids=False):
         r"""
@@ -1878,74 +1959,7 @@ class Worksheet(object):
             3
         """
         self.reset_interact_state()
-
-        text.replace('\r\n', '\n')
-
-        data = []
-        while True:
-            plain_text = extract_text_before_first_compute_cell(text).strip()
-            if len(plain_text) > 0:
-                T = plain_text
-                data.append(('plain', T))
-            try:
-                meta, input, output, i = extract_first_compute_cell(text)
-                data.append(('compute', (meta, input, output)))
-            except EOFError:
-                # print msg # -- don't print msg, just outputs a blank
-                #                 line every time, which makes for an
-                #                 ugly and unprofessional log.
-                break
-            text = text[i:]
-
-        ids = set([x[0]['id']
-                   for typ, x in data if typ == 'compute' and 'id' in x[0]])
-        used_ids = set([])
-
-        cells = []
-        for typ, T in data:
-            if typ == 'plain':
-                if len(T) > 0:
-                    id = next_available_id(ids)
-                    ids.add(id)
-                    cells.append(self._new_text_cell(T, id=id))
-                    used_ids.add(id)
-            elif typ == 'compute':
-                meta, input, output = T
-                if not ignore_ids and 'id' in meta:
-                    id = meta['id']
-                    if id in used_ids:
-                        # In this case don't reuse, since ids must be unique.
-                        id = next_available_id(ids)
-                        ids.add(id)
-                    html = True
-                else:
-                    id = next_available_id(ids)
-                    ids.add(id)
-                    html = False
-                used_ids.add(id)
-                try:
-                    self.__cells
-                    C = self.get_cell_with_id(id=id)
-                    if C.is_text_cell():
-                        C = self._new_cell(id)
-                except AttributeError:
-                    C = self._new_cell(id)
-                C.set_input_text(input)
-                C.set_output_text(output, '')
-                if html:
-                    C.update_html_output(output)
-                cells.append(C)
-
-        self.cells = cells
-
-        # There must be at least one cell.
-        if len(cells) == 0 or cells[-1].is_text_cell():
-            self.append_new_cell()
-
-        if not self.is_published():
-            for c in self.cells:
-                if c.is_interactive_cell():
-                    c.delete_output()
+        self.cells = self.body_to_cells(text, ignore_ids=ignore_ids)
 
     def truncated_name(self, max=30):
         name = self.name

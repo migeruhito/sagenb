@@ -466,14 +466,16 @@ def cached_property(writable=False, invalidate=()):
 
 
 def next_available_id(v):
-    """
-    Return smallest nonnegative integer not in v.
-    """
+    m = max(v) + 1
     i = 0
-    while i in v:
+    values = sorted(set(range(max(v) + 2)) - set(v), reverse=True)
+    while i < m:
+        i = values.pop()
+        yield i
+    while True:
         i += 1
-    return i
-
+        yield i
+        
 
 def make_path_relative(dir):
     r"""

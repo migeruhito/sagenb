@@ -193,7 +193,7 @@ def html_worksheet_revision_list(username, worksheet):
             tmp_dir(ext='.sagenb'))
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
-        sage: W.body()
+        sage: W.body
         u'\n\n{{{id=1|\n\n///\n}}}'
         sage: W.save_snapshot(UN_ADMIN)
         sage: nb.html_worksheet_revision_list(UN_ADMIN, W)

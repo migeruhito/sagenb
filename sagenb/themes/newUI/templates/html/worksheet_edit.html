@@ -24,7 +24,7 @@
 		<button type="submit" class="btn btn-primary" name="button_save" id="button_save">{{ gettext('Save Changes') }}</button>
     	<button type="submit" class="btn" name="button_cancel">{{ gettext('Cancel') }}</button>
 	</div>
-	<textarea class="plaintextedit" id="cell_intext" name="textfield" style="width: 100%; height: 700px;">{{ worksheet.edit_text() }}</textarea>
+	<textarea class="plaintextedit" id="cell_intext" name="textfield" style="width: 100%; height: 700px;">{{ worksheet.body }}</textarea>
 </form>
 {% endblock page %}
 

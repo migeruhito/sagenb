@@ -21,6 +21,24 @@ extract_title_re = re.compile(
     r'\<title\>(.*?)\<\/title\>', re.IGNORECASE | re.DOTALL)
 whitespace_re = re.compile('\s')
 non_whitespace_re = re.compile('\S')
+extract_cells_re0 = re.compile(  # No \n needed after open delimiter. Only comp
+        r'(?:\n+|^)\{\{\{'
+        r'(?:(?:([^\n]*)\|)?\n+)?'
+        r'(.*?)'
+        r'(?:\n+///\n+(.*?))?\n*'
+        r'(?<=\n)\}\}\}(?=\n|$)',
+        flags=re.DOTALL)
+extract_cells_re = re.compile(  # \n needed after open delimiter
+        r'\s*(.*?)\s*'
+        r'(?:(?<=\n)|^)\{\{\{'
+        r'(?:([^\n]*)\|)?\n+'
+        r'(.*?)\n*'
+        r'(?:(?<=\n)///\n+(.*?))?\n*'
+        r'(?<=\n)\}\}\}(?:\n+|$)',
+        flags=re.DOTALL)
+split_last_text_re = re.compile(r'(.*\n+}}})(?:\n+|$)\s*(.*)\s*',
+                                flags=re.DOTALL)
+meta_re = re.compile(r'\s*(.*?)\s*=\s*(.*?)\s*(?:,|$)')
 
 
 def trunc_invalid_username_chars(name):
@@ -298,63 +316,18 @@ def after_first_word(s):
     return s[i.start() + 1:]
 
 
-def extract_text_before_first_compute_cell(text):
-    """
-    OUTPUT: Everything in text up to the first {{{.
-    """
-    i = text.find('{{{')
-    if i == -1:
-        return text
-    return text[:i]
-
-
-def extract_first_compute_cell(text):
-    """
-    INPUT: a block of wiki-like marked up text OUTPUT:
-
-
-    -  ``meta`` - meta information about the cell (as a
-       dictionary)
-
-    -  ``input`` - string, the input text
-
-    -  ``output`` - string, the output text
-
-    -  ``end`` - integer, first position after }}} in
-       text.
-    """
-    # Find the input block
-    i = text.find('{{{')
-    if i == -1:
-        raise EOFError
-    j = text[i:].find('\n')
-    if j == -1:
-        raise EOFError
-    k = text[i:].find('|')
-    if k != -1 and k < j:
-        try:
-            meta = dictify(text[i + 3:i + k])
-        except TypeError:
-            meta = {}
-        i += k + 1
-    else:
-        meta = {}
-        i += 3
-
-    j = text[i:].find('\n}}}')
-    if j == -1:
-        j = len(text)
-    else:
-        j += i
-    k = text[i:].find('\n///')
-    if k == -1 or k + i > j:
-        input = text[i:j]
-        output = ''
-    else:
-        input = text[i:i + k].strip()
-        output = text[i + k + 4:j]
-
-    return meta, input.strip(), output, j + 4
+def extract_cells(text):
+    text, last_text_cell = split_last_text_re.findall(text)[0]
+    cells = []
+    for txt, meta, inp, outp in extract_cells_re.findall(text):
+        if txt:
+            cells.append(('plain', txt))
+        meta = dict(meta_re.findall(meta))
+        idx = None if 'id' not in meta else int(meta['id'])
+        cells.append(('compute', (idx, inp, outp)))
+    if last_text_cell:
+        cells.append(last_text_cell)
+    return cells
 
 
 def extract_text(text, start='', default=gettext('Untitled')):
@@ -366,30 +339,6 @@ def extract_text(text, start='', default=gettext('Untitled')):
     else:
         name = text.pop(0)[len(start):].strip()
     return name, '\n'.join(text)
-
-
-def dictify(s):
-    """
-    INPUT:
-
-    -  ``s`` - a string like 'in=5, out=7'
-
-    OUTPUT:
-
-    -  ``dict`` - such as 'in':5, 'out':7
-    """
-    w = []
-    try:
-        for v in s.split(','):
-            a, b = v.strip().split('=')
-            try:
-                b = eval(b)
-            except:
-                pass
-            w.append([a, b])
-    except ValueError:
-        return {}
-    return dict(w)
 
 
 def split_search_string_into_keywords(s):

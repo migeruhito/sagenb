@@ -399,7 +399,7 @@ class FilesystemDatastore(Datastore):
             # todo -- add check if changed
             filename = self._worksheet_html_filename(username, id_number)
             with atomic_write(self._abspath(filename)) as f:
-                f.write(worksheet.body().encode('utf-8', 'ignore'))
+                f.write(worksheet.body.encode('utf-8', 'ignore'))
 
     def create_worksheet(self, username, id_number, **kwargs):
         """
