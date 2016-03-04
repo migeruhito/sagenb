@@ -1034,10 +1034,7 @@ class Worksheet(object):
             sage: W.is_rater('riemann')
             True
         """
-        try:
-            return username in [x[0] for x in self.ratings]
-        except TypeError:
-            return False
+        return username in [x[0] for x in self.ratings]
 
     def rating(self):
         """
@@ -1170,30 +1167,6 @@ class Worksheet(object):
         # easily click save without changing the view back.
         self.save(conf_only=True)
 
-    def user_view_is(self, user, x):
-        """
-        Return True if the user view of user is x.
-
-        INPUT:
-
-        -  ``user`` - a string
-
-        -  ``x`` - int, one of the variables WS_ACTIVE, WS_ARCHIVED,
-           WS_TRASH in worksheet.py
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: W.user_view_is('admin', sagenb.notebook.worksheet.ARCHIVED)
-            False
-            sage: W.user_view_is('admin', sagenb.notebook.worksheet.ACTIVE)
-            True
-        """
-        return self.user_view(user) == x
-
     def is_archived(self, user):
         """
         Return True if this worksheet is archived for the given user.
@@ -1216,7 +1189,7 @@ class Worksheet(object):
             sage: W.is_archived('admin')
             True
         """
-        return self.user_view_is(user, WS_ARCHIVED)
+        return self.user_view(user) == WS_ARCHIVED
 
     def is_active(self, user):
         """
@@ -1240,7 +1213,7 @@ class Worksheet(object):
             sage: W.is_active('admin')
             False
         """
-        return self.user_view_is(user, WS_ACTIVE)
+        return self.user_view(user) == WS_ACTIVE
 
     def is_trashed(self, user):
         """
@@ -1264,7 +1237,7 @@ class Worksheet(object):
             sage: W.is_trashed('admin')
             True
         """
-        return self.user_view_is(user, WS_TRASH)
+        return self.user_view(user) == WS_TRASH
 
     def move_to_archive(self, user):
         """
@@ -1394,17 +1367,11 @@ class Worksheet(object):
         return self.owner == username
 
     def is_only_viewer(self, user):
-        try:
-            return user in self.viewers
-        except AttributeError:
-            return False
+        return user in self.viewers
 
     def is_viewer(self, user):
-        try:
-            return (user in self.viewers or user in self.collaborators or
-                    user == self.publisher())
-        except AttributeError:
-            return True
+        return (user in self.viewers or user in self.collaborators or
+                user == self.publisher())
 
     def is_collaborator(self, user):
         return user in self.collaborators
@@ -1634,15 +1601,6 @@ class Worksheet(object):
     def get_snapshot_text_filename(self, name):
         path = self.snapshot_directory()
         return os.path.join(path, name)
-
-    def user_autosave_interval(self, username):
-        return self.notebook()[username]['autosave_interval']
-
-    def revert_to_snapshot(self, name):
-        path = self.snapshot_directory()
-        filename = os.path.join(path, '%s.txt' % name)
-        E = bz2.decompress(open(filename).read())
-        self.edit_save(E)
 
     def snapshot_data(self):
         try:
@@ -2738,11 +2696,6 @@ class Worksheet(object):
         if username:
             self.record_edit(username)
 
-    def ping(self, username):
-        if self.is_published():
-            return
-        self._record_that_we_are_computing(username)
-
     # Enqueuing cells
 
     def queue(self):
@@ -2863,15 +2816,6 @@ class Worksheet(object):
         else:
             status = 'd'
         return status, cell
-
-    def is_last_id_and_previous_is_nonempty(self, id):
-        if self.cells[-1].id() != id:
-            return False
-        if len(self.cells) == 1:
-            return False
-        if len(self.cells[-2].output_text(ncols=0)) == 0:
-            return False
-        return True
 
     # (Tab) Completions
 
