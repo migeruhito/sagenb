@@ -1385,7 +1385,7 @@ class Cell(Cell_generic):
         return hasattr(self, 'interact')
 
     def stop_interacting(self):
-        """
+        """Not used
         Stops :func:`sagenb.notebook.interact.interact`\ ion for this
         compute cell.
 
