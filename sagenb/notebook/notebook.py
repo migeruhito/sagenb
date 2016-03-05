@@ -205,8 +205,8 @@ class Notebook(object):
     # Repair broken notebooks. This is for migrations from official notebooks
 
     def repair(self):
-        # repair notebooks with old unpublish method with missing published
-        # worksheets
+        # mynb: repair notebooks with old unpublish method with missing
+        # published worksheets
         for wst in self.all_wsts:
             if wst.published_id_number is not None:
                 try:
@@ -335,12 +335,6 @@ class Notebook(object):
             history.append(hunk)
         self._user_history[username] = history
         return history
-
-    def create_wst_from_history(self, name, username, maxlen=None):
-        W = self.create_wst(name, username)
-        W.edit_save(
-            'Log Worksheet\n' + self.user_history_text(username, maxlen=None))
-        return W
 
     def user_history_text(self, username, maxlen=None):
         history = self.user_history(username)
@@ -511,11 +505,6 @@ class Notebook(object):
                 for w in self.user_wsts(username)]
 
     # Worksheet controller
-
-    def change_wst_key(self, old_key, new_key):
-        ws = self.__worksheets
-        ws[new_key] = ws[old_key]
-        del ws[old_key]
 
     def new_id_number(self, username):
         """
@@ -1151,6 +1140,7 @@ class Notebook(object):
         self._storage.save_worksheet(W, conf_only=conf_only)
 
     def delete_doc_browser_worksheets(self):
+        """Not used"""
         for w in self.user_wsts(UN_SAGE):
             if w.name.startswith('doc_browser'):
                 self.delete_wst(w.filename)
@@ -1172,18 +1162,6 @@ class Notebook(object):
 
     def set_ulimit(self, ulimit):
         self.__ulimit = ulimit
-
-    def get_server(self):
-        P = self.server_pool()
-        if P is None or len(P) == 0:
-            return None
-        try:
-            self.__server_number = (self.__server_number + 1) % len(P)
-            i = self.__server_number
-        except AttributeError:
-            self.__server_number = 0
-            i = 0
-        return P[i]
 
     def new_worksheet_process(self, init_code=None):
         """
@@ -1212,14 +1190,6 @@ class Notebook(object):
             max_processes=tbl['u'],
             python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),
             init_code='\n'.join((init_code, "DIR = '{}'".format(self.DIR))))
-
-    def _python_command(self):
-        """
-        """
-        try:
-            return self.__python_command
-        except AttributeError:
-            pass
 
     # Computing control
 
