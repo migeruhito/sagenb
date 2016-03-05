@@ -35,10 +35,10 @@ INPUT:
 <!-- Jmol - embedded 3D graphics **needs to be before jmol_lib.js** -->
 <script type="text/javascript" src="/jsmol/JSmol.min.nojq.js"></script>
 
-{% if not worksheet.is_published() or notebook.conf['pub_interact'] %}
+{% if not worksheet.is_published or notebook.conf['pub_interact'] %}
 <script type="text/javascript" src="/javascript/sage/js/notebook_lib.js"></script>
 <script type="text/javascript" src="/javascript/dynamic/notebook_dynamic.js"></script>
-{% elif worksheet.is_published() %}
+{% elif worksheet.is_published %}
 <script type="text/javascript" src="/javascript/sage/js/jmol_lib.js"></script>
 {% endif %}
 
@@ -49,7 +49,7 @@ INPUT:
 <!-- Sage3d - accelerated 3D graphics -->
 <script type="text/javascript" src="/javascript/sage3d/sage3d.js"></script>
 
-{% if JEDITABLE_TINYMCE and not worksheet.docbrowser and not worksheet.is_published() %}
+{% if JEDITABLE_TINYMCE and not worksheet.docbrowser and not worksheet.is_published %}
 <!-- TinyMCE and jEditable - in-place editing of text cells -->
 <script type="text/javascript" src="/javascript/tiny_mce/tiny_mce.js"></script>
 <script type="text/javascript" src="/javascript/jquery/plugins/jeditable/jquery.jeditable.mini.js" charset="utf-8"></script>
@@ -62,7 +62,7 @@ INPUT:
 <script  type="text/javascript">
     worksheet_filename = "{{ worksheet.filename }}";
     worksheet_name = {{ worksheet.name | repr_str | safe }};
-    {% if not worksheet.is_published() or notebook.conf['pub_interact'] %}
+    {% if not worksheet.is_published or notebook.conf['pub_interact'] %}
         server_ping_while_alive();
     {% endif %}
 </script>
@@ -83,18 +83,18 @@ INPUT:
             {{ worksheet.name }}
         </a>
         <div><span class="lastedit">{{ gettext('last edited') }} {{ time.last_edited(worksheet.last_edited, worksheet.last_to_edit) }}</span></div>
-        {% if worksheet.warn_about_other_person_editing(username) and username != 'guest' and not worksheet.docbrowser and not worksheet.is_published() %}
+        {% if worksheet.warn_about_other_person_editing(username) and username != 'guest' and not worksheet.docbrowser and not worksheet.is_published %}
         <span class="pingdown">({{ gettext('Someone else is viewing this worksheet') }})</span>
         {% endif %}
     </div>
     <div id="save-discard-buttons">
-        {% if not worksheet.docbrowser and not worksheet.is_published() %}
+        {% if not worksheet.docbrowser and not worksheet.is_published %}
         <button name="button_save" title="{{ gettext('Save changes') }}" onClick="save_worksheet();">{{ gettext('Save') }}</button><button title="{{ gettext('Save changes and close window') }}" onClick="save_worksheet_and_close();" name="button_save">{{ gettext('Save & quit') }}</button><button title="{{ gettext('Discard changes to this worksheet') }}" onClick="worksheet_discard();">{{ gettext('Discard & quit') }}</button>
         {% endif %}
     </div>
 
     <div id="worksheet-menu">
-    {% if not worksheet.is_published() %}
+    {% if not worksheet.is_published %}
         <select class="worksheet"  onchange="go_option(this);" id="file-menu">
             <option title="{{ gettext('Select a file related function') }}" value=""  selected>{{ gettext('File...') }}</option>
             <option title="{{ gettext('Load a new worksheet stored in a file') }}" value="upload_worksheet_button();">{{ gettext('Load worksheet from a file...') }}</option>
@@ -129,7 +129,7 @@ INPUT:
             {% endfor %}
         </select>
 
-        {% if not worksheet.docbrowser and not worksheet.is_published() %}
+        {% if not worksheet.docbrowser and not worksheet.is_published %}
         <select onchange="go_system_select(this, {{ worksheet.system_index }});" class="worksheet" id="systems-menu">
             {% for system in notebook.systems %}
             <option title="{{ gettext('Evaluate all input cells using %(i)s', i=system[0]) }}"
@@ -151,7 +151,7 @@ INPUT:
     {% endif %} 
     </div>
     <div id="share-publish-buttons">
-        {% if not worksheet.docbrowser and not worksheet.is_published() %}
+        {% if not worksheet.docbrowser and not worksheet.is_published %}
         {% macro cls(x) %}
         {{ "control-select" if x == select else "control" }}
         {% endmacro %}

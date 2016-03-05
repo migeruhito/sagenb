@@ -7,7 +7,7 @@ INPUT:
 
 {% set wrap = conf['word_wrap_cols'] %}
 {% if not publish %}
-    {% set publish = worksheet.is_published() %}
+    {% set publish = worksheet.is_published %}
 {% endif %}
 
 <div class="cell_input_active" id="cell_resizer"></div>

@@ -39,21 +39,21 @@ INPUT:
     <li><a href="{{ url }}">{{ edit_text }}</a></li>
     <li><a href="download/{{ download_name }}.sws">{{ gettext('Download.') }}</a></li>
     {% if worksheet.rating() != -1 or
-       not (notebook.user_manager[username].is_guest or worksheet.is_publisher(username)) %}
+       not (notebook.user_manager[username].is_guest or worksheet.publisher == username) %}
     <li>
         {% if worksheet.rating() != -1 %}
             <a class="usercontrol" href="rating_info">
                 {{ gettext('This page is rated %(wr).1f.', wr=worksheet.rating()) }}
             </a>
         {% endif %}
-        {% if not (notebook.user_manager[username].is_guest or worksheet.is_publisher(username)) %}
+        {% if not (notebook.user_manager[username].is_guest or worksheet.publisher == username) %}
             <span>
             </span>
             {% for i in range(5) %}
             <input type="radio" name="rating" value={{ i }} > {{ i }}
             {% endfor %}
             &nbsp;&nbsp; <input name="rating_comment" id="rating_comment" value="{{ gettext('leave a comment') }}"/>
-            <input type="button" id="rate_button" name="rating" value= {{ gettext("Rerate") if worksheet.is_rater(username) else gettext("Rate") }} > 
+            <input type="button" id="rate_button" name="rating" value= {{ gettext("Rerate") if username in worksheet.ratings else gettext("Rate") }} > 
         {% endif %}
     </li>
     {% endif %}

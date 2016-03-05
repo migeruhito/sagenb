@@ -26,6 +26,7 @@ AUTHORS:
 
 # Import standard Python libraries that we will use below
 from __future__ import absolute_import
+from __future__ import division
 
 import bz2
 import calendar
@@ -189,7 +190,8 @@ class Worksheet(object):
         self.published_id_number = published_id_number
         self.__worksheet_that_was_published = set_default(
             worksheet_that_was_published, (owner, id_number))  # property
-        self.__ratings = set_default(ratings, [])  # property ro
+        self.__ratings = dict(
+            (r[0], r[1:]) for r in set_default(ratings, []))  # property ro
 
         # State variables
         # state sequence number, used for sync
@@ -540,12 +542,12 @@ class Worksheet(object):
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('Publish Test', 'admin')
             sage: W.ratings
-            []
+            {}
             sage: W.rate(0, 'this lacks content', 'riemann')
             sage: W.rate(3, 'this is great', 'hilbert')
             sage: W.ratings
-            [('riemann', 0, 'this lacks content'),
-             ('hilbert', 3, 'this is great')]
+            {'riemann': (0, 'this lacks content'),
+             'hilbert': (3, 'this is great')}
         """
         return self.__ratings
 
@@ -639,7 +641,7 @@ class Worksheet(object):
             'published_id_number': self.published_id_number,
             'worksheet_that_was_published':
             self.worksheet_that_was_published,
-            'ratings': self.ratings,
+            'ratings': [(r, v[0], v[1]) for r, v in self.ratings.iteritems()],
             }
         return d
 
@@ -647,12 +649,12 @@ class Worksheet(object):
 
     @property
     def state_number(self):
-        if self.is_published() or self.docbrowser:
+        if self.is_published or self.docbrowser:
             return 0
         return self.__state_number
 
     def increase_state_number(self):
-        if not self.is_published() and not self.docbrowser:
+        if not self.is_published and not self.docbrowser:
             self.__state_number += 1
 
     @cached_property(writable=True)
@@ -885,6 +887,7 @@ class Worksheet(object):
 
     # Publication
 
+    @property
     def is_published(self):
         """
         Return True if this worksheet is a published worksheet.
@@ -899,14 +902,15 @@ class Worksheet(object):
                 tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: W.is_published()
+            sage: W.is_published
             False
             sage: W.owner = 'pub'
-            sage: W.is_published()
+            sage: W.is_published
             True
         """
         return self.owner == UN_PUB
 
+    @property
     def publisher(self):
         """
         Return username of user that published this worksheet.
@@ -920,53 +924,10 @@ class Worksheet(object):
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('Publish Test', 'admin')
             sage: S = nb.publish_wst(W, 'admin')
-            sage: S.publisher()
+            sage: S.publisher
             'admin'
         """
         return self.worksheet_that_was_published[0]
-
-    def is_publisher(self, username):
-        """
-        Return True if username is the username of the publisher of this
-        worksheet, assuming this worksheet was published.
-
-        INPUT:
-
-        -  ``username`` - string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: P = nb.publish_wst(W, 'admin')
-            sage: P.is_publisher('hearst')
-            False
-            sage: P.is_publisher('admin')
-            True
-        """
-        return self.publisher() == username
-
-    def has_published_version(self):
-        """
-        Return True if there is a published version of this worksheet.
-
-        OUTPUT: bool
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: P = nb.publish_wst(W, 'admin')
-            sage: P.has_published_version()
-            False
-            sage: W.has_published_version()
-            True
-        """
-        return self.published_id_number is not None
 
     @property
     def published_filename(self):
@@ -998,49 +959,19 @@ class Worksheet(object):
             sage: W = nb.create_wst('Publish Test', 'admin')
             sage: W.rate(3, 'this is great', 'hilbert')
             sage: W.ratings
-            [('hilbert', 3, 'this is great')]
+            {'hilbert': (3, 'this is great')}
 
         Note that only the last rating by a user counts::
 
             sage: W.rate(1, 'this lacks content', 'riemann')
             sage: W.rate(0, 'this lacks content', 'riemann')
             sage: W.ratings
-            [('hilbert', 3, 'this is great'),
-             ('riemann', 0, 'this lacks content')]
+            {'hilbert': (3, 'this is great'),
+             'riemann': (0, 'this lacks content')}
         """
-        r = self.ratings
-        x = int(x)
-        for i in range(len(r)):
-            if r[i][0] == username:
-                r[i] = (username, x, comment)
-                return
-        else:
-            r.append((username, x, comment))
 
-    def is_rater(self, username):
-        """
-        Return True is the user with given username has rated this
-        worksheet.
-
-        INPUT:
-
-        -  ``username`` - string
-
-        OUTPUT: bool
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: W.rate(0, 'this lacks content', 'riemann')
-            sage: W.is_rater('admin')
-            False
-            sage: W.is_rater('riemann')
-            True
-        """
-        return username in [x[0] for x in self.ratings]
+        self.ratings[username] = (int(x), comment)
+        self.save()
 
     def rating(self):
         """
@@ -1061,12 +992,8 @@ class Worksheet(object):
             sage: W.rating()
             1.5
         """
-        r = [x[1] for x in self.ratings]
-        if len(r) == 0:
-            rating = -1    # means "not rated"
-        else:
-            rating = float(sum(r)) / float(len(r))
-        return rating
+        r = self.ratings
+        return sum(x[0] for x in r.itervalues()) / len(r) if r else -1
 
     # Active, trash can and archive
 
@@ -1345,7 +1272,7 @@ class Worksheet(object):
 
     def is_viewer(self, user):
         return (user in self.viewers or user in self.collaborators or
-                user == self.publisher())
+                user == self.publisher)
 
     def is_collaborator(self, user):
         return user in self.collaborators
@@ -1537,7 +1464,7 @@ class Worksheet(object):
 
         try:
             r = [unicode(x.lower()) for x in [self.owner,
-                                              self.publisher(),
+                                              self.publisher,
                                               self.name, contents]]
             r = u" ".join(r)
         except UnicodeDecodeError:
@@ -1812,7 +1739,7 @@ class Worksheet(object):
         if len(cells) == 0 or cells[-1].is_text_cell():
             cells.append(self._new_cell(id_gen.next()))
 
-        if not self.is_published():
+        if not self.is_published:
             for c in cells:
                 if c.is_interactive_cell():
                     c.delete_output()
@@ -2280,7 +2207,7 @@ class Worksheet(object):
 
         OUTPUT: a Sage interface
         """
-        if self.is_published():
+        if self.is_published:
             return None
         try:
             S = self.__sage
@@ -2311,7 +2238,7 @@ class Worksheet(object):
         if self.pretty_print:
             S.execute('pretty_print_default(True)', mode='raw')
 
-        if not self.is_published():
+        if not self.is_published:
             self._enqueue_auto_cells()
         return self.__sage
 
@@ -2692,7 +2619,7 @@ class Worksheet(object):
            "asap" cells.  Otherwise, ``C`` goes at the end of the
            queue.
         """
-        if self.is_published():
+        if self.is_published:
             return
         self._record_that_we_are_computing(username)
         if not C.is_compute_cell():
@@ -2809,7 +2736,7 @@ class Worksheet(object):
         completions = s.split()
 
         n = len(completions)
-        l = n / cols + n % cols
+        l = n // cols + n % cols
 
         if n == 1:
             return ''  # don't show a window, just replace it

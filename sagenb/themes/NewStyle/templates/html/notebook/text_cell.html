@@ -44,7 +44,7 @@ INPUT:
     <div class="text_cell" id="cell_text_{{ cell.id() }}">
       {{ cell.plain_text() | safe }}
     </div>
-{% if JEDITABLE_TINYMCE and not cell.worksheet().is_published() and not cell.worksheet().docbrowser and not do_print and not publish %}
+{% if JEDITABLE_TINYMCE and not cell.worksheet().is_published and not cell.worksheet().docbrowser and not do_print and not publish %}
     <script type="text/javascript">
        $("#cell_text_{{ cell.id() }}").unbind('dblclick').editable(function (value, settings) {
             evaluate_text_cell_input({{ '%r'|format(cell.id()) }}, value, settings);

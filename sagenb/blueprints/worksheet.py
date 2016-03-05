@@ -72,7 +72,7 @@ def worksheet_view(f):
             owner = worksheet.owner
 
             if owner != UN_SAGE and g.username != owner:
-                if not worksheet.is_published():
+                if not worksheet.is_published:
                     if (g.username not in worksheet.collaborators and
                             not g.notebook.user_manager[g.username].is_admin):
                         return message_template(
@@ -80,7 +80,7 @@ def worksheet_view(f):
                               "worksheet"),
                             username=g.username)
 
-            if not worksheet.is_published():
+            if not worksheet.is_published:
                 worksheet.set_active(g.username)
 
             # This was in twist.Worksheet.childFactory
@@ -156,8 +156,8 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
 
     nb = g.notebook
 
-    if ws.docbrowser or ws.is_published():
-        if ws.is_published() or nb.user_manager[username].is_guest:
+    if ws.docbrowser or ws.is_published:
+        if ws.is_published or nb.user_manager[username].is_guest:
             template_name = 'guest_worksheet_page.html'
             publish = True
         else:
@@ -775,7 +775,7 @@ def worksheet_properties(worksheet):
     nb = g.notebook
     r = extended_wst_basic(worksheet, nb)
 
-    if worksheet.has_published_version():
+    if worksheet.published_id_number is not None:
         hostname = request.headers.get(
             'host',
             nb.interface + ':' + str(g.notebook.port))
@@ -1538,7 +1538,7 @@ def worksheet_publish(worksheet):
     # Returns the publication page
     else:
         # Page for when worksheet already published
-        if worksheet.has_published_version():
+        if worksheet.published_id_number is not None:
             hostname = request.headers.get(
                 'host', nb.interface + ':' + str(nb.port))
 

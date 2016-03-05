@@ -14,7 +14,7 @@ def extended_wst_basic(wst, nb):
         'filename': wst.filename,
         'running': wst.compute_process_has_been_started(),
         'attached_data_files': wst.attached_data_files,
-        'published': wst.has_published_version(),
+        'published': wst.published_id_number is not None,
         })
     if d['published']:
         d['published_time'] = strftime(

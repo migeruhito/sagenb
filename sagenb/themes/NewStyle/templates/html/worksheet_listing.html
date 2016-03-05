@@ -166,7 +166,7 @@ INPUT:
                     {{ worksheet.truncated_name(50) }}
                 </a>
                 
-                {% if not pub and worksheet.is_published() %}(Published){% endif %}
+                {% if not pub and worksheet.is_published %}(Published){% endif %}
             </td>
             <td class="owner_collab">
 
@@ -200,7 +200,7 @@ INPUT:
                 <a class="share" href="/home/{{ worksheet.filename }}/share">{{ gettext('Share now') }}</a>
                 {% endif %}
 
-                {% if worksheet.has_published_version() %}
+                {% if worksheet.published_id_number is not none %}
                 <a href="/home/{{ worksheet.published_filename }}">
                     ({{ gettext('published') }})
                 </a>
