@@ -395,7 +395,7 @@ class Notebook(object):
         # we double-check that we can actually view these worksheets
         # just in case someone forgets to update the map
         worksheets.extend(
-            w for w in viewable_worksheets if w.is_viewer(username))
+            w for w in viewable_worksheets if w.viewable_by(username))
         return self._with_running_worksheets(worksheets)
 
     def user_wsts(self, username):

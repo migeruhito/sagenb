@@ -33,7 +33,7 @@ INPUT:
         state_number = {{ worksheet.state_number }};
         cell_id_list = {{ worksheet.cell_id_list() }};
         queue_id_list = {{ worksheet.queue_id_list() }};
-        {% if worksheet.is_only_viewer(username) %}
+        {% if username in worksheet.viewers %}
         worksheet_locked = true;
         {% else %}
         worksheet_locked = false;

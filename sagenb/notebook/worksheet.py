@@ -1212,20 +1212,11 @@ class Worksheet(object):
 
     # Owner/viewer/user management
 
-    def is_owner(self, username):
-        return self.owner == username
-
-    def is_only_viewer(self, user):
-        return user in self.viewers
-
-    def is_viewer(self, user):
+    def viewable_by(self, user):
         return (user in self.viewers or user in self.collaborators or
                 user == self.publisher)
 
-    def is_collaborator(self, user):
-        return user in self.collaborators
-
-    def user_can_edit(self, user):
+    def editable_by(self, user):
         """
         Return True if the user with given name is allowed to edit this
         worksheet.
@@ -1247,12 +1238,12 @@ class Worksheet(object):
             sage: nb.user_manager.add_user(
                 'william', 'william', 'wstein@sagemath.org', force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: W.user_can_edit('sage')
+            sage: W.editable_by('sage')
             True
 
         At first the user 'william' can't edit this worksheet::
 
-            sage: W.user_can_edit('william')
+            sage: W.editable_by('william')
             False
 
         After adding 'william' as a collaborator he can edit the
@@ -1261,14 +1252,14 @@ class Worksheet(object):
         ::
 
             sage: W.add_collaborator('william')
-            sage: W.user_can_edit('william')
+            sage: W.editable_by('william')
             True
 
         Clean up::
 
             sage: nb.delete()
         """
-        return self.is_collaborator(user) or self.is_owner(user)
+        return user in self.collaborators or self.owner == user
 
     def delete_user(self, user):
         """
@@ -1328,9 +1319,9 @@ class Worksheet(object):
         if user in self.viewers:
             self.viewers.remove(user)
         if self.owner == user:
-            if len(self.collaborators) > 0:
+            if self.collaborators:
                 self.owner = self.collaborators[0]
-            elif len(self.viewers) > 0:
+            elif self.viewers:
                 self.owner = self.viewers[0]
             else:
                 # Now there is nobody to take over ownership.  We
@@ -3019,7 +3010,7 @@ class Worksheet(object):
             sage: W.quit()
             sage: nb.delete()
         """
-        if not self.user_can_edit(username):
+        if not self.editable_by(username):
             raise ValueError(
                 "user '%s' not allowed to edit this worksheet" % username)
         for C in self.cells:

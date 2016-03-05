@@ -1387,8 +1387,8 @@ def worksheet_link_datafile(worksheet):
         target_worksheet_filename)
     target = os.path.abspath(os.path.join(
         target_ws.data_directory, data_filename))
-    if target_ws.owner != g.username and not target_ws.is_collaborator(
-            g.username):
+    if (target_ws.owner != g.username and
+            g.username not in target_ws.collaborators):
         return message_template(
             _("illegal link attempt!"),
             worksheet_datafile.url_for(worksheet, name=data_filename),
