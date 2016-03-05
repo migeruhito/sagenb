@@ -124,7 +124,7 @@ INPUT:
             <option title="{{ gettext('Select an attached file') }}" value="" selected>{{ gettext('Data...') }}</option>
             <option title="{{ gettext('Upload or create a data file in a wide range of formats') }}" value="__upload_data_file__">{{ gettext('Upload or create file...') }}</option>
             <option value="">--------------------</option>
-            {% for name in worksheet.attached_data_files()|sort %}
+            {% for name in worksheet.attached_data_files|sort %}
             <option value="datafile?name={{ name }}">{{ name }}</option>
             {% endfor %}
         </select>

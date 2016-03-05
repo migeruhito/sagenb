@@ -475,7 +475,7 @@ def next_available_id(v):
     while True:
         i += 1
         yield i
-        
+
 
 def make_path_relative(dir):
     r"""
@@ -526,3 +526,8 @@ def sort_worksheet_list(v, sort, reverse):
 
 def set_default(val, default):
     return default if val is None else val
+
+
+def makedirs(path):
+    if not os.path.exists(path):
+        os.makedirs(path)

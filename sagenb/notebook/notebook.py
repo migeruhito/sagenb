@@ -34,6 +34,8 @@ from ..sage_server.workers import sage
 from ..storage import FilesystemDatastore
 from ..util import cached_property
 from ..util import make_path_relative
+from ..util import makedirs
+from ..util import set_restrictive_permissions
 from ..util import sort_worksheet_list
 from ..util import unicode_str
 from ..util import walltime
@@ -214,12 +216,6 @@ class Notebook(object):
                 except KeyError:
                     wst.published_id_number = None
                     wst.save()
-
-    # App query
-
-    @cached_property()
-    def system_names(self):
-        return tuple(system[0] for system in self.systems)
 
     # App controller
 
@@ -528,27 +524,14 @@ class Notebook(object):
 
         - ``W`` - a new Worksheet instance; the target
         """
-        # Note: Each Worksheet method *_directory actually creates a
-        # directory, if it doesn't already exist.
-
-        # More compact, but significantly less efficient?
-        #      shutil.rmtree(W.cells_directory(), ignore_errors=True)
-        #      shutil.rmtree(W.data_directory(), ignore_errors=True)
-        #      shutil.rmtree(W.snapshots_directory(), ignore_errors=True)
-        #      shutil.copytree(src.cells_directory(), W.cells_directory())
-        #      shutil.copytree(src.data_directory(), W.data_directory())
-
-        for sub in ['cells', 'data', 'snapshots']:
-            target_dir = os.path.join(W.directory, sub)
-            if os.path.exists(target_dir):
-                shutil.rmtree(target_dir, ignore_errors=True)
-
-        # Copy images, data files, etc.
-        for sub in ['cells', 'data']:
-            source_dir = os.path.join(src.directory, sub)
-            if os.path.exists(source_dir):
-                target_dir = os.path.join(W.directory, sub)
-                shutil.copytree(source_dir, target_dir)
+    # TODO: move to storage backend
+        shutil.rmtree(W.cells_directory, ignore_errors=True)
+        shutil.rmtree(W.data_directory, ignore_errors=True)
+        shutil.rmtree(W.snapshots_directory, ignore_errors=True)
+        shutil.copytree(src.cells_directory, W.cells_directory)
+        shutil.copytree(src.data_directory, W.data_directory)
+        makedirs(self.snapshot_directory)
+        set_restrictive_permissions(self.snapshot_directory)
 
         W.edit_save(src.body)
         W.save()
@@ -1384,19 +1367,19 @@ def migrate_old_notebook_v1(dir):
 
         # copy over the DATA directory and cells directories
         try:
-            dest = new_ws.data_directory()
+            dest = new_ws.data_directory
             if os.path.exists(dest):
                 shutil.rmtree(dest)
-            shutil.copytree(old_ws.data_directory(), dest)
+            shutil.copytree(old_ws.data_directory, dest)
         except Exception, msg:
             print msg
 
         try:
-            if os.path.exists(old_ws.cells_directory()):
-                dest = new_ws.cells_directory()
+            if os.path.exists(old_ws.cells_directory):
+                dest = new_ws.cells_directory
                 if os.path.exists(dest):
                     shutil.rmtree(dest)
-                shutil.copytree(old_ws.cells_directory(), dest)
+                shutil.copytree(old_ws.cells_directory, dest)
         except Exception, msg:
             print msg
 

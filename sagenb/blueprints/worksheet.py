@@ -322,7 +322,7 @@ def html_download_or_delete_datafile(ws, username, filename):
                '.c']:
         file_is_text = True
         text_file_content = open(os.path.join(
-            ws.data_directory(), filename)).read()
+            ws.data_directory, filename)).read()
 
     return render_template(os.path.join("html", "notebook",
                                         "download_or_delete_datafile.html"),
@@ -607,7 +607,7 @@ def public_worksheet_cells(id, filename):
         return message_template(
             _("You do not have permission to access this worksheet"),
             username=g.username)
-    return send_from_directory(worksheet.cells_directory(), filename)
+    return send_from_directory(worksheet.cells_directory, filename)
 
 
 published_commands_allowed = set([
@@ -1250,7 +1250,7 @@ def worksheet_revisions(worksheet):
 def worksheet_cells(worksheet, filename):
     # XXX: This requires that the worker filesystem be accessible from
     # the server.
-    return send_from_directory(worksheet.cells_directory(), filename)
+    return send_from_directory(worksheet.cells_directory, filename)
 
 
 ########################################################
@@ -1302,7 +1302,7 @@ def worksheet_jsmol_data(worksheet):
         # appended query is only for cache busting
         filename = filename.rsplit('?', 1)[0]
         filename = secure_filename(filename)   # never trust input
-        filename = os.path.join(worksheet.cells_directory(), cell_id, filename)
+        filename = os.path.join(worksheet.cells_directory, cell_id, filename)
         with open(filename, 'r') as f:
             data = f.read()
             response = make_response(encoder(data))
@@ -1338,18 +1338,18 @@ def worksheed_data_folder(worksheet, filename):
 
 
 def worksheet_data(worksheet, filename):
-    dir = os.path.abspath(worksheet.data_directory())
+    dir = os.path.abspath(worksheet.data_directory)
     if not os.path.exists(dir):
         return message_template(_('No data files'), username=g.username)
     else:
-        return send_from_directory(worksheet.data_directory(), filename)
+        return send_from_directory(worksheet.data_directory, filename)
 
 
 @worksheet_command('datafile')
 def worksheet_datafile(worksheet):
     # XXX: This requires that the worker filesystem be accessible from
     # the server.
-    dir = os.path.abspath(worksheet.data_directory())
+    dir = os.path.abspath(worksheet.data_directory)
     filename = request.values['name']
     if request.values.get('action', '') == 'delete':
         path = os.path.join(dir, filename)
@@ -1369,7 +1369,7 @@ def worksheet_savedatafile(worksheet):
         # XXX: Should this be text_field
         text_field = request.values['textfield']
         # XXX: Requires access to filesystem
-        dest = os.path.join(worksheet.data_directory(), filename)
+        dest = os.path.join(worksheet.data_directory, filename)
         if os.path.exists(dest):
             os.unlink(dest)
         open(dest, 'w').write(text_field)
@@ -1382,11 +1382,11 @@ def worksheet_link_datafile(worksheet):
     target_worksheet_filename = request.values['target']
     data_filename = request.values['filename']
     src = os.path.abspath(os.path.join(
-        worksheet.data_directory(), data_filename))
+        worksheet.data_directory, data_filename))
     target_ws = g.notebook.filename_wst(
         target_worksheet_filename)
     target = os.path.abspath(os.path.join(
-        target_ws.data_directory(), data_filename))
+        target_ws.data_directory, data_filename))
     if target_ws.owner != g.username and not target_ws.is_collaborator(
             g.username):
         return message_template(
@@ -1464,7 +1464,7 @@ def worksheet_do_upload_data(worksheet):
         download = urllib2.urlopen(parsedurl.geturl())
 
     # XXX: disk access
-    dest = os.path.join(worksheet.data_directory(), name)
+    dest = os.path.join(worksheet.data_directory, name)
     if os.path.exists(dest):
         if not os.path.isfile(dest):
             return message_template(

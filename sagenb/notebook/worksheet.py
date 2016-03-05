@@ -40,11 +40,13 @@ from .. import config
 # Imports specifically relevant to the sage notebook
 from .cell import Cell, TextCell
 from ..config import INITIAL_NUM_CELLS
-from ..config import WARN_THRESHOLD
 from ..config import UN_PUB
 from ..config import UN_SAGE
+from ..config import SYSTEMS
+from ..config import WARN_THRESHOLD
 from ..util import cached_property
 from ..util import ignore_nonexistent_files
+from ..util import makedirs
 from ..util import next_available_id
 from ..util import set_default
 from ..util import set_restrictive_permissions
@@ -106,6 +108,7 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
             sage: W0.basic() == B
             True
     """
+    # TODO: Move to storage backend
     obj['notebook_worksheet_directory'] = notebook_worksheet_directory
     return Worksheet(**obj)
 
@@ -122,7 +125,8 @@ class Worksheet(object):
                  published_id_number=None, worksheet_that_was_published=None,
                  ratings=None,
 
-                 notebook_worksheet_directory=None, create_directories=True,
+                 # TODO: Move to storage backend
+                 notebook_worksheet_directory=None,
                  **kwargs
                  ):
         ur"""
@@ -193,15 +197,16 @@ class Worksheet(object):
         # self.___next_id___  cached_property (writable)
         # self.___cells___ -> cached_property (writable, invalidates next_id)
         self.__filename = os.path.join(owner, str(id_number))  # property ro
-        # set the directory in which the worksheet files will be stored.
-        self.__directory = notebook_worksheet_directory  # property ro
-        if self.__directory is not None:
-            self.__directory = os.path.join(self.__directory, str(id_number))
         self.__computing = False
         self.__queue = []
 
-        if create_directories:
-            self.create_directories()
+        # TODO: move to storage backend
+        # set the directory in which the worksheet files will be stored.
+        self.__directory = os.path.join(
+            set_default(notebook_worksheet_directory, ''),
+            str(id_number))  # property ro
+        # property ro
+        self.create_directories()  # some path attributes are created there
 
     def __cmp__(self, other):
         """
@@ -710,16 +715,79 @@ class Worksheet(object):
         """
         return self.__directory
 
-    # end state variales
+    # directories and files. TODO: move to storage backend
 
     def create_directories(self):
-        # creating directories should be a function of the storage backend, not
-        # here
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory)
-            set_restrictive_permissions(self.directory, allow_execute=True)
-            set_restrictive_permissions(self.snapshot_directory())
-            set_restrictive_permissions(self.cells_directory())
+        # TODO: move to storage backend
+        self.cells_directory = os.path.join(self.directory, 'cells')
+        self.data_directory = os.path.join(self.directory, 'data')
+        self.snapshot_directory = os.path.join(
+            os.path.abspath(self.directory), 'snapshots')
+
+        makedirs(self.directory)
+        makedirs(self.snapshot_directory)
+        makedirs(self.data_directory)
+        makedirs(self.cells_directory)
+
+        set_restrictive_permissions(self.directory, allow_execute=True)
+        set_restrictive_permissions(self.snapshot_directory)
+        set_restrictive_permissions(self.cells_directory)
+
+    def delete_cells_directory(self):
+        r"""
+        Delete the directory in which all the cell computations occur.
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test', 'sage')
+            sage: W.edit_save('{{{\n3^20\n}}}')
+            sage: W.cells[0].evaluate()
+            sage: W.check_comp(
+                )    # random output -- depends on computer speed
+            sage: sorted(os.listdir(W.directory))
+            ['cells', 'data', 'worksheet.html', 'worksheet_conf.pickle']
+            sage: W.save_snapshot('admin')
+            sage: sorted(os.listdir(W.directory))
+            ['cells', 'data', 'snapshots', 'worksheet.html',
+             'worksheet_conf.pickle']
+            sage: W.delete_cells_directory()
+            sage: sorted(os.listdir(W.directory))
+            ['cells', 'data', 'snapshots', 'worksheet.html', 
+             'worksheet_conf.pickle']
+            sage: W.quit()
+            sage: nb.delete()
+        """
+        shutil.rmtree(self.cells_directory)
+        makedirs(self.cells_directory)
+        set_restrictive_permissions(self.cells_directory)
+
+    @property
+    def attached_data_files(self):
+        """
+        Return a list of the file names of files in the worksheet data
+        directory.
+
+        OUTPUT: list of strings
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.create_default_users('password')
+            sage: W = nb.create_wst('A Test Worksheet', 'admin')
+            sage: W.attached_data_files
+            []
+            sage: open('%s/foo.data'%W.data_directory,'w').close()
+            sage: W.attached_data_files
+            ['foo.data']
+        """
+        # TODO: move to storage backend
+        return os.listdir(self.data_directory)
 
     @property
     def worksheet_html_filename(self):
@@ -727,6 +795,7 @@ class Worksheet(object):
         Return path to the underlying plane text file that defines the
         worksheet.
         """
+        # TODO: move to storage backend
         return os.path.join(self.directory, 'worksheet.html')
 
     @property
@@ -735,6 +804,27 @@ class Worksheet(object):
         Return the download name of this worksheet.
         """
         return os.path.split(self.name)[-1]
+
+    # misc
+
+    @property
+    def system_index(self):
+        """
+        Return the index of the current system into the Notebook's
+        list of systems.  If the current system isn't in the list,
+        then change to the default system.  This can happen if, e.g.,
+        the list changes, e.g., when changing from a notebook with
+        Sage installed to running a server from the same directory
+        without Sage installed.   We might as well support this.
+
+        OUTPUT: integer
+        """
+        system_names = tuple(system[0] for system in SYSTEMS)
+        try:
+            return system_names.index(self.system)
+        except ValueError:
+            self.system = system_names[0]
+            return 0
 
     @property
     def docbrowser(self):
@@ -761,71 +851,6 @@ class Worksheet(object):
             True
         """
         return self.owner == UN_SAGE
-
-    def data_directory(self):
-        """
-        Return path to directory where worksheet data is stored.
-
-        OUTPUT: string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.data_directory()
-            '.../home/admin/0/data'
-        """
-        d = os.path.join(self.directory, 'data')
-        if not os.path.exists(d):
-            os.makedirs(d)
-        return d
-
-    def attached_data_files(self):
-        """
-        Return a list of the file names of files in the worksheet data
-        directory.
-
-        OUTPUT: list of strings
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.attached_data_files()
-            []
-            sage: open('%s/foo.data'%W.data_directory(),'w').close()
-            sage: W.attached_data_files()
-            ['foo.data']
-        """
-        D = self.data_directory()
-        if not os.path.exists(D):
-            return []
-        return os.listdir(D)
-
-    def cells_directory(self):
-        """
-        Return the directory in which the cells of this worksheet are
-        evaluated.
-
-        OUTPUT: string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('A Test Worksheet', 'admin')
-            sage: W.cells_directory()
-            '.../home/admin/0/cells'
-        """
-        path = os.path.join(self.directory, 'cells')
-        if not os.path.exists(path):
-            os.makedirs(path)
-        return path
 
     def notebook(self):
         """
@@ -857,25 +882,6 @@ class Worksheet(object):
 
     def save(self, conf_only=False):
         self.notebook().save_worksheet(self, conf_only=conf_only)
-
-    @property
-    def system_index(self):
-        """
-        Return the index of the current system into the Notebook's
-        list of systems.  If the current system isn't in the list,
-        then change to the default system.  This can happen if, e.g.,
-        the list changes, e.g., when changing from a notebook with
-        Sage installed to running a server from the same directory
-        without Sage installed.   We might as well support this.
-
-        OUTPUT: integer
-        """
-        system_names = self.notebook().system_names
-        try:
-            return system_names.index(self.system)
-        except ValueError:
-            self.system = system_names[0]
-            return 0
 
     # Publication
 
@@ -1329,38 +1335,6 @@ class Worksheet(object):
         """
         self.set_active(user)
 
-    def delete_cells_directory(self):
-        r"""
-        Delete the directory in which all the cell computations occur.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: W.edit_save('{{{\n3^20\n}}}')
-            sage: W.cells[0].evaluate()
-            sage: W.check_comp(
-                )    # random output -- depends on computer speed
-            sage: sorted(os.listdir(W.directory))
-            ['cells', 'data', 'worksheet.html', 'worksheet_conf.pickle']
-            sage: W.save_snapshot('admin')
-            sage: sorted(os.listdir(W.directory))
-            ['cells', 'data', 'snapshots', 'worksheet.html',
-             'worksheet_conf.pickle']
-            sage: W.delete_cells_directory()
-            sage: sorted(os.listdir(W.directory))
-            ['data', 'snapshots', 'worksheet.html', 'worksheet_conf.pickle']
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        dir = self.cells_directory()
-        if os.path.exists(dir):
-            shutil.rmtree(dir)
-
     # Owner/viewer/user management
 
     def is_owner(self, username):
@@ -1585,7 +1559,7 @@ class Worksheet(object):
         if not self.body_is_loaded():
             return
         self.uncache_snapshot_data()
-        path = self.snapshot_directory()
+        path = self.snapshot_directory
         basename = str(int(time.time()))
         filename = os.path.join(path, '%s.bz2' % basename)
         if E is None:
@@ -1599,14 +1573,14 @@ class Worksheet(object):
             self.notebook().publish_wst(self, user)
 
     def get_snapshot_text_filename(self, name):
-        path = self.snapshot_directory()
+        path = self.snapshot_directory
         return os.path.join(path, name)
 
     def snapshot_data(self):
         try:
             self.__filenames
         except AttributeError:
-            filenames = os.listdir(self.snapshot_directory())
+            filenames = os.listdir(self.snapshot_directory)
             filenames.sort()
             self.__filenames = filenames
         t = time.time()
@@ -1638,12 +1612,6 @@ class Worksheet(object):
             E = ''
         self.edit_save(E)
 
-    def snapshot_directory(self):
-        path = os.path.join(os.path.abspath(self.directory), 'snapshots')
-        if not os.path.exists(path):
-            os.makedirs(path)
-        return path
-
     def limit_snapshots(self):
         r"""
         This routine will limit the number of snapshots of a worksheet,
@@ -1662,7 +1630,7 @@ class Worksheet(object):
         amnesty = int(calendar.timegm(
             time.strptime("01 May 2009", "%d %b %Y")))
 
-        path = self.snapshot_directory()
+        path = self.snapshot_directory
         snapshots = os.listdir(path)
         snapshots.sort()
         for i in range(len(snapshots) - max_snaps):
@@ -2323,7 +2291,7 @@ class Worksheet(object):
         try:
             init_code = '\n'.join((
                 "DATA = '{}'".format(
-                    os.path.join(os.path.abspath(self.data_directory()))),
+                    os.path.join(os.path.abspath(self.data_directory))),
                 'sys.path.append(DATA)',
                 ))
             self.__sage = self.notebook().new_worksheet_process(
@@ -2427,7 +2395,7 @@ class Worksheet(object):
         mode = ('sage' if cell_system == 'sage' and not C.introspect()
                 else 'python')
         self.sage().execute(
-            input, os.path.abspath(self.data_directory()),
+            input, os.path.abspath(self.data_directory),
             mode=mode, print_time=print_time)
 
     def check_comp(self, wait=0.2):
