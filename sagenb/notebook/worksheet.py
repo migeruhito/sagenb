@@ -971,7 +971,7 @@ class Worksheet(object):
         """
 
         self.ratings[username] = (int(x), comment)
-        self.save()
+        self.save(conf_only=True)
 
     def rating(self):
         """
@@ -996,33 +996,6 @@ class Worksheet(object):
         return sum(x[0] for x in r.itervalues()) / len(r) if r else -1
 
     # Active, trash can and archive
-
-    def everyone_has_deleted_this_worksheet(self):
-        """
-        Return True if all users have deleted this worksheet, so we know we
-        can safely purge it from disk.
-
-        OUTPUT: bool
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Publish Test', 'admin')
-            sage: W.everyone_has_deleted_this_worksheet()
-            False
-            sage: W.move_to_trash('admin')
-            sage: W.everyone_has_deleted_this_worksheet()
-            True
-        """
-        for user in self.collaborators + [self.owner]:
-            # When the worksheet has been deleted by the owner,
-            # self.owner returns None, so we have to be careful
-            # about that case.
-            if user is not None and not self.is_trashed(user):
-                return False
-        return True
 
     def user_view(self, user):
         """
@@ -1099,6 +1072,8 @@ class Worksheet(object):
         # views, e.g., moving to trash, etc., since the user can't
         # easily click save without changing the view back.
         self.save(conf_only=True)
+        if x in (WS_ARCHIVED, WS_TRASH) and self.viewers == [user]:
+            self.quit()
 
     def is_archived(self, user):
         """
@@ -1191,8 +1166,6 @@ class Worksheet(object):
             True
         """
         self.set_user_view(user, WS_ARCHIVED)
-        if self.viewers == [user]:
-            self.quit()
 
     def set_active(self, user):
         """
@@ -1236,31 +1209,6 @@ class Worksheet(object):
             True
         """
         self.set_user_view(user, WS_TRASH)
-        if self.viewers == [user]:
-            self.quit()
-
-    def move_out_of_trash(self, user):
-        """
-        Exactly the same as set_active(user).
-
-        INPUT:
-
-        -  ``user`` - string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Active Test', 'admin')
-            sage: W.move_to_trash('admin')
-            sage: W.is_active('admin')
-            False
-            sage: W.move_out_of_trash('admin')
-            sage: W.is_active('admin')
-            True
-        """
-        self.set_active(user)
 
     # Owner/viewer/user management
 
