@@ -44,6 +44,9 @@ from ..config import UN_PUB
 from ..config import UN_SAGE
 from ..config import SYSTEMS
 from ..config import WARN_THRESHOLD
+from ..config import WS_ACTIVE
+from ..config import WS_ARCHIVED
+from ..config import WS_TRASH
 from ..util import cached_property
 from ..util import ignore_nonexistent_files
 from ..util import makedirs
@@ -63,9 +66,6 @@ _ = gettext
 
 # Integers that define which folder this worksheet is in relative to a
 # given user.
-WS_ARCHIVED = 0
-WS_ACTIVE = 1
-WS_TRASH = 2
 
 
 all_worksheet_processes = []
@@ -757,7 +757,7 @@ class Worksheet(object):
              'worksheet_conf.pickle']
             sage: W.delete_cells_directory()
             sage: sorted(os.listdir(W.directory))
-            ['cells', 'data', 'snapshots', 'worksheet.html', 
+            ['cells', 'data', 'snapshots', 'worksheet.html',
              'worksheet_conf.pickle']
             sage: W.quit()
             sage: nb.delete()

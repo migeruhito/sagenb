@@ -153,11 +153,18 @@ UAT_ADMIN = 'admin'
 UAT_USER = 'user'
 UAT_GUEST = 'guest'
 # User Names
-UN_ADMIN = 'admin'
+UN_ADMIN = 'admin'  # User name for default admin user
 UN_GUEST = 'guest'
-UN_PUB = 'pub'
+UN_PUB = 'pub'  # User name for published worksheets
 UN_SAGE = '_sage_'  # User name for doc browser worksheets
 UN_SYSTEM = (UN_GUEST, UN_SAGE, UN_PUB)
+
+# Default worksheet tags
+# Integers that define which folder this worksheet is in relative to a given
+# user.
+WS_ARCHIVED = 0
+WS_ACTIVE = 1
+WS_TRASH = 2
 
 # Notebook globals
 if get_module('sage') is not None:
