@@ -425,7 +425,6 @@ class Worksheet(object):
             'saved_by_info': self.__data_model.saved_by_info,
             'tags': self.__data_model.tags,
             'collaborators': self.__data_model.collaborators,
-            'viewers': self.__data_model.viewers,
             'published_id_number': self.__data_model.published_id_number,
             'worksheet_that_was_published':
             self.__data_model.worksheet_that_was_published,

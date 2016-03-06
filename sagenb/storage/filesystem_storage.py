@@ -501,7 +501,7 @@ class FilesystemDatastore(Datastore):
         basic['name'] = encoded_str(basic['name'])
         # Remove metainformation that perhaps shouldn't be distributed
         for k in ['owner', 'ratings', 'worksheet_that_was_published',
-                  'viewers', 'tags', 'published_id_number',
+                  'tags', 'published_id_number',
                   'collaborators', 'auto_publish']:
             if k in basic:
                 del basic[k]

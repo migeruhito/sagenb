@@ -575,7 +575,7 @@ class Worksheet(object):
 
                  pretty_print=False, live_3D=False, auto_publish=False,
                  last_change=None, saved_by_info=None, tags=None,
-                 collaborators=None, viewers=None,
+                 collaborators=None,
                  published_id_number=None, worksheet_that_was_published=None,
                  ratings=None,
                  # TODO: There are a spurious User__username field in the
@@ -595,7 +595,6 @@ class Worksheet(object):
         self.saved_by_info = set_default(saved_by_info, dict())
         self.tags = set_default(tags, dict())
         self.collaborators = set_default(collaborators, list())
-        self.viewers = set_default(viewers, list())
         self.published_id_number = published_id_number
         self.worksheet_that_was_published = set_default(
             worksheet_that_was_published, (owner, id_number))

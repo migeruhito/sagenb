@@ -33,11 +33,7 @@ INPUT:
         state_number = {{ worksheet.state_number }};
         cell_id_list = {{ worksheet.cell_id_list() }};
         queue_id_list = {{ worksheet.queue_id_list() }};
-        {% if username in worksheet.viewers %}
-        worksheet_locked = true;
-        {% else %}
         worksheet_locked = false;
-	    {% endif %}
 
         $(document).ready(function () {
             if (worksheet_name === "{{ gettext('Untitled') }}") {

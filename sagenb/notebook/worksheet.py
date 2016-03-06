@@ -122,7 +122,7 @@ class Worksheet(object):
 
                  pretty_print=False, live_3D=False, auto_publish=False,
                  last_change=None, saved_by_info=None, tags=None,
-                 collaborators=None, viewers=None,
+                 collaborators=None,
                  published_id_number=None, worksheet_that_was_published=None,
                  ratings=None,
 
@@ -186,7 +186,6 @@ class Worksheet(object):
         self.__saved_by_info = set_default(saved_by_info, {})  # property ro
         self.tags = set_default(tags, {self.owner: [WS_ACTIVE]})
         self.__collaborators = set_default(collaborators, [])  # property
-        self.__viewers = set_default(viewers, [])  # property ro
         self.published_id_number = published_id_number
         self.__worksheet_that_was_published = set_default(
             worksheet_that_was_published, (owner, id_number))  # property
@@ -466,34 +465,6 @@ class Worksheet(object):
         self.__collaborators = sorted(collaborators)
 
     @property
-    def viewers(self):
-        """
-        Return list of viewers of this worksheet.
-
-        OUTPUT:
-
-        -  ``list`` - of string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: nb.user_manager.add_user(
-                'hilbert','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('test1', 'admin')
-            sage: W.add_viewer('hilbert')
-            sage: W.viewers
-            ['hilbert']
-            sage: W.add_viewer('sage')
-            sage: W.viewers
-            ['hilbert', 'sage']
-        """
-        return self.__viewers
-
-    @property
     def worksheet_that_was_published(self):
         return self.__worksheet_that_was_published
 
@@ -568,8 +539,6 @@ class Worksheet(object):
                 permission: who can look at the worksheet
             'system'
                 default type of computation system that evaluates cells
-            'viewers'
-                permission: who can look at the worksheet
             'collaborators'
                 permission: who can look at the worksheet
 
@@ -622,7 +591,7 @@ class Worksheet(object):
              ('live_3D', False), ('name', u'test'), ('owner', 'sage'),
              ('pretty_print', False), ('published_id_number', None),
              ('ratings', []), ('saved_by_info', {}), ('system', None),
-             ('tags', {'sage': [1]}), ('viewers', []),
+             ('tags', {'sage': [1]}),
              ('worksheet_that_was_published', ('sage', 0))]
         """
         d = {
@@ -637,7 +606,6 @@ class Worksheet(object):
             'saved_by_info': self.saved_by_info,
             'tags': self.tags,
             'collaborators': self.collaborators,
-            'viewers': self.viewers,
             'published_id_number': self.published_id_number,
             'worksheet_that_was_published':
             self.worksheet_that_was_published,
@@ -1072,7 +1040,7 @@ class Worksheet(object):
         # views, e.g., moving to trash, etc., since the user can't
         # easily click save without changing the view back.
         self.save(conf_only=True)
-        if x in (WS_ARCHIVED, WS_TRASH) and self.viewers == [user]:
+        if x in (WS_ARCHIVED, WS_TRASH):
             self.quit()
 
     def is_archived(self, user):
@@ -1210,11 +1178,10 @@ class Worksheet(object):
         """
         self.set_user_view(user, WS_TRASH)
 
-    # Owner/viewer/user management
+    # User management
 
     def viewable_by(self, user):
-        return (user in self.viewers or user in self.collaborators or
-                user == self.publisher)
+        return user in self.collaborators or user == self.publisher
 
     def editable_by(self, user):
         """
@@ -1259,7 +1226,7 @@ class Worksheet(object):
 
             sage: nb.delete()
         """
-        return user in self.collaborators or self.owner == user
+        return user in self.collaborators or user == self.owner
 
     def delete_user(self, user):
         """
@@ -1281,10 +1248,10 @@ class Worksheet(object):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Sage', owner='sage')
-            sage: W.add_viewer('wstein')
+            sage: W.collaborators.add('wstein')
             sage: W.owner
             'sage'
-            sage: W.viewers
+            sage: W.collaborators
             ['wstein']
 
         We delete the sage user from the worksheet W. This makes wstein the
@@ -1293,8 +1260,8 @@ class Worksheet(object):
         ::
 
             sage: W.delete_user('sage')
-            sage: W.viewers
-            ['wstein']
+            sage: W.collaborators
+            []
             sage: W.owner
             'wstein'
 
@@ -1305,7 +1272,7 @@ class Worksheet(object):
             sage: W.delete_user('wstein')
             sage: W.owner is None
             True
-            sage: W.viewers
+            sage: W.collaborators
             []
 
         Finally, we clean up.
@@ -1316,41 +1283,14 @@ class Worksheet(object):
         """
         if user in self.collaborators:
             self.collaborators.remove(user)
-        if user in self.viewers:
-            self.viewers.remove(user)
-        if self.owner == user:
+        if user == self.owner:
             if self.collaborators:
-                self.owner = self.collaborators[0]
-            elif self.viewers:
-                self.owner = self.viewers[0]
+                self.owner = self.collaborators.pop(0)
             else:
                 # Now there is nobody to take over ownership.  We
                 # assign the owner None, which means nobody owns it.
                 # It will get purged elsewhere.
                 self.owner = None
-
-    def add_viewer(self, user):
-        """
-        Add the given user as an allowed viewer of this worksheet.
-
-        INPUT:
-
-        -  ``user`` - string (username)
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.user_manager.add_user(
-                'diophantus','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Viewer test', 'admin')
-            sage: W.add_viewer('diophantus')
-            sage: W.viewers
-            ['diophantus']
-        """
-        if user not in self.viewers:
-            self.viewers.append(user)
 
     # Searching
 
