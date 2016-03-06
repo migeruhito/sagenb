@@ -49,6 +49,7 @@ from ..config import WS_ACTIVE
 from ..config import WS_ARCHIVED
 from ..config import WS_TRASH
 from ..util import cached_property
+from ..util import encoded_str
 from ..util import ignore_nonexistent_files
 from ..util import makedirs
 from ..util import next_available_id
@@ -567,7 +568,7 @@ class Worksheet(object):
                 triples
                       (username, rating, comment)
             'saved_by_info'
-                #???
+                saved snapshots database. Who saved what snapshot.
             'tags'
                 dictionary mapping usernames to list of tags that
                 reflect what the tages are for that user.  A tag can be
@@ -774,6 +775,16 @@ class Worksheet(object):
         Return the download name of this worksheet.
         """
         return os.path.split(self.name)[-1]
+
+    def snapshot_filename(self, basename):
+        return os.path.join(
+            self.snapshot_directory, '{}.bz2'.format(basename))
+
+    @property
+    def snapshot_names(self):
+        return [
+            os.path.splitext(fname)[0] for fname in sorted(os.listdir(
+                self.snapshot_directory))]
 
     # misc
 
@@ -1330,64 +1341,46 @@ class Worksheet(object):
         # Every single word is there.
         return True
 
-    # Saving
+    # Snapshots, saving cells. TODO: move to storage backend?
 
-    def save_snapshot(self, user, E=None):
-        if not self.body_is_loaded():
+    def save_snapshot(self, user):
+        # TODO: worksheet_html_filename is useless. Worksheet body is always
+        # the last snapshot
+        if not self.body_is_loaded:
             return
-        self.uncache_snapshot_data()
-        path = self.snapshot_directory
-        basename = str(int(time.time()))
-        filename = os.path.join(path, '%s.bz2' % basename)
-        if E is None:
-            E = self.body
-        worksheet_html = self.worksheet_html_filename
-        open(filename, 'w').write(bz2.compress(E.encode('utf-8', 'ignore')))
-        open(worksheet_html, 'w').write(self.body.encode('utf-8', 'ignore'))
+        basename = '{:.0f}'.format(time.time())
+
+        body = encoded_str(self.body)
+        with open(self.worksheet_html_filename, 'w') as f:
+            f.write(body)
+        with open(self.snapshot_filename(basename), 'w') as f:
+            f.write(bz2.compress(body))
+
         self.limit_snapshots()
         self.saved_by_info[basename] = user
         if self.auto_publish:
             self.notebook().publish_wst(self, user)
 
-    def get_snapshot_text_filename(self, name):
-        path = self.snapshot_directory
-        return os.path.join(path, name)
-
     def snapshot_data(self):
-        try:
-            self.__filenames
-        except AttributeError:
-            filenames = os.listdir(self.snapshot_directory)
-            filenames.sort()
-            self.__filenames = filenames
         t = time.time()
         v = []
-        for x in self.__filenames:
-            base = os.path.splitext(x)[0]
-            if self.saved_by_info[x]:
-                v.append((_('%(t)s ago by %(le)s',) %
-                          {'t': prettify_time_ago(t - float(base)),
-                           'le': self.saved_by_info[base]},
-                          x))
-            else:
-                v.append((_('%(seconds)s ago',
-                            seconds=prettify_time_ago(t - float(base))), x))
+        for base in self.snapshot_names:
+            t_ago = prettify_time_ago(t - float(base))
+            info = self.saved_by_info.get(base)
+            msg = (_('%(t)s ago by %(le)s', {'t': t_ago, 'le': info}) if info
+                   else _('%(seconds)s ago', seconds=t_ago))
+            v.append((msg, base))
         return v
 
-    def uncache_snapshot_data(self):
-        try:
-            del self.__snapshot_data
-        except AttributeError:
-            pass
-
     def revert_to_last_saved_state(self):
-        filename = self.worksheet_html_filename
-        if os.path.exists(filename):
-            E = open(filename).read()
-        else:
-            # nothing was ever saved!
-            E = ''
-        self.edit_save(E)
+        # TODO: worksheet_html_filename is useless. Worksheet body is always
+        # the last snapshot
+        try:
+            with open(self.worksheet_html_filename) as f:
+                body = f.read()
+        except IOError:
+            body = ''
+        self.edit_save(body)
 
     def limit_snapshots(self):
         r"""
@@ -1407,13 +1400,11 @@ class Worksheet(object):
         amnesty = int(calendar.timegm(
             time.strptime("01 May 2009", "%d %b %Y")))
 
-        path = self.snapshot_directory
-        snapshots = os.listdir(path)
-        snapshots.sort()
-        for i in range(len(snapshots) - max_snaps):
-            creation = int(os.path.splitext(snapshots[i])[0])
+        snapshots = self.snapshot_names
+        for snapshot in snapshots[:len(snapshots) - max_snaps]:
+            creation = int(snapshot)
             if creation > amnesty:
-                os.remove(os.path.join(path, snapshots[i]))
+                os.remove(self.snapshot_filename(snapshot))
 
     # Exporting the worksheet in plain text command-line format
 
@@ -1458,6 +1449,7 @@ class Worksheet(object):
         return '\n\n'.join(
             t for t in (C.edit_text().strip() for C in self.cells) if t)
 
+    @property
     def body_is_loaded(self):
         """
         Return True if the body if this worksheet has been loaded from disk.
@@ -1478,16 +1470,6 @@ class Worksheet(object):
             # Doesn't matter, since if S is not running, no need
             # to zero out the state dictionary.
             return
-
-    def edit_save_old_format(self, text, username=None):
-        text.replace('\r\n', '\n')
-
-        name, text = extract_text(text)
-        self.name = name
-
-        self.system, text = extract_text(text, start='system:', default='sage')
-
-        self.edit_save(text)
 
     def body_to_cells(self, text, ignore_ids=False):
         r"""
@@ -1575,7 +1557,6 @@ class Worksheet(object):
                 else:
                     html = False
                     id = id_gen.next()
-                C = Cell(id, '', '', self)
                 C = self._new_cell(id)
                 C.set_input_text(input)
                 C.set_output_text(output, '')
@@ -1594,6 +1575,16 @@ class Worksheet(object):
                 if c.is_interactive_cell():
                     c.delete_output()
         return cells
+
+    def edit_save_old_format(self, text, username=None):
+        text.replace('\r\n', '\n')
+
+        name, text = extract_text(text)
+        self.name = name
+
+        self.system, text = extract_text(text, start='system:', default='sage')
+
+        self.edit_save(text)
 
     def edit_save(self, text, ignore_ids=False):
         r"""

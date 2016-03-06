@@ -229,7 +229,7 @@ def html_specific_revision(username, ws, rev):
     t = time.time() - float(rev[:-4])
     time_ago = prettify_time_ago(t)
 
-    filename = ws.get_snapshot_text_filename(rev)
+    filename = ws.snapshot_filename(rev)
     txt = bz2.decompress(open(filename).read())
     W = nb.scratch_wst
     W.name = 'Revision of ' + ws.name
@@ -1227,14 +1227,14 @@ def worksheet_revisions(worksheet):
             worksheet.save_snapshot(g.username)
             # XXX: Requires access to filesystem
             txt = bz2.decompress(
-                open(worksheet.get_snapshot_text_filename(rev)).read())
+                open(worksheet.snapshot_filename(rev)).read())
             worksheet.delete_cells_directory()
             worksheet.edit_save(txt)
             return redirect(url_for_worksheet(worksheet))
         elif action == 'publish':
             W = g.notebook.publish_wst(worksheet, g.username)
             txt = bz2.decompress(
-                open(worksheet.get_snapshot_text_filename(rev)).read())
+                open(worksheet.snapshot_filename(rev)).read())
             W.delete_cells_directory()
             W.edit_save(txt)
             return redirect(url_for_worksheet(W))

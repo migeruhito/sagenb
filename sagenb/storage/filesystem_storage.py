@@ -395,7 +395,7 @@ class FilesystemDatastore(Datastore):
             self._save(basic, self._worksheet_conf_filename(
                 username, id_number))
             worksheet._last_basic = basic
-        if not conf_only and worksheet.body_is_loaded():
+        if not conf_only and worksheet.body_is_loaded:
             # only save if loaded
             # todo -- add check if changed
             filename = self._worksheet_html_filename(username, id_number)

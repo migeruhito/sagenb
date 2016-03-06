@@ -527,11 +527,11 @@ class Notebook(object):
     # TODO: move to storage backend
         shutil.rmtree(W.cells_directory, ignore_errors=True)
         shutil.rmtree(W.data_directory, ignore_errors=True)
-        shutil.rmtree(W.snapshots_directory, ignore_errors=True)
+        shutil.rmtree(W.snapshot_directory, ignore_errors=True)
         shutil.copytree(src.cells_directory, W.cells_directory)
         shutil.copytree(src.data_directory, W.data_directory)
-        makedirs(self.snapshot_directory)
-        set_restrictive_permissions(self.snapshot_directory)
+        makedirs(W.snapshot_directory)
+        set_restrictive_permissions(W.snapshot_directory)
 
         W.edit_save(src.body)
         W.save()
