@@ -1179,7 +1179,6 @@ def worksheet_invite_collab(worksheet):
     collaborators = set(u for u in collaborators
                         if u in user_manager and u != owner)
 
-    print('\n{0}\n{1}\n{0}\n'.format('='*80, collaborators))
     if len(collaborators - old_collaborators) > 500:
         # to prevent abuse, you can't add more than 500 collaborators at a time
         return message_template(
