@@ -39,6 +39,10 @@ extract_cells_re = re.compile(  # \n needed after open delimiter
 split_last_text_re = re.compile(r'(.*\n+}}})(?:\n+|$)\s*(.*)\s*',
                                 flags=re.DOTALL)
 meta_re = re.compile(r'\s*(.*?)\s*=\s*(.*?)\s*(?:,|$)')
+search_keywords_re = re.compile(
+    r'(?: +|^)'
+    r'(?:(?P<sep>["\'])(.*?)(?P=sep)|(\S+))'
+    r'(?:(?= )|$)')
 
 
 def trunc_invalid_username_chars(name):
@@ -342,7 +346,7 @@ def extract_text(text, start='', default=gettext('Untitled')):
     return name, '\n'.join(text)
 
 
-def split_search_string_into_keywords(s):
+def search_keywords(s):
     r"""
     The point of this function is to allow for searches like this::
 
@@ -359,26 +363,4 @@ def split_search_string_into_keywords(s):
 
     -  ``list`` - a list of strings
     """
-    ans = []
-    while len(s) > 0:
-        word, i = get_next(s, '"')
-        if i != -1:
-            ans.append(word)
-            s = s[i:]
-        word, j = get_next(s, "'")
-        if j != -1:
-            ans.append(word)
-            s = s[j:]
-        if i == -1 and j == -1:
-            break
-    ans.extend(s.split())
-    return ans
-
-
-def get_next(s, quote='"'):
-    i = s.find(quote)
-    if i != -1:
-        j = s[i + 1:].find(quote)
-        if j != -1:
-            return s[i + 1:i + 1 + j].strip(), i + 1 + j
-    return None, -1
+    return [k[1] if k[0] else k[2] for k in search_keywords_re.findall(s)]

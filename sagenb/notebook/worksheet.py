@@ -60,7 +60,7 @@ from ..util.templates import format_completions_as_html
 from ..util.templates import prettify_time_ago
 from ..util.text import extract_cells
 from ..util.text import ignore_prompts_and_output
-from ..util.text import split_search_string_into_keywords
+from ..util.text import search_keywords
 from ..util.text import extract_text
 
 _ = gettext
@@ -1309,25 +1309,21 @@ class Worksheet(object):
         - a boolean
         """
         # Load the worksheet data file from disk.
-        filename = self.worksheet_html_filename
-
-        if os.path.exists(filename):
-            contents = open(filename).read().decode('utf-8', 'ignore')
-        else:
-            contents = u' '
-
         try:
-            r = [unicode(x.lower()) for x in [self.owner,
-                                              self.publisher,
-                                              self.name, contents]]
-            r = u" ".join(r)
-        except UnicodeDecodeError:
-            return False
+            with open(self.worksheet_html_filename) as f:
+                contents = f.read()
+        except IOError:
+            contents = ''
+
+        r = u' '.join(
+            unicode_str(x).lower()
+            for x in [self.owner, self.publisher, self.name, contents] +
+            self.collaborators)
 
         # Check that every single word is in the file from disk.
-        for W in split_search_string_into_keywords(search):
-            W = unicode_str(W)
-            if W.lower() not in r:
+        for W in search_keywords(search):
+            W = unicode_str(W).lower()
+            if W not in r:
                 # Some word from the text is not in the search list, so
                 # we return False.
                 return False
