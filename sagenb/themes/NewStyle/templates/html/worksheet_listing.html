@@ -163,7 +163,7 @@ INPUT:
             <td class="worksheet_link">
                 <a title="{{ worksheet.name }}" id="name-{{ name|css_escape }}" class="worksheetname" href="/home/{{ name }}/">
                     {% if worksheet.compute_process_has_been_started() %}({{ gettext('running') }}){% endif %}
-                    {{ worksheet.truncated_name(50) }}
+                    {{ worksheet.name|truncate(50, True) }}
                 </a>
                 
                 {% if not pub and worksheet.is_published %}(Published){% endif %}

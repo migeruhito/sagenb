@@ -643,6 +643,7 @@ class Worksheet(object):
                 cells.append(self._new_cell(self.next_id_for_cells(cells)))
         else:
             self.reset_interact_state()
+            # TODO: move to storage backend
             with open(worksheet_html) as f:
                 text = f.read()
             cells = self.body_to_cells(text)
@@ -1341,7 +1342,7 @@ class Worksheet(object):
         # Every single word is there.
         return True
 
-    # Snapshots, saving cells. TODO: move to storage backend?
+    # Saving cells, snapshots. TODO: move to storage backend?
 
     def save_snapshot(self, user):
         # TODO: worksheet_html_filename is useless. Worksheet body is always
@@ -1406,7 +1407,7 @@ class Worksheet(object):
             if creation > amnesty:
                 os.remove(self.snapshot_filename(snapshot))
 
-    # Exporting the worksheet in plain text command-line format
+    # Exporting cells in plain text command-line format
 
     def plain_text(self, prompts=False, banner=True):
         """
@@ -1417,25 +1418,15 @@ class Worksheet(object):
         -  ``prompts`` - if True format for inclusion in
            docstrings.
         """
-        s = ''
-        if banner:
-            s += "#" * 80 + '\n'
-            s += "# Worksheet: %s" % self.name + '\n'
-            s += "#" * 80 + '\n\n'
+        head = '{0}\n# Worksheet: {1}\n{0}\n\n'.format(
+            '#' * 80, self.name) if banner else ''
 
-        for C in self.cells:
-            t = C.plain_text(prompts=prompts).strip('\n')
-            if t != '':
-                s += '\n' + t
-        return s
+        body = '\n'.join(
+            t for t in (
+                C.plain_text(prompts=prompts).strip('\n') for C in self.cells))
+        return '\n'.join((head, body))
 
-    def input_text(self):
-        """
-        Return text version of the input to the worksheet.
-        """
-        return '\n\n---\n\n'.join([C.input_text() for C in self.cells])
-
-    # Editing the worksheet in plain text format (export and import)
+    # Editing cells plain text format (export and import)
 
     @property
     def body(self):
@@ -1455,21 +1446,6 @@ class Worksheet(object):
         Return True if the body if this worksheet has been loaded from disk.
         """
         return hasattr(self, '___cells___')
-
-    def reset_interact_state(self):
-        """
-        Reset the interact state of this worksheet.
-        """
-        try:
-            S = self.__sage
-        except AttributeError:
-            return
-        try:
-            S.execute('_interact_.reset_state()', mode='raw')
-        except OSError:
-            # Doesn't matter, since if S is not running, no need
-            # to zero out the state dictionary.
-            return
 
     def body_to_cells(self, text, ignore_ids=False):
         r"""
@@ -1653,11 +1629,21 @@ class Worksheet(object):
         self.reset_interact_state()
         self.cells = self.body_to_cells(text, ignore_ids=ignore_ids)
 
-    def truncated_name(self, max=30):
-        name = self.name
-        if len(name) > max:
-            name = name[:max] + ' ...'
-        return name
+    def reset_interact_state(self):
+        """
+        Reset the interact state of this worksheet.
+        """
+        # TODO: this must be moved from here
+        try:
+            S = self.__sage
+        except AttributeError:
+            return
+        try:
+            S.execute('_interact_.reset_state()', mode='raw')
+        except OSError:
+            # Doesn't matter, since if S is not running, no need
+            # to zero out the state dictionary.
+            return
 
     # Last edited
 
@@ -1699,11 +1685,8 @@ class Worksheet(object):
            no activity on this worksheet for this many seconds, then editing
            is considered safe.
         """
-        if self.time_since_last_edited < threshold:
-            user = self.last_to_edit
-            if user != username:
-                return True, user
-        return False
+        user, lap = self.last_change
+        return (True, user) if lap < threshold and user != username else False
 
     # Managing cells and groups of cells in this worksheet
 
