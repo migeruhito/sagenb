@@ -1251,7 +1251,7 @@ class Worksheet(object):
 
         ::
 
-            sage: W.add_collaborator('william')
+            sage: W.collaborators.append('william')
             sage: W.editable_by('william')
             True
 
@@ -1351,31 +1351,6 @@ class Worksheet(object):
         """
         if user not in self.viewers:
             self.viewers.append(user)
-
-    def add_collaborator(self, user):
-        """
-        Add the given user as a collaborator on this worksheet.
-
-        INPUT:
-
-        -  ``user`` - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: nb.user_manager.add_user(
-                'diophantus','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Collaborator test', 'admin')
-            sage: W.collaborators
-            []
-            sage: W.add_collaborator('diophantus')
-            sage: W.collaborators
-            ['diophantus']
-        """
-        if user not in self.collaborators:
-            self.collaborators.append(user)
 
     # Searching
 
