@@ -1629,22 +1629,6 @@ class Worksheet(object):
         self.reset_interact_state()
         self.cells = self.body_to_cells(text, ignore_ids=ignore_ids)
 
-    def reset_interact_state(self):
-        """
-        Reset the interact state of this worksheet.
-        """
-        # TODO: this must be moved from here
-        try:
-            S = self.__sage
-        except AttributeError:
-            return
-        try:
-            S.execute('_interact_.reset_state()', mode='raw')
-        except OSError:
-            # Doesn't matter, since if S is not running, no need
-            # to zero out the state dictionary.
-            return
-
     # Last edited
 
     @property
@@ -1962,6 +1946,21 @@ class Worksheet(object):
         return cells[0].id()
 
     # Managing whether computing is happening: stop, start, clear, etc.
+
+    def reset_interact_state(self):
+        """
+        Reset the interact state of this worksheet.
+        """
+        try:
+            S = self.__sage
+        except AttributeError:
+            return
+        try:
+            S.execute('_interact_.reset_state()', mode='raw')
+        except OSError:
+            # Doesn't matter, since if S is not running, no need
+            # to zero out the state dictionary.
+            return
 
     def clear(self):
         self.__computing = False
