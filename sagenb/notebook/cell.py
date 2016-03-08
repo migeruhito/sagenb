@@ -1236,7 +1236,7 @@ class Cell(Cell_generic):
             [4, 3, 3]
 
         """
-        L = self.worksheet().compute_cell_list()
+        L = [C for C in self.worksheet().cells if C.is_compute_cell()]
         try:
             k = L.index(self)
         except ValueError:

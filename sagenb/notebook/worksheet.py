@@ -1499,14 +1499,14 @@ class Worksheet(object):
                 'sage', 'sage', 'sage@sagemath.org', force=True)
             sage: W = nb.create_wst('Test trac #8443', 'sage')
             sage: W.edit_save('{{{\n1+1\n///\n}}}')
-            sage: W.cell_id_list()
+            sage: W.cell_id_list
             [0]
             sage: W.next_id
             1
             sage: W.edit_save("{{{\n1+1\n///\n}}}\n\n<p>a text cell</p>")
-            sage: len(set(W.cell_id_list())) == 3
+            sage: len(set(W.cell_id_list)) == 3
             True
-            sage: W.cell_id_list()
+            sage: W.cell_id_list
             [0, 1, 2]
             sage: W.next_id
             3
@@ -1614,14 +1614,14 @@ class Worksheet(object):
                 'sage', 'sage', 'sage@sagemath.org', force=True)
             sage: W = nb.create_wst('Test trac #8443', 'sage')
             sage: W.edit_save('{{{\n1+1\n///\n}}}')
-            sage: W.cell_id_list()
+            sage: W.cell_id_list
             [0]
             sage: W.next_id
             1
             sage: W.edit_save("{{{\n1+1\n///\n}}}\n\n<p>a text cell</p>")
-            sage: len(set(W.cell_id_list())) == 3
+            sage: len(set(W.cell_id_list)) == 3
             True
-            sage: W.cell_id_list()
+            sage: W.cell_id_list
             [0, 1, 2]
             sage: W.next_id
             3
@@ -1674,15 +1674,7 @@ class Worksheet(object):
 
     # Managing cells and groups of cells in this worksheet
 
-    def get_cell_with_id(self, id):
-        """
-        Get a pre-existing cell with this id, or creates a new one with it.
-        """
-        for c in self.cells:
-            if c.id() == id:
-                return c
-        return self._new_cell(id)
-
+    @property
     def cell_id_list(self):
         r"""
         Returns a list of ID's of all cells in this worksheet.
@@ -1705,21 +1697,12 @@ class Worksheet(object):
 
             sage: W.edit_save(
                 '{{{\n2+3\n///\n5\n}}}\n{{{id=10|\n2+8\n///\n10\n}}}')
-            sage: W.cell_id_list()
+            sage: W.cell_id_list
             [0, 10]
         """
         return [C.id() for C in self.cells]
 
-    def compute_cell_id_list(self):
-        """
-        Returns a list of ID's of all compute cells in this worksheet.
-
-        OUTPUT:
-
-        - a new list of integers and/or strings
-        """
-        return [C.id() for C in self.cells if C.is_compute_cell()]
-
+    @property
     def onload_id_list(self):
         """
         Returns a list of ID's of cells the remote client should
@@ -1734,31 +1717,14 @@ class Worksheet(object):
         """
         return [C.id() for C in self.cells if C.is_interactive_cell()]
 
-    def compute_cell_list(self):
-        r"""
-        Returns a list of this worksheet's compute cells.
-
-        OUTPUT:
-
-        - a list of :class:`sagenb.notebook.cell.Cell` instances
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Test', 'admin')
-            sage: W.edit_save(
-                'foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
-            sage: v = W.compute_cell_list(); v
-            [Cell 1: in=2+3, out=
-            5, Cell 3: in=2+8, out=
-            10]
-            sage: v[0]
-            Cell 1: in=2+3, out=
-            5
+    def get_cell_with_id(self, id):
         """
-        return [C for C in self.cells if C.is_compute_cell()]
+        Get a pre-existing cell with this id, or creates a new one with it.
+        """
+        for c in self.cells:
+            if c.id() == id:
+                return c
+        return self._new_cell(id)
 
     def append_new_cell(self):
         """
@@ -1891,7 +1857,7 @@ class Worksheet(object):
             sage: W.edit_save(
                 '{{{id=foo|\n2+3\n///\n5\n}}}\n{{{id=9|\n2+8\n///\n10\n}}}'
                 '{{{id=dont_delete_me|\n2*3\n///\n6\n}}}\n')
-            sage: W.cell_id_list()
+            sage: W.cell_id_list
             ['foo', 9, 'dont_delete_me']
             sage: C = W.cells[1]           # save a reference to the cell
             sage: C.output_text(raw=True)
@@ -1908,7 +1874,7 @@ class Worksheet(object):
             u''
             sage: C.files()
             []
-            sage: W.cell_id_list()
+            sage: W.cell_id_list
             ['foo', 'dont_delete_me']
         """
         cells = self.cells

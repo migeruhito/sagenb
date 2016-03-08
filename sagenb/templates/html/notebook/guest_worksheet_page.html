@@ -65,8 +65,8 @@ INPUT:
 {% include 'html/notebook/worksheet.html' %}
 <script>
 {%- if conf['pub_interact'] %}
-    cell_id_list = {{ worksheet.cell_id_list() }};
-    onload_id_list = {{ worksheet.onload_id_list() }};
+    cell_id_list = {{ worksheet.cell_id_list }};
+    onload_id_list = {{ worksheet.onload_id_list }};
     ignore_all_jumps = true;
 {%- else %}
     MathJax.Hub.Process();

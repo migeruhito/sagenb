@@ -922,12 +922,12 @@ def worksheet_delete_cell(worksheet):
     """
     r = {}
     r['id'] = id = get_cell_id()
-    if len(worksheet.compute_cell_id_list()) <= 1:
+    if len([C for C in worksheet.cells if C.is_compute_cell()]) <= 1:
         r['command'] = 'ignore'
     else:
         r['command'] = 'delete'
         r['prev_id'] = worksheet.delete_cell_with_id(id)
-        r['cell_id_list'] = worksheet.cell_id_list()
+        r['cell_id_list'] = worksheet.cell_id_list
 
     return encode_response(r)
 
