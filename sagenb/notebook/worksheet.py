@@ -57,8 +57,9 @@ from ..util import set_default
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
 from ..util import walltime
-from ..util.templates import format_completions_as_html
+from ..util.templates import completions_html
 from ..util.templates import prettify_time_ago
+from ..util.text import best_completion
 from ..util.text import extract_cells
 from ..util.text import ignore_prompts_and_output
 from ..util.text import search_keywords
@@ -1901,17 +1902,11 @@ class Worksheet(object):
 
     def show_all(self):
         for C in self.cells:
-            try:
-                C.set_cell_output_type('wrap')
-            except AttributeError:   # for backwards compatibility
-                pass
+            C.set_cell_output_type('wrap')
 
     def hide_all(self):
         for C in self.cells:
-            try:
-                C.set_cell_output_type('hidden')
-            except AttributeError:
-                pass
+            C.set_cell_output_type('hidden')
 
     def delete_all_output(self, username):
         r"""
@@ -1986,53 +1981,12 @@ class Worksheet(object):
             sage: W.quit()
             sage: nb.delete()
         """
+        # TODO: this must be tested outside
         if not self.editable_by(username):
             raise ValueError(
                 "user '%s' not allowed to edit this worksheet" % username)
         for C in self.cells:
             C.delete_output()
-
-    # (Tab) Completions
-    # TODO: this must not be Worksheet methods, but utility functions
-
-    def best_completion(self, s, word):
-        completions = s.split()
-        if len(completions) == 0:
-            return ''
-        n = len(word)
-        i = n
-        m = min([len(x) for x in completions])
-        while i <= m:
-            word = completions[0][:i]
-            for w in completions[1:]:
-                if w[:i] != word:
-                    return w[n:i - 1]
-            i += 1
-        return completions[0][n:m]
-
-    def completions_html(self, id, s, cols=3):
-        if 'no completions of' in s:
-            return ''
-
-        completions = s.split()
-
-        n = len(completions)
-        l = n // cols + n % cols
-
-        if n == 1:
-            return ''  # don't show a window, just replace it
-
-        rows = []
-        for r in range(0, l):
-            row = []
-            for c in range(cols):
-                try:
-                    cell = completions[r + l * c]
-                    row.append(cell)
-                except:
-                    row.append('')
-            rows.append(row)
-        return format_completions_as_html(id, rows)
 
     # ###### Computing
 
@@ -2313,11 +2267,11 @@ class Worksheet(object):
             if before_prompt[-1] != '?':
                 # completions
                 if hasattr(C, '_word_being_completed'):
-                    c = self.best_completion(out, C._word_being_completed)
+                    c = best_completion(out, C._word_being_completed)
                 else:
                     c = ''
                 C.set_changed_input_text(before_prompt + c + after_prompt)
-                out = self.completions_html(C.id(), out)
+                out = completions_html(C.id(), out)
                 C.set_introspect_html(out, completing=True)
             else:
                 if C.eval_method == 'introspect':

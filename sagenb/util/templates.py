@@ -15,6 +15,7 @@ from flask.ext.babel import ngettext
 from flask.ext.themes2 import render_theme_template
 
 from . import cached_property
+from . import grouper
 from . import N_
 from . import nN_
 from .compress.JavaScriptCompressor import JavaScriptCompressor
@@ -353,7 +354,7 @@ def encode_response(obj, separators=(',', ':'), **kwargs):
 # completions
 
 
-def format_completions_as_html(cell_id, completions, username=None):
+def completions_html(cell_id, s, cols=3):
     """
     Returns tabular HTML code for a list of introspection completions.
 
@@ -361,18 +362,25 @@ def format_completions_as_html(cell_id, completions, username=None):
 
     - ``cell_id`` - an integer or a string; the ID of the ambient cell
 
-    - ``completions`` - a nested list of completions in row-major
-      order
+    - ``s`` - a string with space separated completions
+
+    - ``cols`` max number of columns
+
 
     OUTPUT:
 
-    - a string
+    - html code
     """
-    if len(completions) == 0:
+    if 'no completions of' in s:
         return ''
 
+    s = s.split()
+    if len(s) <= 1:
+        return ''  # don't show a window, just replace it
+
+    completions = enumerate(grouper(s, (len(s) + cols - 1) // cols, ''))
     return render_template(
         os.path.join("html", "worksheet", "completions.html"),
         cell_id=cell_id,
         # Transpose and enumerate completions to column-major
-        completions_enumerated=enumerate(map(list, zip(*completions))))
+        completions_enumerated=completions)

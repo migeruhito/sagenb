@@ -364,3 +364,21 @@ def search_keywords(s):
     -  ``list`` - a list of strings
     """
     return [k[1] if k[0] else k[2] for k in search_keywords_re.findall(s)]
+
+
+def best_completion(s, word):
+    completions = s.split()
+    try:
+        chars = completions.pop()[len(word):]
+    except IndexError:
+        return ''
+
+    best = []
+    for new_char in chars:
+        test_word = word + new_char
+        for w in completions:
+            if not w.startswith(test_word):
+                return ''.join(best)
+        word = test_word
+        best.append(new_char)
+    return ''.join(best)
