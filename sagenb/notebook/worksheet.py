@@ -2007,12 +2007,17 @@ class Worksheet(object):
             # to zero out the state dictionary.
             return
 
+    def clear_queue(self):
+        # empty the queue
+        for C in self.__queue:
+            C.interrupt()
+        self.__queue = []
+        self.__computing = False
+
     def clear(self):
         self.__computing = False
         self.__queue = []
-        self.cells = []
-        for i in range(INITIAL_NUM_CELLS):
-            self.append_new_cell()
+        del self.cells
 
     def quit(self):
         try:
@@ -2085,8 +2090,7 @@ class Worksheet(object):
             pass
         try:
             init_code = '\n'.join((
-                "DATA = '{}'".format(
-                    os.path.join(os.path.abspath(self.data_directory))),
+                "DATA = '{}'".format(os.path.abspath(self.data_directory)),
                 'sys.path.append(DATA)',
                 ))
             self.__sage = self.notebook().new_worksheet_process(
@@ -2407,13 +2411,6 @@ class Worksheet(object):
         else:
             return True
 
-    def clear_queue(self):
-        # empty the queue
-        for C in self.__queue:
-            C.interrupt()
-        self.__queue = []
-        self.__computing = False
-
     def restart_sage(self):
         """
         Restart Sage kernel.
@@ -2537,9 +2534,6 @@ class Worksheet(object):
                 id = self.next_id
                 self.next_id += 1
         return Cell(id, input, '', self)
-
-    def append(self, L):
-        self.cells.append(L)
 
     def check_cell(self, id):
         """
