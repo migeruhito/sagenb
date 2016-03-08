@@ -1674,6 +1674,15 @@ class Worksheet(object):
 
     # Managing cells and groups of cells in this worksheet
 
+    def get_cell_with_id(self, id):
+        """
+        Get a pre-existing cell with this id, or creates a new one with it.
+        """
+        for c in self.cells:
+            if c.id() == id:
+                return c
+        return self._new_cell(id)
+
     def cell_id_list(self):
         r"""
         Returns a list of ID's of all cells in this worksheet.
@@ -1777,6 +1786,15 @@ class Worksheet(object):
         self.cells.append(C)
         return C
 
+    def insert_new_cell(self, id, cell, offset=0):
+        cells = self.cells
+        for i, C in enumerate(cells):
+            if C.id() == id:
+                cells.insert(i + offset, cell)
+                return cell
+        cells.append(cell)
+        return cell
+
     def new_cell_before(self, id, input=''):
         """
         Inserts a new compute cell before a cell with the given ID.
@@ -1793,15 +1811,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.Cell` instance
         """
-        cells = self.cells
-        for i in range(len(cells)):
-            if cells[i].id() == id:
-                C = self._new_cell(input=input)
-                cells.insert(i, C)
-                return C
-        C = self._new_cell(input=input)
-        cells.append(C)
-        return C
+        return self.insert_new_cell(id, self._new_cell(input=input))
 
     def new_text_cell_before(self, id, input=''):
         """
@@ -1820,15 +1830,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.TextCell` instance
         """
-        cells = self.cells
-        for i in range(len(cells)):
-            if cells[i].id() == id:
-                C = self._new_text_cell(plain_text=input)
-                cells.insert(i, C)
-                return C
-        C = self._new_text_cell(plain_text=input)
-        cells.append(C)
-        return C
+        return self.insert_new_cell(id, self._new_text_cell(plain_text=input))
 
     def new_cell_after(self, id, input=''):
         """
@@ -1846,15 +1848,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.Cell` instance
         """
-        cells = self.cells
-        for i in range(len(cells)):
-            if cells[i].id() == id:
-                C = self._new_cell(input=input)
-                cells.insert(i + 1, C)
-                return C
-        C = self._new_cell(input=input)
-        cells.append(C)
-        return C
+        return self.insert_new_cell(id, self._new_cell(input=input), offset=1)
 
     def new_text_cell_after(self, id, input=''):
         """
@@ -1872,15 +1866,8 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.TextCell` instance
         """
-        cells = self.cells
-        for i in range(len(cells)):
-            if cells[i].id() == id:
-                C = self._new_text_cell(plain_text=input)
-                cells.insert(i + 1, C)
-                return C
-        C = self._new_text_cell(plain_text=input)
-        cells.append(C)
-        return C
+        return self.insert_new_cell(
+            id, self._new_text_cell(plain_text=input), offset=1)
 
     def delete_cell_with_id(self, id):
         r"""
@@ -1925,11 +1912,10 @@ class Worksheet(object):
             ['foo', 'dont_delete_me']
         """
         cells = self.cells
-        for i in range(len(cells)):
-            if cells[i].id() == id:
+        for i, C in enumerate(cells):
+            if C.id() == id:
 
                 # Delete this cell from the queued up calculation list:
-                C = cells[i]
                 if C in self.__queue and self.__queue[0] != C:
                     self.__queue.remove(C)
 
@@ -1944,6 +1930,145 @@ class Worksheet(object):
                 else:
                     break
         return cells[0].id()
+
+    # Showing and hiding all cells
+
+    def show_all(self):
+        for C in self.cells:
+            try:
+                C.set_cell_output_type('wrap')
+            except AttributeError:   # for backwards compatibility
+                pass
+
+    def hide_all(self):
+        for C in self.cells:
+            try:
+                C.set_cell_output_type('hidden')
+            except AttributeError:
+                pass
+
+    def delete_all_output(self, username):
+        r"""
+        Delete all the output, files included, in all the worksheet cells.
+
+        INPUT:
+
+        -  ``username`` - name of the user requesting the
+           deletion.
+
+        EXAMPLES: We create a new notebook, user, and a worksheet::
+
+            sage: nb = sagenb.notebook.notebook.load_notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test', 'sage')
+            sage: W.edit_save(
+                "{{{\n2+3\n///\n5\n}}}\n{{{\nopen('afile', 'w').write(
+                    'some text')\nprint 'hello'\n///\n\n}}}")
+
+        We have two cells::
+
+            sage: W.cells
+            [Cell 0: in=2+3, out=
+            5, Cell 1: in=open('afile', 'w').write('some text')
+            print 'hello', out=
+            ]
+            sage: C0 = W.cells[1]
+            sage: open(os.path.join(C0.directory(), 'xyz'), 'w').write('bye')
+            sage: C0.files()
+            ['xyz']
+            sage: C1 = W.cells[1]
+            sage: C1.evaluate()
+            sage: W.check_comp(
+                )     # random output -- depends on computer speed
+            ('w', Cell 1: in=open('afile', 'w').write('some text')
+            print 'hello', out=)
+            sage: W.check_comp(
+                )     # random output -- depends on computer speed
+            ('d', Cell 1: in=open('afile', 'w').write('some text')
+            print 'hello', out=
+            hello
+            )
+            sage: W.check_comp(
+                )     # random output -- depends on computer speed
+            ('e', None)
+            sage: C1.files(
+                )         # random output -- depends on computer speed
+            ['afile']
+
+        We now delete the output, observe that it is gone::
+
+            sage: W.delete_all_output('sage')
+            sage: W.cells
+            [Cell 0: in=2+3, out=,
+             Cell 1: in=open('afile', 'w').write('some text')
+            print 'hello', out=]
+            sage: C0.files(), C1.files()
+            ([], [])
+
+        If an invalid user tries to delete all output, a ValueError is
+        raised::
+
+            sage: W.delete_all_output('hacker')
+            Traceback (most recent call last):
+            ...
+            ValueError: user 'hacker' not allowed to edit this worksheet
+
+        Clean up::
+
+            sage: W.quit()
+            sage: nb.delete()
+        """
+        if not self.editable_by(username):
+            raise ValueError(
+                "user '%s' not allowed to edit this worksheet" % username)
+        for C in self.cells:
+            C.delete_output()
+
+    # (Tab) Completions
+    # TODO: this must not be Worksheet methods, but utility functions
+
+    def best_completion(self, s, word):
+        completions = s.split()
+        if len(completions) == 0:
+            return ''
+        n = len(word)
+        i = n
+        m = min([len(x) for x in completions])
+        while i <= m:
+            word = completions[0][:i]
+            for w in completions[1:]:
+                if w[:i] != word:
+                    return w[n:i - 1]
+            i += 1
+        return completions[0][n:m]
+
+    def completions_html(self, id, s, cols=3):
+        if 'no completions of' in s:
+            return ''
+
+        completions = s.split()
+
+        n = len(completions)
+        l = n // cols + n % cols
+
+        if n == 1:
+            return ''  # don't show a window, just replace it
+
+        rows = []
+        for r in range(0, l):
+            row = []
+            for c in range(cols):
+                try:
+                    cell = completions[r + l * c]
+                    row.append(cell)
+                except:
+                    row.append('')
+            rows.append(row)
+        return format_completions_as_html(id, rows)
+
+    # ###### Computing
 
     # Managing whether computing is happening: stop, start, clear, etc.
 
@@ -2496,23 +2621,6 @@ class Worksheet(object):
     def append(self, L):
         self.cells.append(L)
 
-    # Accessing existing cells
-
-    def get_cell_with_id_or_none(self, id):
-        """
-        Gets a pre-existing cell with this id, or returns None.
-        """
-        for c in self.cells:
-            if c.id() == id:
-                return c
-        return None
-
-    def get_cell_with_id(self, id):
-        """
-        Get a pre-existing cell with this id, or creates a new one with it.
-        """
-        return self.get_cell_with_id_or_none(id) or self._new_cell(id)
-
     def check_cell(self, id):
         """
         Checks the status of a given compute cell.
@@ -2534,47 +2642,6 @@ class Worksheet(object):
         else:
             status = 'd'
         return status, cell
-
-    # (Tab) Completions
-
-    def best_completion(self, s, word):
-        completions = s.split()
-        if len(completions) == 0:
-            return ''
-        n = len(word)
-        i = n
-        m = min([len(x) for x in completions])
-        while i <= m:
-            word = completions[0][:i]
-            for w in completions[1:]:
-                if w[:i] != word:
-                    return w[n:i - 1]
-            i += 1
-        return completions[0][n:m]
-
-    def completions_html(self, id, s, cols=3):
-        if 'no completions of' in s:
-            return ''
-
-        completions = s.split()
-
-        n = len(completions)
-        l = n // cols + n % cols
-
-        if n == 1:
-            return ''  # don't show a window, just replace it
-
-        rows = []
-        for r in range(0, l):
-            row = []
-            for c in range(cols):
-                try:
-                    cell = completions[r + l * c]
-                    row.append(cell)
-                except:
-                    row.append('')
-            rows.append(row)
-        return format_completions_as_html(id, rows)
 
     # Processing of input and output to worksheet process.
 
@@ -2804,98 +2871,3 @@ class Worksheet(object):
         else:
             cmd = self._eval_cmd(system, input)
             return True, cmd
-
-    # Showing and hiding all cells
-
-    def show_all(self):
-        for C in self.cells:
-            try:
-                C.set_cell_output_type('wrap')
-            except AttributeError:   # for backwards compatibility
-                pass
-
-    def hide_all(self):
-        for C in self.cells:
-            try:
-                C.set_cell_output_type('hidden')
-            except AttributeError:
-                pass
-
-    def delete_all_output(self, username):
-        r"""
-        Delete all the output, files included, in all the worksheet cells.
-
-        INPUT:
-
-        -  ``username`` - name of the user requesting the
-           deletion.
-
-        EXAMPLES: We create a new notebook, user, and a worksheet::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: W.edit_save(
-                "{{{\n2+3\n///\n5\n}}}\n{{{\nopen('afile', 'w').write(
-                    'some text')\nprint 'hello'\n///\n\n}}}")
-
-        We have two cells::
-
-            sage: W.cells
-            [Cell 0: in=2+3, out=
-            5, Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=
-            ]
-            sage: C0 = W.cells[1]
-            sage: open(os.path.join(C0.directory(), 'xyz'), 'w').write('bye')
-            sage: C0.files()
-            ['xyz']
-            sage: C1 = W.cells[1]
-            sage: C1.evaluate()
-            sage: W.check_comp(
-                )     # random output -- depends on computer speed
-            ('w', Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=)
-            sage: W.check_comp(
-                )     # random output -- depends on computer speed
-            ('d', Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=
-            hello
-            )
-            sage: W.check_comp(
-                )     # random output -- depends on computer speed
-            ('e', None)
-            sage: C1.files(
-                )         # random output -- depends on computer speed
-            ['afile']
-
-        We now delete the output, observe that it is gone::
-
-            sage: W.delete_all_output('sage')
-            sage: W.cells
-            [Cell 0: in=2+3, out=,
-             Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=]
-            sage: C0.files(), C1.files()
-            ([], [])
-
-        If an invalid user tries to delete all output, a ValueError is
-        raised::
-
-            sage: W.delete_all_output('hacker')
-            Traceback (most recent call last):
-            ...
-            ValueError: user 'hacker' not allowed to edit this worksheet
-
-        Clean up::
-
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        if not self.editable_by(username):
-            raise ValueError(
-                "user '%s' not allowed to edit this worksheet" % username)
-        for C in self.cells:
-            C.delete_output()
