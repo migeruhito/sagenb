@@ -1016,6 +1016,7 @@ class Cell(Cell_generic):
             '.../home/sage/0/cells/0'
             sage: nb.delete()
         """
+        # TODO:  move to storage backend
         dir = self._directory_name()
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -1042,6 +1043,7 @@ class Cell(Cell_generic):
             '.../home/sage/0/cells/0'
             sage: nb.delete()
         """
+        # TODO:  move to storage backend
         return os.path.join(self._worksheet.directory, 'cells',
                             str(self.id()))
 

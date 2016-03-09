@@ -19,7 +19,7 @@ INPUT:
 {% if username in original_worksheet.collaborators or original_worksheet.owner == username %}
     {% set edit_text = "Edit this." %}
     {% set edit_text = gettext('Edit this.') %}
-    {% set url           = original_worksheet.worksheet_command('') %}
+    {% set url       = "/home/" + original_worksheet.filename %}
 {% elif notebook.user_manager[username].is_guest %}
     {% set edit_text = gettext('Log in to edit a copy.') %}
     {% set url       = "/" %}

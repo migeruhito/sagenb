@@ -1992,85 +1992,6 @@ class Worksheet(object):
 
     # Managing whether computing is happening: stop, start, clear, etc.
 
-    def reset_interact_state(self):
-        """
-        Reset the interact state of this worksheet.
-        """
-        try:
-            S = self.__sage
-        except AttributeError:
-            return
-        try:
-            S.execute('_interact_.reset_state()', mode='raw')
-        except OSError:
-            # Doesn't matter, since if S is not running, no need
-            # to zero out the state dictionary.
-            return
-
-    def clear_queue(self):
-        # empty the queue
-        for C in self.__queue:
-            C.interrupt()
-        self.__queue = []
-        self.__computing = False
-
-    def clear(self):
-        self.__computing = False
-        self.__queue = []
-        del self.cells
-
-    def quit(self):
-        try:
-            S = self.__sage
-        except AttributeError:
-            # no sage running anyways!
-            self.notebook().quit_worksheet(self)
-            return
-
-        try:
-            S.quit()
-        except AttributeError, msg:
-            print "WARNING: %s" % msg
-        except Exception, msg:
-            print msg
-            print "WARNING: Error deleting Sage object!"
-
-        del self.__sage
-
-        # We do this to avoid getting a stale Sage that uses old code.
-        self.save()
-        self.clear_queue()
-        del self.cells
-
-        for cell in self.cells:
-            try:
-                dir = cell._directory_name()
-            except AttributeError:
-                continue
-            if os.path.exists(dir) and not os.listdir(dir):
-                shutil.rmtree(dir, ignore_errors=True)
-        self.notebook().quit_worksheet(self)
-
-    def next_block_id(self):
-        try:
-            i = self.__next_block_id
-        except AttributeError:
-            i = 0
-        i += 1
-        self.__next_block_id = i
-        return i
-
-    def compute_process_has_been_started(self):
-        """
-        Return True precisely if the compute process has been started,
-        irregardless of whether or not it is currently churning away on a
-        computation.
-        """
-        try:
-            return self.__sage.is_started()
-        except AttributeError:
-            return False
-
     def sage(self):
         """
         Return a started up copy of Sage initialized for computations.
@@ -2114,15 +2035,39 @@ class Worksheet(object):
             self._enqueue_auto_cells()
         return self.__sage
 
-    def eval_asap_no_output(self, cmd, username=None):
-        C = self._new_cell(hidden=True)
-        C.set_asap(True)
-        C.set_no_output(True)
-        C.set_input_text(cmd)
-        self.enqueue(C, username=username)
+    def compute_process_has_been_started(self):
+        """
+        Return True precisely if the compute process has been started,
+        irregardless of whether or not it is currently churning away on a
+        computation.
+        """
+        try:
+            return self.__sage.is_started()
+        except AttributeError:
+            return False
 
-    def cell_directory(self, C):
-        return C.directory()
+    def restart_sage(self):
+        """
+        Restart Sage kernel.
+        """
+        self.quit()
+        self.sage()
+        self.start_next_comp()
+
+    def reset_interact_state(self):
+        """
+        Reset the interact state of this worksheet.
+        """
+        try:
+            S = self.__sage
+        except AttributeError:
+            return
+        try:
+            S.execute('_interact_.reset_state()', mode='raw')
+        except OSError:
+            # Doesn't matter, since if S is not running, no need
+            # to zero out the state dictionary.
+            return
 
     def start_next_comp(self):
         if len(self.__queue) == 0:
@@ -2253,7 +2198,7 @@ class Worksheet(object):
                 ########################################################
                 # Create temporary symlinks to output files seen so far
                 if len(output_status.filenames) > 0:
-                    cell_dir = os.path.abspath(self.cell_directory(C))
+                    cell_dir = os.path.abspath(C.directory())
                     if not os.path.exists(cell_dir):
                         os.makedirs(cell_dir)
                     for X in output_status.filenames:
@@ -2292,7 +2237,7 @@ class Worksheet(object):
         if C.is_no_output():
             # Clean up the temp directories associated to C, and do
             # not set any output text that C might have got.
-            d = self.cell_directory(C)
+            d = C.directory()
             for X in os.listdir(d):
                 Y = os.path.join(d, X)
                 if os.path.isfile(Y):
@@ -2308,7 +2253,7 @@ class Worksheet(object):
             filenames = output_status.filenames
             if len(filenames) > 0:
                 # Move files to the cell directory
-                cell_dir = os.path.abspath(self.cell_directory(C))
+                cell_dir = os.path.abspath(C.directory())
                 # We wipe the cell directory and make a new one to
                 # clean up any cruft (like dead symbolic links to
                 # temporary files that were deleted, old files from
@@ -2411,17 +2356,58 @@ class Worksheet(object):
         else:
             return True
 
-    def restart_sage(self):
-        """
-        Restart Sage kernel.
-        """
-        self.quit()
-        self.sage()
-        self.start_next_comp()
+    def clear_queue(self):
+        # empty the queue
+        for C in self.__queue:
+            C.interrupt()
+        self.__queue = []
+        self.__computing = False
 
-    def worksheet_command(self, cmd):
-        # return URL in the web browser of the given cmd
-        return '/home/%s/%s' % (self.filename, cmd)
+    def clear(self):
+        self.__computing = False
+        self.__queue = []
+        del self.cells
+
+    def quit(self):
+        try:
+            S = self.__sage
+        except AttributeError:
+            # no sage running anyways!
+            self.notebook().quit_worksheet(self)
+            return
+
+        try:
+            S.quit()
+        except AttributeError, msg:
+            print "WARNING: %s" % msg
+        except Exception, msg:
+            print msg
+            print "WARNING: Error deleting Sage object!"
+
+        del self.__sage
+
+        # We do this to avoid getting a stale Sage that uses old code.
+        self.save()
+        self.clear_queue()
+        del self.cells
+
+        for cell in self.cells:
+            try:
+                dir = cell._directory_name()
+            except AttributeError:
+                continue
+            if os.path.exists(dir) and not os.listdir(dir):
+                shutil.rmtree(dir, ignore_errors=True)
+        self.notebook().quit_worksheet(self)
+
+    def next_block_id(self):
+        try:
+            i = self.__next_block_id
+        except AttributeError:
+            i = 0
+        i += 1
+        self.__next_block_id = i
+        return i
 
     # Idle timeout
 
@@ -2510,6 +2496,13 @@ class Worksheet(object):
         for c in self.cells:
             if c.is_auto_cell():
                 self.enqueue(c)
+
+    def eval_asap_no_output(self, cmd, username=None):
+        C = self._new_cell(hidden=True)
+        C.set_asap(True)
+        C.set_no_output(True)
+        C.set_input_text(cmd)
+        self.enqueue(C, username=username)
 
     def _new_text_cell(self, plain_text, id=None):
         if id is None:
