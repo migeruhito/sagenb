@@ -689,7 +689,6 @@ class Cell(Cell_generic):
         self._out = out.replace('\r', '')
         self._interrupted = False
         self.has_new_output = False
-        self._asap = False
         self.set_input_text(input)
 
         # start with a random integer so that evaluations of the cell
@@ -710,50 +709,6 @@ class Cell(Cell_generic):
             Cell 0: in=2+3, out=5
         """
         return 'Cell %s: in=%s, out=%s' % (self.id(), self._in, self._out)
-
-    def is_asap(self):
-        """
-        Returns whether this compute cell is to be evaluated as soon
-        as possible (ASAP).
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
-            sage: C.is_asap()
-            False
-            sage: C.set_asap(True)
-            sage: C.is_asap()
-            True
-        """
-        try:
-            return self._asap
-        except AttributeError:
-            self._asap = False
-            return self._asap
-
-    def set_asap(self, asap):
-        """
-        Sets whether to evaluate this compute cell as soon as possible
-        (ASAP).
-
-        INPUT:
-
-        - ``asap`` - a boolean convertible
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
-            sage: C.is_asap()
-            False
-            sage: C.set_asap(True)
-            sage: C.is_asap()
-            True
-        """
-        self._asap = bool(asap)
 
     def delete_output(self):
         r"""

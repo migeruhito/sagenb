@@ -411,7 +411,7 @@ class Worksheet(object):
             sage: nb.delete()
         """
         self.__pretty_print = check
-        self.eval_asap_no_output("pretty_print_default(%r)" % check)
+        self.sage().execute("pretty_print_default(%r)" % check, mode='raw')
 
     @property
     def saved_by_info(self):
@@ -2440,13 +2440,6 @@ class Worksheet(object):
            user evaluating this cell (mainly used for login)
 
         - ``next`` - a boolean (default: False); ignored
-
-        .. note::
-
-           If ``C.is_asap()`` is True, then we put ``C`` as close to
-           the beginning of the queue as possible, but after all
-           "asap" cells.  Otherwise, ``C`` goes at the end of the
-           queue.
         """
         if self.is_published:
             return
@@ -2458,29 +2451,13 @@ class Worksheet(object):
 
         # Now enqueue the requested cell.
         if not (C in self.__queue):
-            if C.is_asap():
-                if self.__computing:
-                    i = 1
-                else:
-                    i = 0
-                while i < len(self.__queue) and self.__queue[i].is_asap():
-                    i += 1
-                self.__queue.insert(i, C)
-            else:
-                self.__queue.append(C)
+            self.__queue.append(C)
         self.start_next_comp()
 
     def _enqueue_auto_cells(self):
         for c in self.cells:
             if c.is_auto_cell():
                 self.enqueue(c)
-
-    def eval_asap_no_output(self, cmd, username=None):
-        C = self._new_cell(hidden=True)
-        C.set_asap(True)
-        C.set_no_output(True)
-        C.set_input_text(cmd)
-        self.enqueue(C, username=username)
 
     def check_cell(self, id):
         """
