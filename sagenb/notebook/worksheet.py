@@ -691,7 +691,7 @@ class Worksheet(object):
         """
         return self.__directory
 
-    # directories and files. TODO: move to storage backend
+    # Directories and files. TODO: move to storage backend
 
     def create_directories(self):
         # TODO: move to storage backend
@@ -2345,18 +2345,6 @@ class Worksheet(object):
         else:
             return True
 
-    def clear_queue(self):
-        # empty the queue
-        for C in self.__queue:
-            C.interrupt()
-        self.__queue = []
-        self.__computing = False
-
-    def clear(self):
-        self.__computing = False
-        self.__queue = []
-        del self.cells
-
     def quit(self):
         try:
             S = self.__sage
@@ -2514,6 +2502,18 @@ class Worksheet(object):
         else:
             status = 'd'
         return status, cell
+
+    def clear_queue(self):
+        # empty the queue
+        for C in self.__queue:
+            C.interrupt()
+        self.__queue = []
+        self.__computing = False
+
+    def clear(self):
+        self.__computing = False
+        self.__queue = []
+        del self.cells
 
     # Processing of input and output to worksheet process.
 
