@@ -637,7 +637,7 @@ class Worksheet(object):
         return self.cell_id_generator_for_cells(self.cells)
 
     def cell_id_generator_for_cells(self, cells):
-        return id_generator(C.id() for C in cells if isinstance(C.id(), int))
+        return id_generator([C.id() for C in cells if isinstance(C.id(), int)])
 
     @cached_property(writable=True, invalidate=('cell_id_generator',))
     def cells(self):
