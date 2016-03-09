@@ -35,6 +35,8 @@ import re
 import shutil
 import time
 
+from itertools import count
+
 from flask.ext.babel import gettext
 
 from .. import config
@@ -197,8 +199,10 @@ class Worksheet(object):
         # State variables
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
-        # self.___next_id___  cached_property (writable)
-        # self.___cells___ -> cached_property (writable, invalidates next_id)
+        # self.___cell_id_generator___  cached_property (writable)
+        # self.___cells___ -> cached_property (writable, invalidates
+        #   cell_id_generator)
+        self.hidden_cell_id_generator = count(-1, -1)
         self.__filename = os.path.join(owner, str(id_number))  # property ro
         self.__computing = False
         self.__queue = []
@@ -628,20 +632,19 @@ class Worksheet(object):
             self.__state_number += 1
 
     @cached_property(writable=True)
-    def next_id(self):
-        return self.next_id_for_cells(self.cells)
+    def cell_id_generator(self):
+        return self.cell_id_generator_for_cells(self.cells)
 
-    def next_id_for_cells(self, cells):
-        return 1 + max([C.id() for C in cells
-                        if isinstance(C.id(), int)] + [-1])
+    def cell_id_generator_for_cells(self, cells):
+        return id_generator(C.id() for C in cells if isinstance(C.id(), int))
 
-    @cached_property(writable=True, invalidate=('next_id',))
+    @cached_property(writable=True, invalidate=('cell_id_generator',))
     def cells(self):
         worksheet_html = self.worksheet_html_filename
         if not os.path.exists(worksheet_html):
             cells = []
             for i in range(INITIAL_NUM_CELLS):
-                cells.append(self._new_cell(self.next_id_for_cells(cells)))
+                cells.append(self._new_cell(i))
         else:
             self.reset_interact_state()
             # TODO: move to storage backend
@@ -1343,6 +1346,49 @@ class Worksheet(object):
         # Every single word is there.
         return True
 
+    # Last edited
+
+    @property
+    def last_edited(self):
+        return self.last_change[1]
+
+    @property
+    def date_edited(self):
+        """
+        Returns the date the worksheet was last edited.
+        """
+        return time.localtime(self.last_change[1])
+
+    @property
+    def last_to_edit(self):
+        return self.last_change[0]
+
+    @property
+    def time_since_last_edited(self):
+        return time.time() - self.last_edited
+
+    def record_edit(self, user):
+        self.last_change = (user, time.time())
+
+    def warn_about_other_person_editing(self, username,
+                                        threshold=WARN_THRESHOLD):
+        r"""
+        Check to see if another user besides username was the last to edit
+        this worksheet during the last ``threshold`` seconds.
+        If so, return True and that user name. If not, return False.
+
+        INPUT:
+
+        -  ``username`` - user who would like to edit this
+           file.
+
+        -  ``threshold`` - number of seconds, so if there was
+           no activity on this worksheet for this many seconds, then editing
+           is considered safe.
+        """
+        user, lap = self.last_change
+        return (True, user) if lap < threshold and user != username else False
+
     # Saving cells, snapshots. TODO: move to storage backend?
 
     def save_snapshot(self, user):
@@ -1502,14 +1548,14 @@ class Worksheet(object):
             sage: W.edit_save('{{{\n1+1\n///\n}}}')
             sage: W.cell_id_list
             [0]
-            sage: W.next_id
+            sage: W.cell_id_generator.next()
             1
             sage: W.edit_save("{{{\n1+1\n///\n}}}\n\n<p>a text cell</p>")
             sage: len(set(W.cell_id_list)) == 3
             True
             sage: W.cell_id_list
             [0, 1, 2]
-            sage: W.next_id
+            sage: W.cell_id_generator.next()
             3
         """
         text = text.replace('\r\n', '\n')
@@ -1616,61 +1662,18 @@ class Worksheet(object):
             sage: W.edit_save('{{{\n1+1\n///\n}}}')
             sage: W.cell_id_list
             [0]
-            sage: W.next_id
+            sage: W.cell_id_generator.next()
             1
             sage: W.edit_save("{{{\n1+1\n///\n}}}\n\n<p>a text cell</p>")
             sage: len(set(W.cell_id_list)) == 3
             True
             sage: W.cell_id_list
             [0, 1, 2]
-            sage: W.next_id
+            sage: W.cell_id_generator.next()
             3
         """
         self.reset_interact_state()
         self.cells = self.body_to_cells(text, ignore_ids=ignore_ids)
-
-    # Last edited
-
-    @property
-    def last_edited(self):
-        return self.last_change[1]
-
-    @property
-    def date_edited(self):
-        """
-        Returns the date the worksheet was last edited.
-        """
-        return time.localtime(self.last_change[1])
-
-    @property
-    def last_to_edit(self):
-        return self.last_change[0]
-
-    @property
-    def time_since_last_edited(self):
-        return time.time() - self.last_edited
-
-    def record_edit(self, user):
-        self.last_change = (user, time.time())
-
-    def warn_about_other_person_editing(self, username,
-                                        threshold=WARN_THRESHOLD):
-        r"""
-        Check to see if another user besides username was the last to edit
-        this worksheet during the last ``threshold`` seconds.
-        If so, return True and that user name. If not, return False.
-
-        INPUT:
-
-        -  ``username`` - user who would like to edit this
-           file.
-
-        -  ``threshold`` - number of seconds, so if there was
-           no activity on this worksheet for this many seconds, then editing
-           is considered safe.
-        """
-        user, lap = self.last_change
-        return (True, user) if lap < threshold and user != username else False
 
     # Managing cells and groups of cells in this worksheet
 
@@ -1726,33 +1729,20 @@ class Worksheet(object):
                 return c
         return self._new_cell(id)
 
-    def append_new_cell(self):
-        """
-        Creates and appends a new compute cell to this worksheet's
-        list of cells.
+    def _new_text_cell(self, plain_text, id=None):
+        if id is None:
+            id = self.cell_id_generator.next()
+        return TextCell(id, plain_text, self)
 
-        OUTPUT:
+    def _new_cell(self, id=None, hidden=False, input=''):
+        if id is None:
+            if hidden:
+                id = self.hidden_cell_id_generator.next()
+            else:
+                id = self.cell_id_generator.next()
+        return Cell(id, input, '', self)
 
-        - a new :class:`sagenb.notebook.cell.Cell` instance
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.create_default_users('password')
-            sage: W = nb.create_wst('Test Edit Save', 'admin')
-            sage: W
-            admin/0: [Cell 1: in=, out=]
-            sage: W.append_new_cell()
-            Cell 2: in=, out=
-            sage: W
-            admin/0: [Cell 1: in=, out=, Cell 2: in=, out=]
-        """
-        C = self._new_cell()
-        self.cells.append(C)
-        return C
-
-    def insert_new_cell(self, id, cell, offset=0):
+    def insert_cell(self, id, cell, offset=0):
         cells = self.cells
         for i, C in enumerate(cells):
             if C.id() == id:
@@ -1777,7 +1767,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.Cell` instance
         """
-        return self.insert_new_cell(id, self._new_cell(input=input))
+        return self.insert_cell(id, self._new_cell(input=input))
 
     def new_text_cell_before(self, id, input=''):
         """
@@ -1796,7 +1786,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.TextCell` instance
         """
-        return self.insert_new_cell(id, self._new_text_cell(plain_text=input))
+        return self.insert_cell(id, self._new_text_cell(plain_text=input))
 
     def new_cell_after(self, id, input=''):
         """
@@ -1814,7 +1804,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.Cell` instance
         """
-        return self.insert_new_cell(id, self._new_cell(input=input), offset=1)
+        return self.insert_cell(id, self._new_cell(input=input), offset=1)
 
     def new_text_cell_after(self, id, input=''):
         """
@@ -1832,7 +1822,7 @@ class Worksheet(object):
 
         - a new :class:`sagenb.notebook.cell.TextCell` instance
         """
-        return self.insert_new_cell(
+        return self.insert_cell(
             id, self._new_text_cell(plain_text=input), offset=1)
 
     def delete_cell_with_id(self, id):
@@ -2502,30 +2492,6 @@ class Worksheet(object):
         C.set_no_output(True)
         C.set_input_text(cmd)
         self.enqueue(C, username=username)
-
-    def _new_text_cell(self, plain_text, id=None):
-        if id is None:
-            id = self.next_id
-            self.next_id += 1
-        return TextCell(id, plain_text, self)
-
-    def next_hidden_id(self):
-        try:
-            i = self.__next_hidden_id
-            self.__next_hidden_id -= 1
-        except AttributeError:
-            i = -1
-            self.__next_hidden_id = -2
-        return i
-
-    def _new_cell(self, id=None, hidden=False, input=''):
-        if id is None:
-            if hidden:
-                id = self.next_hidden_id()
-            else:
-                id = self.next_id
-                self.next_id += 1
-        return Cell(id, input, '', self)
 
     def check_cell(self, id):
         """
