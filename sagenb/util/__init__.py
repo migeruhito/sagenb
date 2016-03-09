@@ -12,6 +12,8 @@ import tempfile
 import time
 
 from importlib import import_module
+from itertools import chain
+from itertools import count
 from itertools import izip_longest
 
 
@@ -473,16 +475,13 @@ def cached_property(writable=False, invalidate=()):
     return wrapper
 
 
-def next_available_id(v):
-    m = max(v) + 1
-    i = 0
-    values = sorted(set(range(max(v) + 2)) - set(v), reverse=True)
-    while i < m:
-        i = values.pop()
-        yield i
-    while True:
-        i += 1
-        yield i
+def id_generator(exclude=None, offset=0):
+    if exclude:
+        m = max(exclude)
+        return chain(sorted(set(range(m)) - set(exclude)),
+                     count(m + 1 + offset))
+    else:
+        return count(offset)
 
 
 def make_path_relative(dir):

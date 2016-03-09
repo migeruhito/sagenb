@@ -52,7 +52,7 @@ from ..util import cached_property
 from ..util import encoded_str
 from ..util import ignore_nonexistent_files
 from ..util import makedirs
-from ..util import next_available_id
+from ..util import id_generator
 from ..util import set_default
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
@@ -1515,9 +1515,8 @@ class Worksheet(object):
         text = text.replace('\r\n', '\n')
         data = extract_cells(text)
 
-        id_gen = next_available_id(
-            set(x[0]
-                for typ, x in data if typ == 'compute' and x[0] is not None))
+        id_gen = id_generator(set(
+            x[0] for typ, x in data if typ == 'compute' and x[0] is not None))
         used_ids = set()
 
         cells = []
