@@ -468,7 +468,7 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
                       use_cache=use_cache,
                       create_local_c_file=create_local_c_file)
     for k, x in vars(m).iteritems():
-        if not k.stratswith('_'):
+        if not k.startswith('_'):
             globals[k] = x
 
 
