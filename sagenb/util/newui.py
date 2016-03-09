@@ -8,7 +8,7 @@ from .templates import prettify_time_ago
 
 
 def extended_wst_basic(wst, nb):
-    d = wst.basic()
+    d = wst.basic
     d.update({
         'last_change_pretty': prettify_time_ago(time() - wst.last_edited),
         'filename': wst.filename,

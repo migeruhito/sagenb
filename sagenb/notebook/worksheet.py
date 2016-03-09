@@ -107,10 +107,10 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
                 'sageuser', 0,
                 name='test', notebook_worksheet_directory=tmp_dir(),
                 system='gap', pretty_print=True, auto_publish=True)
-            sage: _=W.new_cell_after(0); B = W.basic()
+            sage: _=W.new_cell_after(0); B = W.basic
             sage: W0 = sagenb.notebook.worksheet.Worksheet_from_basic(
                 B, tmp_dir())
-            sage: W0.basic() == B
+            sage: W0.basic == B
             True
     """
     # TODO: Move to storage backend
@@ -528,6 +528,7 @@ class Worksheet(object):
         """
         return self.__ratings
 
+    @property
     def basic(self):
         """
         Output a dictionary of basic Python objects that defines the
@@ -591,7 +592,7 @@ class Worksheet(object):
             sage: import sagenb.notebook.worksheet
             sage: W = sagenb.notebook.worksheet.Worksheet(
                 'sage', 0, name='test', notebook_worksheet_directory=tmp_dir())
-            sage: sorted((W.basic().items()))
+            sage: sorted((W.basic.items()))
             [('auto_publish', False), ('collaborators', []),
              ('id_number', 0), ('last_change', ('sage', ...)),
              ('live_3D', False), ('name', u'test'), ('owner', 'sage'),

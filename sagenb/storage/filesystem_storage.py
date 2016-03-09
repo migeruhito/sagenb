@@ -252,7 +252,7 @@ class FilesystemDatastore(Datastore):
         Given a worksheet, create a corresponding basic Python object
         that completely defines that worksheet.
         """
-        return worksheet.basic()
+        return worksheet.basic
 
     #########################################################################
     # Now we implement the API we're supposed to implement
