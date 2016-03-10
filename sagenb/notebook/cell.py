@@ -1271,7 +1271,7 @@ class Cell(Cell_generic):
             False
             sage: nb.delete()
         """
-        return self in self.worksheet().queue()
+        return self in self.worksheet().queue
 
     def is_interactive_cell(self):
         r"""

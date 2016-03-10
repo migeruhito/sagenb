@@ -2060,20 +2060,15 @@ class Worksheet(object):
             return
 
     def start_next_comp(self):
-        if len(self.__queue) == 0:
-            return
-
-        if self.__computing:
-            # self._record_that_we_are_computing()
+        if not self.__queue or self.__computing:
             return
 
         C = self.__queue[0]
+        if C.interrupted():
+            return
+
         cell_system = self.get_cell_system(C)
         percent_directives = C.percent_directives()
-
-        if C.interrupted():
-            # don't actually compute
-            return
 
         if cell_system == 'sage' and C.introspect():
             before_prompt, after_prompt = C.introspect()
@@ -2422,13 +2417,15 @@ class Worksheet(object):
 
     # Enqueuing cells
 
+    @property
     def queue(self):
         return list(self.__queue)
 
+    @property
     def queue_id_list(self):
         return [c.id() for c in self.__queue]
 
-    def enqueue(self, C, username=None, next=False):
+    def enqueue(self, C, username=None):
         r"""
         Queue a cell for evaluation in this worksheet.
 
@@ -2438,8 +2435,6 @@ class Worksheet(object):
 
         - ``username`` - a string (default: None); the name of the
            user evaluating this cell (mainly used for login)
-
-        - ``next`` - a boolean (default: False); ignored
         """
         if self.is_published:
             return
@@ -2474,11 +2469,7 @@ class Worksheet(object):
           cell itself.
         """
         cell = self.get_cell_with_id(id)
-
-        if cell in self.__queue:
-            status = 'w'
-        else:
-            status = 'd'
+        status = 'w' if cell in self.__queue else 'd'
         return status, cell
 
     def clear_queue(self):
@@ -2606,11 +2597,10 @@ class Worksheet(object):
             sage: W.get_cell_system(c1)
             'gap'
         """
-        if cell.system() is not None:
-            system = cell.system()
-        else:
-            system = self.system
-        return system
+        system = cell.system()
+        if system is not None:
+            return system
+        return self.system
 
     def cython_import(self, cmd, cell):
         # Choice: Can use either C.relative_id() or
