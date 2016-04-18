@@ -854,7 +854,7 @@ def worksheet_new_cell_before(worksheet):
     cell = worksheet.new_cell_before(id, input=input)
     worksheet.increase_state_number()
 
-    r['new_id'] = cell.id()
+    r['new_id'] = cell.id
     r['new_html'] = cell.html(div_wrap=False)
 
     return encode_response(r)
@@ -869,7 +869,7 @@ def worksheet_new_text_cell_before(worksheet):
     cell = worksheet.new_text_cell_before(id, input=input)
     worksheet.increase_state_number()
 
-    r['new_id'] = cell.id()
+    r['new_id'] = cell.id
     r['new_html'] = cell.html(editing=True)
 
     # XXX: Does editing correspond to TinyMCE?  If so, we should try
@@ -886,7 +886,7 @@ def worksheet_new_cell_after(worksheet):
     cell = worksheet.new_cell_after(id, input=input)
     worksheet.increase_state_number()
 
-    r['new_id'] = cell.id()
+    r['new_id'] = cell.id
     r['new_html'] = cell.html(div_wrap=True)
 
     return encode_response(r)
@@ -901,7 +901,7 @@ def worksheet_new_text_cell_after(worksheet):
     cell = worksheet.new_text_cell_after(id, input=input)
     worksheet.increase_state_number()
 
-    r['new_id'] = cell.id()
+    r['new_id'] = cell.id
     r['new_html'] = cell.html(editing=True)
 
     # XXX: Does editing correspond to TinyMCE?  If so, we should try
@@ -922,7 +922,7 @@ def worksheet_delete_cell(worksheet):
     """
     r = {}
     r['id'] = id = get_cell_id()
-    if len([C for C in worksheet.cells if C.is_compute_cell()]) <= 1:
+    if len(worksheet.compute_cells) <= 1:
         r['command'] = 'ignore'
     else:
         r['command'] = 'delete'
@@ -1019,10 +1019,10 @@ def worksheet_eval(worksheet):
     if new_cell:
         new_cell = worksheet.new_cell_after(id)
         r['command'] = 'insert_cell'
-        r['new_cell_id'] = new_cell.id()
+        r['new_cell_id'] = new_cell.id
         r['new_cell_html'] = new_cell.html(div_wrap=False)
     else:
-        r['next_id'] = cell.next_compute_id()
+        r['next_id'] = worksheet.next_compute_id(cell)
 
     g.notebook.updater.update()
 

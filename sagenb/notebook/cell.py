@@ -48,7 +48,7 @@ re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 re_script = re.compile(r'<script[^>]*?>.*?</script>', re.DOTALL | re.I)
 
 
-class Cell_generic(object):
+class Cell(object):
     """
     Generic (abstract) cell
     """
@@ -66,20 +66,21 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell_generic(0, None)
-            sage: isinstance(C, sagenb.notebook.cell.Cell_generic)
+            sage: C = sagenb.notebook.cell.Cell(0, None)
+            sage: isinstance(C, sagenb.notebook.cell.Cell)
             True
             sage: isinstance(C, sagenb.notebook.cell.TextCell)
             False
             sage: isinstance(C, sagenb.notebook.cell.Cell)
             False
         """
+        # property ro
         try:
-            self._id = int(id)
+            self.__id = int(id)
         except ValueError:
-            self._id = id
+            self.__id = id
 
-        self._worksheet = worksheet
+        self.__worksheet = worksheet
 
     def __repr__(self):
         """
@@ -91,11 +92,11 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell_generic(0, None)
+            sage: C = sagenb.notebook.cell.Cell(0, None)
             sage: C.__repr__()
-            'Cell_generic 0'
+            'Cell 0'
         """
-        return "Cell_generic %s" % self._id
+        return "Cell %s" % self.id
 
     def __cmp__(self, right):
         """
@@ -103,7 +104,7 @@ class Cell_generic(object):
 
         INPUT:
 
-        - ``right`` - a :class:`Cell_generic` instance; the cell to
+        - ``right`` - a :class:`Cell` instance; the cell to
           compare to this cell
 
         OUTPUT:
@@ -112,9 +113,9 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: C1 = sagenb.notebook.cell.Cell_generic(0, None)
-            sage: C2 = sagenb.notebook.cell.Cell_generic(1, None)
-            sage: C3 = sagenb.notebook.cell.Cell_generic(0, None)
+            sage: C1 = sagenb.notebook.cell.Cell(0, None)
+            sage: C2 = sagenb.notebook.cell.Cell(1, None)
+            sage: C3 = sagenb.notebook.cell.Cell(0, None)
             sage: [C1 == C2, C1 == C3, C2 == C3]
             [False, True, False]
             sage: C1 = sagenb.notebook.cell.TextCell('bagel', 'abc', None)
@@ -122,14 +123,15 @@ class Cell_generic(object):
             sage: C3 = sagenb.notebook.cell.TextCell('lox', 'xyz', None)
             sage: [C1 == C2, C1 == C3, C2 == C3]
             [False, False, True]
-            sage: C1 = sagenb.notebook.cell.Cell(7, '3+2', '5', None)
-            sage: C2 = sagenb.notebook.cell.Cell(7, '3+2', 'five', None)
-            sage: C3 = sagenb.notebook.cell.Cell('7', '2+3', '5', None)
+            sage: C1 = sagenb.notebook.cell.ComputeCell(7, '3+2', '5', None)
+            sage: C2 = sagenb.notebook.cell.ComputeCell(7, '3+2', 'five', None)
+            sage: C3 = sagenb.notebook.cell.ComputeCell('7', '2+3', '5', None)
             sage: [C1 == C2, C1 == C3, C2 == C3]
             [True, True, True]
         """
-        return cmp(self.id(), right.id())
+        return cmp(self.id, right.id)
 
+    @property
     def id(self):
         """
         Returns this generic cell's ID.
@@ -140,76 +142,18 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell_generic(0, None)
-            sage: C.id()
+            sage: C = sagenb.notebook.cell.Cell(0, None)
+            sage: C.id
             0
-            sage: C = sagenb.notebook.cell.Cell('blue', '2+3', '5', None)
-            sage: C.id()
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                'blue', '2+3', '5', None)
+            sage: C.id
             'blue'
             sage: C = sagenb.notebook.cell.TextCell('yellow', '2+3', None)
-            sage: C.id()
+            sage: C.id
             'yellow'
         """
-        return self._id
-
-    def set_id(self, id):
-        """
-        Sets this generic cell's ID.
-
-        INPUT:
-
-        - ``id`` - an integer or string; the new ID
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.Cell_generic(0, None)
-            sage: C.id()
-            0
-            sage: C.set_id('phone')
-            sage: C.id()
-            'phone'
-        """
-        try:
-            self._id = int(id)
-        except ValueError:
-            self._id = id
-
-    def proxied_id(self):
-        """
-        Returns the ID of the cell for which this generic cell is a
-        proxy.  If this cell does not have such an ID, it returns the
-        cell's own ID.
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.Cell_generic('self_stand_in', None)
-            sage: [C.id(), C.proxied_id()]
-            ['self_stand_in', 'self_stand_in']
-        """
-        try:
-            return self._proxied_id
-        except AttributeError:
-            return self._id
-
-    def set_proxied_id(self, proxied_id):
-        """
-        Sets, for this generic cell, the ID of the cell that it
-        proxies.
-
-        INPUT:
-
-        - ``proxied_id`` - an integer or string; the proxied cell's ID
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.Cell_generic('understudy', None)
-            sage: [C.id(), C.proxied_id()]
-            ['understudy', 'understudy']
-            sage: C.set_proxied_id('principal')
-            sage: [C.id(), C.proxied_id()]
-            ['understudy', 'principal']
-        """
-        self._proxied_id = proxied_id
+        return self.__id
 
     def worksheet(self):
         """
@@ -221,7 +165,7 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell_generic(0, 'worksheet object')
+            sage: C = sagenb.notebook.cell.Cell(0, 'worksheet object')
             sage: C.worksheet()
             'worksheet object'
             sage: nb = sagenb.notebook.notebook.Notebook(
@@ -229,38 +173,12 @@ class Cell_generic(object):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.worksheet() is W
             True
             sage: nb.delete()
         """
-        return self._worksheet
-
-    def set_worksheet(self, worksheet, id=None):
-        """
-        Sets this generic cell's worksheet object and, optionally, its
-        ID.
-
-        INPUT:
-
-        - ``worksheet`` - a
-          :class:`sagenb.notebook.worksheet.Worksheet` instance; the
-          cell's new worksheet object
-
-        - ``id`` - an integer or string (default: None); the cell's
-          new ID
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.Cell_generic(0, None)
-            sage: W = "worksheet object"
-            sage: C.set_worksheet(W)
-            sage: C.worksheet()
-            'worksheet object'
-        """
-        self._worksheet = worksheet
-        if id is not None:
-            self.set_id(id)
+        return self.__worksheet
 
     def worksheet_filename(self):
         """
@@ -281,142 +199,17 @@ class Cell_generic(object):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.worksheet_filename()
             'sage/0'
             sage: nb.delete()
          """
-        return self._worksheet.filename
-
-    def notebook(self):
-        """
-        Returns this generic cell's associated notebook object.
-
-        OUTPUT:
-
-        - a :class:`sagenb.notebook.notebook.Notebook` instance
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
-            sage: C.notebook() is nb
-            True
-            sage: nb.delete()
-        """
-        return self._worksheet.notebook()
-
-    def is_last(self):
-        """
-        Returns whether this generic cell is the last cell in its
-        worksheet object.
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = W.new_cell_after(0, "2^2"); C
-            Cell 2: in=2^2, out=
-            sage: C.is_last()
-            True
-            sage: C = W.get_cell_with_id(0)
-            sage: C.is_last()
-            False
-            sage: nb.delete()
-        """
-        return self._worksheet.cells[-1] == self
-
-    def next_id(self):
-        """
-        Returns the ID of the next cell in this generic cell's
-        worksheet object.  If this cell is *not* in the worksheet, it
-        returns the ID of the worksheet's *first* cell.  If this *is*
-        the last cell, it returns its *own* ID.
-
-        OUTPUT:
-
-        - an integer or string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = W.new_cell_after(1, "2^2")
-            sage: C = W.get_cell_with_id(1)
-            sage: C.next_id()
-            2
-            sage: C = W.get_cell_with_id(2)
-            sage: C.next_id()
-            2
-            sage: nb.delete()
-        """
-        L = self._worksheet.cells
-        try:
-            k = L.index(self)
-        except ValueError:
-            print "Warning -- cell %s no longer exists" % self.id()
-            return L[0].id()
-        try:
-            return L[k + 1].id()
-        except IndexError:
-            return self.id()
-
-    def is_text_cell(self):
-        """
-        Returns whether this generic cell is a text cell, i.e., an
-        instance of :class:`TextCell`.
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES::
-
-            sage: G = sagenb.notebook.cell.Cell_generic(0, None)
-            sage: T = sagenb.notebook.cell.TextCell(0, 'hello!', None)
-            sage: C = sagenb.notebook.cell.Cell(0, '2+4', '6', None)
-            sage: [X.is_text_cell() for X in (G, T, C)]
-            [False, True, False]
-        """
-        return isinstance(self, TextCell)
-
-    def is_compute_cell(self):
-        """
-        Returns whether this generic cell is a compute cell, i.e., an
-        instance of :class:`Cell`.
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES::
-
-            sage: G = sagenb.notebook.cell.Cell_generic(0, None)
-            sage: T = sagenb.notebook.cell.TextCell(0, 'hello!', None)
-            sage: C = sagenb.notebook.cell.Cell(0, '2+4', '6', None)
-            sage: [X.is_compute_cell() for X in (G, T, C)]
-            [False, False, True]
-        """
-        return isinstance(self, Cell)
+        return self.worksheet().filename
 
     def is_auto_cell(self):
         """
         Returns whether this is an automatically evaluated generic
-        cell.  This is always false for :class:`Cell_generic`\ s and
+        cell.  This is always false for :class:`Cell`\ s and
         :class:`TextCell`\ s.
 
         OUTPUT:
@@ -425,7 +218,7 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: G = sagenb.notebook.cell.Cell_generic(0, None)
+            sage: G = sagenb.notebook.cell.Cell(0, None)
             sage: T = sagenb.notebook.cell.TextCell(0, 'hello!', None)
             sage: [X.is_auto_cell() for X in (G, T)]
             [False, False]
@@ -444,7 +237,7 @@ class Cell_generic(object):
 
         EXAMPLES::
 
-            sage: G = sagenb.notebook.cell.Cell_generic(0, None)
+            sage: G = sagenb.notebook.cell.Cell(0, None)
             sage: T = sagenb.notebook.cell.TextCell(0, 'hello!', None)
             sage: [X.is_auto_cell() for X in (G, T)]
             [False, False]
@@ -452,15 +245,18 @@ class Cell_generic(object):
         return False
 
     # New UI
+
     def basic(self):
         """
         Returns the cell as a python object
         """
-        return {}
-    # New UI
+        return {
+                'id': self.id,
+                }
+    # New UI end
 
 
-class TextCell(Cell_generic):
+class TextCell(Cell):
     """
     Text cell
     """
@@ -487,7 +283,7 @@ class TextCell(Cell_generic):
         text = unicode_str(text)
         self._text = text
 
-        super(TextCell, self).__init__(id, worksheet)
+        Cell.__init__(self, id, worksheet)
 
     def __repr__(self):
         """
@@ -503,7 +299,7 @@ class TextCell(Cell_generic):
             sage: C.__repr__()
             'TextCell 0: 2+3'
         """
-        return "TextCell %s: %s" % (self._id, encoded_str(self._text))
+        return "TextCell %s: %s" % (self.id, encoded_str(self._text))
 
     def delete_output(self):
         """
@@ -548,7 +344,7 @@ class TextCell(Cell_generic):
         """
         r = {}
 
-        r['id'] = self.id()
+        r['id'] = self.id
         r['type'] = 'text'
         r['input'] = self._text
 
@@ -655,7 +451,7 @@ class TextCell(Cell_generic):
         pass  # ignored
 
 
-class Cell(Cell_generic):
+class ComputeCell(Cell):
     """
     Compute cell
     """
@@ -677,14 +473,14 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C == loads(dumps(C))
             True
         """
         out = unicode_str(out)
         input = unicode_str(input)
 
-        super(Cell, self).__init__(id, worksheet)
+        Cell.__init__(self, id, worksheet)
 
         self._out = out.replace('\r', '')
         self._interrupted = False
@@ -705,10 +501,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None); C
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None); C
             Cell 0: in=2+3, out=5
         """
-        return 'Cell %s: in=%s, out=%s' % (self.id(), self._in, self._out)
+        return 'Cell %s: in=%s, out=%s' % (self.id, self._in, self._out)
 
     def delete_output(self):
         r"""
@@ -717,7 +513,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None); C
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None); C
             Cell 0: in=2+3, out=5
             sage: C.delete_output()
             sage: C
@@ -833,7 +629,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.is_no_output()
             False
             sage: C.set_no_output(True)
@@ -853,7 +649,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.is_no_output()
             False
             sage: C.set_no_output(True)
@@ -876,7 +672,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.cell_output_type()
             'wrap'
             sage: C.set_cell_output_type('nowrap')
@@ -899,7 +695,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.cell_output_type()
             'wrap'
             sage: C.set_cell_output_type('nowrap')
@@ -929,7 +725,8 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(
                 wait=9999)     # random output -- depends on computer speed
@@ -966,7 +763,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.directory()
             '.../home/sage/0/cells/0'
             sage: nb.delete()
@@ -993,14 +790,14 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C._directory_name()
             '.../home/sage/0/cells/0'
             sage: nb.delete()
         """
         # TODO:  move to storage backend
-        return os.path.join(self._worksheet.directory, 'cells',
-                            str(self.id()))
+        return os.path.join(self.worksheet().directory, 'cells',
+                            str(self.id))
 
     @property
     def word_wrap_cols(self):
@@ -1015,7 +812,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.word_wrap_cols()
             70
             sage: nb = sagenb.notebook.notebook.Notebook(
@@ -1023,13 +820,13 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.word_wrap_cols()
             72
             sage: nb.delete()
         """
         try:
-            return self.notebook().conf['word_wrap_cols']
+            return self.worksheet().notebook().conf['word_wrap_cols']
         except AttributeError:
             return 70
 
@@ -1054,7 +851,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: len(C.plain_text())
             11
         """
@@ -1153,10 +950,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.edit_text()
             u'{{{id=0|\n2+3\n///\n5\n}}}'
-            sage: C = sagenb.notebook.cell.Cell(
+            sage: C = sagenb.notebook.cell.ComputeCell(
                 0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', None)
             sage: C.edit_text()
             u'{{{id=0|\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f'
@@ -1164,45 +961,7 @@ class Cell(Cell_generic):
             u'\u010f\u010e\n}}}'
         """
         s = self.plain_text(ncols, prompts, max_out)
-        return u'{{{id=%s|\n%s\n}}}' % (self.id(), s)
-
-    def next_compute_id(self):
-        r"""
-        Returns the ID of the next compute cell in this compute cell's
-        worksheet object.  If this cell is *not* in the worksheet, it
-        returns the ID of the worksheet's *first* compute cell.  If
-        this *is* the last compute cell, it returns its *own* ID.
-
-
-        OUTPUT:
-
-        - an integer or string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: W.edit_save(
-                'foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
-            sage: W.new_cell_after(1, "2^2")
-            Cell 4: in=2^2, out=
-            sage: [W.get_cell_with_id(i).next_compute_id() for i in [1, 4, 3]]
-            [4, 3, 3]
-
-        """
-        L = [C for C in self.worksheet().cells if C.is_compute_cell()]
-        try:
-            k = L.index(self)
-        except ValueError:
-            print "Warning -- cell %s no longer exists" % self.id()
-            return L[0].id()
-        try:
-            return L[k + 1].id()
-        except IndexError:
-            return self.id()
+        return u'{{{id=%s|\n%s\n}}}' % (self.id, s)
 
     def interrupt(self):
         """
@@ -1294,7 +1053,7 @@ class Cell(Cell_generic):
                 0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
             sage: C.is_interactive_cell()
             True
-            sage: C = W.new_cell_after(C.id(), "2+2")
+            sage: C = W.new_cell_after(C.id, "2+2")
             sage: C.is_interactive_cell()
             False
             sage: nb.delete()
@@ -1422,7 +1181,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.input_text()
             u'2+3'
         """
@@ -1440,7 +1199,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(
+            sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%hide\n%maxima\n2+3', '5', None)
             sage: C.cleaned_input_text()
             u'2+3'
@@ -1461,7 +1220,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(
+            sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%hide\n%maxima\n%pi+3', '5', None)
             sage: C.parse_percent_directives()
             u'%pi+3'
@@ -1506,7 +1265,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(
+            sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%hide\n%maxima\n2+3', '5', None)
             sage: C.percent_directives()
             [u'hide', u'maxima']
@@ -1533,11 +1292,12 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '%maxima\n2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%maxima\n2+3', '5', None)
             sage: C.system()
             u'maxima'
             sage: prefixes = ['%hide', '%time', '']
-            sage: cells = [sagenb.notebook.cell.Cell(
+            sage: cells = [sagenb.notebook.cell.ComputeCell(
                 0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
             sage: [(C, C.system()) for C in cells if C.system() is not None]
             []
@@ -1556,10 +1316,11 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.is_auto_cell()
             False
-            sage: C = sagenb.notebook.cell.Cell(0, '#auto\n2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '#auto\n2+3', '5', None)
             sage: C.is_auto_cell()
             True
         """
@@ -1576,7 +1337,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: initial_version=C.version()
             sage: C.changed_input_text()
             ''
@@ -1609,7 +1370,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.set_changed_input_text('3+3')
             sage: C.input_text()
             u'3+3'
@@ -1636,7 +1397,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: len(C.plain_text())
             11
             sage: C.set_output_text('10', '10')
@@ -1706,7 +1467,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.sage() is None
             True
         """
@@ -1716,13 +1477,14 @@ class Cell(Cell_generic):
             return None
 
     # New UI
+
     def basic(self):
         """
         Returns the cell as a python object
         """
 
         r = {}
-        r['id'] = self.id()
+        r['id'] = self.id
         r['type'] = 'evaluate'
         r['input'] = self._in
         r['output'] = self.output_text()
@@ -1745,7 +1507,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.output_html()
             ''
             sage: C.set_output_text('5', '<strong>5</strong>')
@@ -1779,7 +1541,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.process_cell_urls('"cell://foobar"')
             '/home/sage/0/cells/0/foobar?...'
         """
@@ -1817,14 +1579,14 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.output_text()
             u'<pre class="shrunk">5</pre>'
             sage: C.output_text(html=False)
             u'<pre class="shrunk">5</pre>'
             sage: C.output_text(raw=True)
             u'5'
-            sage: C = sagenb.notebook.cell.Cell(
+            sage: C = sagenb.notebook.cell.ComputeCell(
                 0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', W)
             sage: C.output_text()
             u'<pre class="shrunk">'
@@ -1903,7 +1665,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.parse_html(
                     '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">'
                     '\n<html><head></head><body>Test</body></html>', 80, False)
@@ -1976,10 +1738,10 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.has_output()
             True
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '', None)
             sage: C.has_output()
             False
         """
@@ -1997,13 +1759,14 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(
+            sage: C = sagenb.notebook.cell.ComputeCell(
                 0, "%html\nTest HTML", None, None)
             sage: C.system()
             u'html'
             sage: C.is_html()
             True
-            sage: C = sagenb.notebook.cell.Cell(0, "Test HTML", None, None)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, "Test HTML", None, None)
             sage: C.is_html()
             False
         """
@@ -2013,6 +1776,7 @@ class Cell(Cell_generic):
     # Introspection #
     #################
     # newUI
+
     def set_introspect_output(self, output, completing=False, raw=False):
         ur"""
         Sets this compute cell's introspection text.
@@ -2032,7 +1796,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
@@ -2068,7 +1832,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
@@ -2110,7 +1874,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
@@ -2148,7 +1912,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
@@ -2185,7 +1949,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
@@ -2213,7 +1977,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'sage?', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
             sage: C.introspect()
             False
             sage: C.evaluate(username='sage')
@@ -2242,7 +2006,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.set_introspect("a", "b")
             sage: C.introspect()
             ['a', 'b']
@@ -2322,7 +2086,7 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: initial_version=C.version() #random
             sage: C.set_input_text('2+3')
             sage: C.version()-initial_version
@@ -2347,10 +2111,11 @@ class Cell(Cell_generic):
 
         EXAMPLES::
 
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.time()
             False
-            sage: C = sagenb.notebook.cell.Cell(0, '%time\n2+3', '5', None)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%time\n2+3', '5', None)
             sage: C.time()
             True
         """
@@ -2387,7 +2152,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.html()
             u'...cell_outer_0...2+3...5...'
         """
@@ -2413,7 +2178,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.url_to_self()
             '/home/sage/0/cells/0'
         """
@@ -2421,7 +2186,7 @@ class Cell(Cell_generic):
             return self._url_to_self
         except AttributeError:
             self._url_to_self = '/home/%s/cells/%s' % (
-                self.worksheet_filename(), self.id())
+                self.worksheet_filename(), self.id)
             return self._url_to_self
 
     def url_to_worksheet(self):
@@ -2439,7 +2204,7 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, '2+3', '5', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.url_to_worksheet()
             '/home/sage/0'
         """
@@ -2461,7 +2226,8 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(
                 wait=9999)     # random output -- depends on computer speed
@@ -2490,7 +2256,8 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(
                 wait=9999)     # random output -- depends on computer speed
@@ -2559,7 +2326,7 @@ class Cell(Cell_generic):
             '    <div id="sage_jmol_status_{id}" style="display:none;">'
             'notActivated</div>\n'
             '</div>').format(
-            id=self._id,
+            id=self.id,
             size=size,
             image_name=image_name,
             timestamp=time.time(),
@@ -2588,7 +2355,8 @@ class Cell(Cell_generic):
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.Cell(0, 'plot(sin(x),0,5)', '', W)
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, 'plot(sin(x),0,5)', '', W)
             sage: C.evaluate()
             sage: W.check_comp(
                 wait=9999)     # random output -- depends on computer speed
@@ -2629,7 +2397,7 @@ class Cell(Cell_generic):
                 images.append(
                     '<a href="javascript:sage3d_show(\'%s\', \'%s_%s\', '
                     '\'%s\');">Click for interactive view.</a>' % (
-                        url, self._id, F, F[:-4]))
+                        url, self.id, F, F[:-4]))
             elif F.endswith('.mtl') or F.endswith(".objmeta"):
                 pass  # obj data
             elif F.endswith('.svg'):

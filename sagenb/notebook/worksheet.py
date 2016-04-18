@@ -41,7 +41,7 @@ from flask.ext.babel import gettext
 
 from .. import config
 # Imports specifically relevant to the sage notebook
-from .cell import Cell, TextCell
+from .cell import ComputeCell, TextCell
 from ..config import INITIAL_NUM_CELLS
 from ..config import UN_PUB
 from ..config import UN_SAGE
@@ -637,7 +637,7 @@ class Worksheet(object):
         return self.cell_id_generator_for_cells(self.cells)
 
     def cell_id_generator_for_cells(self, cells):
-        return id_generator([C.id() for C in cells if isinstance(C.id(), int)])
+        return id_generator([C.id for C in cells if isinstance(C.id, int)])
 
     @cached_property(writable=True, invalidate=('cell_id_generator',))
     def cells(self):
@@ -1590,7 +1590,7 @@ class Worksheet(object):
             used_ids.add(id)
 
         # There must be at least one cell.
-        if len(cells) == 0 or cells[-1].is_text_cell():
+        if len(cells) == 0 or isinstance(cells[-1], TextCell):
             cells.append(self._new_cell(id_gen.next()))
 
         if not self.is_published:
@@ -1704,7 +1704,7 @@ class Worksheet(object):
             sage: W.cell_id_list
             [0, 10]
         """
-        return [C.id() for C in self.cells]
+        return [C.id for C in self.cells]
 
     @property
     def onload_id_list(self):
@@ -1719,14 +1719,14 @@ class Worksheet(object):
 
         - a new list of integer and/or string IDs
         """
-        return [C.id() for C in self.cells if C.is_interactive_cell()]
+        return [C.id for C in self.cells if C.is_interactive_cell()]
 
     def get_cell_with_id(self, id):
         """
         Get a pre-existing cell with this id, or creates a new one with it.
         """
         for c in self.cells:
-            if c.id() == id:
+            if c.id == id:
                 return c
         return self._new_cell(id)
 
@@ -1741,12 +1741,12 @@ class Worksheet(object):
                 id = self.hidden_cell_id_generator.next()
             else:
                 id = self.cell_id_generator.next()
-        return Cell(id, input, '', self)
+        return ComputeCell(id, input, '', self)
 
     def insert_cell(self, id, cell, offset=0):
         cells = self.cells
         for i, C in enumerate(cells):
-            if C.id() == id:
+            if C.id == id:
                 cells.insert(i + offset, cell)
                 return cell
         cells.append(cell)
@@ -1859,7 +1859,7 @@ class Worksheet(object):
             sage: C.files_html('')
             u'<a target="_new" href=".../cells/9/bar" class="file_link">bar'
             u'</a>'
-            sage: W.delete_cell_with_id(C.id())
+            sage: W.delete_cell_with_id(C.id)
             'foo'
             sage: C.output_text(raw=True)
             u''
@@ -1870,7 +1870,7 @@ class Worksheet(object):
         """
         cells = self.cells
         for i, C in enumerate(cells):
-            if C.id() == id:
+            if C.id == id:
 
                 # Delete this cell from the queued up calculation list:
                 if C in self.__queue and self.__queue[0] != C:
@@ -1883,10 +1883,50 @@ class Worksheet(object):
                 del cells[i]
 
                 if i > 0:
-                    return cells[i - 1].id()
+                    return cells[i - 1].id
                 else:
                     break
-        return cells[0].id()
+        return cells[0].id
+
+    @property
+    def compute_cells(self):
+        return [C for C in self.cells if isinstance(C, ComputeCell)]
+
+    def next_compute_id(self, cell):
+        r"""
+        Returns the ID of the next compute cell for cell.  If cell is *not* in
+        the worksheet, it returns the ID of the worksheet's *first* compute
+        cell.  If cell *is* the last compute cell, it returns its *own* ID.
+
+
+        OUTPUT:
+
+        - an integer or string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test', 'sage')
+            sage: W.edit_save(
+                'foo\n{{{\n2+3\n///\n5\n}}}bar\n{{{\n2+8\n///\n10\n}}}')
+            sage: W.new_cell_after(1, "2^2")
+            Cell 4: in=2^2, out=
+            sage: [
+                W.next_compute_id(W.get_cell_with_id(i)) for i in [1, 4, 3]]
+            [4, 3, 3]
+
+        """
+        L = self.compute_cells
+        if cell not in L:
+            return L[0].id
+        k = L.index(cell)
+        try:
+            return L[k + 1].id
+        except IndexError:
+            return cell.id
 
     # Showing and hiding all cells
 
@@ -2097,7 +2137,7 @@ class Worksheet(object):
         # know its ID.
         input += (
             '_interact_.SAGE_CELL_ID=%r\n__SAGE_TMP_DIR__=os.getcwd()\n' %
-            C.id())
+            C.id)
 
         print_time = C.time()
         if C.time():
@@ -2205,7 +2245,7 @@ class Worksheet(object):
                 else:
                     c = ''
                 C.set_changed_input_text(before_prompt + c + after_prompt)
-                out = completions_html(C.id(), out)
+                out = completions_html(C.id, out)
                 C.set_introspect_html(out, completing=True)
             else:
                 if C.eval_method == 'introspect':
@@ -2423,7 +2463,7 @@ class Worksheet(object):
 
     @property
     def queue_id_list(self):
-        return [c.id() for c in self.__queue]
+        return [c.id for c in self.__queue]
 
     def enqueue(self, C, username=None):
         r"""
@@ -2439,7 +2479,7 @@ class Worksheet(object):
         if self.is_published:
             return
         self._record_that_we_are_computing(username)
-        if not C.is_compute_cell():
+        if not isinstance(C, ComputeCell):
             raise TypeError
         if C.worksheet() != self:
             raise ValueError("C must be have self as worksheet.")
