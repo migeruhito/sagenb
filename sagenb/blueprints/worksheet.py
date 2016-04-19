@@ -511,7 +511,7 @@ def html_plain_text_window(worksheet, username):
         sage: nb.html_plain_text_window(W, UN_ADMIN)
         u'...pre class="plaintext"...cell_intext...textfield...'
     """
-    plain_text = worksheet.plain_text(prompts=True, banner=False)
+    plain_text = worksheet.plain_text
     plain_text = escape(plain_text).strip()
 
     return render_template(
@@ -1049,8 +1049,8 @@ def worksheet_cell_update(worksheet):
         t = time.strftime('%Y-%m-%d at %H:%M',
                           time.localtime(time.time()))
         H = "Worksheet '%s' (%s)\n" % (worksheet.name, t)
-        H += cell.edit_text(ncols=g.notebook.HISTORY_NCOLS, prompts=False,
-                            max_out=g.notebook.HISTORY_MAX_OUTPUT)
+        H += cell.format_text(plain=False, ncols=g.notebook.HISTORY_NCOLS,
+                              max_out=g.notebook.HISTORY_MAX_OUTPUT)
         g.notebook.add_to_user_history(H, g.username)
     else:
         r['new_input'] = ''

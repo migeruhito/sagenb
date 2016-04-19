@@ -396,7 +396,8 @@ class TextCell(Cell):
             do_print=do_print,
             editing=editing, publish=publish)
 
-    def plain_text(self, prompts=False):
+    @property
+    def plain_text(self):
         ur"""
         Returns a plain text version of this text cell.
 
@@ -412,14 +413,15 @@ class TextCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', None)
-            sage: C.plain_text()
+            sage: C.plain_text
             u'2+3'
             sage: C = sagenb.notebook.cell.TextCell(0, 'ěščřžýáíéďĎ', None)
-            sage: C.plain_text()
+            sage: C.plain_text
             u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
         return self._text
 
+    @property
     def edit_text(self):
         """
         Returns the text to be displayed for this text cell in the
@@ -432,7 +434,7 @@ class TextCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', None)
-            sage: C.edit_text()
+            sage: C.edit_text
             u'2+3'
         """
         return self._text
@@ -835,7 +837,7 @@ class ComputeCell(Cell):
         except AttributeError:
             return 70
 
-    def plain_text(self, ncols=0, prompts=True, max_out=None):
+    def format_text(self, plain=True, ncols=0, max_out=None):
         r"""
         Returns the plain text version of this compute cell.
 
@@ -844,8 +846,8 @@ class ComputeCell(Cell):
         - ``ncols`` - an integer (default: 0); the number of word wrap
           columns
 
-        - ``prompts`` - a boolean (default: False); whether to strip
-          interpreter prompts from the beginning of each line
+        - ``plain`` - a boolean (default: False); whether to strip
+          interpreter plain from the beginning of each line
 
         - ``max_out`` - an integer (default: None); the maximum number
           of characters to return
@@ -857,7 +859,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: len(C.plain_text())
+            sage: len(C.format_text())
             11
         """
         if ncols == 0:
@@ -870,7 +872,7 @@ class ComputeCell(Cell):
 
         pr = 'sage: '
 
-        if prompts:
+        if plain:
             input_lines = input_lines.splitlines()
             has_prompt = False
             if pr == 'sage: ':
@@ -904,7 +906,7 @@ class ComputeCell(Cell):
         else:
             plaintext_output += self._in
 
-        if prompts:
+        if plain:
             msg = TRACEBACK
             if self._out.strip().startswith(msg):
                 v = self._out.strip().splitlines()
@@ -929,11 +931,17 @@ class ComputeCell(Cell):
         out = out.strip('\r\n')
         plaintext_output = plaintext_output + '\n' + out
 
-        if not prompts:
-            plaintext_output = plaintext_output.rstrip('\n')
+        if not plain:
+            plaintext_output = u'{{{id=%s|\n%s\n}}}' % (
+                self.id, plaintext_output.rstrip('\n'))
         return plaintext_output
 
-    def edit_text(self, ncols=0, prompts=False, max_out=None):
+    @property
+    def plain_text(self):
+        return self.format_text()
+
+    @property
+    def edit_text(self):
         ur"""
         Returns the text displayed for this compute cell in the Edit
         window.
@@ -956,17 +964,16 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.edit_text()
+            sage: C.edit_text
             u'{{{id=0|\n2+3\n///\n5\n}}}'
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', None)
-            sage: C.edit_text()
+            sage: C.edit_text
             u'{{{id=0|\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f'
             u'\u010e\n///\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9'
             u'\u010f\u010e\n}}}'
         """
-        s = self.plain_text(ncols, prompts, max_out)
-        return u'{{{id=%s|\n%s\n}}}' % (self.id, s)
+        return self.format_text(plain=False)
 
     def interrupt(self):
         """
@@ -1403,10 +1410,10 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: len(C.plain_text())
+            sage: len(C.plain_text)
             11
             sage: C.set_output_text('10', '10')
-            sage: len(C.plain_text())
+            sage: len(C.plain_text)
             12
         """
         output = unicode_str(output)

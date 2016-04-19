@@ -1457,22 +1457,12 @@ class Worksheet(object):
 
     # Exporting cells in plain text command-line format
 
-    def plain_text(self, prompts=False, banner=True):
+    @property
+    def plain_text(self):
         """
         Return a plain-text version of the worksheet.
-
-        INPUT:
-
-        -  ``prompts`` - if True format for inclusion in
-           docstrings.
         """
-        head = '{0}\n# Worksheet: {1}\n{0}\n\n'.format(
-            '#' * 80, self.name) if banner else ''
-
-        body = '\n'.join(
-            t for t in (
-                C.plain_text(prompts=prompts).strip('\n') for C in self.cells))
-        return '\n'.join((head, body))
+        return '\n'.join(C.plain_text.strip('\n') for C in self.cells)
 
     # Editing cells plain text format (export and import)
 
@@ -1486,7 +1476,7 @@ class Worksheet(object):
                editing.
         """
         return '\n\n'.join(
-            t for t in (C.edit_text().strip() for C in self.cells) if t)
+            t for t in (C.edit_text.strip() for C in self.cells) if t)
 
     @property
     def body_is_loaded(self):
