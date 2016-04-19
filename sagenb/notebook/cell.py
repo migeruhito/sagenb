@@ -251,8 +251,8 @@ class Cell(object):
         Returns the cell as a python object
         """
         return {
-                'id': self.id,
-                }
+            'id': self.id,
+            }
     # New UI end
 
 
@@ -260,6 +260,8 @@ class TextCell(Cell):
     """
     Text cell
     """
+    super_class = Cell
+
     def __init__(self, id, text, worksheet):
         """
         Creates a new text cell.
@@ -283,7 +285,7 @@ class TextCell(Cell):
         text = unicode_str(text)
         self._text = text
 
-        Cell.__init__(self, id, worksheet)
+        self.super_class.__init__(self, id, worksheet)
 
     def __repr__(self):
         """
@@ -338,6 +340,7 @@ class TextCell(Cell):
         self._text = input_text
 
     # New UI
+
     def basic(self):
         """
         Returns the cell as a python object
@@ -455,6 +458,8 @@ class ComputeCell(Cell):
     """
     Compute cell
     """
+    super_class = Cell
+
     def __init__(self, id, input, out, worksheet):
         """
         Creates a new compute cell.
@@ -480,7 +485,7 @@ class ComputeCell(Cell):
         out = unicode_str(out)
         input = unicode_str(input)
 
-        Cell.__init__(self, id, worksheet)
+        self.super_class.__init__(self, id, worksheet)
 
         self._out = out.replace('\r', '')
         self._interrupted = False
