@@ -98,11 +98,7 @@ INPUT:
             <div id="introspect_div_{{ cell.id }}" class="introspection"></div>
         {% endif %}
 
-        {% if do_print and cell.cell_output_type() == 'hidden' %}
-        <pre>
-        </pre>
-        {% else %}
-        {% set output_cls = 'cell_div_output_running' if cell.computing() else 'cell_div_output_' + cell.cell_output_type() %}
+        {% set output_cls = 'cell_div_output_running' if cell.computing() else 'cell_div_output_wrap' %}
         <div class="cell_output_div">
             <table class="cell_output_box">
                 <tr>
@@ -112,7 +108,7 @@ INPUT:
                     </td>
                     <td class="output_cell">
                         <div class="{{ output_cls }}" id="cell_div_output_{{ cell.id }}">
-                            <div class="cell_output_{{ "print_" if do_print else '' }}{{ cell.cell_output_type() }}"
+                            <div class="cell_output_{{ "print_" if do_print else '' }}wrap"
                                 id="cell_output_{{ cell.id }}">
                                 {% if cell.introspect() %}
                                     {{ cell.output_text(0, html=true) | safe }}
@@ -121,12 +117,12 @@ INPUT:
                                 {% endif %}
                             </div>
                             {% if not do_print %}
-                                <div class="cell_output_{{ 'print_' if do_print else '' }}nowrap_{{ cell.cell_output_type() }}"
+                                <div class="cell_output_{{ 'print_' if do_print else '' }}nowrap_wrap"
                                      id="cell_output_nowrap_{{ cell.id }}">
                                     {{ cell.output_text(0, html=true) | safe }}
                                 </div>
                             {% endif %}
-                                <div class="cell_output_html_{{ cell.cell_output_type() }}"
+                                <div class="cell_output_html_wrap"
                                      id="cell_output_html_{{ cell.id }}">
                                     {{ cell.output_html() | safe }}
                                 </div>
@@ -135,7 +131,6 @@ INPUT:
                 </tr>
             </table>
         </div>
-        {% endif %}
 
 {% if div_wrap_ %}
     </div>

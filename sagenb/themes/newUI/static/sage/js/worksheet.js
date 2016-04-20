@@ -223,19 +223,15 @@ sagenb.worksheetapp.worksheet = function() {
 	//// OUTPUT STUFF ////
 	_this.hide_all_output = function() {
 		if(_this.published_mode) return;
-		sagenb.async_request(_this.worksheet_command('hide_all'), sagenb.generic_callback(function(status, response) {
-			_this.forEachCell(function(cell) {
-				cell.set_output_hidden();
-			});
-		}));
+        _this.forEachCell(function(cell) {
+            cell.set_output_hidden();
+        });
 	};
 	_this.show_all_output = function() {
 		if(_this.published_mode) return;
-		sagenb.async_request(_this.worksheet_command('show_all'), sagenb.generic_callback(function(status, response) {
-			_this.forEachCell(function(cell) {
-				cell.set_output_visible();
-			});
-		}));
+        _this.forEachCell(function(cell) {
+            cell.set_output_visible();
+        });
 	};
 	_this.delete_all_output = function() {
 		if(_this.published_mode) return;

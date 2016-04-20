@@ -3256,7 +3256,7 @@ function is_interacting_cell(id) {
 }
 
 
-function cell_output_set_type(id, typ, do_async) {
+function cell_output_set_type(id, typ) {
     /*
     Set the output type of the cell with given id.
 
@@ -3280,14 +3280,6 @@ function cell_output_set_type(id, typ, do_async) {
     set_class('cell_output_' + id, 'cell_output_' + typ);
     set_class('cell_output_nowrap_' + id, 'cell_output_nowrap_' + typ);
     set_class('cell_output_html_' + id, 'cell_output_html_' + typ);
-
-    // Do async request back to the server.
-    if (do_async) {
-        async_request(worksheet_command('set_cell_output_type'), null, {
-            id: id,
-            type: typ
-        });
-    }
 }
 
 
@@ -4447,35 +4439,29 @@ function evaluate_all() {
 
 function hide_all() {
     /*
-    Hide every output cell in the worksheet (via CSS) then send a
-    message back to the server recording that we hid all cells, so if
-    we refresh the browser or visit the page with another browser,
-    etc., the cells are still hidden.
+    Hide every output cell in the worksheet (via CSS).
     */
     var i, id, len = cell_id_list.length;
     for (i = 0; i < len; i += 1) {
         id = cell_id_list[i];
         if (is_compute_cell(id)) {
-            cell_output_set_type(id, 'hidden', false);
+            cell_output_set_type(id, 'hidden');
         }
     }
-    async_request(worksheet_command('hide_all'));
 }
 
 
 function show_all() {
     /*
-    Show ever output cell in the worksheet, and send a message to the
-    server reporting that we showed every cell.
+    Show ever output cell in the worksheet.
     */
     var i, id, len = cell_id_list.length;
     for (i = 0; i < len; i += 1) {
         id = cell_id_list[i];
         if (is_compute_cell(id)) {
-            cell_output_set_type(id, 'wrap', false);
+            cell_output_set_type(id, 'wrap');
         }
     }
-    async_request(worksheet_command('show_all'));
 }
 
 

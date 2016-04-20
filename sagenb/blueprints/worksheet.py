@@ -823,24 +823,6 @@ def worksheet_cell_list(worksheet):
     return encode_response(r)
 
 ########################################################
-# Set output type of a cell
-########################################################
-
-
-@worksheet_command('set_cell_output_type')
-def worksheet_set_cell_output_type(worksheet):
-    """
-    Set the output type of the cell.
-
-    This enables the type of output cell, such as to allowing wrapping
-    for output that is very long.
-    """
-    id = get_cell_id()
-    type = request.values['type']
-    worksheet.get_cell_with_id(id).set_cell_output_type(type)
-    return ''
-
-########################################################
 # Cell creation
 ########################################################
 
@@ -1629,18 +1611,6 @@ def worksheet_interrupt(worksheet):
     # XXX: TODO -- this must not block long (!)
     worksheet.sage().interrupt()
     return 'failed' if worksheet.sage().is_computing() else 'success'
-
-
-@worksheet_command('hide_all')
-def worksheet_hide_all(worksheet):
-    worksheet.hide_all()
-    return 'success'
-
-
-@worksheet_command('show_all')
-def worksheet_show_all(worksheet):
-    worksheet.show_all()
-    return 'success'
 
 
 @worksheet_command('delete_all_output')

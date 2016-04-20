@@ -440,22 +440,6 @@ class TextCell(Cell):
         """
         return self._text
 
-    def set_cell_output_type(self, typ='wrap'):
-        """
-        Sets this text cell's output type.  This does nothing for
-        :class:`TextCell`\ s.
-
-        INPUT:
-
-        - ``typ`` - a string (default: 'wrap'); the target output type
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.TextCell(0, '2+3', None)
-            sage: C.set_cell_output_type("wrap")
-        """
-        pass  # ignored
-
 
 class ComputeCell(Cell):
     """
@@ -669,48 +653,6 @@ class ComputeCell(Cell):
         except AttributeError:
             self._no_output = False
             return self._no_output
-
-    def cell_output_type(self):
-        """
-        Returns this compute cell's output type.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.cell_output_type()
-            'wrap'
-            sage: C.set_cell_output_type('nowrap')
-            sage: C.cell_output_type()
-            'nowrap'
-        """
-        try:
-            return self._type
-        except AttributeError:
-            self._type = 'wrap'
-            return self._type
-
-    def set_cell_output_type(self, typ='wrap'):
-        """
-        Sets this compute cell's output type.
-
-        INPUT:
-
-        - ``typ`` - a string (default: 'wrap'); the target output type
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.cell_output_type()
-            'wrap'
-            sage: C.set_cell_output_type('nowrap')
-            sage: C.cell_output_type()
-            'nowrap'
-        """
-        self._type = typ
 
     def update_html_output(self, output=''):
         """

@@ -1918,16 +1918,6 @@ class Worksheet(object):
         except IndexError:
             return cell.id
 
-    # Showing and hiding all cells
-
-    def show_all(self):
-        for C in self.cells:
-            C.set_cell_output_type('wrap')
-
-    def hide_all(self):
-        for C in self.cells:
-            C.set_cell_output_type('hidden')
-
     def delete_all_output(self, username):
         r"""
         Delete all the output, files included, in all the worksheet cells.
