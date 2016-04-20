@@ -46,6 +46,7 @@ re_cell = re.compile('"cell://.*?"')
 re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 # Matches script blocks.
 re_script = re.compile(r'<script[^>]*?>.*?</script>', re.DOTALL | re.I)
+prompt_re = re.compile(r'^\s*(sage:|>>>|\.\.\.)', re.DOTALL | re.UNICODE)
 
 
 class Cell(object):
@@ -854,7 +855,7 @@ class ComputeCell(Cell):
 
         OUTPUT:
 
-        - ``plaintext_output`` - Plaintext string of the cell
+        - ``text`` - Plaintext string of the cell
 
         EXAMPLES::
 
@@ -864,77 +865,37 @@ class ComputeCell(Cell):
         """
         if ncols == 0:
             ncols = self.word_wrap_cols
-        plaintext_output = u''
 
-        self._in = unicode_str(self._in)
-
-        input_lines = self._in
-
-        pr = 'sage: '
-
-        if plain:
-            input_lines = input_lines.splitlines()
-            has_prompt = False
-            if pr == 'sage: ':
-                for v in input_lines:
-                    w = v.lstrip()
-                    if w[:5] == 'sage:' or w[:3] == '>>>' or w[:3] == '...':
-                        has_prompt = True
-                        break
-            else:
-                # discard first line since it sets the prompt
-                input_lines = input_lines[1:]
-
-            if has_prompt:
-                plaintext_output += '\n'.join(input_lines) + '\n'
-            else:
-                in_loop = False
-                for v in input_lines:
-                    if len(v) == 0:
-                        pass
-                    elif len(v.lstrip()) != len(v):  # starts with white space
-                        in_loop = True
-                        plaintext_output += '...   ' + v + '\n'
-                    elif v[:5] == 'else:':
-                        in_loop = True
-                        plaintext_output += '...   ' + v + '\n'
-                    else:
-                        if in_loop:
-                            plaintext_output += '...\n'
-                            in_loop = False
-                        plaintext_output += pr + v + '\n'
+        if plain and not prompt_re.search(self._in):
+            text = re.sub(
+                r'(^(?=.)|\n)(?!\.\.\.)', r'\1sage: ',
+                re.sub(r'(\n\.\.\.   .*?)(?=$|\n(?!\.\.\.))', r'\1\n...',
+                       re.sub(r'\n(\s+|else:)', r'\n...   \1',
+                              re.sub(r'\n\s*\n', '\n', self._in.strip()))))
         else:
-            plaintext_output += self._in
+            text = self._in
 
         if plain:
             msg = TRACEBACK
             if self._out.strip().startswith(msg):
-                v = self._out.strip().splitlines()
-                w = [msg, '...']
-                for i in range(1, len(v)):
-                    if not (len(v[i]) > 0 and v[i][0] == ' '):
-                        w = w + v[i:]
-                        break
-                out = '\n'.join(w)
+                out = re.sub(r'({})(\n +.*)*'.format(re.escape(msg)),
+                             r'\1\n...', self._out.strip())
             else:
                 out = self.output_text(ncols, raw=True, html=False)
         else:
-            out = self.output_text(ncols, raw=True, html=False,
-                                   allow_interact=False)
-            out = '///\n' + out.strip('\n')
+            out = '///\n{}'.format(
+                self.output_text(ncols, raw=True, html=False,
+                                 allow_interact=False).strip('\n'))
 
         if max_out is not None and len(out) > max_out:
             out = out[:max_out] + '...'
 
         # Get rid of spurious carriage returns
-        plaintext_output = plaintext_output.strip('\n')
-        out = out.strip('\r\n')
-        plaintext_output = plaintext_output + '\n' + out
+        text = '\n'.join((
+            text.strip('\n'), out.strip('\r\n')))
 
-        if not plain:
-            plaintext_output = u'{{{id=%s|\n%s\n}}}' % (
-                self.id, plaintext_output.rstrip('\n'))
-        return plaintext_output
+        return text if plain else u'{{{id=%s|\n%s\n}}}' % (
+            self.id, text.rstrip('\n'))
 
     @property
     def plain_text(self):

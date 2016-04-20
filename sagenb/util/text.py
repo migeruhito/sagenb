@@ -22,20 +22,20 @@ extract_title_re = re.compile(
 whitespace_re = re.compile('\s')
 non_whitespace_re = re.compile('\S')
 extract_cells_re0 = re.compile(  # No \n needed after open delimiter. Only comp
-        r'(?:\n+|^)\{\{\{'
-        r'(?:(?:([^\n]*)\|)?\n+)?'
-        r'(.*?)'
-        r'(?:\n+///\n+(.*?))?\n*'
-        r'(?<=\n)\}\}\}(?=\n|$)',
-        flags=re.DOTALL)
+    r'(?:\n+|^)\{\{\{'
+    r'(?:(?:([^\n]*)\|)?\n+)?'
+    r'(.*?)'
+    r'(?:\n+///\n+(.*?))?\n*'
+    r'(?<=\n)\}\}\}(?=\n|$)',
+    flags=re.DOTALL)
 extract_cells_re = re.compile(  # \n needed after open delimiter
-        r'\s*(.*?)\s*'
-        r'(?:(?<=\n)|^)\{\{\{'
-        r'(?:([^\n]*)\|)?\n+'
-        r'(.*?)\n*'
-        r'(?:(?<=\n)///\n+(.*?))?\n*'
-        r'(?<=\n)\}\}\}(?:\n+|$)',
-        flags=re.DOTALL)
+    r'\s*(.*?)\s*'
+    r'(?:(?<=\n)|^)\{\{\{'
+    r'(?:([^\n]*)\|)?\n+'
+    r'(.*?)\n*'
+    r'(?:(?<=\n)///\n+(.*?))?\n*'
+    r'(?<=\n)\}\}\}(?:\n+|$)',
+    flags=re.DOTALL)
 split_last_text_re = re.compile(r'(.*\n+}}})(?:\n+|$)\s*(.*)\s*',
                                 flags=re.DOTALL)
 meta_re = re.compile(r'\s*(.*?)\s*=\s*(.*?)\s*(?:,|$)')
