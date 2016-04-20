@@ -1571,7 +1571,7 @@ class Worksheet(object):
                     html = False
                     id = id_gen.next()
                 C = self._new_cell(id)
-                C.set_input_text(input)
+                C.input = input
                 C.set_output_text(output, '')
                 if html:
                     C.update_html_output(output)
@@ -2224,7 +2224,7 @@ class Worksheet(object):
                     c = best_completion(out, C._word_being_completed)
                 else:
                     c = ''
-                C.set_changed_input_text(before_prompt + c + after_prompt)
+                C.changed_input = before_prompt + c + after_prompt
                 out = completions_html(C.id, out)
                 C.set_introspect_html(out, completing=True)
             else:

@@ -80,6 +80,8 @@ class Cell(object):
             self.__id = int(id)
         except ValueError:
             self.__id = id
+        self.__input = None  # property
+        self.__output = None  # property
 
         self.__worksheet = worksheet
 
@@ -155,6 +157,18 @@ class Cell(object):
             'yellow'
         """
         return self.__id
+
+    @property
+    def input(self):
+        return self.__input
+
+    @input.setter
+    def input(self, value):
+        pass
+
+    @input.deleter
+    def input(self):
+        pass
 
     def worksheet(self):
         """
@@ -263,7 +277,7 @@ class TextCell(Cell):
     """
     super_class = Cell
 
-    def __init__(self, id, text, worksheet):
+    def __init__(self, id, input, worksheet):
         """
         Creates a new text cell.
 
@@ -283,10 +297,8 @@ class TextCell(Cell):
             sage: C == loads(dumps(C))
             True
         """
-        text = unicode_str(text)
-        self._text = text
-
         self.super_class.__init__(self, id, worksheet)
+        self.input = unicode_str(input)
 
     def __repr__(self):
         """
@@ -302,7 +314,19 @@ class TextCell(Cell):
             sage: C.__repr__()
             'TextCell 0: 2+3'
         """
-        return "TextCell %s: %s" % (self.id, encoded_str(self._text))
+        return "TextCell %s: %s" % (self.id, encoded_str(self.input))
+
+    @property
+    def input(self):
+        return self.__input
+
+    @input.setter
+    def input(self, value):
+        self.__input = unicode_str(value)
+
+    @input.deleter
+    def input(self):
+        self.__input = u''
 
     def delete_output(self):
         """
@@ -320,26 +344,6 @@ class TextCell(Cell):
         """
         pass  # nothing to do -- text cells have no output
 
-    def set_input_text(self, input_text):
-        """
-        Sets the input text of this text cell.
-
-        INPUT:
-
-        - ``input_text`` - a string; the new input text for this cell
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.TextCell(0, '2+3', None)
-            sage: C
-            TextCell 0: 2+3
-            sage: C.set_input_text("3+2")
-            sage: C
-            TextCell 0: 3+2
-        """
-        input_text = unicode_str(input_text)
-        self._text = input_text
-
     # New UI
 
     def basic(self):
@@ -350,7 +354,7 @@ class TextCell(Cell):
 
         r['id'] = self.id
         r['type'] = 'text'
-        r['input'] = self._text
+        r['input'] = self.input
 
         return r
     # New UI end
@@ -389,7 +393,7 @@ class TextCell(Cell):
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', W)
             sage: C.html()
             u'...text_cell...2+3...'
-            sage: C.set_input_text("$2+3$")
+            sage: C.input = "$2+3$"
         """
         return render_template(
             os.path.join('html', 'notebook', 'text_cell.html'),
@@ -420,7 +424,7 @@ class TextCell(Cell):
             sage: C.plain_text
             u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
-        return self._text
+        return self.input
 
     @property
     def edit_text(self):
@@ -438,7 +442,7 @@ class TextCell(Cell):
             sage: C.edit_text
             u'2+3'
         """
-        return self._text
+        return self.input
 
 
 class ComputeCell(Cell):
@@ -469,19 +473,18 @@ class ComputeCell(Cell):
             sage: C == loads(dumps(C))
             True
         """
-        out = unicode_str(out)
-        input = unicode_str(input)
 
         self.super_class.__init__(self, id, worksheet)
 
-        self._out = out.replace('\r', '')
         self._interrupted = False
         self.has_new_output = False
-        self.set_input_text(input)
 
         # start with a random integer so that evaluations of the cell
         # from different runs have different version numbers.
         self._version = randint(0, maxint)
+        self.__changed_input = u''  # property
+        self.__input = unicode_str(input)  # property
+        self._out = unicode_str(out).replace('\r', '')
 
     def __repr__(self):
         """
@@ -496,7 +499,308 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None); C
             Cell 0: in=2+3, out=5
         """
-        return 'Cell %s: in=%s, out=%s' % (self.id, self._in, self._out)
+        return 'Cell %s: in=%s, out=%s' % (self.id, self.input, self._out)
+
+    @property
+    def input(self):
+        """
+        Returns this compute cell's input text.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
+            sage: C.input
+            u'2+3'
+        """
+        return self.__input
+
+    @input.setter
+    def input(self, input):
+        """
+        Sets the input text of this compute cell.
+
+        INPUT:
+
+        - ``input`` - a string; the new input text
+
+        TODO: Add doctests for the code dealing with interact.
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test', 'sage')
+            sage: C = W.new_cell_after(0, "2^2")
+            sage: C.evaluate()
+            sage: W.check_comp(
+                wait=9999)     # random output -- depends on computer speed
+            ('d', Cell 1: in=2^2, out=
+            4
+            )
+            sage: initial_version=C.version()
+            sage: C.input = '3+3'
+            sage: C.input
+            u'3+3'
+            sage: C.evaluated()
+            False
+            sage: C.version()-initial_version
+            1
+            sage: W.quit()
+            sage: nb.delete()
+        """
+        # Stuff to deal with interact
+        input = unicode_str(input)
+
+        if input.startswith(INTERACT_UPDATE_PREFIX):
+            self.interact = input[len(INTERACT_UPDATE_PREFIX) + 1:]
+            self._version = self.version() + 1
+            return
+        elif self.is_interacting():
+            try:
+                del self.interact
+                del self._interact_output
+            except AttributeError:
+                pass
+
+        # We have updated the input text so the cell can't have
+        # been evaluated.
+        self._evaluated = False
+        self._version = self.version() + 1
+        self.__input = input
+        if hasattr(self, '_html_cache'):
+            del self._html_cache
+
+        # Run get the input text with all of the percent
+        # directives parsed
+        self._cleaned_input = self.parse_percent_directives()
+
+    @property
+    def changed_input(self):
+        """
+        Returns the changed input text for this compute cell, deleting
+        any previously stored text.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
+            sage: initial_version=C.version()
+            sage: C.changed_input
+            u''
+            sage: C.changed_input = '3+3'
+            sage: C.input
+            u'3+3'
+            sage: C.changed_input
+            u'3+3'
+            sage: C.changed_input
+            u''
+            sage: C.version()-initial_version
+            0
+        """
+        t = self.__changed_input
+        del self.changed_input
+        return t
+
+    @changed_input.setter
+    def changed_input(self, value):
+        """
+        Updates this compute cell's changed input text.  Note: This
+        does not update the version of the cell.  It's typically used,
+        e.g., for tab completion.
+
+        INPUT:
+
+        - ``new_text`` - a string; the new changed input text
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
+            sage: C.changed_input = '3+3'
+            sage: C.input
+            u'3+3'
+            sage: C.changed_input
+            u'3+3'
+        """
+        self.__changed_input = unicode_str(value)
+        self.__input = self.__changed_input
+
+    @changed_input.deleter
+    def changed_input(self):
+        self.__changed_input = u''
+
+    def output_text(self, ncols=0, html=True, raw=False, allow_interact=True):
+        ur"""
+        Returns this compute cell's output text.
+
+        INPUT:
+
+        - ``ncols`` - an integer (default: 0); the number of word wrap
+          columns
+
+        - ``html`` - a boolean (default: True); whether to output HTML
+
+        - ``raw`` - a boolean (default: False); whether to output raw
+          text (takes precedence over HTML)
+
+        - ``allow_interact`` - a boolean (default: True); whether to
+          allow :func:`sagenb.notebook.interact.interact`\ ion
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test', 'sage')
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
+            sage: C.output_text()
+            u'<pre class="shrunk">5</pre>'
+            sage: C.output_text(html=False)
+            u'<pre class="shrunk">5</pre>'
+            sage: C.output_text(raw=True)
+            u'5'
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', W)
+            sage: C.output_text()
+            u'<pre class="shrunk">'
+            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e</pre>'
+            sage: C.output_text(raw=True)
+            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+        """
+        if allow_interact and hasattr(self, '_interact_output'):
+            # Get the input template
+            z = self.output_text(ncols, html, raw, allow_interact=False)
+            if INTERACT_TEXT not in z or INTERACT_HTML not in z:
+                return z
+            if ncols:
+                # Get the output template
+                try:
+                    # Fill in the output template
+                    output, html = self._interact_output
+                    output = self.parse_html(output, ncols, False)
+                    z = z.replace(INTERACT_TEXT, output)
+                    z = z.replace(INTERACT_HTML, html)
+                    return z
+                except (ValueError, AttributeError), msg:
+                    print msg
+                    pass
+            else:
+                # Get rid of the interact div to avoid updating the
+                # wrong output location during interact.
+                return ''
+
+        self._out = unicode_str(self._out)
+
+        is_interact = self.is_interactive_cell()
+        if is_interact and ncols == 0:
+            if 'Traceback (most recent call last)' in self._out:
+                s = self._out.replace('cell-interact', '')
+                is_interact = False
+            else:
+                return (u'<h2>Click to the left again to hide and once more '
+                        u'to show the dynamic interactive window</h2>')
+        else:
+            s = self._out
+
+        if raw:
+            return s
+
+        s = s.strip('\n')
+        pre_wrapping = len(s.strip()) > 0 and not \
+            (is_interact or self.is_html() or '<div class="docstring">' in s)
+        if html:
+            s = self.parse_html(s, ncols, pre_wrapping)
+        elif pre_wrapping:
+            s = u'<pre class="shrunk">{}</pre>'.format(s)
+        return s
+
+    def set_output_text(self, output, html, sage=None):
+        r"""
+        Sets this compute cell's output text.
+
+        INPUT:
+
+        - ``output`` - a string; the updated output text
+
+        - ``html`` - a string; updated output HTML
+
+        - ``sage`` - a :class:`sage` instance (default: None); the
+          sage instance to use for this cell(?)
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
+            sage: len(C.plain_text)
+            11
+            sage: C.set_output_text('10', '10')
+            sage: len(C.plain_text)
+            12
+        """
+        output = unicode_str(output)
+        html = unicode_str(html)
+        if output.count(INTERACT_TEXT) > 1:
+            html = (u'<h3><font color="red">WARNING: multiple @interacts in '
+                    u'one cell disabled (not yet implemented).</font></h3>')
+            output = u''
+
+        # In interacting mode, we just save the computed output
+        # (do not overwrite).
+        if self.is_interacting():
+            self._interact_output = (output, html)
+            if INTERACT_RESTART in output:
+                # We forfeit any interact output template (in
+                # self._out), so that the restart message propagates
+                # out.  When the set_output_text function in
+                # notebook_lib.js gets the message, it should
+                # re-evaluate the cell from scratch.
+                self._out = output
+            return
+
+        if hasattr(self, '_html_cache'):
+            del self._html_cache
+
+        output = output.replace('\r', '')
+        # We do not truncate if "notruncate" or "Output truncated!" already
+        # appears in the output.  This notruncate tag is used right now
+        # in sagenb.notebook.interact, sage.misc.html, and
+        # sage.database.sql_db.
+        if ('notruncate' not in output and
+            'Output truncated!' not in output and
+            (len(output) > MAX_OUTPUT or
+             output.count('\n') > MAX_OUTPUT_LINES)):
+            url = ""
+            if not self.computing():
+                file = os.path.join(self.directory(), "full_output.txt")
+                open(file, "w").write(encoded_str(output))
+                url = ("<a target='_new' href='%s/full_output.txt' "
+                       "class='file_link'>full_output.txt</a>" % (
+                           self.url_to_self()))
+                html += "<br>" + url
+            lines = output.splitlines()
+            start = '\n'.join(lines[:MAX_OUTPUT_LINES / 2])[:MAX_OUTPUT / 2]
+            end = '\n'.join(lines[-MAX_OUTPUT_LINES / 2:])[-MAX_OUTPUT / 2:]
+            warning = 'WARNING: Output truncated!  '
+            if url:
+                # make the link to the full output appear at the top too.
+                warning += '\n<html>%s</html>\n' % url
+            output = warning + '\n\n' + start + '\n\n...\n\n' + end
+        self._out = output
+        if not self.is_interactive_cell():
+            self._out_html = html
+        self._sage = sage
 
     def delete_output(self):
         r"""
@@ -815,11 +1119,11 @@ class ComputeCell(Cell):
                        re.sub(r'\n(\s+|else:)', r'\n...   \1',
                               re.sub(r'\n\s*\n', '\n', self._in.strip()))))
         else:
-            text = self._in
+            text = self.input
 
         if plain:
             msg = TRACEBACK
-            if self._out.strip().startswith(msg):
+            if self.__output.strip().startswith(msg):
                 out = re.sub(r'({})(\n +.*)*'.format(re.escape(msg)),
                              r'\1\n...', self._out.strip())
             else:
@@ -975,7 +1279,7 @@ class ComputeCell(Cell):
         """
         # Do *not* cache
         try:
-            nodes = ast.parse(self.input_text().replace('^^', '^'))
+            nodes = ast.parse(self.input.replace('^^', '^'))
         except SyntaxError:
             return False
 
@@ -1025,83 +1329,6 @@ class ComputeCell(Cell):
         if self.is_interacting():
             del self.interact
 
-    def set_input_text(self, input):
-        """
-        Sets the input text of this compute cell.
-
-        INPUT:
-
-        - ``input`` - a string; the new input text
-
-        TODO: Add doctests for the code dealing with interact.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = W.new_cell_after(0, "2^2")
-            sage: C.evaluate()
-            sage: W.check_comp(
-                wait=9999)     # random output -- depends on computer speed
-            ('d', Cell 1: in=2^2, out=
-            4
-            )
-            sage: initial_version=C.version()
-            sage: C.set_input_text('3+3')
-            sage: C.input_text()
-            u'3+3'
-            sage: C.evaluated()
-            False
-            sage: C.version()-initial_version
-            1
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        # Stuff to deal with interact
-        input = unicode_str(input)
-
-        if input.startswith(INTERACT_UPDATE_PREFIX):
-            self.interact = input[len(INTERACT_UPDATE_PREFIX) + 1:]
-            self._version = self.version() + 1
-            return
-        elif self.is_interacting():
-            try:
-                del self.interact
-                del self._interact_output
-            except AttributeError:
-                pass
-
-        # We have updated the input text so the cell can't have
-        # been evaluated.
-        self._evaluated = False
-        self._version = self.version() + 1
-        self._in = input
-        if hasattr(self, '_html_cache'):
-            del self._html_cache
-
-        # Run get the input text with all of the percent
-        # directives parsed
-        self._cleaned_input = self.parse_percent_directives()
-
-    def input_text(self):
-        """
-        Returns this compute cell's input text.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.input_text()
-            u'2+3'
-        """
-        return self._in
-
     def cleaned_input_text(self):
         r"""
         Returns this compute cell's "cleaned" input text, i.e., its
@@ -1143,7 +1370,7 @@ class ComputeCell(Cell):
             [u'hide', u'maxima']
         """
         self._system = None
-        text = self.input_text().splitlines()
+        text = self.input.splitlines()
         directives = []
         i = 0
         for i, line in enumerate(text):
@@ -1241,137 +1468,6 @@ class ComputeCell(Cell):
         """
         return 'auto' in self.percent_directives()
 
-    def changed_input_text(self):
-        """
-        Returns the changed input text for this compute cell, deleting
-        any previously stored text.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: initial_version=C.version()
-            sage: C.changed_input_text()
-            ''
-            sage: C.set_changed_input_text('3+3')
-            sage: C.input_text()
-            u'3+3'
-            sage: C.changed_input_text()
-            u'3+3'
-            sage: C.changed_input_text()
-            ''
-            sage: C.version()-initial_version
-            0
-        """
-        try:
-            t = self._changed_input
-            del self._changed_input
-            return t
-        except AttributeError:
-            return ''
-
-    def set_changed_input_text(self, new_text):
-        """
-        Updates this compute cell's changed input text.  Note: This
-        does not update the version of the cell.  It's typically used,
-        e.g., for tab completion.
-
-        INPUT:
-
-        - ``new_text`` - a string; the new changed input text
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.set_changed_input_text('3+3')
-            sage: C.input_text()
-            u'3+3'
-            sage: C.changed_input_text()
-            u'3+3'
-        """
-        new_text = unicode_str(new_text)
-
-        self._changed_input = new_text
-        self._in = new_text
-
-    def set_output_text(self, output, html, sage=None):
-        r"""
-        Sets this compute cell's output text.
-
-        INPUT:
-
-        - ``output`` - a string; the updated output text
-
-        - ``html`` - a string; updated output HTML
-
-        - ``sage`` - a :class:`sage` instance (default: None); the
-          sage instance to use for this cell(?)
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: len(C.plain_text)
-            11
-            sage: C.set_output_text('10', '10')
-            sage: len(C.plain_text)
-            12
-        """
-        output = unicode_str(output)
-        html = unicode_str(html)
-        if output.count(INTERACT_TEXT) > 1:
-            html = (u'<h3><font color="red">WARNING: multiple @interacts in '
-                    u'one cell disabled (not yet implemented).</font></h3>')
-            output = u''
-
-        # In interacting mode, we just save the computed output
-        # (do not overwrite).
-        if self.is_interacting():
-            self._interact_output = (output, html)
-            if INTERACT_RESTART in output:
-                # We forfeit any interact output template (in
-                # self._out), so that the restart message propagates
-                # out.  When the set_output_text function in
-                # notebook_lib.js gets the message, it should
-                # re-evaluate the cell from scratch.
-                self._out = output
-            return
-
-        if hasattr(self, '_html_cache'):
-            del self._html_cache
-
-        output = output.replace('\r', '')
-        # We do not truncate if "notruncate" or "Output truncated!" already
-        # appears in the output.  This notruncate tag is used right now
-        # in sagenb.notebook.interact, sage.misc.html, and
-        # sage.database.sql_db.
-        if ('notruncate' not in output and
-            'Output truncated!' not in output and
-            (len(output) > MAX_OUTPUT or
-             output.count('\n') > MAX_OUTPUT_LINES)):
-            url = ""
-            if not self.computing():
-                file = os.path.join(self.directory(), "full_output.txt")
-                open(file, "w").write(encoded_str(output))
-                url = ("<a target='_new' href='%s/full_output.txt' "
-                       "class='file_link'>full_output.txt</a>" % (
-                           self.url_to_self()))
-                html += "<br>" + url
-            lines = output.splitlines()
-            start = '\n'.join(lines[:MAX_OUTPUT_LINES / 2])[:MAX_OUTPUT / 2]
-            end = '\n'.join(lines[-MAX_OUTPUT_LINES / 2:])[-MAX_OUTPUT / 2:]
-            warning = 'WARNING: Output truncated!  '
-            if url:
-                # make the link to the full output appear at the top too.
-                warning += '\n<html>%s</html>\n' % url
-            output = warning + '\n\n' + start + '\n\n...\n\n' + end
-        self._out = output
-        if not self.is_interactive_cell():
-            self._out_html = html
-        self._sage = sage
-
     def sage(self):
         """
         Returns the :class:`sage` instance for this compute cell(?).
@@ -1401,7 +1497,7 @@ class ComputeCell(Cell):
         r = {}
         r['id'] = self.id
         r['type'] = 'evaluate'
-        r['input'] = self._in
+        r['input'] = self.input
         r['output'] = self.output_text()
         r['output_html'] = self.output_html()
         r['output_wrapped'] = self.output_text(self.word_wrap_cols)
@@ -1465,96 +1561,6 @@ class ComputeCell(Cell):
         for s in re_cell.findall(urls) + re_cell_2.findall(urls):
             urls = urls.replace(s, begin + s[7:-1] + end)
         return urls
-
-    def output_text(self, ncols=0, html=True, raw=False, allow_interact=True):
-        ur"""
-        Returns this compute cell's output text.
-
-        INPUT:
-
-        - ``ncols`` - an integer (default: 0); the number of word wrap
-          columns
-
-        - ``html`` - a boolean (default: True); whether to output HTML
-
-        - ``raw`` - a boolean (default: False); whether to output raw
-          text (takes precedence over HTML)
-
-        - ``allow_interact`` - a boolean (default: True); whether to
-          allow :func:`sagenb.notebook.interact.interact`\ ion
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
-            sage: C.output_text()
-            u'<pre class="shrunk">5</pre>'
-            sage: C.output_text(html=False)
-            u'<pre class="shrunk">5</pre>'
-            sage: C.output_text(raw=True)
-            u'5'
-            sage: C = sagenb.notebook.cell.ComputeCell(
-                0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', W)
-            sage: C.output_text()
-            u'<pre class="shrunk">'
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e</pre>'
-            sage: C.output_text(raw=True)
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
-        """
-        if allow_interact and hasattr(self, '_interact_output'):
-            # Get the input template
-            z = self.output_text(ncols, html, raw, allow_interact=False)
-            if INTERACT_TEXT not in z or INTERACT_HTML not in z:
-                return z
-            if ncols:
-                # Get the output template
-                try:
-                    # Fill in the output template
-                    output, html = self._interact_output
-                    output = self.parse_html(output, ncols, False)
-                    z = z.replace(INTERACT_TEXT, output)
-                    z = z.replace(INTERACT_HTML, html)
-                    return z
-                except (ValueError, AttributeError), msg:
-                    print msg
-                    pass
-            else:
-                # Get rid of the interact div to avoid updating the
-                # wrong output location during interact.
-                return ''
-
-        self._out = unicode_str(self._out)
-
-        is_interact = self.is_interactive_cell()
-        if is_interact and ncols == 0:
-            if 'Traceback (most recent call last)' in self._out:
-                s = self._out.replace('cell-interact', '')
-                is_interact = False
-            else:
-                return (u'<h2>Click to the left again to hide and once more '
-                        u'to show the dynamic interactive window</h2>')
-        else:
-            s = self._out
-
-        if raw:
-            return s
-
-        s = s.strip('\n')
-        pre_wrapping = len(s.strip()) > 0 and not \
-            (is_interact or self.is_html() or '<div class="docstring">' in s)
-        if html:
-            s = self.parse_html(s, ncols, pre_wrapping)
-        elif pre_wrapping:
-            s = u'<pre class="shrunk">{}</pre>'.format(s)
-        return s
 
     def parse_html(self, s, ncols, pre_wrapping):
         r"""
@@ -2003,7 +2009,7 @@ class ComputeCell(Cell):
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: initial_version=C.version() #random
-            sage: C.set_input_text('2+3')
+            sage: C.input = '2+3'
             sage: C.version()-initial_version
             1
         """

@@ -883,7 +883,7 @@ class Notebook(object):
             <BLANKLINE>
             </div></div></div></div>]
             sage: cell = W.cells[1]
-            sage: cell.input_text()
+            sage: cell.input
             u'1+1'
             sage: cell.output_text()
             u'<pre class="shrunk">2</pre>'
@@ -955,7 +955,7 @@ class Notebook(object):
             4, Cell 1: in=x^2, out=
             x^2]
             sage: cell = W.cells[1]
-            sage: cell.input_text()
+            sage: cell.input
             u'2+2'
             sage: cell.output_text()
             u'<pre class="shrunk">4</pre>'
@@ -1040,7 +1040,7 @@ class Notebook(object):
             4, Cell 1: in=x^2, out=
             x^2]
             sage: cell = W.cells[1]
-            sage: cell.input_text()
+            sage: cell.input
             u'2+2'
             sage: cell.output_text()
             u'<pre class="shrunk">4</pre>'

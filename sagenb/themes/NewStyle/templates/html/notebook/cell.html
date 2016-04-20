@@ -68,11 +68,11 @@ INPUT:
             {% endif %}
             {% if publish and conf['pub_interact'] %}
                 {# We don't condition on interact cells here, for the sake of a uniform appearance. #}
-                <textarea class="{{ input_cls }}" rows="{{ (1, cell.input_text().strip()|number_of_rows(80))|max }}"
+                <textarea class="{{ input_cls }}" rows="{{ (1, cell.input.strip()|number_of_rows(80))|max }}"
                           cols="80"
                           readonly="yes"
                           id="cell_input_{{ cell.id }}"
-                          >{{ cell.input_text().rstrip() }}</textarea>
+                          >{{ cell.input.rstrip() }}</textarea>
                 {% if cell.is_interactive_cell() %}
                     <a href="javascript:evaluate_cell({{ '%r'|format(cell.id) }}, 0);"
                        class="eval_button_active"
@@ -82,11 +82,11 @@ INPUT:
                     </a>
                 {% endif %}
             {% elif do_print or publish %}
-                <div class="cell_input_print">{{ cell.input_text().rstrip() }}&nbsp;</div>
+                <div class="cell_input_print">{{ cell.input.rstrip() }}&nbsp;</div>
             {% else %}
-                <textarea class="{{ input_cls }}" rows="{{ (1, cell.input_text().strip()|number_of_rows(80))|max }}"
+                <textarea class="{{ input_cls }}" rows="{{ (1, cell.input.strip()|number_of_rows(80))|max }}"
                           cols="80" spellcheck="false"
-                          id="cell_input_{{ cell.id }}">{{ cell.input_text().rstrip() }}</textarea>
+                          id="cell_input_{{ cell.id }}">{{ cell.input.rstrip() }}</textarea>
                 <input type="button"
                    class="eval_button"
                    id="eval_button{{ cell.id }}" 

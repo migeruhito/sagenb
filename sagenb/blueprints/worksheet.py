@@ -962,7 +962,7 @@ def worksheet_eval(worksheet):
 
     if public:
         # Make public input cells read-only.
-        input_text = cell.input_text()
+        input_text = cell.input
     else:
         input_text = unicode_str(request.values.get(
             'input', '')).replace('\r\n', '\n')  # DOS
@@ -984,7 +984,7 @@ def worksheet_eval(worksheet):
         if int(request.values.get('recompute', 0)):
             input_text += "\n_interact_.recompute('%s')" % id
 
-    cell.set_input_text(input_text)
+    cell.input = input_text
 
     if int(request.values.get('save_only', '0')):
         g.notebook.updater.update()
@@ -1024,7 +1024,7 @@ def worksheet_cell_update(worksheet):
     r['status'], cell = worksheet.check_cell(id)
 
     if r['status'] == 'd':
-        r['new_input'] = cell.changed_input_text()
+        r['new_input'] = cell.changed_input
         r['output_html'] = cell.output_html()
 
         # Update the log.
