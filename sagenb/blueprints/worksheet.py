@@ -1038,7 +1038,7 @@ def worksheet_cell_update(worksheet):
         r['new_input'] = ''
         r['output_html'] = ''
 
-    if cell.interrupted():
+    if cell.interrupted:
         r['interrupted'] = 'true'
     else:
         r['interrupted'] = 'false'

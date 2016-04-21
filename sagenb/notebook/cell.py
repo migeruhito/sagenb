@@ -474,17 +474,20 @@ class ComputeCell(Cell):
             True
         """
 
+        # Data model
         self.super_class.__init__(self, id, worksheet)
+        self.__input = unicode_str(input)  # property
+        self.__output = unicode_str(out).replace('\r', '')
 
-        self._interrupted = False
+        # State
+        self.interrupted = False
+        self.evaluated = False
+        self.interact = None
         self.has_new_output = False
-
         # start with a random integer so that evaluations of the cell
         # from different runs have different version numbers.
         self._version = randint(0, maxint)
         self.__changed_input = u''  # property
-        self.__input = unicode_str(input)  # property
-        self._out = unicode_str(out).replace('\r', '')
 
     def __repr__(self):
         """
@@ -499,7 +502,7 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None); C
             Cell 0: in=2+3, out=5
         """
-        return 'Cell %s: in=%s, out=%s' % (self.id, self.input, self._out)
+        return 'Cell %s: in=%s, out=%s' % (self.id, self.input, self.__output)
 
     @property
     def input(self):
@@ -547,7 +550,7 @@ class ComputeCell(Cell):
             sage: C.input = '3+3'
             sage: C.input
             u'3+3'
-            sage: C.evaluated()
+            sage: C.evaluated
             False
             sage: C.version()-initial_version
             1
@@ -561,16 +564,16 @@ class ComputeCell(Cell):
             self.interact = input[len(INTERACT_UPDATE_PREFIX) + 1:]
             self._version = self.version() + 1
             return
-        elif self.is_interacting():
+        elif self.interact is not None:
+            self.interact = None
             try:
-                del self.interact
                 del self._interact_output
             except AttributeError:
                 pass
 
         # We have updated the input text so the cell can't have
         # been evaluated.
-        self._evaluated = False
+        self.evaluated = False
         self._version = self.version() + 1
         self.__input = input
         if hasattr(self, '_html_cache'):
@@ -702,18 +705,18 @@ class ComputeCell(Cell):
                 # wrong output location during interact.
                 return ''
 
-        self._out = unicode_str(self._out)
+        self.__output = unicode_str(self.__output)
 
         is_interact = self.is_interactive_cell()
         if is_interact and ncols == 0:
-            if 'Traceback (most recent call last)' in self._out:
-                s = self._out.replace('cell-interact', '')
+            if 'Traceback (most recent call last)' in self.__output:
+                s = self.__output.replace('cell-interact', '')
                 is_interact = False
             else:
                 return (u'<h2>Click to the left again to hide and once more '
                         u'to show the dynamic interactive window</h2>')
         else:
-            s = self._out
+            s = self.__output
 
         if raw:
             return s
@@ -758,15 +761,15 @@ class ComputeCell(Cell):
 
         # In interacting mode, we just save the computed output
         # (do not overwrite).
-        if self.is_interacting():
+        if self.interact is not None:
             self._interact_output = (output, html)
             if INTERACT_RESTART in output:
                 # We forfeit any interact output template (in
-                # self._out), so that the restart message propagates
+                # self.__output), so that the restart message propagates
                 # out.  When the set_output_text function in
                 # notebook_lib.js gets the message, it should
                 # re-evaluate the cell from scratch.
-                self._out = output
+                self.__output = output
             return
 
         if hasattr(self, '_html_cache'):
@@ -782,7 +785,7 @@ class ComputeCell(Cell):
             (len(output) > MAX_OUTPUT or
              output.count('\n') > MAX_OUTPUT_LINES)):
             url = ""
-            if not self.computing():
+            if not self.computing:
                 file = os.path.join(self.directory(), "full_output.txt")
                 open(file, "w").write(encoded_str(output))
                 url = ("<a target='_new' href='%s/full_output.txt' "
@@ -797,10 +800,9 @@ class ComputeCell(Cell):
                 # make the link to the full output appear at the top too.
                 warning += '\n<html>%s</html>\n' % url
             output = warning + '\n\n' + start + '\n\n...\n\n' + end
-        self._out = output
+        self.__output = output
         if not self.is_interactive_cell():
             self._out_html = html
-        self._sage = sage
 
     def delete_output(self):
         r"""
@@ -841,122 +843,10 @@ class ComputeCell(Cell):
             sage: W.quit()
             sage: nb.delete()
         """
-        self._out = u''
+        self.__output = u''
         self._out_html = u''
-        self._evaluated = False
+        self.evaluated = False
         self.delete_files()
-
-    def evaluated(self):
-        r"""
-        Returns whether this compute cell has been successfully
-        evaluated in a currently running session.  This is not about
-        whether the output of the cell is valid given the input.
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES: We create a worksheet with a cell that has wrong output::
-
-            sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: W.edit_save('{{{\n2+3\n///\n20\n}}}')
-            sage: C = W.cells[0]
-            sage: C
-            Cell 0: in=2+3, out=
-            20
-
-        We re-evaluate that input cell::
-
-            sage: C.evaluate()
-            sage: W.check_comp(
-                wait=9999)     # random output -- depends on computer speed
-            ('w', Cell 0: in=2+3, out=)
-
-        Now the output is right::
-
-            sage: C     # random output -- depends on computer speed
-            Cell 0: in=2+3, out=
-
-        And the cell is considered to have been evaluated.
-
-        ::
-
-            sage: C.evaluated(
-                )     # random output -- depends on computer speed
-            True
-
-        ::
-
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        # Cells are never considered evaluated in a new session.
-        if not self.worksheet().compute_process_has_been_started():
-            self._evaluated = False
-            return False
-
-        # Figure out if the worksheet is using the same sage
-        # session as this cell.  (I'm not sure when this would
-        # be False.)
-        same_session = self.worksheet().sage() is self.sage()
-        try:
-            # Always not evaluated if sessions are different.
-            if not same_session:
-                self._evaluated = False
-                return False
-            return self._evaluated
-        except AttributeError:
-            # Default assumption is that cell has not been evaluated.
-            self._evaluated = False
-            return False
-
-    def set_no_output(self, no_output):
-        """
-        Sets whether this is a "no output" compute cell, i.e., we
-        don't care about its output.
-
-        INPUT:
-
-        - ``no_output`` - a boolean convertible
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.is_no_output()
-            False
-            sage: C.set_no_output(True)
-            sage: C.is_no_output()
-            True
-        """
-        self._no_output = bool(no_output)
-
-    def is_no_output(self):
-        """
-        Returns whether this is a "no output" compute cell, i.e., we
-        don't care about its output.
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.is_no_output()
-            False
-            sage: C.set_no_output(True)
-            sage: C.is_no_output()
-            True
-        """
-        try:
-            return self._no_output
-        except AttributeError:
-            self._no_output = False
-            return self._no_output
 
     def update_html_output(self, output=''):
         """
@@ -1067,7 +957,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.word_wrap_cols()
+            sage: C.word_wrap_cols
             70
             sage: nb = sagenb.notebook.notebook.Notebook(
                 tmp_dir(ext='.sagenb'))
@@ -1075,7 +965,7 @@ class ComputeCell(Cell):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
-            sage: C.word_wrap_cols()
+            sage: C.word_wrap_cols
             72
             sage: nb.delete()
         """
@@ -1195,39 +1085,16 @@ class ComputeCell(Cell):
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
             sage: C.interrupt()
-            sage: C.interrupted()
+            sage: C.interrupted
             True
-            sage: C.evaluated()
+            sage: C.evaluated
             False
             sage: nb.delete()
         """
-        self._interrupted = True
-        self._evaluated = False
+        self.interrupted = True
+        self.evaluated = False
 
-    def interrupted(self):
-        """
-        Returns whether this compute cell's evaluation has been
-        interrupted.
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = W.new_cell_after(0, "2^2")
-            sage: C.interrupt()
-            sage: C.interrupted()
-            True
-            sage: nb.delete()
-        """
-        return self._interrupted
-
+    @property
     def computing(self):
         """
         Returns whether this compute cell is queued for evaluation by
@@ -1245,7 +1112,7 @@ class ComputeCell(Cell):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(0, "2^2")
-            sage: C.computing()
+            sage: C.computing
             False
             sage: nb.delete()
         """
@@ -1296,39 +1163,6 @@ class ComputeCell(Cell):
                         return True
         return False
 
-    def is_interacting(self):
-        r"""
-        Returns whether this compute cell is currently
-        :func:`sagenb.notebook.interact.interact`\ ing.
-
-        OUTPUT:
-
-        - a boolean
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = W.new_cell_after(0, "@interact\ndef f(
-                a=slider(0,10,1,5):\n    print a^2")
-            sage: C.is_interacting()
-            False
-        """
-        return hasattr(self, 'interact')
-
-    def stop_interacting(self):
-        """Not used
-        Stops :func:`sagenb.notebook.interact.interact`\ ion for this
-        compute cell.
-
-        TODO: Add doctests.
-        """
-        if self.is_interacting():
-            del self.interact
-
     def cleaned_input_text(self):
         r"""
         Returns this compute cell's "cleaned" input text, i.e., its
@@ -1346,10 +1180,9 @@ class ComputeCell(Cell):
             sage: C.cleaned_input_text()
             u'2+3'
         """
-        if self.is_interacting():
-            return self.interact
-        else:
-            return self._cleaned_input
+        return (
+            self.interact if self.interact is not None else self._cleaned_input
+            )
 
     def parse_percent_directives(self):
         r"""
@@ -1467,25 +1300,6 @@ class ComputeCell(Cell):
             True
         """
         return 'auto' in self.percent_directives()
-
-    def sage(self):
-        """
-        Returns the :class:`sage` instance for this compute cell(?).
-
-        OUTPUT:
-
-        - an instance of :class:`sage`
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.sage() is None
-            True
-        """
-        try:
-            return self._sage
-        except AttributeError:
-            return None
 
     # New UI
 
@@ -1666,7 +1480,7 @@ class ComputeCell(Cell):
             sage: C.has_output()
             False
         """
-        return len(self._out.strip()) > 0
+        return len(self.__output.strip()) > 0
 
     def is_html(self):
         r"""
@@ -1979,8 +1793,8 @@ class ComputeCell(Cell):
         else:
             # Run through S-Enter, evaluate link, etc.
             self.eval_method = 'eval'
-        self._interrupted = False
-        self._evaluated = True
+        self.interrupted = False
+        self.evaluated = True
         if time is not None:
             self._time = time
         self._introspect = introspect

@@ -2084,7 +2084,7 @@ class Worksheet(object):
             return
 
         C = self.__queue[0]
-        if C.interrupted():
+        if C.interrupted:
             return
 
         cell_system = self.get_cell_system(C)
@@ -2179,7 +2179,7 @@ class Worksheet(object):
         S = self.sage()
         C = self.__queue[0]
 
-        if C.interrupted():
+        if C.interrupted:
             self.__computing = False
             del self.__queue[0]
             return 'd', C
@@ -2214,7 +2214,7 @@ class Worksheet(object):
                 ########################################################
             return 'w', C
 
-        if C.introspect() and not C.is_no_output():
+        if C.introspect():
             before_prompt, after_prompt = C.introspect()
             if len(before_prompt) == 0:
                 return
@@ -2232,27 +2232,12 @@ class Worksheet(object):
                     C.set_introspect_html(out, completing=False)
                 else:
                     C.set_introspect_html('')
-                    C.set_output_text('<html><!--notruncate-->' + out +
-                                      '</html>', '')
+                    C.set_output_text(
+                        '<html><!--notruncate-->{}</html>'.format(out), '')
 
         # Finished a computation.
         self.__computing = False
         del self.__queue[0]
-
-        if C.is_no_output():
-            # Clean up the temp directories associated to C, and do
-            # not set any output text that C might have got.
-            d = C.directory()
-            for X in os.listdir(d):
-                Y = os.path.join(d, X)
-                if os.path.isfile(Y):
-                    try:
-                        os.unlink(Y)
-                    except:
-                        pass
-                else:
-                    shutil.rmtree(Y, ignore_errors=True)
-            return 'd', C
 
         if not C.introspect():
             filenames = output_status.filenames

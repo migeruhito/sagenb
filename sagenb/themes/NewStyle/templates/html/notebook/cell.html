@@ -20,7 +20,7 @@ INPUT:
     {% set wrap_ = wrap %}
     {% set div_wrap_ = div_wrap %}
 {% endif %}
-{% set cell_cls = "cell_evaluated" if cell.evaluated() or do_print or publish else "cell_not_evaluated" %}
+{% set cell_cls = "cell_evaluated" if cell.evaluated or do_print or publish else "cell_not_evaluated" %}
 
 {% if div_wrap_ %}
 <div id="cell_outer_{{ cell.id }}" class="cell_visible">
@@ -98,7 +98,7 @@ INPUT:
             <div id="introspect_div_{{ cell.id }}" class="introspection"></div>
         {% endif %}
 
-        {% set output_cls = 'cell_div_output_running' if cell.computing() else 'cell_div_output_wrap' %}
+        {% set output_cls = 'cell_div_output_running' if cell.computing else 'cell_div_output_wrap' %}
         <div class="cell_output_div">
             <table class="cell_output_box">
                 <tr>
