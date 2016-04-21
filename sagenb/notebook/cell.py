@@ -1002,12 +1002,12 @@ class ComputeCell(Cell):
         if ncols == 0:
             ncols = self.word_wrap_cols
 
-        if plain and not prompt_re.search(self._in):
+        if plain and not prompt_re.search(self.input):
             text = re.sub(
                 r'(^(?=.)|\n)(?!\.\.\.)', r'\1sage: ',
                 re.sub(r'(\n\.\.\.   .*?)(?=$|\n(?!\.\.\.))', r'\1\n...',
                        re.sub(r'\n(\s+|else:)', r'\n...   \1',
-                              re.sub(r'\n\s*\n', '\n', self._in.strip()))))
+                              re.sub(r'\n\s*\n', '\n', self.input.strip()))))
         else:
             text = self.input
 
