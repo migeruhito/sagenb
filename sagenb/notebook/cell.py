@@ -1202,33 +1202,17 @@ class ComputeCell(Cell):
             sage: C.percent_directives()
             [u'hide', u'maxima']
         """
-        self._system = None
-        text = self.input.splitlines()
-        directives = []
-        i = 0
-        for i, line in enumerate(text):
-            line = line.strip()
-            if not line.startswith('%'):
-                # Handle the #auto case here for now
-                if line == "#auto":
-                    directives.append(line[1:])
-                else:
-                    break
-            elif line in ['%auto', '%hide', '%hideall', '%save_server',
-                          '%time', '%timeit']:
-                # We do not consider any of the above percent
-                # directives as specifying a system.
-                directives.append(line[1:])
-            else:
-                self._system = line[1:]
-                directives.append(line[1:])
-                i += 1
-                break
+        percent, text = re.match(
+                r'((?:(?:^|(?<=\n))\s*(?:%.*?|#auto)\s*(?:\n|$))*)(.*)',
+                self.input, re.DOTALL).groups()
+        self._percent_directives = re.findall(
+                r'(?:%|#(?=auto))(.*?|auto)\s*(?:\n|$)', percent)
+        systems = [d for d in self._percent_directives
+                   if d not in ['auto', 'hide', 'hideall', 'save_server',
+                                'time', 'timeit']]
+        self._system = systems[-1] if systems else None
 
-        self._percent_directives = directives
-        if not self._system == 'fortran':
-            return "\n".join(text[i:]).strip()
-        return "\n".join(text[i:]).rstrip()
+        return text.rstrip() if self._system == 'fortran' else text.strip()
 
     def percent_directives(self):
         r"""
