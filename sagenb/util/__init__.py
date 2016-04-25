@@ -522,10 +522,10 @@ def sort_worksheet_list(v, sort, reverse):
     if sort == 'last_edited':
         v.sort(key=key_last_edited, reverse=reverse)
     elif sort in ['name', 'owner']:
-        v.sort(key=lambda a: (getattr(a, sort)().lower(), key_last_edited(a)),
+        v.sort(key=lambda a: (getattr(a, sort).lower(), key_last_edited(a)),
                reverse=reverse)
     elif sort == 'rating':
-        v.sort(key=lambda a: (getattr(a, sort)(), key_last_edited(a)),
+        v.sort(key=lambda a: (getattr(a, sort), key_last_edited(a)),
                reverse=reverse)
     else:
         raise ValueError('Invalid sort key {!r}'.format(sort))
