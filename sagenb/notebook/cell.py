@@ -1015,7 +1015,7 @@ class ComputeCell(Cell):
             msg = TRACEBACK
             if self.__output.strip().startswith(msg):
                 out = re.sub(r'({})(\n +.*)*'.format(re.escape(msg)),
-                             r'\1\n...', self._out.strip())
+                             r'\1\n...', self.output.strip())
             else:
                 out = self.output_text(ncols, raw=True, html=False)
         else:
