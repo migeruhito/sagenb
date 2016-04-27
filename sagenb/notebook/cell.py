@@ -486,7 +486,7 @@ class ComputeCell(Cell):
         self.has_new_output = False
         # start with a random integer so that evaluations of the cell
         # from different runs have different version numbers.
-        self._version = randint(0, maxint)
+        self.version = randint(0, maxint)
         self.__changed_input = u''  # property
 
     def __repr__(self):
@@ -503,6 +503,8 @@ class ComputeCell(Cell):
             Cell 0: in=2+3, out=5
         """
         return 'Cell %s: in=%s, out=%s' % (self.id, self.input, self.__output)
+
+    # Input
 
     @property
     def input(self):
@@ -546,13 +548,13 @@ class ComputeCell(Cell):
             ('d', Cell 1: in=2^2, out=
             4
             )
-            sage: initial_version=C.version()
+            sage: initial_version=C.version
             sage: C.input = '3+3'
             sage: C.input
             u'3+3'
             sage: C.evaluated
             False
-            sage: C.version()-initial_version
+            sage: C.version-initial_version
             1
             sage: W.quit()
             sage: nb.delete()
@@ -562,7 +564,7 @@ class ComputeCell(Cell):
 
         if input.startswith(INTERACT_UPDATE_PREFIX):
             self.interact = input[len(INTERACT_UPDATE_PREFIX) + 1:]
-            self._version = self.version() + 1
+            self.version += 1
             return
         elif self.interact is not None:
             self.interact = None
@@ -574,7 +576,7 @@ class ComputeCell(Cell):
         # We have updated the input text so the cell can't have
         # been evaluated.
         self.evaluated = False
-        self._version = self.version() + 1
+        self.version += 1
         self.__input = input
         if hasattr(self, '_html_cache'):
             del self._html_cache
@@ -596,7 +598,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: initial_version=C.version()
+            sage: initial_version=C.version
             sage: C.changed_input
             u''
             sage: C.changed_input = '3+3'
@@ -606,7 +608,7 @@ class ComputeCell(Cell):
             u'3+3'
             sage: C.changed_input
             u''
-            sage: C.version()-initial_version
+            sage: C.version-initial_version
             0
         """
         t = self.__changed_input
@@ -639,6 +641,109 @@ class ComputeCell(Cell):
     @changed_input.deleter
     def changed_input(self):
         self.__changed_input = u''
+
+    def cleaned_input_text(self):
+        r"""
+        Returns this compute cell's "cleaned" input text, i.e., its
+        input with all of its percent directives removed.  If this
+        cell is interacting, it returns the interacting text.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C.cleaned_input_text()
+            u'2+3'
+        """
+        return (
+            self.interact if self.interact is not None else self._cleaned_input
+            )
+
+    def parse_percent_directives(self):
+        r"""
+        Parses this compute cell's percent directives, determines its
+        system (if any), and returns the "cleaned" input text.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%hide\n%maxima\n%pi+3', '5', None)
+            sage: C.parse_percent_directives()
+            u'%pi+3'
+            sage: C.percent_directives()
+            [u'hide', u'maxima']
+        """
+        percent, text = re.match(
+            r'((?:(?:^|(?<=\n))\s*(?:%.*?|#auto)\s*(?:\n|$))*)(.*)',
+            self.input, re.DOTALL).groups()
+        self._percent_directives = re.findall(
+            r'(?:%|#(?=auto))(.*?|auto)\s*(?:\n|$)', percent)
+        systems = [d for d in self._percent_directives
+                   if d not in ['auto', 'hide', 'hideall', 'save_server',
+                                'time', 'timeit']]
+        self._system = systems[-1] if systems else None
+
+        return text.rstrip() if self._system == 'fortran' else text.strip()
+
+    def percent_directives(self):
+        r"""
+        Returns a list of this compute cell's percent directives.
+
+        OUTPUT:
+
+        - a list of strings
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C.percent_directives()
+            [u'hide', u'maxima']
+        """
+        try:
+            return self._percent_directives
+        except AttributeError:
+            self._percent_directives = []
+            return []
+
+    def system(self):
+        r"""
+        Returns the system used to evaluate this compute cell.  The
+        system is specified by a percent directive like '%maxima' at
+        the top of a cell.
+
+        Returns None, if no system is explicitly specified.  In this
+        case, the notebook evaluates the cell using the worksheet's
+        default system.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%maxima\n2+3', '5', None)
+            sage: C.system()
+            u'maxima'
+            sage: prefixes = ['%hide', '%time', '']
+            sage: cells = [sagenb.notebook.cell.ComputeCell(
+                0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
+            sage: [(C, C.system()) for C in cells if C.system() is not None]
+            []
+        """
+        self.parse_percent_directives()
+        return self._system
+
+    # Output
 
     def output_text(self, ncols=0, html=True, raw=False, allow_interact=True):
         ur"""
@@ -1163,107 +1268,6 @@ class ComputeCell(Cell):
                         return True
         return False
 
-    def cleaned_input_text(self):
-        r"""
-        Returns this compute cell's "cleaned" input text, i.e., its
-        input with all of its percent directives removed.  If this
-        cell is interacting, it returns the interacting text.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(
-                0, '%hide\n%maxima\n2+3', '5', None)
-            sage: C.cleaned_input_text()
-            u'2+3'
-        """
-        return (
-            self.interact if self.interact is not None else self._cleaned_input
-            )
-
-    def parse_percent_directives(self):
-        r"""
-        Parses this compute cell's percent directives, determines its
-        system (if any), and returns the "cleaned" input text.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(
-                0, '%hide\n%maxima\n%pi+3', '5', None)
-            sage: C.parse_percent_directives()
-            u'%pi+3'
-            sage: C.percent_directives()
-            [u'hide', u'maxima']
-        """
-        percent, text = re.match(
-                r'((?:(?:^|(?<=\n))\s*(?:%.*?|#auto)\s*(?:\n|$))*)(.*)',
-                self.input, re.DOTALL).groups()
-        self._percent_directives = re.findall(
-                r'(?:%|#(?=auto))(.*?|auto)\s*(?:\n|$)', percent)
-        systems = [d for d in self._percent_directives
-                   if d not in ['auto', 'hide', 'hideall', 'save_server',
-                                'time', 'timeit']]
-        self._system = systems[-1] if systems else None
-
-        return text.rstrip() if self._system == 'fortran' else text.strip()
-
-    def percent_directives(self):
-        r"""
-        Returns a list of this compute cell's percent directives.
-
-        OUTPUT:
-
-        - a list of strings
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(
-                0, '%hide\n%maxima\n2+3', '5', None)
-            sage: C.percent_directives()
-            [u'hide', u'maxima']
-        """
-        try:
-            return self._percent_directives
-        except AttributeError:
-            self._percent_directives = []
-            return []
-
-    def system(self):
-        r"""
-        Returns the system used to evaluate this compute cell.  The
-        system is specified by a percent directive like '%maxima' at
-        the top of a cell.
-
-        Returns None, if no system is explicitly specified.  In this
-        case, the notebook evaluates the cell using the worksheet's
-        default system.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(
-                0, '%maxima\n2+3', '5', None)
-            sage: C.system()
-            u'maxima'
-            sage: prefixes = ['%hide', '%time', '']
-            sage: cells = [sagenb.notebook.cell.ComputeCell(
-                0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
-            sage: [(C, C.system()) for C in cells if C.system() is not None]
-            []
-        """
-        self.parse_percent_directives()
-        return self._system
-
     def is_auto_cell(self):
         r"""
         Returns whether this compute cell is evaluated automatically
@@ -1354,7 +1358,7 @@ class ComputeCell(Cell):
             sage: C.process_cell_urls('"cell://foobar"')
             '/home/sage/0/cells/0/foobar?...'
         """
-        end = '?%d' % self.version()
+        end = '?%d' % self.version
         begin = self.url_to_self()
         for s in re_cell.findall(urls) + re_cell_2.findall(urls):
             urls = urls.replace(s, begin + s[7:-1] + end)
@@ -1794,30 +1798,6 @@ class ComputeCell(Cell):
                     shutil.rmtree(F)
                 except:
                     pass
-
-    def version(self):
-        """
-        Returns this compute cell's version number.
-
-        OUTPUT:
-
-        - an integer
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: initial_version=C.version() #random
-            sage: C.input = '2+3'
-            sage: C.version()-initial_version
-            1
-        """
-        try:
-            return self._version
-        except AttributeError:
-            # start with a random integer so that evaluations of the cell
-            # from different runs have different version numbers.
-            self._version = randint(0, maxint)
-            return self._version
 
     def time(self):
         r"""
