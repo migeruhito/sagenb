@@ -452,7 +452,7 @@ class ComputeCell(Cell):
     """
     super_class = Cell
 
-    def __init__(self, id, input, out, worksheet):
+    def __init__(self, id, input, output, worksheet):
         """
         Creates a new compute cell.
 
@@ -462,7 +462,7 @@ class ComputeCell(Cell):
 
         - ``input`` - a string; this cell's input
 
-        - ``out`` - a string; this cell's output
+        - ``output`` - a string; this cell's output
 
         - ``worksheet`` - a
           :class:`sagenb.notebook.worksheet.Worksheet` instance; this
@@ -477,18 +477,20 @@ class ComputeCell(Cell):
 
         # Data model
         self.super_class.__init__(self, id, worksheet)
-        self.__input = unicode_str(input)  # property
-        self.__output = unicode_str(out).replace('\r', '')
 
         # State
+        # start with a random integer so that evaluations of the cell
+        # from different runs have different version numbers.
+        self.version = randint(0, maxint)
         self.interrupted = False
         self.evaluated = False
         self.interact = None
         self.has_new_output = False
-        # start with a random integer so that evaluations of the cell
-        # from different runs have different version numbers.
-        self.version = randint(0, maxint)
         self.__changed_input = u''  # property
+
+        # Data model
+        self.__input = unicode_str(input)  # property
+        self.__output = unicode_str(output).replace('\r', '')
 
     def __repr__(self):
         """
@@ -832,7 +834,7 @@ class ComputeCell(Cell):
             s = u'<pre class="shrunk">{}</pre>'.format(s)
         return s
 
-    def set_output_text(self, output, html, sage=None):
+    def set_output_text(self, output, html):
         r"""
         Sets this compute cell's output text.
 

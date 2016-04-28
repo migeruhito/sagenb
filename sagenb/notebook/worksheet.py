@@ -2272,7 +2272,7 @@ class Worksheet(object):
                     set_restrictive_permissions(target)
             # Generate html, etc.
             html = C.files_html(out)
-            C.set_output_text(out, html, sage=self.sage())
+            C.set_output_text(out, html)
             C.set_introspect_html('')
 
         return 'd', C
