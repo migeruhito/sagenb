@@ -487,6 +487,8 @@ class ComputeCell(Cell):
         self.interact = None
         self.has_new_output = False
         self.__changed_input = u''  # property
+        self.introspect = False  # property
+        self.__introspect_html = u''  # property
 
         # Data model
         self.__input = unicode_str(input)  # property
@@ -1302,7 +1304,7 @@ class ComputeCell(Cell):
         r['percent_directives'] = self.percent_directives
         r['system'] = self.system
         r['auto'] = self.is_auto_cell()
-        r['introspect_output'] = self.introspect_output()
+        r['introspect_output'] = u''
         return r
     # New UI end
 
@@ -1494,49 +1496,9 @@ class ComputeCell(Cell):
     #################
     # Introspection #
     #################
-    # newUI
 
-    def set_introspect_output(self, output, completing=False, raw=False):
-        ur"""
-        Sets this compute cell's introspection text.
-
-        INPUT:
-
-        - ``output`` - a string; the updated text
-
-        - ``completing`` - a boolean (default: False); whether the
-          completions menu is open
-
-        - ``raw`` - a boolean (default: False)
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
-            sage: C.introspect()
-            False
-            sage: C.evaluate(username='sage')
-            sage: W.check_comp(
-                9999)     # random output -- depends on computer speed
-            ('d', Cell 0: in=sage?, out=)
-            sage: C.set_introspect_output('foobar')
-            sage: C.introspect_output()
-            u'foobar'
-            sage: C.set_introspect_output('`foobar`')
-            sage: C.introspect_output()
-            u'`foobar`'
-            sage: C.set_introspect_output('ěščřžýáíéďĎ')
-            sage: C.introspect_output()
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        self._introspect_output = unicode_str(output)
-
-    def introspect_output(self):
+    @property
+    def introspect_html(self):
         """
         Returns this compute cell's introspection text, setting it to
         '', if none is available.
@@ -1547,33 +1509,28 @@ class ComputeCell(Cell):
 
         EXAMPLES::
 
-            sage: nb = sagenb.notebook.notebook.Notebook(tmp_dir()+'.sagenb')
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
-            sage: C.introspect()
+            sage: C.introspect
             False
             sage: C.evaluate(username='sage')
             sage: W.check_comp(
                 9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
-            sage: C.introspect_output(
-                )     # random output -- depends on computer speed
+            sage: C.introspect_html
+            # random output -- depends on computer speed
             u'...<div class="docstring">...sage...</pre></div>...'
             sage: W.quit()
             sage: nb.delete()
         """
-        if not self.introspect():
-            return ''
-        try:
-            return self._introspect_output
-        except AttributeError:
-            self._introspect_output = u''
-            return u''
-    # newUI end
+        return u'' if not self.introspect else self.__introspect_html
 
-    def set_introspect_html(self, html, completing=False, raw=False):
+    @introspect_html.setter
+    def introspect_html(self, html):
         ur"""
         Sets this compute cell's introspection text.
 
@@ -1594,145 +1551,27 @@ class ComputeCell(Cell):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
-            sage: C.introspect()
+            sage: C.introspect
             False
             sage: C.evaluate(username='sage')
             sage: W.check_comp(
                 9999)     # random output -- depends on computer speed
             ('d', Cell 0: in=sage?, out=)
-            sage: C.set_introspect_html('foobar')
-            sage: C.introspect_html()
+            sage: C.introspect_html = 'foobar'
+            sage: C.introspect_html
             u'foobar'
-            sage: C.set_introspect_html('`foobar`')
-            sage: C.introspect_html()
+            sage: C.introspect_html = '`foobar`'
+            sage: C.introspect_html
             u'`foobar`'
-            sage: C.set_introspect_html('ěščřžýáíéďĎ')
-            sage: C.introspect_html()
+            sage: C.introspect_html = 'ěščřžýáíéďĎ'
+            sage: C.introspect_html
             u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
             sage: W.quit()
             sage: nb.delete()
         """
-        html = unicode_str(html)
-        self._introspect_html = html
+        self.__introspect_html = unicode_str(html)
 
-    def introspect_html(self):
-        """
-        Returns this compute cell's introspection text, setting it to
-        '', if none is available.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
-            sage: C.introspect()
-            False
-            sage: C.evaluate(username='sage')
-            sage: W.check_comp(
-                9999)     # random output -- depends on computer speed
-            ('d', Cell 0: in=sage?, out=)
-            sage: C.introspect_html(
-                )     # random output -- depends on computer speed
-            u'...<div class="docstring">...sage...</pre></div>...'
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        if not self.introspect():
-            return ''
-        try:
-            return self._introspect_html
-        except AttributeError:
-            self._introspect_html = u''
-            return u''
-
-    def introspect(self):
-        """
-        Returns compute cell's introspection text.
-
-        OUTPUT:
-
-        - a string 2-tuple ("before" and "after" text) or boolean (not
-          introspecting)
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
-            sage: C.introspect()
-            False
-            sage: C.evaluate(username='sage')
-            sage: W.check_comp(
-                9999)     # random output -- depends on computer speed
-            ('d', Cell 0: in=sage?, out=)
-            sage: C.introspect()
-            [u'sage?', '']
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        try:
-            return self._introspect
-        except AttributeError:
-            return False
-
-    def unset_introspect(self):
-        """
-        Clears this compute cell's introspection text.
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.ComputeCell(0, 'sage?', '', W)
-            sage: C.introspect()
-            False
-            sage: C.evaluate(username='sage')
-            sage: W.check_comp(
-                9999)     # random output -- depends on computer speed
-            ('d', Cell 0: in=sage?, out=)
-            sage: C.introspect()
-            [u'sage?', '']
-            sage: C.unset_introspect()
-            sage: C.introspect()
-            False
-            sage: W.quit()
-            sage: nb.delete()
-        """
-        self._introspect = False
-
-    def set_introspect(self, before_prompt, after_prompt):
-        """
-        Set this compute cell's introspection text.
-
-        INPUT:
-
-        - ``before_prompt`` - a string
-
-        - ``after_prompt`` - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.set_introspect("a", "b")
-            sage: C.introspect()
-            ['a', 'b']
-        """
-        self._introspect = [before_prompt, after_prompt]
-
-    def evaluate(self, introspect=False, time=None, username=None):
+    def evaluate(self, introspect=False, username=None):
         r"""
         Evaluates this compute cell.
 
@@ -1740,9 +1579,6 @@ class ComputeCell(Cell):
 
         - ``introspect`` - a pair [``before_cursor``,
           ``after_cursor``] of strings (default: False)
-
-        - ``time`` - a boolean (default: None); whether to return the
-          time the computation takes
 
         - ``username`` - a string (default: None); name of user doing
           the evaluation
@@ -1779,11 +1615,8 @@ class ComputeCell(Cell):
             self.eval_method = 'eval'
         self.interrupted = False
         self.evaluated = True
-        if time is not None:
-            self._time = time
-        self._introspect = introspect
+        self.introspect = introspect
         self.worksheet().enqueue(self, username=username)
-        self._type = 'wrap'
         dir = self.directory()
         for D in os.listdir(dir):
             F = os.path.join(dir, D)
@@ -1795,6 +1628,7 @@ class ComputeCell(Cell):
                 except:
                     pass
 
+    @property
     def time(self):
         r"""
         Returns whether to print timing information about the
@@ -1807,16 +1641,15 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
-            sage: C.time()
+            sage: C.time
             False
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%time\n2+3', '5', None)
-            sage: C.time()
+            sage: C.time
             True
         """
         return ('time' in self.percent_directives or
-                'timeit' in self.percent_directives or
-                getattr(self, '_time', False))
+                'timeit' in self.percent_directives)
 
     def html(self, wrap=None, div_wrap=True, do_print=False, publish=False):
         r"""

@@ -107,7 +107,7 @@ INPUT:
                         <div class="{{ output_cls }}" id="cell_div_output_{{ cell.id }}">
                             <div class="cell_output_{{ "print_" if do_print else '' }}wrap"
                                 id="cell_output_{{ cell.id }}">
-                                {% if cell.introspect() %}
+                                {% if cell.introspect %}
                                     {{ cell.output_text(0, html=true) | safe }}
                                 {% else %}
                                     {{ cell.output_text(wrap_, html=true) | safe }}

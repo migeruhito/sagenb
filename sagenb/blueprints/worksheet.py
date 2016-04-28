@@ -1050,7 +1050,7 @@ def worksheet_cell_update(worksheet):
     r['output'] = cell.output_text(html=True) + ' '
     r['output_wrapped'] = cell.output_text(g.notebook.conf['word_wrap_cols'],
                                            html=True) + ' '
-    r['introspect_html'] = cell.introspect_html()
+    r['introspect_html'] = cell.introspect_html
 
     # Compute 'em, if we got 'em.
     worksheet.start_next_comp()

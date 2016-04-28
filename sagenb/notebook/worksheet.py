@@ -2090,8 +2090,8 @@ class Worksheet(object):
         cell_system = self.get_cell_system(C)
         percent_directives = C.percent_directives
 
-        if cell_system == 'sage' and C.introspect():
-            before_prompt, after_prompt = C.introspect()
+        if cell_system == 'sage' and C.introspect:
+            before_prompt, after_prompt = C.introspect
             I = before_prompt
         else:
             I = C.cleaned_input_text
@@ -2119,10 +2119,10 @@ class Worksheet(object):
             '_interact_.SAGE_CELL_ID=%r\n__SAGE_TMP_DIR__=os.getcwd()\n' %
             C.id)
 
-        print_time = C.time()
-        if C.time():
+        print_time = C.time
+        if C.time:
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
-            print_time = not C.introspect()
+            print_time = not C.introspect
 
         # If the input ends in a question mark and is *not* a comment
         # line, then we introspect on it.
@@ -2130,7 +2130,7 @@ class Worksheet(object):
             # Get the last line of a possible multiline input
             Istrip = I.strip().split('\n').pop()
             if Istrip.endswith('?') and not Istrip.startswith('#'):
-                C.set_introspect(I, '')
+                C.introspect = [I, '']
 
         # Handle line continuations: join lines that end in a backslash
         # _except_ in LaTeX mode.
@@ -2141,7 +2141,7 @@ class Worksheet(object):
         input += self.preparse_input(I, C)
 
         self.__computing = True
-        mode = ('sage' if cell_system == 'sage' and not C.introspect()
+        mode = ('sage' if cell_system == 'sage' and not C.introspect
                 else 'python')
         self.sage().execute(
             input, os.path.abspath(self.data_directory),
@@ -2197,7 +2197,7 @@ class Worksheet(object):
 
         if not output_status.done:
             # Still computing
-            if not C.introspect():
+            if not C.introspect:
                 C.set_output_text(out, '')
 
                 ########################################################
@@ -2214,8 +2214,8 @@ class Worksheet(object):
                 ########################################################
             return 'w', C
 
-        if C.introspect():
-            before_prompt, after_prompt = C.introspect()
+        if C.introspect:
+            before_prompt, after_prompt = C.introspect
             if len(before_prompt) == 0:
                 return
             if before_prompt[-1] != '?':
@@ -2226,12 +2226,12 @@ class Worksheet(object):
                     c = ''
                 C.changed_input = before_prompt + c + after_prompt
                 out = completions_html(C.id, out)
-                C.set_introspect_html(out, completing=True)
+                C.introspect_html = out
             else:
                 if C.eval_method == 'introspect':
-                    C.set_introspect_html(out, completing=False)
+                    C.introspect_html = out
                 else:
-                    C.set_introspect_html('')
+                    C.introspect_html = ''
                     C.set_output_text(
                         '<html><!--notruncate-->{}</html>'.format(out), '')
 
@@ -2239,7 +2239,7 @@ class Worksheet(object):
         self.__computing = False
         del self.__queue[0]
 
-        if not C.introspect():
+        if not C.introspect:
             filenames = output_status.filenames
             if len(filenames) > 0:
                 # Move files to the cell directory
@@ -2273,7 +2273,7 @@ class Worksheet(object):
             # Generate html, etc.
             html = C.files_html(out)
             C.set_output_text(out, html)
-            C.set_introspect_html('')
+            C.introspect_html = ''
 
         return 'd', C
 
@@ -2492,7 +2492,7 @@ class Worksheet(object):
     # Processing of input and output to worksheet process.
 
     def preparse_input(self, input, C):
-        introspect = C.introspect()
+        introspect = C.introspect
         if introspect:
             input = self.preparse_introspection_input(input, C, introspect)
         else:
@@ -2511,7 +2511,7 @@ class Worksheet(object):
                     i += 1
                 before_prompt += after_prompt[:i + 1]
                 after_prompt = after_prompt[i + 1:]
-                C.set_introspect(before_prompt, after_prompt)
+                C.introspect = [before_prompt, after_prompt]
                 break
             elif after_prompt[i] in ['"', "'", ' ', '\t', '\n']:
                 break
@@ -2534,7 +2534,7 @@ class Worksheet(object):
         return input
 
     def postprocess_output(self, out, C):
-        if C.introspect():
+        if C.introspect:
             return out
 
         out = out.replace("NameError: name 'os' is not defined",
