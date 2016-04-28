@@ -27,10 +27,11 @@ from sys import maxint
 from ..config import MAX_OUTPUT
 from ..config import MAX_OUTPUT_LINES
 from ..config import TRACEBACK
-from ..util import word_wrap
+from ..util import cached_property
+from ..util import encoded_str
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
-from ..util import encoded_str
+from ..util import word_wrap
 from ..util.templates import render_template
 from ..util.text import format_exception
 
@@ -581,9 +582,8 @@ class ComputeCell(Cell):
         if hasattr(self, '_html_cache'):
             del self._html_cache
 
-        # Run get the input text with all of the percent
-        # directives parsed
-        self._cleaned_input = self.parse_percent_directives()
+        # Uncache system, percent directives and cleaned_input.
+        del self.__parsed_input
 
     @property
     def changed_input(self):
@@ -642,28 +642,8 @@ class ComputeCell(Cell):
     def changed_input(self):
         self.__changed_input = u''
 
-    def cleaned_input_text(self):
-        r"""
-        Returns this compute cell's "cleaned" input text, i.e., its
-        input with all of its percent directives removed.  If this
-        cell is interacting, it returns the interacting text.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(
-                0, '%hide\n%maxima\n2+3', '5', None)
-            sage: C.cleaned_input_text()
-            u'2+3'
-        """
-        return (
-            self.interact if self.interact is not None else self._cleaned_input
-            )
-
-    def parse_percent_directives(self):
+    @cached_property()
+    def __parsed_input(self):
         r"""
         Parses this compute cell's percent directives, determines its
         system (if any), and returns the "cleaned" input text.
@@ -678,42 +658,23 @@ class ComputeCell(Cell):
                 0, '%hide\n%maxima\n%pi+3', '5', None)
             sage: C.parse_percent_directives()
             u'%pi+3'
-            sage: C.percent_directives()
+            sage: C.percent_directives
             [u'hide', u'maxima']
         """
         percent, text = re.match(
             r'((?:(?:^|(?<=\n))\s*(?:%.*?|#auto)\s*(?:\n|$))*)(.*)',
             self.input, re.DOTALL).groups()
-        self._percent_directives = re.findall(
+        percent = re.findall(
             r'(?:%|#(?=auto))(.*?|auto)\s*(?:\n|$)', percent)
-        systems = [d for d in self._percent_directives
-                   if d not in ['auto', 'hide', 'hideall', 'save_server',
-                                'time', 'timeit']]
-        self._system = systems[-1] if systems else None
+        systems = [d for d in percent if d not in ['auto', 'hide', 'hideall',
+                                                   'save_server', 'time',
+                                                   'timeit']]
+        system = systems[-1] if systems else None
 
-        return text.rstrip() if self._system == 'fortran' else text.strip()
+        text = text.rstrip() if system == 'fortran' else text.strip()
+        return system, percent, text
 
-    def percent_directives(self):
-        r"""
-        Returns a list of this compute cell's percent directives.
-
-        OUTPUT:
-
-        - a list of strings
-
-        EXAMPLES::
-
-            sage: C = sagenb.notebook.cell.ComputeCell(
-                0, '%hide\n%maxima\n2+3', '5', None)
-            sage: C.percent_directives()
-            [u'hide', u'maxima']
-        """
-        try:
-            return self._percent_directives
-        except AttributeError:
-            self._percent_directives = []
-            return []
-
+    @property
     def system(self):
         r"""
         Returns the system used to evaluate this compute cell.  The
@@ -732,16 +693,54 @@ class ComputeCell(Cell):
 
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%maxima\n2+3', '5', None)
-            sage: C.system()
+            sage: C.system
             u'maxima'
             sage: prefixes = ['%hide', '%time', '']
             sage: cells = [sagenb.notebook.cell.ComputeCell(
                 0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
-            sage: [(C, C.system()) for C in cells if C.system() is not None]
+            sage: [(C, C.system) for C in cells if C.system is not None]
             []
         """
-        self.parse_percent_directives()
-        return self._system
+        return self.__parsed_input[0]
+
+    @property
+    def percent_directives(self):
+        r"""
+        Returns a list of this compute cell's percent directives.
+
+        OUTPUT:
+
+        - a list of strings
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C.percent_directives
+            [u'hide', u'maxima']
+        """
+        return self.__parsed_input[1]
+
+    @property
+    def cleaned_input_text(self):
+        r"""
+        Returns this compute cell's "cleaned" input text, i.e., its
+        input with all of its percent directives removed.  If this
+        cell is interacting, it returns the interacting text.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: C = sagenb.notebook.cell.ComputeCell(
+                0, '%hide\n%maxima\n2+3', '5', None)
+            sage: C.cleaned_input_text
+            u'2+3'
+        """
+        return (self.interact if self.interact is not None
+                else self.__parsed_input[2])
 
     # Output
 
@@ -1287,7 +1286,7 @@ class ComputeCell(Cell):
             sage: C.is_auto_cell()
             True
         """
-        return 'auto' in self.percent_directives()
+        return 'auto' in self.percent_directives
 
     # New UI
 
@@ -1303,8 +1302,8 @@ class ComputeCell(Cell):
         r['output'] = self.output_text()
         r['output_html'] = self.output_html()
         r['output_wrapped'] = self.output_text(self.word_wrap_cols)
-        r['percent_directives'] = self.percent_directives()
-        r['system'] = self.system()
+        r['percent_directives'] = self.percent_directives
+        r['system'] = self.system
         r['auto'] = self.is_auto_cell()
         r['introspect_output'] = self.introspect_output()
         return r
@@ -1484,7 +1483,7 @@ class ComputeCell(Cell):
 
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, "%html\nTest HTML", None, None)
-            sage: C.system()
+            sage: C.system
             u'html'
             sage: C.is_html()
             True
@@ -1493,7 +1492,7 @@ class ComputeCell(Cell):
             sage: C.is_html()
             False
         """
-        return self.system() == 'html'
+        return self.system == 'html'
 
     #################
     # Introspection #
@@ -1818,8 +1817,8 @@ class ComputeCell(Cell):
             sage: C.time()
             True
         """
-        return ('time' in self.percent_directives() or
-                'timeit' in self.percent_directives() or
+        return ('time' in self.percent_directives or
+                'timeit' in self.percent_directives or
                 getattr(self, '_time', False))
 
     def html(self, wrap=None, div_wrap=True, do_print=False, publish=False):

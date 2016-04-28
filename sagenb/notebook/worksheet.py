@@ -2088,13 +2088,13 @@ class Worksheet(object):
             return
 
         cell_system = self.get_cell_system(C)
-        percent_directives = C.percent_directives()
+        percent_directives = C.percent_directives
 
         if cell_system == 'sage' and C.introspect():
             before_prompt, after_prompt = C.introspect()
             I = before_prompt
         else:
-            I = C.cleaned_input_text()
+            I = C.cleaned_input_text
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system
@@ -2602,7 +2602,7 @@ class Worksheet(object):
             sage: W.get_cell_system(c1)
             'gap'
         """
-        system = cell.system()
+        system = cell.system
         if system is not None:
             return system
         return self.system
@@ -2657,9 +2657,9 @@ class Worksheet(object):
             sage: W.edit_save(
                 '{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cells
-            sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
+            sage: W.check_for_system_switching(c0.cleaned_input_text, c0)
             (False, u'2+3')
-            sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
+            sage: W.check_for_system_switching(c1.cleaned_input_text, c1)
             (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)',
              __SAGE_TMP_DIR__)")
 
@@ -2687,9 +2687,9 @@ class Worksheet(object):
                 '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: W.system = 'gap'
             sage: c0, c1 = W.cells
-            sage: W.check_for_system_switching(c0.cleaned_input_text(), c0)
+            sage: W.check_for_system_switching(c0.cleaned_input_text, c0)
             (False, u'2+3')
-            sage: W.check_for_system_switching(c1.cleaned_input_text(), c1)
+            sage: W.check_for_system_switching(c1.cleaned_input_text, c1)
             (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)',
              __SAGE_TMP_DIR__)")
             sage: c0.evaluate()

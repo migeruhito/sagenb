@@ -26,7 +26,7 @@ INPUT:
 <div id="cell_outer_{{ cell.id }}" class="cell_visible">
     <div id="cell_{{ cell.id }}" class="{{ cell_cls }}">
 {% endif %}
-        {% if 'hideall' not in cell.percent_directives() %}
+        {% if 'hideall' not in cell.percent_directives %}
         {# input #}
         {% if not do_print and not publish %}
             <div class="wksht_buttons">
@@ -61,7 +61,7 @@ INPUT:
                 {% endif %}
             </script>
         {% endif %}
-            {% if 'hide' in cell.percent_directives() %}
+            {% if 'hide' in cell.percent_directives %}
                 {% set input_cls = 'cell_input_hide' %}
             {% else %}
                 {% set input_cls = 'cell_input' %}

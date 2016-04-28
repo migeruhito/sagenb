@@ -1341,7 +1341,7 @@ def migrate_old_notebook_v1(dir):
 
         ws_pub = old_ws.worksheet_that_was_published
 
-        obj = {'name': old_ws.name, 'system': old_ws.system(),
+        obj = {'name': old_ws.name, 'system': old_ws.system,
                'collaborators': old_ws.collaborators,
                'pretty_print': old_ws.pretty_print,
                'ratings': old_ws.ratings,
