@@ -579,8 +579,6 @@ class ComputeCell(Cell):
         self.evaluated = False
         self.version += 1
         self.__input = input
-        if hasattr(self, '_html_cache'):
-            del self._html_cache
 
         # Uncache system, percent directives and cleaned_input.
         del self.__parsed_input
@@ -875,9 +873,6 @@ class ComputeCell(Cell):
                 # re-evaluate the cell from scratch.
                 self.__output = output
             return
-
-        if hasattr(self, '_html_cache'):
-            del self._html_cache
 
         output = output.replace('\r', '')
         # We do not truncate if "notruncate" or "Output truncated!" already
