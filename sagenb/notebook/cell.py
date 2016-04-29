@@ -488,12 +488,23 @@ class ComputeCell(Cell):
         self.__interact_output = None
         self.has_new_output = False
         self.__changed_input = u''  # property
-        self.introspect = False  # property
+        # self.introspect = False
+        self.__introspect = False
         self.__introspect_html = u''  # property
 
         # Data model
         self.__input = unicode_str(input)  # property
         self.__output = unicode_str(output).replace('\r', '')
+
+    @property
+    def introspect(self):
+        return self.__introspect
+
+    @introspect.setter
+    def introspect(self, value):
+        if value:
+            print('\n'+'='*80+'\n'+value[0]+'\n'+'='*80+'\n'+value[1]+'\n'+'='*80+'\n')
+        self.__introspect = value
 
     def __repr__(self):
         """
