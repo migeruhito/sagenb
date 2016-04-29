@@ -484,7 +484,8 @@ class ComputeCell(Cell):
         self.version = randint(0, maxint)
         self.interrupted = False
         self.evaluated = False
-        self.interact = None
+        self.__interact_input = None
+        self.__interact_output = None
         self.has_new_output = False
         self.__changed_input = u''  # property
         self.introspect = False  # property
@@ -568,15 +569,12 @@ class ComputeCell(Cell):
         input = unicode_str(input)
 
         if input.startswith(INTERACT_UPDATE_PREFIX):
-            self.interact = input[len(INTERACT_UPDATE_PREFIX) + 1:]
+            self.__interact_input = input[len(INTERACT_UPDATE_PREFIX) + 1:]
             self.version += 1
             return
-        elif self.interact is not None:
-            self.interact = None
-            try:
-                del self._interact_output
-            except AttributeError:
-                pass
+        else:
+            self.__interact_input = None
+            self.__interact_output = None
 
         # We have updated the input text so the cell can't have
         # been evaluated.
@@ -741,7 +739,7 @@ class ComputeCell(Cell):
             sage: C.cleaned_input_text
             u'2+3'
         """
-        return (self.interact if self.interact is not None
+        return (self.__interact_input if self.__interact_input is not None
                 else self.__parsed_input[2])
 
     # Output
@@ -789,23 +787,19 @@ class ComputeCell(Cell):
             sage: C.output_text(raw=True)
             u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
-        if allow_interact and hasattr(self, '_interact_output'):
+        if allow_interact and self.__interact_output is not None:
             # Get the input template
             z = self.output_text(ncols, html, raw, allow_interact=False)
             if INTERACT_TEXT not in z or INTERACT_HTML not in z:
                 return z
             if ncols:
                 # Get the output template
-                try:
-                    # Fill in the output template
-                    output, html = self._interact_output
-                    output = self.parse_html(output, ncols, False)
-                    z = z.replace(INTERACT_TEXT, output)
-                    z = z.replace(INTERACT_HTML, html)
-                    return z
-                except (ValueError, AttributeError), msg:
-                    print msg
-                    pass
+                # Fill in the output template
+                output, html = self.__interact_output
+                output = self.parse_html(output, ncols, False)
+                z = z.replace(INTERACT_TEXT, output)
+                z = z.replace(INTERACT_HTML, html)
+                return z
             else:
                 # Get rid of the interact div to avoid updating the
                 # wrong output location during interact.
@@ -867,8 +861,8 @@ class ComputeCell(Cell):
 
         # In interacting mode, we just save the computed output
         # (do not overwrite).
-        if self.interact is not None:
-            self._interact_output = (output, html)
+        if self.__interact_input is not None:
+            self.__interact_output = (output, html)
             if INTERACT_RESTART in output:
                 # We forfeit any interact output template (in
                 # self.__output), so that the restart message propagates
@@ -1256,14 +1250,13 @@ class ComputeCell(Cell):
         void = tuple()
         name = 'interact'
         for node in nodes.body:
-            if getattr(getattr(getattr(
-                    node, 'value', void), 'func', void), 'id', void) == name:
+            if getattr(getattr(getattr(node, 'value', void), 'func', void),
+                       'id', void) == name:
                 return True
-            else:
-                for decorator in getattr(node, 'decorator_list', void):
-                    if getattr(getattr(
-                            decorator, 'func', decorator), 'id', void) == name:
-                        return True
+            for decorator in getattr(node, 'decorator_list', void):
+                if getattr(getattr(decorator, 'func', decorator),
+                           'id', void) == name:
+                    return True
         return False
 
     def is_auto_cell(self):
