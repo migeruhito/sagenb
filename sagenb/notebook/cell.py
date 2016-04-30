@@ -503,7 +503,8 @@ class ComputeCell(Cell):
     @introspect.setter
     def introspect(self, value):
         if value:
-            print('\n'+'='*80+'\n'+value[0]+'\n'+'='*80+'\n'+value[1]+'\n'+'='*80+'\n')
+            print('\n{1}\n{0}\n{1}\n'.format(value[0], '='*80))
+            print('\n{1}\n{0}\n{1}\n'.format(value[1], '='*80))
         self.__introspect = value
 
     def __repr__(self):
@@ -998,58 +999,6 @@ class ComputeCell(Cell):
             self._out_html = u""
         else:
             self._out_html = self.files_html(output)
-
-    def directory(self):
-        """
-        Returns the name of this compute cell's directory, creating
-        it, if it doesn't already exist.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
-            sage: C.directory()
-            '.../home/sage/0/cells/0'
-            sage: nb.delete()
-        """
-        # TODO:  move to storage backend
-        dir = self._directory_name()
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        set_restrictive_permissions(dir)
-        return dir
-
-    def _directory_name(self):
-        """
-        Returns the name of this compute cell's directory.
-
-        OUTPUT:
-
-        - a string
-
-        EXAMPLES::
-
-            sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
-            sage: nb.user_manager.add_user(
-                'sage','sage','sage@sagemath.org',force=True)
-            sage: W = nb.create_wst('Test', 'sage')
-            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
-            sage: C._directory_name()
-            '.../home/sage/0/cells/0'
-            sage: nb.delete()
-        """
-        # TODO:  move to storage backend
-        return os.path.join(self.worksheet().directory, 'cells',
-                            str(self.id))
 
     @property
     def word_wrap_cols(self):
@@ -1612,25 +1561,14 @@ class ComputeCell(Cell):
             sage: W.quit()
             sage: nb.delete()
         """
-        if introspect:
-            self.eval_method = 'introspect'  # Run through TAB-introspection
-        else:
-            # Run through S-Enter, evaluate link, etc.
-            self.eval_method = 'eval'
+        # Cell run through TAB-introspection or S-enter/eval link
+        self.eval_method = 'introspect' if introspect else 'eval'
         self.interrupted = False
         self.evaluated = True
         self.introspect = introspect
         self.worksheet().enqueue(self, username=username)
-        dir = self.directory()
-        for D in os.listdir(dir):
-            F = os.path.join(dir, D)
-            try:
-                os.unlink(F)
-            except OSError:
-                try:
-                    shutil.rmtree(F)
-                except:
-                    pass
+        # TODO:  move to storage backend
+        self.delete_files()
 
     @property
     def time(self):
@@ -1742,6 +1680,58 @@ class ComputeCell(Cell):
         """
         return '/home/{0}'.format(self.worksheet_filename())
 
+    def directory(self):
+        """
+        Returns the name of this compute cell's directory, creating
+        it, if it doesn't already exist.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test', 'sage')
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
+            sage: C.directory()
+            '.../home/sage/0/cells/0'
+            sage: nb.delete()
+        """
+        # TODO:  move to storage backend
+        dir = self._directory_name()
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        set_restrictive_permissions(dir)
+        return dir
+
+    def _directory_name(self):
+        """
+        Returns the name of this compute cell's directory.
+
+        OUTPUT:
+
+        - a string
+
+        EXAMPLES::
+
+            sage: nb = sagenb.notebook.notebook.Notebook(
+                tmp_dir(ext='.sagenb'))
+            sage: nb.user_manager.add_user(
+                'sage','sage','sage@sagemath.org',force=True)
+            sage: W = nb.create_wst('Test', 'sage')
+            sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
+            sage: C._directory_name()
+            '.../home/sage/0/cells/0'
+            sage: nb.delete()
+        """
+        # TODO:  move to storage backend
+        return os.path.join(self.worksheet().directory, 'cells',
+                            str(self.id))
+
     def files(self):
         """
         Returns a list of all the files in this compute cell's
@@ -1773,6 +1763,7 @@ class ComputeCell(Cell):
             sage: W.quit()
             sage: nb.delete()
         """
+        # TODO:  move to storage backend
         dir = self.directory()
         D = os.listdir(dir)
         return D
@@ -1806,10 +1797,8 @@ class ComputeCell(Cell):
             sage: W.quit()
             sage: nb.delete()
         """
-        try:
-            dir = self._directory_name()
-        except AttributeError:
-            return
+        # TODO:  move to storage backend
+        dir = self._directory_name()
         if os.path.exists(dir):
             shutil.rmtree(dir, ignore_errors=True)
 
