@@ -2097,9 +2097,7 @@ class Worksheet(object):
             I = C.cleaned_input_text
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
-                S = self.system
-                if S is None:
-                    S = 'sage'
+                S = self.system if self.system is not None else 'sage'
                 C.set_output_text('Exited %s process' % S, '')
                 return
 
@@ -2110,12 +2108,9 @@ class Worksheet(object):
         id = self.next_block_id()
         C.code_id = id
 
-        # prevent directory disappear problems
-        input = ''
-
         # This is useful mainly for interact -- it allows a cell to
         # know its ID.
-        input += (
+        input = (
             '_interact_.SAGE_CELL_ID=%r\n__SAGE_TMP_DIR__=os.getcwd()\n' %
             C.id)
 
