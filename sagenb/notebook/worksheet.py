@@ -2190,7 +2190,8 @@ class Worksheet(object):
             self.start_next_comp()
             return 'w', C
 
-        out = self.postprocess_output(output_status.output, C)
+        # TODO: reimplement output postprosessing to get meaningful tracebacks
+        out = output_status.output
 
         if not output_status.done:
             # Still computing
@@ -2520,38 +2521,6 @@ class Worksheet(object):
             input = ('print "\\n".join(_support_.completions("%s", '
                      'globals(), system="%s"))' % (input, self.system))
         return input
-
-    def postprocess_output(self, out, C):
-        if C.introspect:
-            return out
-
-        out = out.replace("NameError: name 'os' is not defined",
-                          "NameError: name 'os' is not defined\n"
-                          "THERE WAS AN ERROR LOADING THE SAGE LIBRARIES.  "
-                          "Try starting Sage from the command line to see "
-                          "what the error is.")
-
-        # Todo: what does this do?  document this
-        try:
-            tb = 'Traceback (most recent call last):'
-            i = out.find(tb)
-            if i != -1:
-                t = '.py", line'
-                j = out.find(t)
-                z = out[j + 5:].find(',')
-                n = int(out[j + len(t):z + j + 5])
-                k = out[j:].find('\n')
-                if k != -1:
-                    k += j
-                    l = out[k + 1:].find('\n')
-                    if l != -1:
-                        l += k + 1
-                        I = C._before_preparse.split('\n')
-                        out = out[:i + len(tb) + 1] + \
-                            '    ' + I[n - 2] + out[l:]
-        except (ValueError, IndexError):
-            pass
-        return out
 
     # Loading and attaching files
 
