@@ -2134,7 +2134,6 @@ class Worksheet(object):
         if cell_system not in ['latex', 'sage', 'python']:
             I = I.replace('\\\n', '')
 
-        C._before_preparse = input + I
         input += self.preparse_input(I, C)
 
         self.__computing = True
