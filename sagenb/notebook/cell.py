@@ -1446,9 +1446,7 @@ class ComputeCell(Cell):
         """
         return self.system == 'html'
 
-    #################
-    # Introspection #
-    #################
+    # Introspection
 
     @property
     def introspect_html(self):

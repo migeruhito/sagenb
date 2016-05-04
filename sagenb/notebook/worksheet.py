@@ -120,6 +120,9 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
 
 class Worksheet(object):
     _last_identifier = re.compile(r'[a-zA-Z0-9._]*$')
+    # For searching if last line is not a comment ended by ? (except ending
+    # space)
+    _must_introspect_re = re.compile(r'(\n|^)(?!\s*#)[^\n]*\?\s*$')
 
     def __init__(self,
                  owner, id_number, name=None, system='sage',
@@ -200,6 +203,7 @@ class Worksheet(object):
         # state sequence number, used for sync
         self.__state_number = 0  # property readonly + increase()
         # self.___cell_id_generator___  cached_property (writable)
+        # self.___next_block_id_generator___  cached_property
         # self.___cells___ -> cached_property (writable, invalidates
         #   cell_id_generator)
         self.hidden_cell_id_generator = count(-1, -1)
@@ -638,6 +642,10 @@ class Worksheet(object):
 
     def cell_id_generator_for_cells(self, cells):
         return id_generator([C.id for C in cells if isinstance(C.id, int)])
+
+    @cached_property()
+    def next_block_id_generator(self):
+        return self.cell_id_generator_for_cells(self.cells)
 
     @cached_property(writable=True, invalidate=('cell_id_generator',))
     def cells(self):
@@ -2032,7 +2040,7 @@ class Worksheet(object):
             del self.__sage
             raise RuntimeError(msg)
         all_worksheet_processes.append(self.__sage)
-        self.__next_block_id = 0
+        del self.next_block_id_generator  # Set counter to 0
         S = self.__sage
 
         # Check to see if the typeset/pretty print button is checked.
@@ -2105,9 +2113,6 @@ class Worksheet(object):
         if 'save_server' in percent_directives:
             self.notebook().save()
 
-        id = self.next_block_id()
-        C.code_id = id
-
         # This is useful mainly for interact -- it allows a cell to
         # know its ID.
         input = (
@@ -2121,14 +2126,11 @@ class Worksheet(object):
 
         # If the input ends in a question mark and is *not* a comment
         # line, then we introspect on it.
-        if cell_system == 'sage' and len(I) != 0:
-            # Get the last line of a possible multiline input
-            Istrip = I.strip().split('\n').pop()
-            if Istrip.endswith('?') and not Istrip.startswith('#'):
-                C.introspect = [I, '']
+        if self._must_introspect_re.search(I) and cell_system == 'sage':
+            C.introspect = [I, '']
 
         # Handle line continuations: join lines that end in a backslash
-        # _except_ in LaTeX mode.
+        # _except_ in LaTeX, sage and python mode.
         if cell_system not in ['latex', 'sage', 'python']:
             I = I.replace('\\\n', '')
 
@@ -2373,15 +2375,6 @@ class Worksheet(object):
                 shutil.rmtree(dir, ignore_errors=True)
         self.notebook().quit_worksheet(self)
 
-    def next_block_id(self):
-        try:
-            i = self.__next_block_id
-        except AttributeError:
-            i = 0
-        i += 1
-        self.__next_block_id = i
-        return i
-
     # Idle timeout
 
     def quit_if_idle(self, timeout):
@@ -2604,7 +2597,7 @@ class Worksheet(object):
 
     def cython_import(self, cmd, cell):
         # Choice: Can use either C.relative_id() or
-        # self.next_block_id().  C.relative_id() has the advantage
+        # self.next_block_id_generator.  C.relative_id() has the advantage
         # that block evals are cached, i.e., no need to recompile.  On
         # the other hand tracebacks don't work if you change a cell
         # and create a new function in it.  Caching is also annoying
@@ -2613,7 +2606,7 @@ class Worksheet(object):
         # TODO: This design will *only* work on local machines -- need
         # to redesign so works even if compute worksheet process is
         # remote!
-        id = self.next_block_id()
+        id = self.next_block_generator_id.next()
         code = os.path.join(self.directory, 'code')
         if not os.path.exists(code):
             os.makedirs(code)
