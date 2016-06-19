@@ -15,18 +15,12 @@ from sage.env import SAGE_SRC, SAGE_DOC
 SRC = os.path.join(SAGE_SRC, 'sage')
 from flask.ext.openid import OpenID
 from flask.ext.babel import Babel, gettext, ngettext, lazy_gettext, get_locale
-from sagenb.misc.misc import SAGENB_ROOT, DATA, SAGE_DOC, translations_path, N_, nN_, unicode_str
+from sagenb.misc.misc import SAGENB_ROOT, DATA, translations_path, N_, nN_, unicode_str, theme_paths, default_theme
 from json import dumps
 from sagenb.notebook.cell import number_of_rows
 from sagenb.notebook.template import (css_escape, clean_name,
                                       prettify_time_ago, TEMPLATE_PATH)
-from sagenb.misc.misc import theme_paths, default_theme
 from flask.ext.themes2 import Themes, theme_paths_loader
-from sagenb.misc.misc import SAGENB_ROOT, DATA, SAGE_DOC, translations_path, N_, nN_, unicode_str, theme_paths, default_theme
-from json import dumps
-from sagenb.notebook.cell import number_of_rows
-from sagenb.notebook.template import (css_escape, clean_name,
-                                      prettify_time_ago, TEMPLATE_PATH)
 from sagenb.notebook.themes import render_template
 oid = OpenID()
 
