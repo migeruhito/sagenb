@@ -111,6 +111,7 @@ CHANGES
  * Back port to Python 2.3. Thank you Frank Horowitz.
  * Fix missing scroll bars in detail log. Thank you Podi.
 """
+from __future__ import print_function
 
 import datetime
 import os
@@ -381,7 +382,7 @@ class HTMLTestRunner(object):
         test(result)
         self.stop_time = datetime.datetime.now()
         self.elapsed_time = self.stop_time - self.start_time
-        print >>sys.stderr, '\nTime Elapsed: %s' % self.elapsed_time
+        print('\nTime Elapsed: %s' % self.elapsed_time, file=sys.stderr)
 
         report = self.generate_report(result)
         self.stream.write(report.encode('utf8'))

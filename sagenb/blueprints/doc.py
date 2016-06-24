@@ -7,6 +7,7 @@ URLS to do:
 ###/doc/static/ - DOC/index.html
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 from flask import Blueprint

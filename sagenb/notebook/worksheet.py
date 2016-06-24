@@ -27,6 +27,7 @@ AUTHORS:
 # Import standard Python libraries that we will use below
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
 import bz2
 import calendar
@@ -986,7 +987,7 @@ class Worksheet(object):
             1.5
         """
         r = self.ratings
-        return sum(x[0] for x in r.itervalues()) / len(r) if r else -1
+        return sum(x[0] for x in r.itervalues()) // len(r) if r else -1
 
     # Active, trash can and archive
 
@@ -1944,14 +1945,14 @@ class Worksheet(object):
             sage: W = nb.create_wst('Test', 'sage')
             sage: W.edit_save(
                 "{{{\n2+3\n///\n5\n}}}\n{{{\nopen('afile', 'w').write(
-                    'some text')\nprint 'hello'\n///\n\n}}}")
+                    'some text')\nprint('hello')\n///\n\n}}}")
 
         We have two cells::
 
             sage: W.cells
             [Cell 0: in=2+3, out=
             5, Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=
+            print('hello'), out=
             ]
             sage: C0 = W.cells[1]
             sage: open(os.path.join(C0.directory(), 'xyz'), 'w').write('bye')
@@ -1962,11 +1963,11 @@ class Worksheet(object):
             sage: W.check_comp(
                 )     # random output -- depends on computer speed
             ('w', Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=)
+            print('hello'), out=)
             sage: W.check_comp(
                 )     # random output -- depends on computer speed
             ('d', Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=
+            print('hello'), out=
             hello
             )
             sage: W.check_comp(
@@ -1982,7 +1983,7 @@ class Worksheet(object):
             sage: W.cells
             [Cell 0: in=2+3, out=,
              Cell 1: in=open('afile', 'w').write('some text')
-            print 'hello', out=]
+            print('hello'), out=]
             sage: C0.files(), C1.files()
             ([], [])
 
@@ -2035,8 +2036,8 @@ class Worksheet(object):
             self.__sage = self.notebook().new_worksheet_process(
                 init_code=init_code)
         except Exception as msg:
-            print "ERROR initializing compute process:\n"
-            print msg
+            print("ERROR initializing compute process:\n")
+            print(msg)
             del self.__sage
             raise RuntimeError(msg)
         all_worksheet_processes.append(self.__sage)
@@ -2354,10 +2355,10 @@ class Worksheet(object):
         try:
             S.quit()
         except AttributeError, msg:
-            print "WARNING: %s" % msg
+            print("WARNING: %s" % msg)
         except Exception, msg:
-            print msg
-            print "WARNING: Error deleting Sage object!"
+            print(msg)
+            print("WARNING: Error deleting Sage object!")
 
         del self.__sage
 
@@ -2389,7 +2390,7 @@ class Worksheet(object):
         if timeout > 0 and self.time_idle() > timeout:
             # worksheet name may contain unicode, so we use %r, which prints
             # the \xXX form for unicode characters
-            print "Quitting ignored worksheet process for %r." % self.name
+            print("Quitting ignored worksheet process for %r." % self.name)
             self.quit()
 
     def time_idle(self):
@@ -2507,24 +2508,24 @@ class Worksheet(object):
         if before_prompt.endswith('??'):
             input = self._last_identifier.search(before_prompt[:-2]).group()
             input = (
-                'print _support_.source_code("%s", globals(), system="%s")' % (
-                    input, self.system))
+                'print(_support_.source_code("%s", globals(), system="%s"))' %
+                (input, self.system))
         elif before_prompt.endswith('?'):
             input = self._last_identifier.search(before_prompt[:-1]).group()
             input = (
-                'print _support_.docstring("%s", globals(), system="%s")' % (
+                'print(_support_.docstring("%s", globals(), system="%s"))' % (
                     input, self.system))
         else:
             input = self._last_identifier.search(before_prompt).group()
             C._word_being_completed = input
-            input = ('print "\\n".join(_support_.completions("%s", '
-                     'globals(), system="%s"))' % (input, self.system))
+            input = ('print("\\n".join(_support_.completions("%s", '
+                     'globals(), system="%s")))' % (input, self.system))
         return input
 
     # Loading and attaching files
 
     def _eval_cmd(self, system, cmd):
-        return u"print _support_.syseval(%s, %r, __SAGE_TMP_DIR__)" % (
+        return u"print(_support_.syseval(%s, %r, __SAGE_TMP_DIR__))" % (
             system, cmd)
 
     # Parsing the %cython, %mathjax, %python, etc., extension.
@@ -2616,8 +2617,8 @@ class Worksheet(object):
             sage: W.check_for_system_switching(c0.cleaned_input_text, c0)
             (False, u'2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text, c1)
-            (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)',
-             __SAGE_TMP_DIR__)")
+            (True, u"print(_support_.syseval(gap, u'SymmetricGroup(5)',
+             __SAGE_TMP_DIR__))")
 
         ::
 
@@ -2646,8 +2647,8 @@ class Worksheet(object):
             sage: W.check_for_system_switching(c0.cleaned_input_text, c0)
             (False, u'2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text, c1)
-            (True, u"print _support_.syseval(gap, u'SymmetricGroup(5)',
-             __SAGE_TMP_DIR__)")
+            (True, u"print(_support_.syseval(gap, u'SymmetricGroup(5)',
+             __SAGE_TMP_DIR__))")
             sage: c0.evaluate()
             sage: W.check_comp(
                 )  #random output -- depends on the computer's speed

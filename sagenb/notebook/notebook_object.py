@@ -13,6 +13,7 @@ Notebook server.
 #                  http://www.gnu.org/licenses/
 #############################################################################
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import shutil
@@ -369,5 +370,5 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050,
         shutil.rmtree(nb.dir)
     p.dispose = dispose
     if verbose:
-        print "Notebook started."
+        print("Notebook started.")
     return p

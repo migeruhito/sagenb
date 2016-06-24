@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 
 import hashlib
 import os
@@ -68,7 +69,7 @@ class LdapAuth(AuthMethod):
         def wrap(f):
             def wrapped_f(self, *args, **kwargs):
                 if get_module('ldap') is None:
-                    print "cannot 'import ldap', disabling LDAP auth"
+                    print("cannot 'import ldap', disabling LDAP auth")
                     self.enabled = False
                     return default_return
                 else:
@@ -119,7 +120,7 @@ class LdapAuth(AuthMethod):
                 timeout=self.ldap_timeout,
                 sizelimit=sizelimit)
         except ldap.LDAPError, e:
-            print 'LDAP Error: %s' % str(e)
+            print('LDAP Error: %s' % str(e))
             return []
         finally:
             conn.unbind_s()
@@ -166,7 +167,7 @@ class LdapAuth(AuthMethod):
         except ldap.INVALID_CREDENTIALS:
             return False
         except ldap.LDAPError, e:
-            print 'LDAP Error: %s' % str(e)
+            print('LDAP Error: %s' % str(e))
             return False
         finally:
             conn.unbind_s()
@@ -369,7 +370,7 @@ class NotConfiguredChallenge(AbstractChallenge):
             sage: import sagenb.notebook.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = NotConfiguredChallenge(nb.conf)
-            sage: print chal.html()
+            sage: print(chal.html())
             Please ask the server administrator to configure a challenge!
 
         """
@@ -537,9 +538,9 @@ class SimpleChallenge(AbstractChallenge):
             sage: from sagenb.notebook.challenge import QUESTIONS
             sage: ques, ans = sorted(QUESTIONS.items())[0]
             sage: ans = ans.split('|')[0]
-            sage: print ques
+            sage: print(ques)
             How many bits are in one byte?
-            sage: print ans
+            sage: print(ans)
             8
             sage: req['simple_response_field'] = ans
             sage: chal.is_valid_response(req).is_valid
@@ -833,7 +834,7 @@ class ChallengeDispatcher(object):
             '<p>...'
             sage: nb.conf['challenge_type'] = 'mistake'
             sage: disp = ChallengeDispatcher(nb.conf)
-            sage: print disp().html()
+            sage: print(disp().html())
             Please ask the server administrator to configure a challenge!
 
         """

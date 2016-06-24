@@ -43,6 +43,8 @@
 # @Application		Last version of JavaScriptCompressor class use this one to map source code.
 # @License              GNU General Public License (GPL)
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import re
 

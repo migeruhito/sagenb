@@ -16,6 +16,9 @@ AUTHORS:
 #
 #############################################################################
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import cPickle
 import logging
 import os
@@ -192,8 +195,8 @@ class Notebook(object):
                         W[a] = self._storage.load_worksheet(
                             "pub", int(id_number))
                     except Exception:
-                        print "Warning: problem loading %s/%s: %s" % (
-                            "pub", int(id_number), traceback.format_exc())
+                        print("Warning: problem loading %s/%s: %s" % (
+                            "pub", int(id_number), traceback.format_exc()))
 
         # Set the openid-user dict
         try:
@@ -279,14 +282,14 @@ class Notebook(object):
         """
         model_version = self.conf['model_version']
         if model_version is None or model_version < 1:
-            print "Upgrading model version to version 1"
+            print("Upgrading model version to version 1")
             # this uses code from all_wsts()
             user_manager = self.user_manager
             num_users = 0
             for username in self.user_manager:
                 num_users += 1
                 if num_users % 1000 == 0:
-                    print 'Upgraded %d users' % num_users
+                    print('Upgraded %d users' % num_users)
                 if username in (UN_SAGE, UN_PUB):
                     continue
                 try:
@@ -311,11 +314,10 @@ class Notebook(object):
                     # their sharing cached, but they will probably have
                     # problems logging in anyway, so they probably won't notice
                     # not having shared worksheets
-                    print >> sys.stderr, (
-                        'Error on username %s' % username.encode('utf8'))
-                    print >> sys.stderr, traceback.format_exc()
-                    pass
-            print 'Done upgrading to model version 1'
+                    print('Error on username %s' % username.encode('utf8'),
+                          file=sys.stderr)
+                    print(traceback.format_exc(), sys.stderr)
+            print('Done upgrading to model version 1')
             self.conf['model_version'] = 1
 
     # App controller. The notebook history.
@@ -1260,21 +1262,23 @@ def migrate_old_notebook_v1(dir):
     old_nb = cPickle.loads(open(nb_sobj).read())
 
     # Tell user what is going on and make a backup
-    print ""
-    print "*" * 80
-    print "*"
-    print "* The Sage notebook at"
-    print "*"
-    print "*      '%s'" % os.path.abspath(dir)
-    print "*"
-    print "* will be upgraded to a new format and stored in"
-    print "*"
-    print "*      '%s.sagenb'." % os.path.abspath(dir)
-    print "*"
-    print "* Your existing notebook will not be modified in any way."
-    print "*"
-    print "*" * 80
-    print ""
+    print('\n'.join((
+        ""
+        "*" * 80,
+        "*",
+        "* The Sage notebook at",
+        "*",
+        "*      '%s'" % os.path.abspath(dir),
+        "*",
+        "* will be upgraded to a new format and stored in",
+        "*",
+        "*      '%s.sagenb'." % os.path.abspath(dir),
+        "*",
+        "* Your existing notebook will not be modified in any way.",
+        "*",
+        "*" * 80,
+        "",
+        )))
     ans = raw_input("Would like to continue? [YES or no] ").lower()
     if ans not in ['', 'y', 'yes']:
         raise RuntimeError("User aborted upgrade.")
@@ -1297,7 +1301,7 @@ def migrate_old_notebook_v1(dir):
             new_nb.conf.confs[t] = getattr(old_nb, '_Notebook__' + t)
 
     # Now update the user data from the old notebook to the new one:
-    print "Migrating %s user accounts..." % len(old_nb.user_manager)
+    print("Migrating %s user accounts..." % len(old_nb.user_manager))
     users = new_nb.user_manager
     for username, old_user in old_nb.user_manager.iteritems():
         new_user = User(old_user.username, '',
@@ -1371,7 +1375,7 @@ def migrate_old_notebook_v1(dir):
                 shutil.rmtree(dest)
             shutil.copytree(old_ws.data_directory, dest)
         except Exception, msg:
-            print msg
+            print(msg)
 
         try:
             if os.path.exists(old_ws.cells_directory):
@@ -1380,13 +1384,13 @@ def migrate_old_notebook_v1(dir):
                     shutil.rmtree(dest)
                 shutil.copytree(old_ws.cells_directory, dest)
         except Exception, msg:
-            print msg
+            print(msg)
 
         return new_ws
 
     worksheets = WorksheetDict(new_nb._storage)
     num_worksheets = len(old_nb._Notebook__worksheets)
-    print "Migrating (at most) %s worksheets..." % num_worksheets
+    print("Migrating (at most) %s worksheets..." % num_worksheets)
     tm = walltime()
     i = 0
     for ws_name, old_ws in old_nb._Notebook__worksheets.iteritems():
@@ -1414,5 +1418,5 @@ def migrate_old_notebook_v1(dir):
     # Save our newly migrated notebook to disk
     new_nb.save()
 
-    print "Worksheet migration completed."
+    print("Worksheet migration completed.")
     return new_nb

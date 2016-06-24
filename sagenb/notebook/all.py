@@ -10,6 +10,7 @@
 
 # from test_notebook import notebook_playback
 from __future__ import absolute_import
+from __future__ import print_function
 
 from .sage_email import email
 

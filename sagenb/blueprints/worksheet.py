@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 
 import base64
 import bz2
@@ -1045,7 +1046,7 @@ def worksheet_cell_update(worksheet):
 
     if 'Unhandled SIGSEGV' in cell.output_text(raw=True).split('\n'):
         r['interrupted'] = 'restart'
-        print 'Segmentation fault detected in output!'
+        print('Segmentation fault detected in output!')
 
     r['output'] = cell.output_text(html=True) + ' '
     r['output_wrapped'] = cell.output_text(g.notebook.conf['word_wrap_cols'],

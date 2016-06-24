@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 from flask import Blueprint
@@ -87,7 +89,7 @@ def settings_page():
     td['username'] = g.username
 
     td['autosave_intervals'] = (
-        (i, ' selected') if nu['autosave_interval'] / 60 == i else (i, '')
+        (i, ' selected') if nu['autosave_interval'] // 60 == i else (i, '')
         for i in range(1, 10, 2))
 
     td['email'] = g.notebook.conf['email']

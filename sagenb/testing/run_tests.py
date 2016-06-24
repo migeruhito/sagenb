@@ -29,6 +29,7 @@ TODO:
 # The Selenium server cannot be included in the package because
 # of the possibility of incompatible libraries and binaries with
 # those of the user's browser (e.g., Python, etc.)
+from __future__ import print_function
 
 import unittest
 
@@ -150,7 +151,8 @@ def run_any(tests=all_tests, make_report=False, **kwargs):
         tot = suite.countTestCases()
 
         environment = notebook_test_case.SEL_OPTIONS['environment']
-        print 'Running %d test%s in environment %s...' % (tot, '' if tot == 1 else 's', environment)
+        print('Running %d test%s in environment %s...' % (
+            tot, '' if tot == 1 else 's', environment))
 
         if make_report:
             run_and_report(suite, environment = environment, **kwargs)

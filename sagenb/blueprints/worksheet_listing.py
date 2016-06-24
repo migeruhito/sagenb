@@ -1,6 +1,7 @@
 """
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import re
@@ -76,7 +77,7 @@ def render_ws_list_template(args, pub, username):
                 UN_PUB, sort=sort, search=search, reverse=reverse)
     except ValueError as E:
         # for example, the sort key was not valid
-        print "Error displaying worksheet listing: ", E
+        print("Error displaying worksheet listing: ", E)
         return message_template(_("Error displaying worksheet listing."))
 
     worksheet_filenames = [x.filename for x in worksheets]
@@ -135,7 +136,7 @@ def worksheet_list():
 
     except ValueError as E:
         # for example, the sort key was not valid
-        print "Error displaying worksheet listing: ", E
+        print("Error displaying worksheet listing: ", E)
         return message_template(_("Error displaying worksheet listing."))
 
     # if pub and (not g.username or g.username == tuple([])):
@@ -261,7 +262,7 @@ def pub():
 @login_required
 def download_worksheets():
     t = walltime()
-    print "Starting zipping a group of worksheets in a separate thread..."
+    print("Starting zipping a group of worksheets in a separate thread...")
     zip_filename = tmp_filename() + ".zip"
 
     # child
@@ -288,8 +289,8 @@ def download_worksheets():
     zip.close()
     r = open(zip_filename, 'rb').read()
     os.unlink(zip_filename)
-    print "Finished zipping %s worksheets (%s seconds)" % (
-        len(worksheets), walltime(t))
+    print("Finished zipping %s worksheets (%s seconds)" % (
+        len(worksheets), walltime(t)))
 
     response = current_app.make_response(r)
     response.headers['Content-Type'] = 'application/zip'
@@ -514,14 +515,14 @@ def upload_worksheet():
                         try:
                             filename = my_urlretrieve(
                                 linked_sws[0]['url'], backlinks=backlinks)[0]
-                            print 'Importing {0}, linked to from {1}'.format(
-                                linked_sws[0]['url'], url)
+                            print('Importing {0}, linked to from {1}'.format(
+                                linked_sws[0]['url'], url))
                         except RetrieveError as err:
                             return message_template(str(err),
                                                     username=g.username)
                 W = g.notebook.import_wst(filename, g.username)
         except Exception, msg:
-            print 'error uploading worksheet', msg
+            print('error uploading worksheet', msg)
             s = _('There was an error uploading the worksheet.  It could be '
                   'an old unsupported format or worse.  If you desperately '
                   'need its contents contact the '

@@ -14,6 +14,7 @@ AUTHOR:
     -- Bobby Moretti
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 import sys
 
@@ -35,11 +36,11 @@ def buildMessage(fromaddr, toaddr, subject, body):
 
 
 def sendComplete(result):
-    print "Message sent."
+    print("Message sent.")
 
 
 def handleError(error):
-    print >> sys.stderr, "Error", error.getErrorMessage()
+    print("Error", error.getErrorMessage(), file=sys.stderr)
 
 
 def send_mail(fromaddr, toaddr, subject, body, on_success=sendComplete,

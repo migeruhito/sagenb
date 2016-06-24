@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import re
@@ -200,7 +201,7 @@ else:
 # avoid overloading web browser.  For example, it should be possible
 # to gracefully survive:
 #    while True:
-#       print "hello world"
+#       print("hello world")
 # On the other hand, we don't want to loose the output of big matrices
 # and numbers, so don't make this too small.
 MAX_OUTPUT = 32000

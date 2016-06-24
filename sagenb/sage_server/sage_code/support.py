@@ -9,6 +9,8 @@ AUTHORS:
 - Nick Alexander
 """
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import ast
 import base64
@@ -128,7 +130,7 @@ def help(obj):
     open(filename, 'w').write(page)
     print("&nbsp;&nbsp;&nbsp;<a target='_new' href='cell://%s'>"
           "Click to open help window</a>&nbsp;&nbsp;&nbsp;" % filename)
-    print '<br></font></tr></td></table></html>'
+    print('<br></font></tr></td></table></html>')
 
 
 def completions(s, globs, format=False, width=90, system="None"):
@@ -400,7 +402,7 @@ def syseval(system, cmd, dir=None):
     EXAMPLES::
 
         sage: from sage.misc.python import python
-        sage: sagenb.misc.support.syseval(python, '2+4/3')
+        sage: sagenb.misc.support.syseval(python, '2+4//3')
         3
         ''
         sage: sagenb.misc.support.syseval(python, 'import os; os.chdir(".")')
@@ -688,21 +690,21 @@ def relocate_future_imports(brk_code):
         sage: relocate_future_imports('foobar')
         '\nfoobar'
         sage: relocate_future_imports(
-            'from __future__ import division\nprint "Hi!"')
-        'from __future__ import division\n\nprint "Hi!"'
+            'from __future__ import division\nprint("Hi!")')
+        'from __future__ import division\n\nprint("Hi!")'
         sage: relocate_future_imports(
-            'from __future__ import division;print "Testing"')
-        'from __future__ import division\nprint "Testing"'
+            'from __future__ import division;print("Testing")')
+        'from __future__ import division\nprint("Testing")'
         sage: relocate_future_imports(
-            'from __future__ import division\nprint "Testing!" '
+            'from __future__ import division\nprint("Testing!") '
             '# from __future__ import division does Blah')
-        'from __future__ import division\n\nprint "Testing!" '\
+        'from __future__ import division\n\nprint("Testing!") '\
         '# from __future__ import division does Blah'
         sage: relocate_future_imports(
-            '# -*- coding: utf-8 -*-\nprint "Testing!"\n'
-            'from __future__ import division, operator\nprint "Hey!"')
+            '# -*- coding: utf-8 -*-\nprint("Testing!")\n'
+            'from __future__ import division, operator\nprint("Hey!")')
             'from __future__ import division,operator\n# -*- '\
-            'coding: utf-8 -*-\nprint "Testing!"\n\nprint "Hey!"'
+            'coding: utf-8 -*-\nprint("Testing!")\n\nprint("Hey!")'
     """
     try:
         node = brk_code[0]

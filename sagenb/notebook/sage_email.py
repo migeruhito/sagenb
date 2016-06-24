@@ -24,6 +24,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 from __future__ import absolute_import
+from __future__ import print_function
 
 import getpass
 import os
@@ -122,7 +123,7 @@ def email(to, subject, body='', from_address=None, verbose=True, block=False,
             # register pid of forked process with cleaner
             register_with_cleaner(pid)
         if verbose:
-            print "Child process %s is sending email to %s..." % (pid, to)
+            print("Child process %s is sending email to %s..." % (pid, to))
         # Now wait for the fake subprocess to finish.
         os.waitpid(pid, 0)
         return
@@ -158,7 +159,7 @@ def email(to, subject, body='', from_address=None, verbose=True, block=False,
         Callback in case of a successfully sent email.
         """
         if verbose:
-            print "Successfully sent an email to %s." % to
+            print("Successfully sent an email to %s." % to)
         reactor.stop()
         os.kill(os.getpid(), 9)                     # suicide
 
@@ -167,10 +168,12 @@ def email(to, subject, body='', from_address=None, verbose=True, block=False,
         Callback in case of a failure sending an email.
         """
         if verbose:
-            print "Failed to send email to %s." % to
-            print "-" * 70
-            print error.getErrorMessage()
-            print "-" * 70
+            print('\n'.join((
+                "Failed to send email to %s." % to,
+                "-" * 70,
+                error.getErrorMessage(),
+                "-" * 70,
+            )))
         reactor.stop()
         os.kill(os.getpid(), 9)                    # suicide
 

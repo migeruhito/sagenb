@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import datetime
 import time
@@ -120,7 +122,7 @@ def number_of_rows(txt, ncols):
     rows = txt.splitlines()
     nrows = len(rows)
     for i in range(nrows):
-        nrows += int((len(rows[i]) - 1) / ncols)
+        nrows += (len(rows[i]) - 1) // ncols
     return nrows
 
 
@@ -338,7 +340,7 @@ def encode_response(obj, separators=(',', ':'), **kwargs):
         sage: encode_response(d, sort_keys = True)
         '{"null":"blah","11":"foo","AR":"MA","archies":["an","mon","hier"],
         "bar":1.0,"sub":{"color":"blue","shape":"triangle","sides":[3,4,5]}}'
-        sage: print encode_response(d, separators = (', ', ': '), indent = 4)
+        sage: print(encode_response(d, separators = (', ', ': '), indent = 4))
         {
             "...": ...
         }

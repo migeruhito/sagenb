@@ -13,6 +13,8 @@ a list of cells.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import ast
 import os
@@ -902,8 +904,8 @@ class ComputeCell(Cell):
                            self.url_to_self()))
                 html += "<br>" + url
             lines = output.splitlines()
-            start = '\n'.join(lines[:MAX_OUTPUT_LINES / 2])[:MAX_OUTPUT / 2]
-            end = '\n'.join(lines[-MAX_OUTPUT_LINES / 2:])[-MAX_OUTPUT / 2:]
+            start = '\n'.join(lines[:MAX_OUTPUT_LINES // 2])[:MAX_OUTPUT // 2]
+            end = '\n'.join(lines[-MAX_OUTPUT_LINES // 2:])[-MAX_OUTPUT // 2:]
             warning = 'WARNING: Output truncated!  '
             if url:
                 # make the link to the full output appear at the top too.
@@ -1193,7 +1195,7 @@ class ComputeCell(Cell):
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = W.new_cell_after(
-                0, "@interact\ndef f(a=slider(0,10,1,5):\n    print a^2")
+                0, "@interact\ndef f(a=slider(0,10,1,5):\n    print(a^2)")
             sage: C.is_interactive_cell()
             True
             sage: C = W.new_cell_after(C.id, "2+2")
@@ -1974,10 +1976,10 @@ class ComputeCell(Cell):
             if (jdata.is_jvm_available()):
                 # make the image with Jmol
                 png_fullpath = png_name + ".png"
-                # print png_fullpath
+                # print(png_fullpath)
                 script = ('set defaultdirectory \"' +
                           jmoldatafile + '\"\n script SCRIPT\n')
-                # print script
+                # print(script)
                 jdata.export_image(targetfile=png_fullpath,
                                    datafile=script, image_type="PNG",
                                    figsize=4)

@@ -20,6 +20,7 @@ AUTHORS:
 #############################################################################
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import re
@@ -396,8 +397,8 @@ class SageServerExpect(SageServerABC):
         try:
             self._expect.expect(pexpect.EOF, self._timeout)
             # got EOF subprocess must have crashed; cleanup
-            print "got EOF subprocess must have crashed..."
-            print self._expect.before
+            print("got EOF subprocess must have crashed...")
+            print(self._expect.before)
             self.quit()
         except:
             pass

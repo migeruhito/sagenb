@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 import resource
@@ -353,13 +355,13 @@ def print_open_msg(address, port, secure=False, path=""):
         s += ' '
     n = max(t + 4, 50)
     k = n - t - 1
-    j = k / 2
+    j = k // 2
     msg = '┌' + '─' * (n - 2) + '┐\n'
     msg += '│' + ' ' * (n - 2) + '│\n'
     msg += '│' + ' ' * j + s + ' ' * j + '│\n'
     msg += '│' + ' ' * (n - 2) + '│\n'
     msg += '└' + '─' * (n - 2) + '┘'
-    print msg
+    print(msg)
 
 
 def find_next_available_port(interface, start, max_tries=100, verbose=False):
@@ -404,16 +406,16 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
         except socket.error, msg:
             if msg[1] == 'Connection refused':
                 if verbose:
-                    print "Using port = %s" % port
+                    print("Using port = %s" % port)
                 return port
         except UserWarning:
             if verbose:
-                print "Port %s timed out." % port
-                print "Trying next port..."
+                print("Port %s timed out." % port)
+                print("Trying next port...")
             continue
         except KeyboardInterrupt:
             if verbose:
-                print "alarm"
+                print("alarm")
             alarm_count += 1
             if alarm_count >= 10:
                 break
@@ -421,8 +423,8 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
             signal.signal(signal.SIGALRM, signal.SIG_DFL)
             signal.alarm(0)
         if verbose:
-            print "Port %s is already in use." % port
-            print "Trying next port..."
+            print("Port %s is already in use." % port)
+            print("Trying next port...")
     raise RuntimeError("no available port.")
 
 

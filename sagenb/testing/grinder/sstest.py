@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from net.grinder.script.Grinder import grinder
 from net.grinder.script import Test
 from net.grinder.plugin.http import HTTPRequest
@@ -24,7 +26,7 @@ def evalss():
         if result.text.find('wait') == -1:
             break
     ans = eval(result.text)
-    print 'test waited%s ans = %s' % (count, ans['output'])
+    print('test waited%s ans = %s' % (count, ans['output']))
 
 evalssTest = Test(1, "Exec testpage").wrap(evalss)
 
