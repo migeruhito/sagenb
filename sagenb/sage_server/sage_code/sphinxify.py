@@ -272,7 +272,7 @@ todo_include_todos = True
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.
-#html_style = 'default.css'
+#html_style = 'classic.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
