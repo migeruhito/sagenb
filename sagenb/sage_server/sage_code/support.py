@@ -539,9 +539,9 @@ def automatic_name_eval(s, globals, max_names=10000):
     # functions until everything is defined.
     for _ in range(max_names):
         try:
-            exec s in globals
+            exec(s, globals)
             return
-        except NameError as  msg:
+        except NameError as msg:
             # Determine if we hit a NameError that is probably
             # caused by a variable or function not being defined:
             if len(msg.args) == 0:
