@@ -1,17 +1,18 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from six.moves.urllib.request import urlopen
+from six.moves.urllib.parse import urlparse
+
 import base64
 import bz2
 import os
 import re
 import threading
 import time
-import urllib2
 from cgi import escape
 from collections import defaultdict
 from functools import wraps
-from urlparse import urlparse
 
 from flask import Blueprint
 from flask import make_response
@@ -1443,7 +1444,7 @@ def worksheet_do_upload_data(worksheet):
             return message_template(
                 _('URL must start with http, https, or ftp.%(backlinks)s',
                     backlinks=backlinks), worksheet_url, username=g.username)
-        download = urllib2.urlopen(parsedurl.geturl())
+        download = urlopen(parsedurl.geturl())
 
     # XXX: disk access
     dest = os.path.join(worksheet.data_directory, name)

@@ -14,11 +14,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from six.moves.urllib.parse import quote
+
 import os
 import random
 import argparse
 import logging
-import urllib
 import getpass
 import signal
 
@@ -569,7 +570,7 @@ class NotebookFrontend(object):
                 SAGE_BROWSER, self.conf['interface'], self.conf['port'],
                 self.conf['secure'],
                 '/upload_worksheet?url=file://{}'.format(
-                    urllib.quote(self.conf['upload'])))
+                    quote(self.conf['upload'])))
 
     def write_pid(self):
         with open(self.conf['pidfile'], "w") as pidfile:

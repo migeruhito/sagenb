@@ -19,8 +19,9 @@ __docformat__ = "restructuredtext en"
 
 # This file has been automatically generated via XSL
 
+from six.moves.urllib.parse import quote_plus
+
 import httplib
-import urllib
 import re
 
 class selenium:
@@ -199,9 +200,9 @@ class selenium:
 
     def do_command(self, verb, args):
         conn = httplib.HTTPConnection(self.host, self.port)
-        body = u'cmd=' + urllib.quote_plus(unicode(verb).encode('utf-8'))
+        body = u'cmd=' + quote_plus(unicode(verb).encode('utf-8'))
         for i in range(len(args)):
-            body += '&' + unicode(i+1) + '=' + urllib.quote_plus(unicode(args[i]).encode('utf-8'))
+            body += '&' + unicode(i+1) + '=' + quote_plus(unicode(args[i]).encode('utf-8'))
         if (None != self.sessionId):
             body += "&sessionId=" + unicode(self.sessionId)
         headers = {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}

@@ -335,8 +335,8 @@ def test_notebook(admin_passwd, secure=False, directory=None, port=8050,
         sage: from sagenb.notebook.notebook_object import test_notebook
         sage: passwd = str(randint(1,1<<128))
         sage: nb = test_notebook(passwd, interface='localhost', port=8060)
-        sage: import urllib
-        sage: h = urllib.urlopen('http://localhost:8060')
+        sage: from six.moves.urllib.request import urlopen
+        sage: h = urlopen('http://localhost:8060')
         sage: homepage = h.read()
         sage: h.close()
         sage: 'html' in homepage

@@ -3,11 +3,15 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import unquote
+from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.request import urlretrieve
+
 import os
 import re
 import shutil
-import urllib
-import urlparse
 import zipfile
 from HTMLParser import HTMLParser
 from HTMLParser import HTMLParseError
@@ -329,8 +333,8 @@ class RetrieveError(Exception):
 
 def my_urlretrieve(url, *args, **kwargs):
     """
-    Call urllib.urlretrieve and give friendly error messages depending
-    on the result. If successful, return exactly what urllib.urlretrieve
+    Call urlretrieve and give friendly error messages depending
+    on the result. If successful, return exactly what urlretrieve
     would. Arguments are exactly the same as urlretrieve, except that
     you can also specify a ``backlinks`` keyword used in the error
     message.
@@ -343,7 +347,7 @@ def my_urlretrieve(url, *args, **kwargs):
     except KeyError:
         backlinks = ''
     try:
-        return urllib.urlretrieve(url, *args, **kwargs)
+        return urlretrieve(url, *args, **kwargs)
     except IOError as err:
         if err.strerror == 'unknown url type' and err.filename == 'https':
             raise RetrieveError(
@@ -399,11 +403,11 @@ def parse_link_rel(url, fn):
     for d in parser.worksheets:
         sws = d['url']
         # is that link a relative URL?
-        if not urlparse.urlparse(sws).netloc:
+        if not urlparse(sws).netloc:
             # unquote-then-quote to avoid turning %20 into %2520, etc
             ret.append(
-                {'url': urlparse.urljoin(
-                    url, urllib.quote(urllib.unquote(sws))),
+                {'url': urljoin(
+                    url, quote(unquote(sws))),
                  'title': d['title']})
         else:
             ret.append({'url': sws, 'title': d['title']})
@@ -429,7 +433,7 @@ def upload_worksheet():
         # Downloading a file from the internet
         # The file will be downloaded from the internet and saved
         # to a temporary file with the same extension
-        path = urlparse.urlparse(url).path
+        path = urlparse(url).path
         extension = os.path.splitext(path)[1].lower()
         if extension not in ["", ".txt", ".sws", ".zip", ".html", ".rst"]:
             # Or shall we try to import the document as an sws when in doubt?

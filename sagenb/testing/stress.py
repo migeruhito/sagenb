@@ -2,9 +2,10 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from six.moves.urllib.request import urlopen
+
 import re
 from signal import alarm
-import urllib2
 
 
 # TODO: sage dependency
@@ -81,7 +82,7 @@ class PubStressTest:
         Return code that when evaluated returns the data at the given
         url as a string.
         """
-        return "urllib2.urlopen('%s').read()"%(url)
+        return "urlopen('%s').read()"%(url)
 
     def _geturl(self, url, use_alarm=True):
         """
@@ -90,10 +91,10 @@ class PubStressTest:
         timeout is exceeded.
         """
         if not use_alarm:
-            return urllib2.urlopen(url).read()
+            return urlopen(url).read()
         try:
             alarm(self._url_timeout)
-            return urllib2.urlopen(url).read()
+            return urlopen(url).read()
         except KeyboardInterrupt:
             return TIMEOUT
         finally:

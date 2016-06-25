@@ -1,12 +1,14 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import Request
+from six.moves.urllib.request import urlopen
+
 import hashlib
 import os
 import random
 import re
-import urllib
-import urllib2
 
 from flask.ext.babel import gettext
 from flask.ext.babel import lazy_gettext
@@ -736,14 +738,14 @@ class reCAPTCHAChallenge(AbstractChallenge):
                 return s.encode('utf-8')
             return s
 
-        params = urllib.urlencode({
+        params = urlencode({
             'privatekey': encode_if_necessary(self.private_key),
             'remoteip':  encode_if_necessary(self.remote_ip),
             'challenge':  encode_if_necessary(challenge_field),
             'response':  encode_if_necessary(response_field)
         })
 
-        request = urllib2.Request(
+        request = Request(
             url="http://%s/verify" % RECAPTCHA_VERIFY_SERVER,
             data=params,
             headers={
@@ -752,7 +754,7 @@ class reCAPTCHAChallenge(AbstractChallenge):
             }
         )
 
-        httpresp = urllib2.urlopen(request)
+        httpresp = urlopen(request)
         return_values = httpresp.read().splitlines()
         httpresp.close()
         return_code = return_values[0]
