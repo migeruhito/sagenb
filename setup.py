@@ -38,6 +38,7 @@ install_requires = [
     'flask-autoindex',
     'flask-babel'
     'flask-themes2',
+    'six',
     ]
 
 
