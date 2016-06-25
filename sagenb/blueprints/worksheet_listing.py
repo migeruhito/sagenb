@@ -521,7 +521,7 @@ def upload_worksheet():
                             return message_template(str(err),
                                                     username=g.username)
                 W = g.notebook.import_wst(filename, g.username)
-        except Exception, msg:
+        except Exception as msg:
             print('error uploading worksheet', msg)
             s = _('There was an error uploading the worksheet.  It could be '
                   'an old unsupported format or worse.  If you desperately '
@@ -540,7 +540,7 @@ def upload_worksheet():
             if dir:
                 shutil.rmtree(dir)
 
-    except ValueError, msg:
+    except ValueError as msg:
         s = _("Error uploading worksheet '%(msg)s'.%(backlinks)s",
               msg=msg, backlinks=backlinks)
         return message_template(s, url_for(

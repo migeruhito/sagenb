@@ -119,7 +119,7 @@ class LdapAuth(AuthMethod):
                 attrlist=attrlist,
                 timeout=self.ldap_timeout,
                 sizelimit=sizelimit)
-        except ldap.LDAPError, e:
+        except ldap.LDAPError as e:
             print('LDAP Error: %s' % str(e))
             return []
         finally:
@@ -166,7 +166,7 @@ class LdapAuth(AuthMethod):
             return True
         except ldap.INVALID_CREDENTIALS:
             return False
-        except ldap.LDAPError, e:
+        except ldap.LDAPError as e:
             print('LDAP Error: %s' % str(e))
             return False
         finally:

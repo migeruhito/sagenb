@@ -1374,7 +1374,7 @@ def migrate_old_notebook_v1(dir):
             if os.path.exists(dest):
                 shutil.rmtree(dest)
             shutil.copytree(old_ws.data_directory, dest)
-        except Exception, msg:
+        except Exception as msg:
             print(msg)
 
         try:
@@ -1383,7 +1383,7 @@ def migrate_old_notebook_v1(dir):
                 if os.path.exists(dest):
                     shutil.rmtree(dest)
                 shutil.copytree(old_ws.cells_directory, dest)
-        except Exception, msg:
+        except Exception as msg:
             print(msg)
 
         return new_ws

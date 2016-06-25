@@ -191,7 +191,7 @@ class selenium:
         try:
             self.sessionId = result
         except ValueError:
-            raise Exception, result
+            raise Exception(result)
         
     def stop(self):
         self.do_command("testComplete", [])
@@ -213,7 +213,7 @@ class selenium:
         result = response.reason
         #print("Selenium Result: " + repr(data) + "\n\n")
         if (not data.startswith('OK')):
-            raise Exception, data
+            raise Exception(data)
         return data
     
     def get_string(self, verb, args):
@@ -255,7 +255,7 @@ class selenium:
             return True
         if ("false" == boolstr):
             return False
-        raise ValueError, "result is neither 'true' nor 'false': " + boolstr
+        raise ValueError("result is neither 'true' nor 'false': " + boolstr)
     
     def get_boolean_array(self, verb, args):
         boolarr = self.get_string_array(verb, args)
@@ -266,7 +266,8 @@ class selenium:
             if ("false" == boolstr):
                 boolarr[i] = False
                 continue
-            raise ValueError, "result is neither 'true' nor 'false': " + boolarr[i]
+            raise ValueError(
+                "result is neither 'true' nor 'false': " + boolarr[i])
         return boolarr
     
     

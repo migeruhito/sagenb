@@ -2354,9 +2354,9 @@ class Worksheet(object):
 
         try:
             S.quit()
-        except AttributeError, msg:
+        except AttributeError as msg:
             print("WARNING: %s" % msg)
-        except Exception, msg:
+        except Exception as msg:
             print(msg)
             print("WARNING: Error deleting Sage object!")
 

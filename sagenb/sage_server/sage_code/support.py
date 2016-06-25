@@ -348,7 +348,7 @@ def source_code(s, globs, system='sage'):
             output += src
         return html_markup(output)
 
-    except (TypeError, IndexError), msg:
+    except (TypeError, IndexError) as msg:
         return html_markup("Source code for {} is not available.".format(s) +
                            "\nUse {}? to see the documentation.".format(s))
 
@@ -541,7 +541,7 @@ def automatic_name_eval(s, globals, max_names=10000):
         try:
             exec s in globals
             return
-        except NameError, msg:
+        except NameError as  msg:
             # Determine if we hit a NameError that is probably
             # caused by a variable or function not being defined:
             if len(msg.args) == 0:
