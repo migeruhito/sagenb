@@ -19,7 +19,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import cPickle
+from six.moves import cPickle as pickle
 import logging
 import os
 import re
@@ -1259,7 +1259,7 @@ def migrate_old_notebook_v1(dir):
     (`sagenb`)
     """
     nb_sobj = os.path.join(dir, 'nb.sobj')
-    old_nb = cPickle.loads(open(nb_sobj).read())
+    old_nb = pickle.loads(open(nb_sobj).read())
 
     # Tell user what is going on and make a backup
     print('\n'.join((
@@ -1412,7 +1412,7 @@ def migrate_old_notebook_v1(dir):
         history_file = os.path.join(
             dir, 'worksheets', username, 'history.sobj')
         if os.path.exists(history_file):
-            new_nb._user_history[username] = cPickle.loads(
+            new_nb._user_history[username] = pickle.loads(
                 open(history_file).read())
 
     # Save our newly migrated notebook to disk

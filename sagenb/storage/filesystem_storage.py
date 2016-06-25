@@ -39,8 +39,9 @@ Sage notebook server::
 from __future__ import absolute_import
 from __future__ import print_function
 
+from six.moves import cPickle as pickle
+
 import copy
-import cPickle
 import os
 import shutil
 import tarfile
@@ -185,7 +186,7 @@ class FilesystemDatastore(Datastore):
 
     def _load(self, filename):
         with open(self._abspath(filename)) as f:
-            result = cPickle.load(f)
+            result = pickle.load(f)
         return result
 
     def _save(self, obj, filename):
@@ -211,7 +212,7 @@ class FilesystemDatastore(Datastore):
             sage: len(D._load(fn))
             100000
         """
-        s = cPickle.dumps(obj)
+        s = pickle.dumps(obj)
         if len(s) == 0:
             raise ValueError("Invalid Pickle")
         with atomic_write(self._abspath(filename)) as f:
