@@ -10,7 +10,6 @@ from signal import alarm
 
 # TODO: sage dependency
 from sage.misc.sage_timeit import sage_timeit
-# TODO: sage dependency
 from sagenb.util import walltime
 
 

@@ -149,7 +149,7 @@ class SageServerExpect(SageServerABC):
     def __init__(self,
                  process_limits=None,
                  timeout=0.05,
-                 python='python',
+                 python='sage --python',
                  init_code=None,
                  sage_code=None):
         """

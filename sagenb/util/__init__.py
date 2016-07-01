@@ -49,18 +49,6 @@ def get_module(module, pkg=None, default=lambda: None):
         return default()
 
 
-def sage_var(name, fallback=lambda: None, sage_mod='env'):
-    try:
-        fb_value = os.environ[name]
-    except KeyError:
-        pass
-    else:
-        def fallback():
-            return fb_value
-
-    return import_from('sage.{}'.format(sage_mod), name, default=fallback)
-
-
 def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     # From python3 shutil
     """Given a command, mode, and a PATH string, return the path which
@@ -123,6 +111,51 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
                 if _access_check(name, mode):
                     return name
     return None
+
+
+def sage_browser(sage_root):
+    """
+    Set up default programs for opening web pages.
+
+    INPUT:
+
+
+    EXAMPLES::
+
+        sage: from sagenb.config import _sage_browser_fb
+        sage: _sage_browser_fb() # random -- depends on OS, etc.
+        'sage-open'
+
+    NOTE:
+        Extracted from sage.misc.viewer.default_viewer
+    """
+    if os.uname()[0] == 'Darwin':
+        browser = os.path.join(sage_root, 'local', 'bin', 'sage-open')
+    elif os.uname()[0][:6] == 'CYGWIN':
+        # Bobby Moreti provided the following.
+        if 'BROWSER' not in os.environ:
+            browser = (
+                '/cygdrive/{}/system32/rundll32.exe '
+                'url.dll,FileProtocolHandler'.format(
+                    os.environ['SYSTEMROOT'].replace(':', '/').replace('\\',
+                                                                       '')))
+        else:
+            browser = os.environ['BROWSER']
+    else:
+        browser = which('xdg-open')
+
+    if browser is None:
+        # If all fails try to get something from the environment.
+        try:
+            browser = os.environ['BROWSER']
+        except KeyError:
+            browser = 'less'  # silly default
+            for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
+                brows = which(cmd)
+                if brows is not None:
+                    browser = brows
+                    break
+    return browser
 
 
 def tmp_filename(name='tmp', ext='', **kwargs):

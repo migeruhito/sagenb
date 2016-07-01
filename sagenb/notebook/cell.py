@@ -26,6 +26,10 @@ from cgi import escape
 from random import randint
 from sys import maxint
 
+from ..config import INTERACT_RESTART
+from ..config import INTERACT_UPDATE_PREFIX
+from ..config import INTERACT_TEXT
+from ..config import INTERACT_HTML
 from ..config import MAX_OUTPUT
 from ..config import MAX_OUTPUT_LINES
 from ..config import TRACEBACK
@@ -36,11 +40,6 @@ from ..util import unicode_str
 from ..util import word_wrap
 from ..util.templates import render_template
 from ..util.text import format_exception
-
-from .interact import INTERACT_RESTART
-from .interact import INTERACT_UPDATE_PREFIX
-from .interact import INTERACT_TEXT
-from .interact import INTERACT_HTML
 
 
 # This regexp matches "cell://blah..." in a non-greedy way (the ?), so

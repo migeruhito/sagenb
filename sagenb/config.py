@@ -2,111 +2,74 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os
-import re
 from babel import Locale
 from babel.core import UnknownLocaleError
 from pkg_resources import Requirement
 from pkg_resources import resource_filename
 from pkg_resources import working_set
-from subprocess import check_output
 
+from pexpect.exceptions import ExceptionPexpect
 from flask.ext.babel import lazy_gettext
 
-from .util import get_module
-from .util import import_from
-from .util import sage_var
-from .util import which  # if py3, from shutil import which
+from .sage_server.workers import sage
+from .util import sage_browser
 
 # Global variables across the application
 # TODO: remove this. Previously in notebook.misc
 notebook = None
 
+try:
+    sage_conf = sage()
+except ExceptionPexpect:
+    raise OSError('Install sage and ensure that "sage" is in system PATH')
 
-# Sage path fallbacks
-def _sage_root_fb():
-    path = which('sage')  # This works if sage_root is in PATH or if
-    if path is not None:  # sage is a symlink of sage_root/sage
-        return os.path.split(os.path.realpath(path))[0]
+sage_conf.execute('\n'.join((
+    'from sage.env import SAGE_ENV',
+    'from sage.misc.latex_macros import sage_mathjax_macros',
+    '[',
+    '    SAGE_ENV,',
+    '    sage_mathjax_macros(),',
+    '    {',
+    '         "UPDATE_PREFIX": _interact_.INTERACT_UPDATE_PREFIX,',
+    '         "RESTART": _interact_.INTERACT_RESTART,',
+    '         "START": _interact_.INTERACT_START,',
+    '         "TEXT": _interact_.INTERACT_TEXT,',
+    '         "HTML": _interact_.INTERACT_HTML,',
+    '         "END": _interact_.INTERACT_END,',
+    '         },',
+    ' ]',
+    )))
+while True:
+    sconf = sage_conf.output_status()
+    if sconf.done:
+        break
+sage_conf.quit()
 
-
-def _sage_version_fb():
-    return re.findall(
-        r'ersion\s*(.*),', check_output(['sage', '--version']))[0]
-
-
-def _sage_doc_fb():
-    return os.path.join(SAGE_ROOT, 'src', 'doc')
-
-
-def _sage_share_fb():
-    return os.path.join(SAGE_ROOT, 'local', 'share')
-
-
-def _sage_src_fb():
-    return os.path.join(SAGE_ROOT, 'src')
-
-
-def _dot_sage_fb():
-    return os.path.join(
-        os.path.realpath(os.environ.get('HOME', '/tmp')), '.sage')
-
-
-def _sage_browser_fb():
-    """
-    Set up default programs for opening web pages.
-
-    INPUT:
-
-
-    EXAMPLES::
-
-        sage: from sagenb.config import _sage_browser_fb
-        sage: _sage_browser_fb() # random -- depends on OS, etc.
-        'sage-open'
-
-    NOTE:
-        Extracted from sage.misc.viewer.default_viewer
-    """
-    if os.uname()[0] == 'Darwin':
-        browser = os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-open')
-    elif os.uname()[0][:6] == 'CYGWIN':
-        # Bobby Moreti provided the following.
-        if 'BROWSER' not in os.environ:
-            browser = (
-                '/cygdrive/{}/system32/rundll32.exe '
-                'url.dll,FileProtocolHandler'.format(
-                    os.environ['SYSTEMROOT'].replace(':', '/').replace('\\',
-                                                                       '')))
-        else:
-            browser = os.environ['BROWSER']
-    else:
-        browser = which('xdg-open')
-
-    if browser is None:
-        # If all fails try to get something from the environment.
-        try:
-            browser = os.environ['BROWSER']
-        except KeyError:
-            browser = 'less'  # silly default
-            for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
-                brows = which(cmd)
-                if brows is not None:
-                    browser = brows
-                    break
-    return browser
+exec('sage_conf = ' + sconf.output.strip())
+SAGE_ENV, mathjax_macros, INTERACT_CONF = sage_conf
 
 
 # sage paths
-SAGE_ROOT = sage_var('SAGE_ROOT', _sage_root_fb)
-SAGE_VERSION = sage_var('SAGE_VERSION', _sage_version_fb)
-SAGE_DOC = sage_var('SAGE_DOC', _sage_doc_fb)
-SAGE_SHARE = sage_var('SAGE_SHARE', _sage_share_fb)
-SAGE_URL = 'http://sagemath.org'  # SAGE_URL is broken in sage.env (ver 6.8)
-SAGE_SRC = sage_var('SAGE_SRC', _sage_src_fb)
-DOT_SAGE = sage_var('DOT_SAGE', _dot_sage_fb)
+SAGE_ROOT = SAGE_ENV['SAGE_ROOT']
+SAGE_DOC = SAGE_ENV['SAGE_DOC']
+SAGE_SHARE = SAGE_ENV['SAGE_SHARE']
+SAGE_SRC = SAGE_ENV['SAGE_SRC']
+DOT_SAGE = SAGE_ENV['DOT_SAGE']
+SAGE_VERSION = SAGE_ENV['SAGE_VERSION']
+
+SAGE_URL = 'http://sagemath.org'  # SAGE_URL is broken in sage.env (ver <= 7.2)
 SAGE_BROWSER = '{} {}'.format(
     os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-native-execute'),
-    sage_var('SAGE_BROWSER', _sage_browser_fb))
+    sage_browser(SAGE_ROOT))
+
+#Interact markers
+INTERACT_UPDATE_PREFIX = INTERACT_CONF['UPDATE_PREFIX']
+INTERACT_RESTART = INTERACT_CONF['RESTART']
+INTERACT_START = INTERACT_CONF['START']
+INTERACT_TEXT = INTERACT_CONF['TEXT']
+INTERACT_HTML = INTERACT_CONF['HTML']
+INTERACT_END = INTERACT_CONF['END']
+
 
 # sagenb paths
 # TODO: This must be in sync with flask app base path. Should be removed from
@@ -168,32 +131,28 @@ WS_ACTIVE = 1
 WS_TRASH = 2
 
 # Notebook globals
-if get_module('sage') is not None:
-    # [(string: name, bool: optional)]
-    SYSTEMS = (('sage', False),
-               ('gap', False),
-               ('gp', False),
-               ('html', False),
-               ('latex', False),
-               ('maxima', False),
-               ('python', False),
-               ('r', False),
-               ('sh', False),
-               ('singular', False),
-               ('axiom', True),
-               ('fricas', True),
-               ('kash', True),
-               ('macaulay2', True),
-               ('magma', True),
-               ('maple', True,),
-               ('mathematica', True),
-               ('matlab', True),
-               ('mupad', True),
-               ('octave', True),
-               ('scilab', True))
-else:
-    SYSTEMS = (('sage', True))  # Gracefully degenerated version of
-    # sage mode, e.g., preparsing is trivial
+# [(string: name, bool: optional)]
+SYSTEMS = (('sage', False),
+           ('gap', False),
+           ('gp', False),
+           ('html', False),
+           ('latex', False),
+           ('maxima', False),
+           ('python', False),
+           ('r', False),
+           ('sh', False),
+           ('singular', False),
+           ('axiom', True),
+           ('fricas', True),
+           ('kash', True),
+           ('macaulay2', True),
+           ('magma', True),
+           ('maple', True,),
+           ('mathematica', True),
+           ('matlab', True),
+           ('mupad', True),
+           ('octave', True),
+           ('scilab', True))
 
 
 # Cell output control
@@ -271,28 +230,6 @@ JEDITABLE_TINYMCE = True
 
 # password
 min_password_length = 6
-
-# TODO: Get macros from server and user settings.
-mathjax_macros = import_from(
-    'sage.misc.latex_macros', 'sage_mathjax_macros',
-    default=lambda: lambda: [
-        "ZZ : '{\\\\Bold{Z}}'",
-        "NN : '{\\\\Bold{N}}'",
-        "RR : '{\\\\Bold{R}}'",
-        "CC : '{\\\\Bold{C}}'",
-        "QQ : '{\\\\Bold{Q}}'",
-        "QQbar : '{\\\\overline{\\\\QQ}}'",
-        "GF : ['{\\\\Bold{F}_{#1}}', 1]",
-        "Zp : ['{\\\\ZZ_{#1}}', 1]",
-        "Qp : ['{\\\\QQ_{#1}}', 1]",
-        "Zmod : ['{\\\\ZZ/#1\\\\ZZ}', 1]",
-        "CIF : '{\\\\Bold{C}}'",
-        "CLF : '{\\\\Bold{C}}'",
-        "RDF : '{\\\\Bold{R}}'",
-        "RIF : '{\\\\Bold{I} \\\\Bold{R}}'",
-        "RLF : '{\\\\Bold{R}}'",
-        "CFF : '{\\\\Bold{CFF}}'",
-        "Bold : ['{\\\\mathbf{#1}}', 1]"])()
 
 # Javascript keys
 r"""

@@ -27,10 +27,10 @@ from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 
+from ..config import INTERACT_UPDATE_PREFIX
 from ..config import UN_GUEST
 from ..config import UN_PUB
 from ..config import UN_SAGE
-from ..notebook.interact import INTERACT_UPDATE_PREFIX
 from ..util import tmp_filename
 from ..util import unicode_str
 from ..util.docHTMLProcessor import SphinxHTMLProcessor

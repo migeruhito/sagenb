@@ -1175,7 +1175,6 @@ class Notebook(object):
             max_vmem=tbl['v'],
             max_cputime=tbl['t'],
             max_processes=tbl['u'],
-            python=os.path.join(os.environ['SAGE_ROOT'], 'sage -python'),
             init_code='\n'.join((init_code, "DIR = '{}'".format(self.DIR))))
 
     # Computing control
