@@ -48,8 +48,6 @@ import tarfile
 import tempfile
 import traceback
 from hashlib import md5
-# TODO: sage dependency
-from sage.misc.temporary_file import atomic_write
 
 from ..config import UN_SAGE
 from ..controllers import User
@@ -72,6 +70,218 @@ def is_safe(a):
     # NOTE: Windows port -- I'm worried about whether a.name will have
     # / or \ on windows.  The code below assume \.
     return '..' not in a and not a.startswith('/')
+
+
+# From sage.misc.temporary_file
+
+class atomic_write:
+    """
+    Write to a given file using a temporary file and then rename it
+    to the target file. This renaming should be atomic on modern
+    operating systems. Therefore, this class can be used to avoid race
+    conditions when a file might be read while it is being written.
+    It also avoids having partially written files due to exceptions
+    or crashes.
+
+    This is to be used in a ``with`` statement, where a temporary file
+    is created when entering the ``with`` and is moved in place of the
+    target file when exiting the ``with`` (if no exceptions occured).
+
+    INPUT:
+
+    - ``target_filename`` -- the name of the file to be written.
+      Normally, the contents of this file will be overwritten.
+
+    - ``append`` -- (boolean, default: False) if True and
+      ``target_filename`` is an existing file, then copy the current
+      contents of ``target_filename`` to the temporary file when
+      entering the ``with`` statement. Otherwise, the temporary file is
+      initially empty.
+
+    - ``mode`` -- (default: ``0o666``) mode bits for the file. The
+      temporary file is created with mode ``mode & ~umask`` and the
+      resulting file will also have these permissions (unless the
+      mode bits of the file were changed manually).
+
+    EXAMPLES::
+
+        sage: from sage.misc.temporary_file import atomic_write
+        sage: target_file = tmp_filename()
+        sage: open(target_file, "w").write("Old contents")
+        sage: with atomic_write(target_file) as f:
+        ....:     f.write("New contents")
+        ....:     f.flush()
+        ....:     open(target_file, "r").read()
+        'Old contents'
+        sage: open(target_file, "r").read()
+        'New contents'
+
+    The name of the temporary file can be accessed using ``f.name``.
+    It is not a problem to close and re-open the temporary file::
+
+        sage: from sage.misc.temporary_file import atomic_write
+        sage: target_file = tmp_filename()
+        sage: open(target_file, "w").write("Old contents")
+        sage: with atomic_write(target_file) as f:
+        ....:     f.close()
+        ....:     open(f.name, "w").write("Newer contents")
+        sage: open(target_file, "r").read()
+        'Newer contents'
+
+    If an exception occurs while writing the file, the target file is
+    not touched::
+
+        sage: with atomic_write(target_file) as f:
+        ....:     f.write("Newest contents")
+        ....:     raise RuntimeError
+        Traceback (most recent call last):
+        ...
+        RuntimeError
+        sage: open(target_file, "r").read()
+        'Newer contents'
+
+    Some examples of using the ``append`` option. Note that the file
+    is never opened in "append" mode, it is possible to overwrite
+    existing data::
+
+        sage: target_file = tmp_filename()
+        sage: with atomic_write(target_file, append=True) as f:
+        ....:     f.write("Hello")
+        sage: with atomic_write(target_file, append=True) as f:
+        ....:     f.write(" World")
+        sage: open(target_file, "r").read()
+        'Hello World'
+        sage: with atomic_write(target_file, append=True) as f:
+        ....:     f.seek(0)
+        ....:     f.write("HELLO")
+        sage: open(target_file, "r").read()
+        'HELLO World'
+
+    If the target file is a symbolic link, the link is kept and the
+    target of the link is written to::
+
+        sage: link_to_target = os.path.join(tmp_dir(), "templink")
+        sage: os.symlink(target_file, link_to_target)
+        sage: with atomic_write(link_to_target) as f:
+        ....:     f.write("Newest contents")
+        sage: open(target_file, "r").read()
+        'Newest contents'
+
+    We check the permission bits of the new file. Note that the old
+    permissions do not matter::
+
+        sage: os.chmod(target_file, 0o600)
+        sage: _ = os.umask(0o022)
+        sage: with atomic_write(target_file) as f:
+        ....:     pass
+        sage: oct(os.stat(target_file).st_mode & 0o777)
+        '644'
+        sage: _ = os.umask(0o077)
+        sage: with atomic_write(target_file, mode=0o777) as f:
+        ....:     pass
+        sage: oct(os.stat(target_file).st_mode & 0o777)
+        '700'
+
+    Test writing twice to the same target file. The outermost ``with``
+    "wins"::
+
+        sage: open(target_file, "w").write(">>> ")
+        sage: with atomic_write(target_file, append=True) as f, \
+        ....:          atomic_write(target_file, append=True) as g:
+        ....:     f.write("AAA"); f.close()
+        ....:     g.write("BBB"); g.close()
+        sage: open(target_file, "r").read()
+        '>>> AAA'
+    """
+    def __init__(self, target_filename, append=False, mode=0o666):
+        """
+        TESTS::
+
+            sage: from sage.misc.temporary_file import atomic_write
+            sage: link_to_target = os.path.join(tmp_dir(), "templink")
+            sage: os.symlink("/foobar", link_to_target)
+            sage: aw = atomic_write(link_to_target)
+            sage: print aw.target
+            /foobar
+            sage: print aw.tmpdir
+            /
+        """
+        self.target = os.path.realpath(target_filename)
+        self.tmpdir = os.path.dirname(self.target)
+        self.append = append
+        # Remove umask bits from mode
+        umask = os.umask(0)
+        os.umask(umask)
+        self.mode = mode & (~umask)
+
+    def __enter__(self):
+        """
+        Create and return a temporary file in ``self.tmpdir`` (normally
+        the same directory as the target file).
+
+        If ``self.append``, then copy the current contents of
+        ``self.target`` to the temporary file.
+
+        OUTPUT: a file returned by :func:`tempfile.NamedTemporaryFile`.
+
+        TESTS::
+
+            sage: from sage.misc.temporary_file import atomic_write
+            sage: aw = atomic_write(tmp_filename())
+            sage: with aw as f:
+            ....:     os.path.dirname(aw.target) == os.path.dirname(f.name)
+            True
+        """
+        self.tempfile = tempfile.NamedTemporaryFile(dir=self.tmpdir,
+                                                    delete=False)
+        self.tempname = self.tempfile.name
+        os.chmod(self.tempname, self.mode)
+        if self.append:
+            try:
+                r = open(self.target).read()
+            except IOError:
+                pass
+            else:
+                self.tempfile.write(r)
+        return self.tempfile
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        If the ``with`` block was successful, move the temporary file
+        to the target file. Otherwise, delete the temporary file.
+
+        TESTS:
+
+        Check that the temporary file is deleted if there was an
+        exception::
+
+            sage: from sage.misc.temporary_file import atomic_write
+            sage: with atomic_write(tmp_filename()) as f:
+            ....:     tempname = f.name
+            ....:     raise RuntimeError
+            Traceback (most recent call last):
+            ...
+            RuntimeError
+            sage: os.path.exists(tempname)
+            False
+        """
+        # Flush the file contents to disk (to be safe even if the
+        # system crashes) and close the file.
+        if not self.tempfile.closed:
+            self.tempfile.flush()
+            os.fsync(self.tempfile.fileno())
+            self.tempfile.close()
+
+        if exc_type is None:
+            # Success: move temporary file to target file
+            try:
+                os.rename(self.tempname, self.target)
+            except OSError:
+                os.unlink(self.target)
+                os.rename(self.tempname, self.target)
+        else:
+            # Failure: delete temporary file
+            os.unlink(self.tempname)
 
 
 class FilesystemDatastore(Datastore):

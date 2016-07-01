@@ -20,7 +20,6 @@ import ast
 import os
 import re
 import shutil
-import textwrap
 import time
 from cgi import escape
 from random import randint
@@ -1801,59 +1800,6 @@ class ComputeCell(Cell):
         if os.path.exists(dir):
             shutil.rmtree(dir, ignore_errors=True)
 
-    def _jmol_files_html(self, F):
-        """
-        Helper for jmol files in :meth:`files_html`
-        """
-        # If F ends in -size500.jmol then we make the viewer applet
-        # with size 500.
-        i = F.rfind('-size')
-        if i != -1:
-            size = F[i + 5:-5]
-        else:
-            size = 500
-
-        # The ".jmol" script has defaultdirectory pointing
-        # to a zip file [see Graphics3d.show()]. But it is
-        # relative to the worksheet URL as seen in the browser.
-        # But that doesn't make sense for live help.
-        #
-        # So we need to prepend the worksheet URL, in order
-        # for the zip to be accessed correctly.
-        if self.worksheet().docbrowser:
-            jmol_name = os.path.join(self.directory(), F)
-            with open(jmol_name, 'r') as f:
-                jmol_script = f.read()
-            jmol_script = jmol_script.replace(
-                'defaultdirectory "',
-                'defaultdirectory "{0}/'.format(self.url_to_worksheet()))
-            with open(jmol_name, 'w') as f:
-                f.write(jmol_script)
-
-        image_name = os.path.join(self.url_to_self(), '.jmol_images', F)
-        script_name = os.path.join(self.url_to_self(), F)
-        return textwrap.dedent(
-            '<div id="sage_jmol_{id}" class="3DPlotDiv">\n'
-            '    <div id="loadJmol" style="display:none;">{id}</div>\n'
-            '    <div id="sage_jmol_size_{id}" style="display:none;">'
-            '{size}</div>\n'
-            '    <div id="sage_jmol_img_{id}" style="display:none;">'
-            '{image_name}.png?{timestamp}</div>\n'
-            '    <div id="sage_jmol_script_{id}" style="display:none;">'
-            '{filename}?{timestamp}</div>\n'
-            '    <div id="sage_jmol_server_url_{id}" style="display:none;">'
-            '{callback}</div>\n'
-            '    <div id="sage_jmol_status_{id}" style="display:none;">'
-            'notActivated</div>\n'
-            '</div>').format(
-            id=self.id,
-            size=size,
-            image_name=image_name,
-            timestamp=time.time(),
-            filename=script_name,
-            callback=os.path.join(self.url_to_worksheet(), 'jsmol'),
-        )
-
     def files_html(self, out):
         """
         Returns HTML to display the files in this compute cell's
@@ -1899,9 +1845,7 @@ class ComputeCell(Cell):
         files = []
         # Flags to allow processing of old worksheets that include Jmol
         hasjmol = False
-        jmoldatafile = ''
         hasjmolimages = False
-        jmolimagebase = ''
         # The question mark trick here is so that images will be
         # reloaded when the async request requests the output text for
         # a computation.  This is inspired by
@@ -1924,12 +1868,7 @@ class ComputeCell(Cell):
                 images.append(
                     '<embed src="%s" type="image/svg+xml" name="emap">' % url)
             elif F.endswith('.jmol'):
-                images.append(self._jmol_files_html(F))
-                jmolimagebase = F
                 hasjmol = True
-            elif F.endswith('.jmol.zip'):
-                # jmol data
-                jmoldatafile = os.path.join(self.directory(), F)
             elif F.endswith('.canvas3d'):
                 script = (
                     '<div><script>canvas3d.viewer("%s?%s");</script></div>' % (
@@ -1946,46 +1885,10 @@ class ComputeCell(Cell):
                     '<a target="_new" href="%s" class="file_link">%s</a>' % (
                         url, link_text))
 
-        # TODO: remove this fugly in-place upgrading of worksheets
-        # and all the associated variables. If the worksheet is old
-        # just require a reevaluation.
         if(hasjmol and not hasjmolimages):
-            # This is probably an old worksheet. Generate the missing jmol
-            # static image(s) Note: this is problematic in the notebook as it
-            # uses tools from Sage to generate the images.
-            head, tail = os.path.split(jmoldatafile)
-            # The path in the launch script file needs to be fixed.
-            worksheet, cellnum = os.path.split(head)
-            path = "cells/%s/%s" % (cellnum, tail)
-            f = open(os.path.join(head, jmolimagebase), 'w')
-            f.write('set defaultdirectory "%s"\n' % path)
-            f.write('script SCRIPT\n')
-            f.close()
-
-            # name image file
-            png_path = os.path.realpath(os.path.join(head, '.jmol_images'))
-            if not os.path.exists(png_path):
-                os.mkdir(png_path)
-            png_name = os.path.join(png_path, jmolimagebase)
-            # test for JavaVM
-
-            # TODO: sage dependency
-            from sage.interfaces.jmoldata import JmolData
-            jdata = JmolData()
-            if (jdata.is_jvm_available()):
-                # make the image with Jmol
-                png_fullpath = png_name + ".png"
-                # print(png_fullpath)
-                script = ('set defaultdirectory \"' +
-                          jmoldatafile + '\"\n script SCRIPT\n')
-                # print(script)
-                jdata.export_image(targetfile=png_fullpath,
-                                   datafile=script, image_type="PNG",
-                                   figsize=4)
-            else:
-                images.append(
-                    'Java Virtual Machine Unavailable.  Cannot make image '
-                    'from old data.  Please reevaluate cell.')
+            images.append(
+                'Cannot make image '
+                'from old data. Please reevaluate cell.')
 
         if len(images) == 0:
             images = ''
