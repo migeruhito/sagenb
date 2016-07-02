@@ -3,6 +3,7 @@ from sage.all import *
 from sage.calculus.predefined import x
 from sage.misc.python import python
 from sage.misc.html import html
+
 from support import help, automatic_names
 
 sage_mode = 'notebook'
@@ -22,32 +23,32 @@ pdflatex_debug = Latex(density=130, pdflatex=True, debug=True)
 sage.misc.session.init()
 # ## END sage.all_notebook
 
-# TODO: Sagenb dependency.
 # ## Extracted from sagenb.all
 # from sagenb.notebook.sage_email import email ## included in sage.all
 # from sagenb.notebook.interact import interact  ## included in sage.all
-from sagenb.notebook.interact import input_box
-from sagenb.notebook.interact import slider
-from sagenb.notebook.interact import range_slider
-from sagenb.notebook.interact import selector
-from sagenb.notebook.interact import checkbox
-from sagenb.notebook.interact import input_grid
-from sagenb.notebook.interact import text_control
-from sagenb.notebook.interact import color_selector
-# For doctesting.
-import sagenb
+from interact import interact
+from interact import input_box
+from interact import slider
+from interact import range_slider
+from interact import selector
+from interact import checkbox
+from interact import input_grid
+from interact import text_control
+from interact import color_selector
+
+## For doctesting.
+#import sagenb
+
 # ## END sagenb.all
 
-# TODO: Sagenb dependency
-import sagenb.notebook.interact as _interact_ # for setting current cell id
+import interact as _interact_ # for setting current cell id
 
 import support as _support_
 _support_.init(None, globals())
 
-# The following is Sage-specific -- this immediately bombs out if sage isn't
-# installed.
 sage.plot.plot.EMBEDDED_MODE = True
 sage.misc.latex.EMBEDDED_MODE = True
+
 try:
     load(os.path.join(os.environ["DOT_SAGE"], "init.sage"),
          globals())
