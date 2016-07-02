@@ -14,7 +14,7 @@
                 <p>Your username must start with a letter and be between 3 and 64
                 characters long. You may only use letters, numbers, underscores, @, 
                 and dots.</p>
-                <input type="text" name="username" value="{{ resp.fullname }}" class="entry" tabindex="1" />
+                <input type="text" name="username" value="{{ resp['fullname'] }}" class="entry" tabindex="1" />
                 {% if username_missing %}
                 <p><span style="color:red">Error:</span> No username given</p>
                 {% endif %}
@@ -31,7 +31,7 @@
                     Your email address is required for account
                     confirmation and recovery. 
                 </p>
-                <input type="email" name="email" value="{{ resp.email }}" class="entry" tabindex="4" />
+                <input type="email" name="email" value="{{ resp['email'] }}" class="entry" tabindex="4" />
                 {% if email_missing %}
                 <p><span style="color:red">Error:</span> No email address given</p>
                 {% endif %}

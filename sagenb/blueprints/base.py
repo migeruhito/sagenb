@@ -161,7 +161,11 @@ def create_or_login(resp):
         session['username'] = g.username = username
         session.modified = True
     except KeyError:
-        session['openid_response'] = resp
+        session['openid_response'] = {
+            'fullname': resp.fullname,
+            'email': resp.email,
+            'identity_url': resp.identity_url,
+            }
         session.modified = True
         return redirect(url_for('set_profiles'))
     return redirect(request.values.get('next', url_for('base.index')))
@@ -181,9 +185,9 @@ def set_profiles():
     if request.method == 'GET':
         if 'openid_response' in session:
             openid_resp = session['openid_response']
-            if openid_resp.fullname is not None:
-                openid_resp.fullname = trunc_invalid_username_chars(
-                    openid_resp.fullname)
+            if openid_resp['fullname'] is not None:
+                openid_resp['fullname'] = trunc_invalid_username_chars(
+                    openid_resp['fullname'])
             template_dict = {}
             if show_challenge:
                 template_dict['challenge_html'] = chal.html()
@@ -233,13 +237,13 @@ def set_profiles():
                 raise ValueError("Invalid email")
             if g.notebook.conf['accounts']:
                 g.notebook.user_manager.add_user(
-                    username, '', email=resp.email, account_type=UAT_USER)
+                    username, '', email=resp['email'], account_type=UAT_USER)
             else:
                 parse_dict['creation_error'] = True
                 raise ValueError('Error in creating user\n'
                                  'creating new accounts disabled')
             g.notebook.user_manager.create_new_openid(
-                resp.identity_url, username)
+                resp['identity_url'], username)
             session['username'] = g.username = username
             session.modified = True
         except ValueError:

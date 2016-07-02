@@ -9,8 +9,6 @@ from cgi import escape
 from flask import Flask
 from flask import g
 from flask import url_for
-# Make flask use the old session foo from <=flask-0.9
-from flask.ext.oldsessions import OldSecureCookieSessionInterface
 from flask.ext.autoindex import AutoIndex
 from flask.ext.babel import Babel
 from flask.ext.babel import gettext
@@ -54,7 +52,6 @@ def create_app(notebook, startup_token=None, debug=False):
     # Create app
     app = Flask(__name__)
     app.startup_token = startup_token
-    app.session_interface = OldSecureCookieSessionInterface()
 
     app.config.update({
         'SESSION_COOKIE_HTTPONLY': False,

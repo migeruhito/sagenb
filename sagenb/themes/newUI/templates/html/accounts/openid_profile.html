@@ -20,7 +20,7 @@
 				<div class="control-group {% if username_missing or username_taken or username_invalid %}error{% endif %}">
 					<label for="username" class="control-label">{{ gettext("Username") }}</label>
 					<div class="controls">
-						<input type="text" class="input-xlarge" id="username" name="username"  value="{{ resp.fullname }}">
+						<input type="text" class="input-xlarge" id="username" name="username"  value="{{ resp['fullname'] }}">
 
 						{% if username_missing %}
 							<span class="help-inline">{{ gettext('No username given') }}</span>
@@ -40,7 +40,7 @@
 					<label for="email" class="control-label">{{ gettext("Email") }}</label>
 
 					<div class="controls">
-						<input type="email" class="input-xlarge" id="email" name="email" value="{{ resp.email }}">
+						<input type="email" class="input-xlarge" id="email" name="email" value="{{ resp['email'] }}">
 
 						{% if email_missing %}
 							<span class="help-inline">{{ gettext('No email address given') }}</span>
