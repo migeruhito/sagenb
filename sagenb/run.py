@@ -37,7 +37,7 @@ from sagenb.util import find_next_available_port
 from sagenb.util import open_page
 from sagenb.util import print_open_msg
 from sagenb.util import system_command
-from sagenb.notebook import notebook
+from sagenb.gui import notebook
 from sagenb.util import get_module
 from sagenb.util import which
 

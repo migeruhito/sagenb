@@ -22,7 +22,7 @@ import pexpect
 
 from ..run import NotebookFrontend
 
-from . import notebook as _notebook
+from ..gui import notebook as _notebook
 
 
 class NotebookObject:

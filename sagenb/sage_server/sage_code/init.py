@@ -25,7 +25,6 @@ sage.misc.session.init()
 
 # ## Extracted from sagenb.all
 # from sagenb.notebook.sage_email import email ## included in sage.all
-# from sagenb.notebook.interact import interact  ## included in sage.all
 from interact import interact
 from interact import input_box
 from interact import slider

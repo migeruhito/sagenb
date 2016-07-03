@@ -54,7 +54,7 @@ from ..controllers import User
 from ..models import ServerConfiguration
 from ..util import set_restrictive_permissions
 from ..util import encoded_str
-from ..notebook.worksheet import Worksheet_from_basic
+from ..gui.worksheet import Worksheet_from_basic
 
 from .abstract_storage import Datastore
 

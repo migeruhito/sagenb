@@ -51,8 +51,8 @@ from ..util.text import extract_text
 from ..models import ServerConfiguration
 from ..controllers import User
 from ..controllers import UserManager
-from .notification import logger
-from .notification import TwistedEmailHandler
+from ..notebook.notification import logger
+from ..notebook.notification import TwistedEmailHandler
 from .worksheet import update_worksheets
 
 

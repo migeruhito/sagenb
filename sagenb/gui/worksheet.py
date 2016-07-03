@@ -103,8 +103,8 @@ def Worksheet_from_basic(obj, notebook_worksheet_directory):
 
     EXAMPLES::
 
-            sage: import sagenb.notebook.worksheet
-            sage: W = sagenb.notebook.worksheet.Worksheet(
+            sage: import sagenb.gui.worksheet
+            sage: W = sagenb.gui.worksheet.Worksheet(
                 'sageuser', 0,
                 name='test', notebook_worksheet_directory=tmp_dir(),
                 system='gap', pretty_print=True, auto_publish=True)
@@ -302,7 +302,7 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: from sagenb.notebook.worksheet import Worksheet
+            sage: from sagenb.gui.worksheet import Worksheet
             sage: W = Worksheet('test', 2, tmp_dir(), owner='sageuser')
             sage: W = Worksheet('sageuser', 2, name='test',
                 notebook_worksheet_directory=tmp_dir())
@@ -594,8 +594,8 @@ class Worksheet(object):
 
         EXAMPLES::
 
-            sage: import sagenb.notebook.worksheet
-            sage: W = sagenb.notebook.worksheet.Worksheet(
+            sage: import sagenb.gui.worksheet
+            sage: W = sagenb.gui.worksheet.Worksheet(
                 'sage', 0, name='test', notebook_worksheet_directory=tmp_dir())
             sage: sorted((W.basic.items()))
             [('auto_publish', False), ('collaborators', []),

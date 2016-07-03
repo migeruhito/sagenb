@@ -155,7 +155,7 @@ class User(object):
         """
         EXAMPLES::
 
-            sage: from sagenb.notebook.user import User
+            sage: from sagenb.controllers import User
             sage: from sagenb.config import UAT_ADMIN, UAT_USER
             sage: User('A', account_type=UAT_ADMIN).is_admin
             True
