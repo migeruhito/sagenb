@@ -3,10 +3,12 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import logging
-from socket import getfqdn
 
-from .sage_email import default_email_address
-from .smtpsend import send_mail
+from getpass import getuser
+from socket import getfqdn
+from socket import gethostname
+
+from smtpsend import send_mail
 
 logger = logging.getLogger('notification')
 
@@ -34,7 +36,7 @@ Message:
 
     def emit(self, record):
         fqdn = getfqdn()
-        from_address = default_email_address()
+        from_address = '{}@{}'.format(getuser(), gethostname())
         subject = '[sage-notebook] %s' % fqdn
         record.fqdn = fqdn
         message = self.format(record)

@@ -45,14 +45,14 @@ from ..util import walltime
 from ..util.decorators import global_lock
 from ..util.docHTMLProcessor import docutilsHTMLProcessor
 from ..util.docHTMLProcessor import SphinxHTMLProcessor
+from ..util.notification import logger
+from ..util.notification import TwistedEmailHandler
 from ..util.text import extract_title
 from ..util.text import extract_text
 
 from ..models import ServerConfiguration
 from ..controllers import User
 from ..controllers import UserManager
-from ..notebook.notification import logger
-from ..notebook.notification import TwistedEmailHandler
 from .worksheet import update_worksheets
 
 
