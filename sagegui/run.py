@@ -23,23 +23,23 @@ import logging
 import getpass
 import signal
 
-from sagenb.app import create_app
-from sagenb.config import min_password_length
-from sagenb.config import DOT_SAGENB
-from sagenb.config import SAGE_BROWSER
-from sagenb.config import UAT_USER
-from sagenb.config import UAT_GUEST
-from sagenb.config import UN_ADMIN
-from sagenb.config import UN_GUEST
-from sagenb.config import UN_PUB
-from sagenb.config import UN_SAGE
-from sagenb.util import find_next_available_port
-from sagenb.util import open_page
-from sagenb.util import print_open_msg
-from sagenb.util import system_command
-from sagenb.gui import notebook
-from sagenb.util import get_module
-from sagenb.util import which
+from sagegui.app import create_app
+from sagegui.config import min_password_length
+from sagegui.config import DOT_SAGENB
+from sagegui.config import SAGE_BROWSER
+from sagegui.config import UAT_USER
+from sagegui.config import UAT_GUEST
+from sagegui.config import UN_ADMIN
+from sagegui.config import UN_GUEST
+from sagegui.config import UN_PUB
+from sagegui.config import UN_SAGE
+from sagegui.util import find_next_available_port
+from sagegui.util import open_page
+from sagegui.util import print_open_msg
+from sagegui.util import system_command
+from sagegui.gui import notebook
+from sagegui.util import get_module
+from sagegui.util import which
 
 
 class NotebookFrontend(object):

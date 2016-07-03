@@ -39,6 +39,8 @@ install_requires = [
     'flask-themes2',
     'six',
     'smtpsend',
+    'pexpect',
+    'docutils',
     ]
 
 

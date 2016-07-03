@@ -13,10 +13,10 @@ from flask import redirect
 from flask import g
 from flask import current_app
 from flask.ext.babel import gettext
+from smtpsend import send_mail
 
 from ..config import SAGE_VERSION
 from ..config import UN_SYSTEM
-from ..notebook.smtpsend import send_mail
 from ..util.auth import challenge
 from ..util.auth import register_make_key
 from ..util.auth import register_build_msg
