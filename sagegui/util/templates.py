@@ -10,6 +10,8 @@ import re
 from collections import defaultdict
 from hashlib import sha1
 
+from jsmin import jsmin
+
 from flask import g
 from flask.ext.babel import format_datetime
 from flask.ext.babel import get_locale
@@ -20,7 +22,6 @@ from . import cached_property
 from . import grouper
 from . import N_
 from . import nN_
-from .compress.JavaScriptCompressor import JavaScriptCompressor
 from .keymaps_js import get_keyboard
 
 from ..config import mathjax_macros
@@ -222,7 +223,7 @@ class DynamicJs(object):
         # Evil" clause in the license.  Does that prevent us from
         # distributing it (i.e., it adds an extra condition to the
         # software)?  See http://www.crockford.com/javascript/jsmin.py.txt
-        s = JavaScriptCompressor().getPacked(s.encode('utf-8'))
+        s = jsmin(s)
         return (s, sha1(s).hexdigest())
 
     @property

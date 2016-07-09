@@ -41,6 +41,7 @@ install_requires = [
     'smtpsend',
     'pexpect',
     'docutils',
+    'jsmin',
     ]
 
 
