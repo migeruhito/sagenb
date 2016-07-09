@@ -1568,17 +1568,17 @@ class Worksheet(object):
         cells = []
         for typ, T in data:
             if typ == 'plain':
-                id = id_gen.next()
+                id = next(id_gen)
                 C = self._new_text_cell(T, id=id)
             elif typ == 'compute':
                 id, input, output = T
                 if not ignore_ids and id is not None:
                     html = True
                     if id in used_ids:
-                        id = id_gen.next()
+                        id = next(id_gen)
                 else:
                     html = False
-                    id = id_gen.next()
+                    id = next(id_gen)
                 C = self._new_cell(id)
                 C.input = input
                 C.set_output_text(output, '')
@@ -1590,7 +1590,7 @@ class Worksheet(object):
 
         # There must be at least one cell.
         if len(cells) == 0 or isinstance(cells[-1], TextCell):
-            cells.append(self._new_cell(id_gen.next()))
+            cells.append(self._new_cell(next(id_gen)))
 
         if not self.is_published:
             for c in cells:
@@ -1731,15 +1731,15 @@ class Worksheet(object):
 
     def _new_text_cell(self, plain_text, id=None):
         if id is None:
-            id = self.cell_id_generator.next()
+            id = next(self.cell_id_generator)
         return TextCell(id, plain_text, self)
 
     def _new_cell(self, id=None, hidden=False, input=''):
         if id is None:
             if hidden:
-                id = self.hidden_cell_id_generator.next()
+                id = next(self.hidden_cell_id_generator)
             else:
-                id = self.cell_id_generator.next()
+                id = next(self.cell_id_generator)
         return ComputeCell(id, input, '', self)
 
     def insert_cell(self, id, cell, offset=0):
@@ -2575,7 +2575,7 @@ class Worksheet(object):
         # TODO: This design will *only* work on local machines -- need
         # to redesign so works even if compute worksheet process is
         # remote!
-        id = self.next_block_generator_id.next()
+        id = next(self.next_block_generator_id)
         code = os.path.join(self.directory, 'code')
         if not os.path.exists(code):
             os.makedirs(code)

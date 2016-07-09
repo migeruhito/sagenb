@@ -14,7 +14,8 @@
 # --------------------------------------------------------------
 # Note about jsSource input varible:
 # 	this var should be a string (i.e. jsSource = "source file string")
-#      should be a list of strings (i.e. ["source file string 1", "source file string 2"])
+#      should be a list of strings (i.e. ["source file string 1", "source file
+#          string 2"])
 #      should be a dictionary with 1 or 2 keys:
 #      	(i.e. {"code":"source file string 1"})
 #              (i.e. {"code":"source file string 1", "name":"mySource"})
@@ -29,8 +30,8 @@
 # --------------------------------------------------------------
 # Note about returned strings:
 # 	Your browser should wrap very long strings, then don't use
-#      cut and paste from your browser, save output into your database or directly
-#      in a file or print them only inside <script> and </script> tags
+#      cut and paste from your browser, save output into your database or
+#      directly in a file or print them only inside <script> and </script> tags
 # --------------------------------------------------------------
 # Note about JavaScript packed compatibility:
 # 	To be sure about compatibility include before every script JSL Library:
@@ -39,8 +40,8 @@
 # those functions is String.replace with function as second argument,
 # used by JavaScript generated packed code to rebuild original code.
 #
-# Remember that KDE 3.5, Safari and IE5 will not work correctly with packed version
-# if you'll not include JSL.
+# Remember that KDE 3.5, Safari and IE5 will not work correctly with packed
+# version if you'll not include JSL.
 # --------------------------------------------------------------
 # @Compatibility	>= Python 2.3
 # @Author		Andrea Giammarchi

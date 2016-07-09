@@ -651,7 +651,7 @@ class NotebookFrontend(object):
                 days, distinguished_name))
 
         # Set permissions on private cert
-        os.chmod(self.conf['private_pem'], 0600)
+        os.chmod(self.conf['private_pem'], 0o600)
 
         print('Successfully configured notebook.')
 

@@ -23,7 +23,7 @@ import shutil
 import time
 from cgi import escape
 from random import randint
-from sys import maxint
+from sys import maxsize
 
 from ..config import INTERACT_RESTART
 from ..config import INTERACT_UPDATE_PREFIX
@@ -481,7 +481,7 @@ class ComputeCell(Cell):
         # State
         # start with a random integer so that evaluations of the cell
         # from different runs have different version numbers.
-        self.version = randint(0, maxint)
+        self.version = randint(0, maxsize)
         self.interrupted = False
         self.evaluated = False
         self.__interact_input = None
