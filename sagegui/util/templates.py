@@ -216,13 +216,6 @@ class DynamicJs(object):
                             SAGE_URL=SAGE_URL,
                             KEY_CODES=keyhandler.all_tests(),
                             debug_mode=self.debug_mode)
-
-        # TODO: use minify here, which is more standard (and usually safer
-        # and with gzip compression, smaller); But first inquire about the
-        # propriety of the "This software shall be used for Good, not
-        # Evil" clause in the license.  Does that prevent us from
-        # distributing it (i.e., it adds an extra condition to the
-        # software)?  See http://www.crockford.com/javascript/jsmin.py.txt
         s = jsmin(s)
         return (s, sha1(s).hexdigest())
 
