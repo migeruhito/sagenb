@@ -649,7 +649,7 @@ class Notebook(object):
         S.save_worksheet(W)
         username = W.owner
         id_number = W.id_number
-        S.export_wst(username, id_number, output_filename, title=title)
+        S.export_worksheet(username, id_number, output_filename, title=title)
 
     def import_wst(self, filename, owner):
         r"""
