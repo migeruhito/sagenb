@@ -3,11 +3,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from six.moves.urllib.parse import quote
-from six.moves.urllib.parse import unquote
-from six.moves.urllib.parse import urljoin
-from six.moves.urllib.parse import urlparse
-from six.moves.urllib.request import urlretrieve
+from future.moves.urllib.parse import quote
+from future.moves.urllib.parse import unquote
+from future.moves.urllib.parse import urljoin
+from future.moves.urllib.parse import urlparse
+from future.moves.urllib.request import urlretrieve
 
 import os
 import re

@@ -39,7 +39,7 @@ Sage notebook server::
 from __future__ import absolute_import
 from __future__ import print_function
 
-from six.moves import cPickle as pickle
+from future.moves import pickle
 
 import copy
 import os

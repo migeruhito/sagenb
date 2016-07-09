@@ -37,7 +37,7 @@ install_requires = [
     'flask-autoindex',
     'flask-babel'
     'flask-themes2',
-    'six',
+    'future',
     'smtpsend',
     'pexpect',
     'docutils',
@@ -53,29 +53,27 @@ setup(
     author_email='sage-notebook@googlegroups.com',
     url='http://github.com/sagemath/sagenb',
     install_requires=install_requires,
-    dependency_links=[
-        'http://github.com/mitsuhiko/flask-oldsessions/tarball/'
-        'master#egg=flask-oldsessions-0.10'
-        ],
+    dependency_links=[],
     test_suite='sagenb.testing.run_tests.all_tests',
     packages=[
+        'sagegui',
+        'sagegui.blueprints',
+        'sagegui.gui',
+        'sagegui.sage_server',
+        'sagegui.storage',
+        'sagegui.util',
+        'sagegui.compress',
         'sagenb',
-        'sagenb.flask_version',
-        'sagenb.interfaces',
-        'sagenb.misc',
         'sagenb.notebook',
-        'sagenb.notebook.compress',
-        'sagenb.simple',
-        'sagenb.storage',
         'sagenb.testing',
         'sagenb.testing.tests',
         'sagenb.testing.selenium',
         ],
-    scripts=['sagenb/data/sage3d/sage3d'],
+    scripts=['sagegui/static/sage3d/sage3d'],
     package_data={
-        'sagenb': (all_files('sagenb/data', 'sagenb/') +
-                   all_files('sagenb/translations', 'sagenb/') +
-                   all_files('sagenb/themes', 'sagenb/'))
+        'sagegui': (all_files('sagegui/static', 'sagegui/') +
+                    all_files('sagegui/translations', 'sagegui/') +
+                    all_files('sagegui/themes', 'sagegui/'))
         },
     zip_safe=False,
 )

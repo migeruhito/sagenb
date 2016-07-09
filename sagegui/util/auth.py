@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from six.moves.urllib.parse import urlencode
-from six.moves.urllib.request import Request
-from six.moves.urllib.request import urlopen
+from future.moves.urllib.parse import urlencode
+from future.moves.urllib.request import Request
+from future.moves.urllib.request import urlopen
 
 import hashlib
 import os

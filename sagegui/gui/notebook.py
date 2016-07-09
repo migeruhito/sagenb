@@ -19,7 +19,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from six.moves import cPickle as pickle
+from future.moves import pickle
 import logging
 import os
 import re

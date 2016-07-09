@@ -16,8 +16,7 @@ Goals
   a clear web server API, so that different web clients could be
   implemented.
   
-* All the interact code must be refactored. The sage server must be only used 
-  as a computing tool, not as a HTML widget generator.
+* Interact code refactor.
 
 * Improve maintainability.
 
