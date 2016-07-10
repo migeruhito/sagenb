@@ -1,7 +1,8 @@
 from __future__ import absolute_import
-from __future__ import print_function
 from __future__ import division
-
+from __future__ import print_function
+from __future__ import unicode_literals
+from builtins import str
 from future.moves.urllib.parse import urlencode
 from future.moves.urllib.request import Request
 from future.moves.urllib.request import urlopen
