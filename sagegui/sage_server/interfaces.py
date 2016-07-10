@@ -22,6 +22,7 @@ AUTHORS:
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
 
 import os
 import re
@@ -389,7 +390,8 @@ class SageServerExpect(SageServerABC):
                 '_support_.execute_code('
                 '"{}", globals(), mode="{}", start_label="{}", '
                 'print_time={})'.format(
-                    b64encode(code), mode, self._start_label, print_time))
+                    b64encode(code.encode('utf-8')).decode('utf-8'),
+                    mode, self._start_label, print_time))
         except OSError as msg:
             self._is_computing = False
             self._so_far = str(msg)
@@ -419,7 +421,7 @@ class SageServerExpect(SageServerABC):
         if self._expect is None:
             self._is_computing = False
         else:
-            self._so_far = self._expect.before
+            self._so_far = self._expect.before.decode('utf-8')
 
         v = re.findall('{}.*{}'.format(self._start_label, self._prompt),
                        self._so_far, re.DOTALL)

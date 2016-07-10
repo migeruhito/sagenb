@@ -15,6 +15,8 @@ a list of cells.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
+from builtins import open
 
 import ast
 import os
@@ -33,7 +35,6 @@ from ..config import MAX_OUTPUT
 from ..config import MAX_OUTPUT_LINES
 from ..config import TRACEBACK
 from ..util import cached_property
-from ..util import encoded_str
 from ..util import set_restrictive_permissions
 from ..util import unicode_str
 from ..util import word_wrap
@@ -315,7 +316,7 @@ class TextCell(Cell):
             sage: C.__repr__()
             'TextCell 0: 2+3'
         """
-        return "TextCell %s: %s" % (self.id, encoded_str(self.input))
+        return "TextCell %s: %s" % (self.id, self.input)
 
     @property
     def input(self):
@@ -896,7 +897,7 @@ class ComputeCell(Cell):
             url = ""
             if not self.computing:
                 file = os.path.join(self.directory(), "full_output.txt")
-                open(file, "w").write(encoded_str(output))
+                open(file, "w").write(output)
                 url = ("<a target='_new' href='%s/full_output.txt' "
                        "class='file_link'>full_output.txt</a>" % (
                            self.url_to_self()))

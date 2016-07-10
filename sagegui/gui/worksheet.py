@@ -28,6 +28,8 @@ AUTHORS:
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
+from builtins import open
 
 import bz2
 import calendar
@@ -52,7 +54,6 @@ from ..config import WS_ACTIVE
 from ..config import WS_ARCHIVED
 from ..config import WS_TRASH
 from ..util import cached_property
-from ..util import encoded_str
 from ..util import ignore_nonexistent_files
 from ..util import makedirs
 from ..util import id_generator
@@ -1408,11 +1409,10 @@ class Worksheet(object):
             return
         basename = '{:.0f}'.format(time.time())
 
-        body = encoded_str(self.body)
         with open(self.worksheet_html_filename, 'w') as f:
-            f.write(body)
+            f.write(self.body)
         with open(self.snapshot_filename(basename), 'w') as f:
-            f.write(bz2.compress(body))
+            f.write(bz2.compress(self.body))
 
         self.limit_snapshots()
         self.saved_by_info[basename] = user

@@ -39,6 +39,8 @@ Sage notebook server::
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
+from builtins import open
 
 from future.moves import pickle
 
@@ -54,7 +56,6 @@ from ..config import UN_SAGE
 from ..controllers import User
 from ..models import ServerConfiguration
 from ..util import set_restrictive_permissions
-from ..util import encoded_str
 from ..gui.worksheet import Worksheet_from_basic
 
 from .abstract_storage import Datastore
@@ -396,7 +397,7 @@ class FilesystemDatastore(Datastore):
     #########################################################################
 
     def _load(self, filename):
-        with open(self._abspath(filename)) as f:
+        with open(self._abspath(filename), 'rb') as f:
             result = pickle.load(f)
         return result
 
@@ -711,7 +712,6 @@ class FilesystemDatastore(Datastore):
         if title:
             # change the title
             basic['name'] = title
-        basic['name'] = encoded_str(basic['name'])
         # Remove metainformation that perhaps shouldn't be distributed
         for k in ['owner', 'ratings', 'worksheet_that_was_published',
                   'tags', 'published_id_number',

@@ -281,27 +281,6 @@ def word_wrap(s, ncols=85):
     return '\n'.join(t)
 
 
-def encoded_str(obj, encoding='utf-8'):
-    ur"""
-    Takes an object and returns an encoded str human-readable representation.
-
-    EXAMPLES::
-
-        sage: from sagenb.misc.misc import encoded_str
-        sage: encoded_str(
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
-            ) == 'ěščřžýáíéďĎ'
-        True
-        sage: encoded_str(u'abc')
-        'abc'
-        sage: encoded_str(123)
-        '123'
-    """
-    if isinstance(obj, unicode):
-        return obj.encode(encoding, 'ignore')
-    return str(obj)
-
-
 def unicode_str(obj, encoding='utf-8'):
     ur"""
     Takes an object and returns a unicode human-readable representation.

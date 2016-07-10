@@ -11,6 +11,7 @@ AUTHORS:
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import ast
 import base64
@@ -646,7 +647,8 @@ def automatic_names(state=None):
 # Code execution
 
 def break_code(code, nodes=True):
-    tree = ast.parse(code.replace('\r\n', '\n').replace('\r', '\n'))
+    code = code.replace('\r\n', '\n').replace('\r', '\n')
+    tree = ast.parse(code)
     limits = ((node.lineno - 1, node.col_offset) for node in tree.body)
     line_offsets = [0]
     for line in code.splitlines(True)[:-1]:
@@ -821,7 +823,7 @@ def preparse_worksheet_cell(s, globals):
 
 
 def execute_code(code, globals, mode='raw', start_label='', print_time=False):
-    code = base64.b64decode(code)
+    code = base64.b64decode(code.encode('utf-8')).decode('utf-8')
     if mode != 'raw':
         print(start_label)
 
