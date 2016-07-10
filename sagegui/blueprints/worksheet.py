@@ -144,7 +144,7 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: render_ws_template(W, UN_ADMIN)
-        u'...Test...cell_input...if (e.shiftKey)...state_number...'
+        '...Test...cell_input...if (e.shiftKey)...state_number...'
     """
     if ws is None:
         return message_template(_("The worksheet does not exist"),
@@ -198,10 +198,10 @@ def html_worksheet_revision_list(username, worksheet):
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: W.body
-        u'\n\n{{{id=1|\n\n///\n}}}'
+        '\n\n{{{id=1|\n\n///\n}}}'
         sage: W.save_snapshot(UN_ADMIN)
         sage: nb.html_worksheet_revision_list(UN_ADMIN, W)
-        u'...Revision...Last Edited...ago...'
+        '...Revision...Last Edited...ago...'
     """
     data = worksheet.snapshot_data()  # pairs ('how long ago', key)
 
@@ -280,7 +280,7 @@ def html_share(worksheet, username):
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_share(W, UN_ADMIN)
-        u'...currently shared...add or remove collaborators...'
+        '...currently shared...add or remove collaborators...'
     """
     return render_template(
         os.path.join("html", "notebook", "worksheet_share.html"),
@@ -313,7 +313,7 @@ def html_download_or_delete_datafile(ws, username, filename):
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_download_or_delete_datafile(W, UN_ADMIN, 'bar')
-        u'...Data file: bar...DATA is a special variable...uploaded...'
+        '...Data file: bar...DATA is a special variable...uploaded...'
     """
     ext = os.path.splitext(filename)[1].lower()
     file_is_image, file_is_text = False, False
@@ -359,7 +359,7 @@ def html_edit_window(worksheet, username):
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_edit_window(W, UN_ADMIN)
-        u'...textarea class="plaintextedit"...{{{id=1|...//...}}}...'
+        '...textarea class="plaintextedit"...{{{id=1|...//...}}}...'
     """
 
     return render_template(
@@ -392,7 +392,7 @@ def html_beforepublish_window(worksheet, username):
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_beforepublish_window(W, UN_ADMIN)
-        u'...want to publish this worksheet?...re-publish when changes...'
+        '...want to publish this worksheet?...re-publish when changes...'
     """
     return render_template(
         os.path.join("html", "notebook", "beforepublish_window.html"),
@@ -452,7 +452,7 @@ def html_upload_data_window(ws, username):
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_upload_data_window(W, UN_ADMIN)
-        u'...Upload or Create Data File...Browse...url...name of a new...'
+        '...Upload or Create Data File...Browse...url...name of a new...'
     """
     return render_template(
         os.path.join("html", "notebook", "upload_data_window.html"),
@@ -480,7 +480,7 @@ def html_ratings_info(ws, username=None):
         sage: W.rate(0, 'this lacks content', 'riemann')
         sage: W.rate(3, 'this is great', 'hilbert')
         sage: W.html_ratings_info()
-        u'...hilbert...3...this is great...this lacks content...'
+        '...hilbert...3...this is great...this lacks content...'
     """
     return render_template(
         os.path.join('html', 'worksheet', 'ratings_info.html'),
@@ -512,7 +512,7 @@ def html_plain_text_window(worksheet, username):
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_plain_text_window(W, UN_ADMIN)
-        u'...pre class="plaintext"...cell_intext...textfield...'
+        '...pre class="plaintext"...cell_intext...textfield...'
     """
     plain_text = worksheet.plain_text
     plain_text = escape(plain_text).strip()
@@ -1255,7 +1255,7 @@ def worksheet_jsmol_data(worksheet):
         'query',
         "http://cactus.nci.nih.gov/chemical/structure/ethanol/"
         "file?format=sdf&get3d=True")
-    call = request.values.get('call', u'getRawDataFromDatabase')
+    call = request.values.get('call', 'getRawDataFromDatabase')
     encoding = request.values.get('encoding', None)
 
     current_app.logger.debug('JSmol call:  %s', call)
@@ -1263,7 +1263,7 @@ def worksheet_jsmol_data(worksheet):
     if encoding is None:
         def encoder(x):
             return x
-    elif encoding == u'base64':
+    elif encoding == 'base64':
         def encoder(x):
             # JSmol expects the magic ';base64,' in front of output
             return ';base64,' + base64.encodestring(x)
@@ -1272,7 +1272,7 @@ def worksheet_jsmol_data(worksheet):
         return message_template(_('Invalid JSmol encoding: ' + str(encoding)),
                                 username=g.username)
 
-    if call == u'getRawDataFromDatabase':
+    if call == 'getRawDataFromDatabase':
         # Annoyingly, JMol prepends the worksheet url (not: the
         # request url) to the query. Strip off:
         worksheet_url = request.base_url[:-len('/jsmol')]

@@ -327,10 +327,10 @@ class Worksheet(object):
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('A Test Worksheet', 'admin')
             sage: W.name
-            u'A Test Worksheet'
+            'A Test Worksheet'
             sage: W = nb.create_wst('ěščřžýáíéďĎ', 'admin')
             sage: W.name
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+            '\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
         return self.__name
 
@@ -351,7 +351,7 @@ class Worksheet(object):
             sage: W = nb.create_wst('A Test Worksheet', 'admin')
             sage: W.name = 'A renamed worksheet'
             sage: W.name
-            u'A renamed worksheet'
+            'A renamed worksheet'
         """
         if not name or repr(name) == '<_LazyString broken>':
             name = gettext('Untitled')
@@ -600,7 +600,7 @@ class Worksheet(object):
             sage: sorted((W.basic.items()))
             [('auto_publish', False), ('collaborators', []),
              ('id_number', 0), ('last_change', ('sage', ...)),
-             ('live_3D', False), ('name', u'test'), ('owner', 'sage'),
+             ('live_3D', False), ('name', 'test'), ('owner', 'sage'),
              ('pretty_print', False), ('published_id_number', None),
              ('ratings', []), ('saved_by_info', {}), ('system', None),
              ('tags', {'sage': [1]}),
@@ -1529,7 +1529,7 @@ class Worksheet(object):
             5, Cell 1: in=2+8, out=
             10]
             sage: W.name
-            u'Test Edit Save'
+            'Test Edit Save'
 
         We check that loading a worksheet whose last cell is a
         :class:`~sagenb.notebook.cell.TextCell` properly increments
@@ -1643,7 +1643,7 @@ class Worksheet(object):
             5, Cell 1: in=2+8, out=
             10]
             sage: W.name
-            u'Test Edit Save'
+            'Test Edit Save'
 
         We check that loading a worksheet whose last cell is a
         :class:`~sagenb.notebook.cell.TextCell` properly increments
@@ -1850,17 +1850,17 @@ class Worksheet(object):
             ['foo', 9, 'dont_delete_me']
             sage: C = W.cells[1]           # save a reference to the cell
             sage: C.output_text(raw=True)
-            u'\n10'
+            '\n10'
             sage: open(os.path.join(C.directory, 'bar'), 'w').write('hello')
             sage: C.files()
             ['bar']
             sage: C.files_html('')
-            u'<a target="_new" href=".../cells/9/bar" class="file_link">bar'
-            u'</a>'
+            '<a target="_new" href=".../cells/9/bar" class="file_link">bar'
+            '</a>'
             sage: W.delete_cell_with_id(C.id)
             'foo'
             sage: C.output_text(raw=True)
-            u''
+            ''
             sage: C.files()
             []
             sage: W.cell_id_list
@@ -2524,7 +2524,7 @@ class Worksheet(object):
     # Loading and attaching files
 
     def _eval_cmd(self, system, cmd):
-        return u"print(_support_.syseval(%s, %r, __SAGE_TMP_DIR__))" % (
+        return "print(_support_.syseval(%s, %r, __SAGE_TMP_DIR__))" % (
             system, cmd)
 
     # Parsing the %cython, %mathjax, %python, etc., extension.
@@ -2548,13 +2548,13 @@ class Worksheet(object):
             sage: W.get_cell_system(c0)
             'sage'
             sage: W.get_cell_system(c1)
-            u'gap'
+            'gap'
             sage: W.edit_save(
                 '{{{\n%sage\n2+3\n}}}\n\n{{{\nSymmetricGroup(5)\n}}}')
             sage: W.system = 'gap'
             sage: c0, c1 = W.cells
             sage: W.get_cell_system(c0)
-            u'sage'
+            'sage'
             sage: W.get_cell_system(c1)
             'gap'
         """
@@ -2614,9 +2614,9 @@ class Worksheet(object):
                 '{{{\n2+3\n}}}\n\n{{{\n%gap\nSymmetricGroup(5)\n}}}')
             sage: c0, c1 = W.cells
             sage: W.check_for_system_switching(c0.cleaned_input_text, c0)
-            (False, u'2+3')
+            (False, '2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text, c1)
-            (True, u"print(_support_.syseval(gap, u'SymmetricGroup(5)',
+            (True, "print(_support_.syseval(gap, 'SymmetricGroup(5)',
              __SAGE_TMP_DIR__))")
 
         ::
@@ -2644,9 +2644,9 @@ class Worksheet(object):
             sage: W.system = 'gap'
             sage: c0, c1 = W.cells
             sage: W.check_for_system_switching(c0.cleaned_input_text, c0)
-            (False, u'2+3')
+            (False, '2+3')
             sage: W.check_for_system_switching(c1.cleaned_input_text, c1)
-            (True, u"print(_support_.syseval(gap, u'SymmetricGroup(5)',
+            (True, "print(_support_.syseval(gap, 'SymmetricGroup(5)',
              __SAGE_TMP_DIR__))")
             sage: c0.evaluate()
             sage: W.check_comp(

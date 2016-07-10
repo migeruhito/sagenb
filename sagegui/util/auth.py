@@ -411,12 +411,12 @@ class NotConfiguredChallenge(AbstractChallenge):
 
 # HTML template for :class:`SimpleChallenge`.
 SIMPLE_TEMPLATE = (
-    u'<p>%(question)s</p>\n'
-    u'<input type="text" id="simple_response_field" '
-    u'name="simple_response_field" class="entry" tabindex="5" />\n'
-    u'<input type="hidden" value="%(untranslated_question)s" '
-    u'id="simple_challenge_field" name="simple_challenge_field" '
-    u'class="entry" />')
+    '<p>%(question)s</p>\n'
+    '<input type="text" id="simple_response_field" '
+    'name="simple_response_field" class="entry" tabindex="5" />\n'
+    '<input type="hidden" value="%(untranslated_question)s" '
+    'id="simple_challenge_field" name="simple_challenge_field" '
+    'class="entry" />')
 
 old_tr = _
 
@@ -669,9 +669,9 @@ class reCAPTCHAChallenge(AbstractChallenge):
             sage: nb = n.Notebook(tmp)
             sage: chal = reCAPTCHAChallenge(nb.conf, remote_ip = 'localhost')
             sage: chal.html()
-            u'...recaptcha...'
+            '...recaptcha...'
             sage: chal.html('incorrect-captcha-sol')
-            u'...incorrect-captcha-sol...'
+            '...incorrect-captcha-sol...'
 
         """
         error_param = ''

@@ -658,7 +658,7 @@ def break_code(code, nodes=True):
     lines = []
     for i, offset in enumerate(offsets[:-1]):
         node = tree.body[i]
-        line = code[offset:offsets[i + 1]].rstrip(u' \t')
+        line = code[offset:offsets[i + 1]].rstrip(' \t')
         lines.append([line, node] if nodes else line)
     return lines
 

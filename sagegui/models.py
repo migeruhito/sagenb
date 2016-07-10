@@ -427,11 +427,11 @@ class Configuration(object):
             except KeyError:
                 G[gp] = [key]
 
-        s = u''
+        s = ''
         color_picker = 0
-        special_init = u''
+        special_init = ''
         for group in G:
-            s += (u'<div class="section">\n  <h2>%s</h2>\n  <table>\n' %
+            s += ('<div class="section">\n  <h2>%s</h2>\n  <table>\n' %
                   lazy_gettext(group))
 
             opts = G[group]
@@ -445,7 +445,7 @@ class Configuration(object):
                     return cmp(wx, wy)
             opts.sort(sortf)
             for o in opts:
-                s += (u'    <tr>\n      <td>%s</td>\n      <td>\n' %
+                s += ('    <tr>\n      <td>%s</td>\n      <td>\n' %
                       lazy_gettext(DS[o][DESC]))
                 input_type = 'text'
                 input_value = self[o]
@@ -461,44 +461,44 @@ class Configuration(object):
                         input_value = ','.join(input_value)
 
                 if DS[o][TYPE] == T_CHOICE:
-                    s += u'        <select name="%s" id="%s">\n' % (o, o)
+                    s += '        <select name="%s" id="%s">\n' % (o, o)
                     for c in DS[o][CHOICES]:
                         selected = ''
                         if c == input_value:
-                            selected = u' selected="selected"'
-                        s += (u'          <option value="%s"%s>%s</option>\n' %
+                            selected = ' selected="selected"'
+                        s += ('          <option value="%s"%s>%s</option>\n' %
                               (c, selected, lazy_gettext(c)))
-                    s += u'        </select>\n'
+                    s += '        </select>\n'
 
                 elif DS[o][TYPE] == T_INFO:
-                    s += u'        <span>%s</span>' % input_value
+                    s += '        <span>%s</span>' % input_value
 
                 else:
-                    s += (u'        <input type="%s" name="%s" id="%s" '
-                          u'value="%s" %s>\n' % (
+                    s += ('        <input type="%s" name="%s" id="%s" '
+                          'value="%s" %s>\n' % (
                               input_type, o, o, input_value, extra))
 
                     if DS[o][TYPE] == T_COLOR:
-                        s += (u'        <div id="picker_%s"></div>\n' %
+                        s += ('        <div id="picker_%s"></div>\n' %
                               color_picker)
                         special_init += (
-                            u'    $("#picker_%s").farbtastic("#%s");\n' % (
+                            '    $("#picker_%s").farbtastic("#%s");\n' % (
                                 color_picker, o))
                         color_picker += 1
 
-                s += (u'      </td>\n      <td class="%s">%s</td>\n'
-                      u'    </tr>\n' % updated.get(o, ('', '')))
+                s += ('      </td>\n      <td class="%s">%s</td>\n'
+                      '    </tr>\n' % updated.get(o, ('', '')))
 
-            s += u'  </table>\n</div>\n'
+            s += '  </table>\n</div>\n'
 
-        s += (u'<script type="text/javascript">\n'
-              u'$(document).ready(function() {\n' + special_init +
+        s += ('<script type="text/javascript">\n'
+              '$(document).ready(function() {\n' + special_init +
               '});\n</script>')
 
-        lines = s.split(u'\n')
-        lines = map(lambda x: u'  ' + x, lines)
+        lines = s.split('\n')
+        lines = map(lambda x: '  ' + x, lines)
 
-        return u'\n'.join(lines)
+        return '\n'.join(lines)
 
 
 class ServerConfiguration(Configuration):
@@ -574,7 +574,7 @@ class User(object):
 
 class Worksheet(object):
     def __init__(self,
-                 owner, id_number, name=u'', system='sage',
+                 owner, id_number, name='', system='sage',
 
                  pretty_print=False, live_3D=False, auto_publish=False,
                  last_change=None, saved_by_info=None, tags=None,

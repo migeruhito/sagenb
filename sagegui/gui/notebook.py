@@ -685,7 +685,7 @@ class Notebook(object):
         W is our newly-created worksheet, with the 2+3 cell in it::
 
             sage: W.name
-            u'foo'
+            'foo'
             sage: W.cells
             [TextCell 0: foo, Cell 1: in=2+3, out=]
         """
@@ -873,7 +873,7 @@ class Notebook(object):
             sage: fd.close()
             sage: W = nb._import_wst_html(name, 'admin')
             sage: W.name
-            u'Test notebook -- test'
+            'Test notebook -- test'
             sage: W.owner
             'admin'
             sage: W.cells
@@ -889,9 +889,9 @@ class Notebook(object):
             </div></div></div></div>]
             sage: cell = W.cells[1]
             sage: cell.input
-            u'1+1'
+            '1+1'
             sage: cell.output_text()
-            u'<pre class="shrunk">2</pre>'
+            '<pre class="shrunk">2</pre>'
         """
         # Inspired from sagenb.notebook.twist.WorksheetFile.render
         doc_page_html = open(filename).read()
@@ -950,7 +950,7 @@ class Notebook(object):
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_wst_rst(name, 'admin')
             sage: W.name
-            u'Test Notebook'
+            'Test Notebook'
             sage: W.owner
             'admin'
             sage: W.cells
@@ -961,9 +961,9 @@ class Notebook(object):
             x^2]
             sage: cell = W.cells[1]
             sage: cell.input
-            u'2+2'
+            '2+2'
             sage: cell.output_text()
-            u'<pre class="shrunk">4</pre>'
+            '<pre class="shrunk">4</pre>'
 
         """
         rst = open(filename).read()
@@ -1035,7 +1035,7 @@ class Notebook(object):
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_wst_docutils_html(name, 'admin')
             sage: W.name
-            u'Test Notebook'
+            'Test Notebook'
             sage: W.owner
             'admin'
             sage: W.cells
@@ -1046,9 +1046,9 @@ class Notebook(object):
             x^2]
             sage: cell = W.cells[1]
             sage: cell.input
-            u'2+2'
+            '2+2'
             sage: cell.output_text()
-            u'<pre class="shrunk">4</pre>'
+            '<pre class="shrunk">4</pre>'
 
         """
         html = open(filename).read()

@@ -328,7 +328,7 @@ class TextCell(Cell):
 
     @input.deleter
     def input(self):
-        self.__input = u''
+        self.__input = ''
 
     def delete_output(self):
         """
@@ -394,7 +394,7 @@ class TextCell(Cell):
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', W)
             sage: C.html()
-            u'...text_cell...2+3...'
+            '...text_cell...2+3...'
             sage: C.input = "$2+3$"
         """
         return render_template(
@@ -421,10 +421,10 @@ class TextCell(Cell):
 
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', None)
             sage: C.plain_text
-            u'2+3'
+            '2+3'
             sage: C = sagenb.notebook.cell.TextCell(0, 'ěščřžýáíéďĎ', None)
             sage: C.plain_text
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+            '\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
         return self.input
 
@@ -442,7 +442,7 @@ class TextCell(Cell):
 
             sage: C = sagenb.notebook.cell.TextCell(0, '2+3', None)
             sage: C.edit_text
-            u'2+3'
+            '2+3'
         """
         return self.input
 
@@ -488,10 +488,10 @@ class ComputeCell(Cell):
         self.__interact_input = None
         self.__interact_output = None
         self.has_new_output = False
-        self.__changed_input = u''  # property
+        self.__changed_input = ''  # property
         # self.introspect = False
         self.__introspect = False
-        self.__introspect_html = u''  # property
+        self.__introspect_html = ''  # property
 
         # Data model
         self.__input = input  # property
@@ -538,7 +538,7 @@ class ComputeCell(Cell):
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.input
-            u'2+3'
+            '2+3'
         """
         return self.__input
 
@@ -570,7 +570,7 @@ class ComputeCell(Cell):
             sage: initial_version=C.version
             sage: C.input = '3+3'
             sage: C.input
-            u'3+3'
+            '3+3'
             sage: C.evaluated
             False
             sage: C.version-initial_version
@@ -612,14 +612,14 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: initial_version=C.version
             sage: C.changed_input
-            u''
+            ''
             sage: C.changed_input = '3+3'
             sage: C.input
-            u'3+3'
+            '3+3'
             sage: C.changed_input
-            u'3+3'
+            '3+3'
             sage: C.changed_input
-            u''
+            ''
             sage: C.version-initial_version
             0
         """
@@ -643,16 +643,16 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.changed_input = '3+3'
             sage: C.input
-            u'3+3'
+            '3+3'
             sage: C.changed_input
-            u'3+3'
+            '3+3'
         """
         self.__changed_input = value
         self.__input = self.__changed_input
 
     @changed_input.deleter
     def changed_input(self):
-        self.__changed_input = u''
+        self.__changed_input = ''
 
     @cached_property()
     def __parsed_input(self):
@@ -669,9 +669,9 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%hide\n%maxima\n%pi+3', '5', None)
             sage: C.parse_percent_directives()
-            u'%pi+3'
+            '%pi+3'
             sage: C.percent_directives
-            [u'hide', u'maxima']
+            ['hide', 'maxima']
         """
         percent, text = re.match(
             r'((?:(?:^|(?<=\n))\s*(?:%.*?|#auto)\s*(?:\n|$))*)(.*)',
@@ -706,7 +706,7 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%maxima\n2+3', '5', None)
             sage: C.system
-            u'maxima'
+            'maxima'
             sage: prefixes = ['%hide', '%time', '']
             sage: cells = [sagenb.notebook.cell.ComputeCell(
                 0, '%s\n2+3'%prefix, '5', None) for prefix in prefixes]
@@ -729,7 +729,7 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%hide\n%maxima\n2+3', '5', None)
             sage: C.percent_directives
-            [u'hide', u'maxima']
+            ['hide', 'maxima']
         """
         return self.__parsed_input[1]
 
@@ -749,7 +749,7 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, '%hide\n%maxima\n2+3', '5', None)
             sage: C.cleaned_input_text
-            u'2+3'
+            '2+3'
         """
         return (self.__interact_input if self.__interact_input is not None
                 else self.__parsed_input[2])
@@ -786,18 +786,18 @@ class ComputeCell(Cell):
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.output_text()
-            u'<pre class="shrunk">5</pre>'
+            '<pre class="shrunk">5</pre>'
             sage: C.output_text(html=False)
-            u'<pre class="shrunk">5</pre>'
+            '<pre class="shrunk">5</pre>'
             sage: C.output_text(raw=True)
-            u'5'
+            '5'
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', W)
             sage: C.output_text()
-            u'<pre class="shrunk">'
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e</pre>'
+            '<pre class="shrunk">'
+            '\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e</pre>'
             sage: C.output_text(raw=True)
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+            '\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
         """
         if allow_interact and self.__interact_output is not None:
             # Get the input template
@@ -825,8 +825,8 @@ class ComputeCell(Cell):
                 s = self.__output.replace('cell-interact', '')
                 is_interact = False
             else:
-                return (u'<h2>Click to the left again to hide and once more '
-                        u'to show the dynamic interactive window</h2>')
+                return ('<h2>Click to the left again to hide and once more '
+                        'to show the dynamic interactive window</h2>')
         else:
             s = self.__output
 
@@ -839,7 +839,7 @@ class ComputeCell(Cell):
         if html:
             s = self.parse_html(s, ncols, pre_wrapping)
         elif pre_wrapping:
-            s = u'<pre class="shrunk">{}</pre>'.format(s)
+            s = '<pre class="shrunk">{}</pre>'.format(s)
         return s
 
     def set_output_text(self, output, html):
@@ -867,9 +867,9 @@ class ComputeCell(Cell):
         output = output
         html = html
         if output.count(INTERACT_TEXT) > 1:
-            html = (u'<h3><font color="red">WARNING: multiple @interacts in '
-                    u'one cell disabled (not yet implemented).</font></h3>')
-            output = u''
+            html = ('<h3><font color="red">WARNING: multiple @interacts in '
+                    'one cell disabled (not yet implemented).</font></h3>')
+            output = ''
 
         # In interacting mode, we just save the computed output
         # (do not overwrite).
@@ -952,8 +952,8 @@ class ComputeCell(Cell):
             sage: W.quit()
             sage: nb.delete()
         """
-        self.__output = u''
-        self._out_html = u''
+        self.__output = ''
+        self._out_html = ''
         self.evaluated = False
         self.delete_files()
 
@@ -996,7 +996,7 @@ class ComputeCell(Cell):
             sage: nb.delete()
         """
         if self.is_interactive_cell():
-            self._out_html = u""
+            self._out_html = ""
         else:
             self._out_html = self.files_html(output)
 
@@ -1087,7 +1087,7 @@ class ComputeCell(Cell):
         text = '\n'.join((
             text.strip('\n'), out.strip('\r\n')))
 
-        return text if plain else u'{{{id=%s|\n%s\n}}}' % (
+        return text if plain else '{{{id=%s|\n%s\n}}}' % (
             self.id, text.rstrip('\n'))
 
     @property
@@ -1119,13 +1119,13 @@ class ComputeCell(Cell):
 
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', None)
             sage: C.edit_text
-            u'{{{id=0|\n2+3\n///\n5\n}}}'
+            '{{{id=0|\n2+3\n///\n5\n}}}'
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, 'ěščřžýáíéďĎ', 'ěščřžýáíéďĎ', None)
             sage: C.edit_text
-            u'{{{id=0|\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f'
-            u'\u010e\n///\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9'
-            u'\u010f\u010e\n}}}'
+            '{{{id=0|\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f'
+            '\u010e\n///\n\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9'
+            '\u010f\u010e\n}}}'
         """
         return self.format_text(plain=False)
 
@@ -1257,7 +1257,7 @@ class ComputeCell(Cell):
         r['percent_directives'] = self.percent_directives
         r['system'] = self.system
         r['auto'] = self.is_auto_cell()
-        r['introspect_output'] = u''
+        r['introspect_output'] = ''
         return r
     # New UI end
 
@@ -1276,7 +1276,7 @@ class ComputeCell(Cell):
             ''
             sage: C.set_output_text('5', '<strong>5</strong>')
             sage: C.output_html()
-            u'<strong>5</strong>'
+            '<strong>5</strong>'
         """
         try:
             return self._out_html
@@ -1348,14 +1348,14 @@ class ComputeCell(Cell):
             sage: C.parse_html(
                     '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">'
                     '\n<html><head></head><body>Test</body></html>', 80, True)
-            u'<pre class="shrunk">
+            '<pre class="shrunk">
             &lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"&gt;\n</pre>
             <head></head><body>Test</body>'
         """
         def format(x):
             x = word_wrap(escape(x), ncols)
             if pre_wrapping:
-                x = u'<pre class="shrunk">{}</pre>'.format(x)
+                x = '<pre class="shrunk">{}</pre>'.format(x)
             return x
 
         def format_html(x):
@@ -1436,7 +1436,7 @@ class ComputeCell(Cell):
             sage: C = sagenb.notebook.cell.ComputeCell(
                 0, "%html\nTest HTML", None, None)
             sage: C.system
-            u'html'
+            'html'
             sage: C.is_html()
             True
             sage: C = sagenb.notebook.cell.ComputeCell(
@@ -1474,11 +1474,11 @@ class ComputeCell(Cell):
             ('d', Cell 0: in=sage?, out=)
             sage: C.introspect_html
             # random output -- depends on computer speed
-            u'...<div class="docstring">...sage...</pre></div>...'
+            '...<div class="docstring">...sage...</pre></div>...'
             sage: W.quit()
             sage: nb.delete()
         """
-        return u'' if not self.introspect else self.__introspect_html
+        return '' if not self.introspect else self.__introspect_html
 
     @introspect_html.setter
     def introspect_html(self, html):
@@ -1510,13 +1510,13 @@ class ComputeCell(Cell):
             ('d', Cell 0: in=sage?, out=)
             sage: C.introspect_html = 'foobar'
             sage: C.introspect_html
-            u'foobar'
+            'foobar'
             sage: C.introspect_html = '`foobar`'
             sage: C.introspect_html
-            u'`foobar`'
+            '`foobar`'
             sage: C.introspect_html = 'ěščřžýáíéďĎ'
             sage: C.introspect_html
-            u'\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
+            '\u011b\u0161\u010d\u0159\u017e\xfd\xe1\xed\xe9\u010f\u010e'
             sage: W.quit()
             sage: nb.delete()
         """
@@ -1622,7 +1622,7 @@ class ComputeCell(Cell):
             sage: W = nb.create_wst('Test', 'sage')
             sage: C = sagenb.notebook.cell.ComputeCell(0, '2+3', '5', W)
             sage: C.html()
-            u'...cell_outer_0...2+3...5...'
+            '...cell_outer_0...2+3...5...'
         """
         if wrap is None:
             wrap = self.word_wrap_cols
