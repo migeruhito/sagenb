@@ -13,6 +13,10 @@ Script to start the notebook form the command line
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
+from builtins import open
+from builtins import str
+from future.utils import native_str
 
 from future.moves.urllib.parse import quote
 
@@ -509,7 +513,7 @@ class NotebookFrontend(object):
         # site = server.Site(resource)
 
         application = service.Application("Sage Notebook")
-        s = strports.service(self.conf['strport'], site)
+        s = strports.service(native_str(self.conf['strport']), site)
         self.open_page()
         s.setServiceParent(application)
 
@@ -574,7 +578,7 @@ class NotebookFrontend(object):
 
     def write_pid(self):
         with open(self.conf['pidfile'], "w") as pidfile:
-            pidfile.write(str(os.getpid()))
+            pidfile.write(str(os.getpid()))  # py2: str
 
     def save_notebook(self):
         print('Quitting all running worksheets...')

@@ -17,6 +17,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from builtins import open
+from builtins import str
 
 import ast
 import os
@@ -36,7 +37,6 @@ from ..config import MAX_OUTPUT_LINES
 from ..config import TRACEBACK
 from ..util import cached_property
 from ..util import set_restrictive_permissions
-from ..util import unicode_str
 from ..util import word_wrap
 from ..util.templates import render_template
 from ..util.text import format_exception
@@ -300,7 +300,7 @@ class TextCell(Cell):
             True
         """
         self.super_class.__init__(self, id, worksheet)
-        self.input = unicode_str(input)
+        self.input = input
 
     def __repr__(self):
         """
@@ -324,7 +324,7 @@ class TextCell(Cell):
 
     @input.setter
     def input(self, value):
-        self.__input = unicode_str(value)
+        self.__input = value
 
     @input.deleter
     def input(self):
@@ -494,8 +494,8 @@ class ComputeCell(Cell):
         self.__introspect_html = u''  # property
 
         # Data model
-        self.__input = unicode_str(input)  # property
-        self.__output = unicode_str(output).replace('\r', '')
+        self.__input = input  # property
+        self.__output = output.replace('\r', '')
 
     @property
     def introspect(self):
@@ -579,7 +579,6 @@ class ComputeCell(Cell):
             sage: nb.delete()
         """
         # Stuff to deal with interact
-        input = unicode_str(input)
 
         if input.startswith(INTERACT_UPDATE_PREFIX):
             self.__interact_input = input[len(INTERACT_UPDATE_PREFIX) + 1:]
@@ -648,7 +647,7 @@ class ComputeCell(Cell):
             sage: C.changed_input
             u'3+3'
         """
-        self.__changed_input = unicode_str(value)
+        self.__changed_input = value
         self.__input = self.__changed_input
 
     @changed_input.deleter
@@ -818,7 +817,7 @@ class ComputeCell(Cell):
                 # wrong output location during interact.
                 return ''
 
-        self.__output = unicode_str(self.__output)
+        self.__output = self.__output
 
         is_interact = self.is_interactive_cell()
         if is_interact and ncols == 0:
@@ -865,8 +864,8 @@ class ComputeCell(Cell):
             sage: len(C.plain_text)
             12
         """
-        output = unicode_str(output)
-        html = unicode_str(html)
+        output = output
+        html = html
         if output.count(INTERACT_TEXT) > 1:
             html = (u'<h3><font color="red">WARNING: multiple @interacts in '
                     u'one cell disabled (not yet implemented).</font></h3>')
@@ -1521,7 +1520,7 @@ class ComputeCell(Cell):
             sage: W.quit()
             sage: nb.delete()
         """
-        self.__introspect_html = unicode_str(html)
+        self.__introspect_html = html
 
     def evaluate(self, introspect=False, username=None):
         r"""
@@ -1900,6 +1899,4 @@ class ComputeCell(Cell):
         else:
             files = ('&nbsp' * 3).join(files)
 
-        files = unicode_str(files)
-        images = unicode_str(images)
         return images + files

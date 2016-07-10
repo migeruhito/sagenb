@@ -113,12 +113,12 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+from builtins import str
 
 from sgmllib import SGMLParser
 from htmlentitydefs import entitydefs
 
 from flask import Markup
-from ..util import unicode_str
 
 
 class genericHTMLProcessor(SGMLParser):
@@ -166,7 +166,7 @@ class genericHTMLProcessor(SGMLParser):
         # This module works with unicode literals. In case that input data is
         # ascii, exceptions may occur. So, input data must be converted to
         # unicode if it were not.
-        doc_in = unicode_str(doc_in)
+        doc_in = str(doc_in)
         self.feed(doc_in)  # SGMLParser call
         self.close()  # SGMLParser call
         self.hand_off_temp_pieces('to_doc_pieces')

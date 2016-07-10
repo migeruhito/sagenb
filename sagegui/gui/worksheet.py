@@ -59,7 +59,6 @@ from ..util import makedirs
 from ..util import id_generator
 from ..util import set_default
 from ..util import set_restrictive_permissions
-from ..util import unicode_str
 from ..util import walltime
 from ..util.templates import completions_html
 from ..util.templates import prettify_time_ago
@@ -356,7 +355,7 @@ class Worksheet(object):
         """
         if not name or repr(name) == '<_LazyString broken>':
             name = gettext('Untitled')
-        self.__name = unicode_str(name)
+        self.__name = name
 
     @property
     def pretty_print(self):
@@ -1342,14 +1341,14 @@ class Worksheet(object):
         except IOError:
             contents = ''
 
-        r = u' '.join(
-            unicode_str(x).lower()
+        r = ' '.join(
+            x.lower()
             for x in [self.owner, self.publisher, self.name, contents] +
             self.collaborators)
 
         # Check that every single word is in the file from disk.
         for W in search_keywords(search):
-            W = unicode_str(W).lower()
+            W = W.lower()
             if W not in r:
                 # Some word from the text is not in the search list, so
                 # we return False.
@@ -1411,8 +1410,8 @@ class Worksheet(object):
 
         with open(self.worksheet_html_filename, 'w') as f:
             f.write(self.body)
-        with open(self.snapshot_filename(basename), 'w') as f:
-            f.write(bz2.compress(self.body))
+        with open(self.snapshot_filename(basename), 'wb') as f:
+            f.write(bz2.compress(self.body.encode('utf-8')))
 
         self.limit_snapshots()
         self.saved_by_info[basename] = user

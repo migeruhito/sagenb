@@ -18,6 +18,8 @@ AUTHORS:
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
+from builtins import open
 
 from future.moves import pickle
 import logging
@@ -40,7 +42,6 @@ from ..util import make_path_relative
 from ..util import makedirs
 from ..util import set_restrictive_permissions
 from ..util import sort_worksheet_list
-from ..util import unicode_str
 from ..util import walltime
 from ..util.decorators import global_lock
 from ..util.docHTMLProcessor import docutilsHTMLProcessor
@@ -329,7 +330,7 @@ class Notebook(object):
             return self._user_history[username]
         history = []
         for hunk in self._storage.load_user_history(username):
-            hunk = unicode_str(hunk)
+            hunk = hunk
             history.append(hunk)
         self._user_history[username] = history
         return history

@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
-
+from __future__ import unicode_literals
+from builtins import open
 from future.moves.urllib.request import urlopen
 from future.moves.urllib.parse import urlparse
 
@@ -33,7 +34,6 @@ from ..config import UN_GUEST
 from ..config import UN_PUB
 from ..config import UN_SAGE
 from ..util import tmp_filename
-from ..util import unicode_str
 from ..util.docHTMLProcessor import SphinxHTMLProcessor
 # New UI
 from ..util.newui import extended_wst_basic
@@ -233,7 +233,7 @@ def html_specific_revision(username, ws, rev):
     time_ago = prettify_time_ago(t)
 
     filename = ws.snapshot_filename(rev)
-    txt = bz2.decompress(open(filename).read())
+    txt = bz2.decompress(open(filename, 'rb').read()).decode('utf-8')
     W = nb.scratch_wst
     W.name = 'Revision of ' + ws.name
     W.delete_cells_directory()
@@ -835,7 +835,7 @@ def worksheet_new_cell_before(worksheet):
     """Add a new cell before a given cell."""
     r = {}
     r['id'] = id = get_cell_id()
-    input = unicode_str(request.values.get('input', ''))
+    input = request.values.get('input', '')
     cell = worksheet.new_cell_before(id, input=input)
     worksheet.increase_state_number()
 
@@ -850,7 +850,7 @@ def worksheet_new_text_cell_before(worksheet):
     """Add a new text cell before a given cell."""
     r = {}
     r['id'] = id = get_cell_id()
-    input = unicode_str(request.values.get('input', ''))
+    input = request.values.get('input', '')
     cell = worksheet.new_text_cell_before(id, input=input)
     worksheet.increase_state_number()
 
@@ -867,7 +867,7 @@ def worksheet_new_cell_after(worksheet):
     """Add a new cell after a given cell."""
     r = {}
     r['id'] = id = get_cell_id()
-    input = unicode_str(request.values.get('input', ''))
+    input = request.values.get('input', '')
     cell = worksheet.new_cell_after(id, input=input)
     worksheet.increase_state_number()
 
@@ -882,7 +882,7 @@ def worksheet_new_text_cell_after(worksheet):
     """Add a new text cell after a given cell."""
     r = {}
     r['id'] = id = get_cell_id()
-    input = unicode_str(request.values.get('input', ''))
+    input = request.values.get('input', '')
     cell = worksheet.new_text_cell_after(id, input=input)
     worksheet.increase_state_number()
 
@@ -967,8 +967,8 @@ def worksheet_eval(worksheet):
         # Make public input cells read-only.
         input_text = cell.input
     else:
-        input_text = unicode_str(request.values.get(
-            'input', '')).replace('\r\n', '\n')  # DOS
+        input_text = request.values.get(
+            'input', '').replace('\r\n', '\n')  # DOS
 
     # Handle an updated / recomputed interact.  TODO: JSON encode
     # the update data.
@@ -1212,14 +1212,16 @@ def worksheet_revisions(worksheet):
             worksheet.save_snapshot(g.username)
             # XXX: Requires access to filesystem
             txt = bz2.decompress(
-                open(worksheet.snapshot_filename(rev)).read())
+                open(worksheet.snapshot_filename(rev), 'rb').read()).decode(
+                'utf-8')
             worksheet.delete_cells_directory()
             worksheet.edit_save(txt)
             return redirect(url_for_worksheet(worksheet))
         elif action == 'publish':
             W = g.notebook.publish_wst(worksheet, g.username)
             txt = bz2.decompress(
-                open(worksheet.snapshot_filename(rev)).read())
+                open(worksheet.snapshot_filename(rev), 'rb').read()).decode(
+                'utf-8')
             W.delete_cells_directory()
             W.edit_save(txt)
             return redirect(url_for_worksheet(W))
@@ -1463,7 +1465,7 @@ def worksheet_do_upload_data(worksheet):
 
     matches = re.match("file://(?:localhost)?(/.+)", url)
     if matches:
-        f = file(dest, 'wb')
+        f = open(dest, 'w')
         f.write(open(matches.group(1)).read())
         f.close()
         return response

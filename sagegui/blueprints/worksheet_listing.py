@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
+from builtins import open
 
 from future.moves.urllib.parse import quote
 from future.moves.urllib.parse import unquote
@@ -31,7 +32,6 @@ from werkzeug.utils import secure_filename
 
 from ..config import SAGE_VERSION
 from ..config import UN_PUB
-from ..util import unicode_str
 from ..util import tmp_dir
 from ..util import tmp_filename
 from ..util import walltime
@@ -70,7 +70,7 @@ def render_ws_list_template(args, pub, username):
     a string
     """
     typ = args['typ'] if 'typ' in args else 'active'
-    search = unicode_str(args['search']) if 'search' in args else None
+    search = args['search'] if 'search' in args else None
     sort = args['sort'] if 'sort' in args else 'last_edited'
     reverse = (args['reverse'] == 'True') if 'reverse' in args else False
     readonly = g.notebook.readonly_user(g.username)
@@ -125,8 +125,7 @@ def worksheet_list():
     pub = UN_PUB in request.args
     nb.readonly_user(g.username)
     typ = request.args['type'] if 'type' in request.args else 'active'
-    search = unicode_str(
-        request.args['search']) if 'search' in request.args else None
+    search = request.args['search'] if 'search' in request.args else None
     sort = request.args['sort'] if 'sort' in request.args else 'last_edited'
     reverse = (request.args['reverse'] ==
                'True') if 'reverse' in request.args else False

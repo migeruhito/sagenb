@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
+from __future__ import unicode_literals
+from builtins import str
 
 import os
 
@@ -24,7 +26,6 @@ from .config import SRC
 from .config import THEME_PATHS
 from .config import UAT_GUEST
 from .util.decorators import guest_or_login_required
-from .util import unicode_str
 from .util.templates import css_escape
 from .util.templates import convert_time_to_string
 from .util.templates import prettify_time_ago
@@ -81,8 +82,7 @@ def create_app(notebook, startup_token=None, debug=False):
     app.add_template_filter(prettify_time_ago)
     app.add_template_filter(join_max)
     app.add_template_filter(max)
-    app.add_template_filter(lambda x: repr(unicode_str(x))[1:],
-                            name='repr_str')
+    app.add_template_filter(lambda x: repr(str(x)), name='repr_str')
 
     # Default template context
     @app.context_processor
