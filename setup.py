@@ -42,6 +42,7 @@ install_requires = [
     'pexpect',
     'docutils',
     'jsmin',
+    'tornado',  # this is optional
     ]
 
 
