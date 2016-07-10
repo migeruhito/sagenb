@@ -823,7 +823,7 @@ class FilesystemDatastore(Datastore):
         T = tarfile.open(filename, 'r:bz2')
         try:
             with open(self._abspath(self._worksheet_conf_filename(
-                    username, id_number)), 'w') as f:
+                    username, id_number)), 'wb') as f:
                 f.write(T.extractfile(os.path.join(
                     'sage_worksheet', 'worksheet_conf.pickle')).read())
         except KeyError:
@@ -832,7 +832,7 @@ class FilesystemDatastore(Datastore):
             return self._import_old_worksheet(username, id_number, filename)
 
         with open(self._abspath(self._worksheet_html_filename(
-                username, id_number)), 'w') as f:
+                username, id_number)), 'wb') as f:
             f.write(T.extractfile(os.path.join(
                 'sage_worksheet', 'worksheet.html')).read())
 
