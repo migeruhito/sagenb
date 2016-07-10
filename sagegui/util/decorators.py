@@ -10,7 +10,7 @@ from flask import request
 from flask import session
 from flask import redirect
 from flask import g
-from flask.ext.babel import gettext
+from flask_babel import gettext
 
 from ..config import UN_GUEST
 from .templates import message as message_template

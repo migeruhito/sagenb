@@ -4,7 +4,7 @@ from __future__ import division
 
 import re
 import string
-from flask.ext.babel import gettext
+from flask_babel import gettext
 
 from ..config import TRACEBACK
 

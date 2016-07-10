@@ -26,7 +26,7 @@ from flask import json
 from flask import redirect
 from flask import request
 from flask import url_for
-from flask.ext.babel import gettext
+from flask_babel import gettext
 from jinja2.exceptions import TemplateNotFound
 from werkzeug.utils import secure_filename
 

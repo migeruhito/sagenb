@@ -12,11 +12,11 @@ from cgi import escape
 from flask import Flask
 from flask import g
 from flask import url_for
-from flask.ext.autoindex import AutoIndex
-from flask.ext.babel import Babel
-from flask.ext.babel import gettext
-from flask.ext.themes2 import Themes
-from flask.ext.themes2 import theme_paths_loader
+from flask_autoindex import AutoIndex
+from flask_babel import Babel
+from flask_babel import gettext
+from flask_themes2 import Themes
+from flask_themes2 import theme_paths_loader
 
 from .config import DEFAULT_THEME
 from .config import JEDITABLE_TINYMCE

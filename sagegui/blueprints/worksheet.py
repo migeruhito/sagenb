@@ -23,7 +23,7 @@ from flask import request
 from flask import redirect
 from flask import g
 from flask import current_app
-from flask.ext.babel import gettext
+from flask_babel import gettext
 from flask.helpers import send_file
 from flask.helpers import send_from_directory
 from jinja2.exceptions import TemplateNotFound

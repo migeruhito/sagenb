@@ -11,8 +11,8 @@ import os
 import random
 import re
 
-from flask.ext.babel import gettext
-from flask.ext.babel import lazy_gettext
+from flask_babel import gettext
+from flask_babel import lazy_gettext
 
 from . import get_module
 from .templates import render_template

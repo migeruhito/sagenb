@@ -15,8 +15,8 @@ from flask import redirect
 from flask import g
 from flask import make_response
 from flask import current_app
-from flask.ext.openid import OpenID
-from flask.ext.babel import gettext
+from flask_openid import OpenID
+from flask_babel import gettext
 
 from ..config import UAT_USER
 from ..config import UN_ADMIN

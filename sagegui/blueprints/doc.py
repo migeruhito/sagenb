@@ -13,7 +13,7 @@ from __future__ import division
 import os
 from flask import Blueprint
 from flask import g
-from flask.ext.babel import gettext
+from flask_babel import gettext
 from flask.helpers import send_from_directory
 
 from ..config import SAGE_DOC

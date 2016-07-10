@@ -6,8 +6,8 @@ from __future__ import division
 import copy
 import time
 
-from flask.ext.babel import gettext
-from flask.ext.babel import lazy_gettext
+from flask_babel import gettext
+from flask_babel import lazy_gettext
 
 from .config import CHOICES
 from .config import DESC

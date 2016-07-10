@@ -8,7 +8,7 @@ from flask import url_for
 from flask import request
 from flask import redirect
 from flask import g
-from flask.ext.babel import gettext
+from flask_babel import gettext
 
 from ..config import SAGE_VERSION
 

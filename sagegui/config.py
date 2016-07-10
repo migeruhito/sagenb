@@ -10,7 +10,7 @@ from pkg_resources import resource_filename
 from pkg_resources import working_set
 
 from pexpect.exceptions import ExceptionPexpect
-from flask.ext.babel import lazy_gettext
+from flask_babel import lazy_gettext
 
 from .sage_server.workers import sage
 from .util import sage_browser
@@ -193,7 +193,7 @@ for path in (tp for tp in THEME_PATHS if os.path.isdir(tp)):
         if os.path.isdir(os.path.join(path, theme))])
 THEMES.sort()
 DEFAULT_THEME = 'Default'
-# TODO: dangerous. flask.ext.babel translations path is not configurable.
+# TODO: dangerous. flask_babel translations path is not configurable.
 # This must be in sync with the hardcoded babel translation path. This
 # should be removed when sagenb.notebook.server_conf, sagenb.notebook.user_conf
 # be refactored.

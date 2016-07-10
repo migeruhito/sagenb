@@ -13,7 +13,7 @@ from flask import session
 from flask import redirect
 from flask import g
 from flask import current_app
-from flask.ext.babel import gettext
+from flask_babel import gettext
 from smtpsend import send_mail
 
 from ..config import SAGE_VERSION

@@ -13,10 +13,10 @@ from hashlib import sha1
 from jsmin import jsmin
 
 from flask import g
-from flask.ext.babel import format_datetime
-from flask.ext.babel import get_locale
-from flask.ext.babel import ngettext
-from flask.ext.themes2 import render_theme_template
+from flask_babel import format_datetime
+from flask_babel import get_locale
+from flask_babel import ngettext
+from flask_themes2 import render_theme_template
 
 from . import cached_property
 from . import grouper

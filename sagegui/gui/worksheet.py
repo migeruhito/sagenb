@@ -40,7 +40,7 @@ import time
 
 from itertools import count
 
-from flask.ext.babel import gettext
+from flask_babel import gettext
 
 from .. import config
 # Imports specifically relevant to the sage notebook

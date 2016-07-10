@@ -12,7 +12,7 @@ from flask import request
 from flask import redirect
 from flask import g
 from flask import current_app
-from flask.ext.babel import gettext
+from flask_babel import gettext
 
 from . import base
 
