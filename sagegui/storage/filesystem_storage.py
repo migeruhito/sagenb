@@ -398,7 +398,13 @@ class FilesystemDatastore(Datastore):
 
     def _load(self, filename):
         with open(self._abspath(filename), 'rb') as f:
-            result = pickle.load(f)
+            try:
+                result = pickle.load(f)
+            # Workaround for some exported worksheets with encoded worksheet
+            # names. It might fix other encoding problems. For py3.
+            except UnicodeEncodeError:
+                result = pickle.load(f, econding='utf-8')
+
         return result
 
     def _save(self, obj, filename):
@@ -458,6 +464,16 @@ class FilesystemDatastore(Datastore):
         """
         Given a basic Python object obj, return corresponding worksheet.
         """
+        # Workaround for some exported worksheets with encoded worksheet names
+        # UnicodeEncodeError -> py2
+        # AttributeError for py3 compatibility
+        try:
+            name = obj['name'].decode('utf-8')
+        except (UnicodeEncodeError, AttributeError):
+            pass
+        else:
+            obj['name'] = name
+
         path = self._abspath(self._worksheet_path(obj['owner']))
         return Worksheet_from_basic(obj, path)
 
