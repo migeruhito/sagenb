@@ -115,13 +115,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from builtins import str
 
-from sgmllib import SGMLParser
+from html.parser import HTMLParser
 from html.entities import entitydefs
 
 from flask import Markup
 
 
-class genericHTMLProcessor(SGMLParser):
+class genericHTMLProcessor(HTMLParser):
     r"""
     This class gathers the methods that are common to both classes
     :class:`sagenb.notebook.SphinxHTMLProcessor` and
@@ -416,56 +416,24 @@ class genericHTMLProcessor(SGMLParser):
     ##############################################
     # General tag handlers
     # These just append their HTML to self.temp_pieces.
-    def unknown_starttag(self, tag, attrs):
-        r"""
-        INPUT:
 
-        - ``tag`` - string
-        - ``attrs`` - list of tuples
+    def handle_starttag(self, tag, attrs):
+        """mimics py2 SGMLParser default behaviour"""
+        try:
+            handle = getattr(self, 'start_{}'.format(tag))
+        except AttributeError:
+            self.unknown_starttag(tag, attrs)
+        else:
+            handle(attrs)
 
-        EXAMPLES::
-
-            sage: from sagenb.util.docHTMLProcessor import (
-                docutilsHTMLProcessor)
-            sage: p = docutilsHTMLProcessor()
-            sage: p.all_pieces = 'a lot of stuff done '
-            sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
-            sage: p.keep_data = True
-            sage: tag = 'style'
-            sage: attrs = [('type', 'text/css')]
-            sage: p.unknown_starttag(tag, attrs)
-            sage: p.all_pieces
-            'a lot of stuff done '
-            sage: p.temp_pieces
-            ['bunch ', 'of ', 'tmp ', 'strings', '<style type="text/css">']
-        """
-        if self.keep_data:
-            strattrs = "".join([' %s="%s"' % (key, value)
-                                for key, value in attrs])
-            self.temp_pieces.append("<%(tag)s%(strattrs)s>" % locals())
-
-    def unknown_endtag(self, tag):
-        r"""
-        INPUT:
-
-        - ``tag`` - string
-
-        EXAMPLES::
-
-            sage: from sagenb.util.docHTMLProcessor import (
-                docutilsHTMLProcessor)
-            sage: p = docutilsHTMLProcessor()
-            sage: p.all_pieces = 'a lot of stuff done '
-            sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
-            sage: p.keep_data = True
-            sage: p.unknown_endtag('head')
-            sage: p.all_pieces
-            'a lot of stuff done '
-            sage: p.temp_pieces
-            ['bunch ', 'of ', 'tmp ', 'strings', '</head>']
-        """
-        if self.keep_data:
-            self.temp_pieces.append("</%(tag)s>" % locals())
+    def handle_endtag(self, tag):
+        """mimics py2 SGMLParser default behaviour"""
+        try:
+            handle = getattr(self, 'end_{}'.format(tag))
+        except AttributeError:
+            self.unknown_endtag(tag)
+        else:
+            handle()
 
     def handle_data(self, data):
         r"""
@@ -682,6 +650,57 @@ class genericHTMLProcessor(SGMLParser):
         """
         pass
 
+    def unknown_starttag(self, tag, attrs):
+        r"""
+        INPUT:
+
+        - ``tag`` - string
+        - ``attrs`` - list of tuples
+
+        EXAMPLES::
+
+            sage: from sagenb.util.docHTMLProcessor import (
+                docutilsHTMLProcessor)
+            sage: p = docutilsHTMLProcessor()
+            sage: p.all_pieces = 'a lot of stuff done '
+            sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
+            sage: p.keep_data = True
+            sage: tag = 'style'
+            sage: attrs = [('type', 'text/css')]
+            sage: p.unknown_starttag(tag, attrs)
+            sage: p.all_pieces
+            'a lot of stuff done '
+            sage: p.temp_pieces
+            ['bunch ', 'of ', 'tmp ', 'strings', '<style type="text/css">']
+        """
+        if self.keep_data:
+            strattrs = "".join([' %s="%s"' % (key, value)
+                                for key, value in attrs])
+            self.temp_pieces.append("<%(tag)s%(strattrs)s>" % locals())
+
+    def unknown_endtag(self, tag):
+        r"""
+        INPUT:
+
+        - ``tag`` - string
+
+        EXAMPLES::
+
+            sage: from sagenb.util.docHTMLProcessor import (
+                docutilsHTMLProcessor)
+            sage: p = docutilsHTMLProcessor()
+            sage: p.all_pieces = 'a lot of stuff done '
+            sage: p.temp_pieces = ['bunch ', 'of ', 'tmp ', 'strings']
+            sage: p.keep_data = True
+            sage: p.unknown_endtag('head')
+            sage: p.all_pieces
+            'a lot of stuff done '
+            sage: p.temp_pieces
+            ['bunch ', 'of ', 'tmp ', 'strings', '</head>']
+        """
+        if self.keep_data:
+            self.temp_pieces.append("</%(tag)s>" % locals())
+
 
 class SphinxHTMLProcessor(genericHTMLProcessor):
 
@@ -717,7 +736,7 @@ class SphinxHTMLProcessor(genericHTMLProcessor):
         # counters
         self.cellcount = 0
 
-        SGMLParser.reset(self)
+        HTMLParser.reset(self)
 
     def false_positive_input_output_cell(self, cell_piece):
         r"""
@@ -1176,7 +1195,7 @@ class docutilsHTMLProcessor(genericHTMLProcessor):
         # counters
         self.cellcount = 0
 
-        SGMLParser.reset(self)
+        HTMLParser.reset(self)
 
     def false_positive_input_output_cell(self, cell_piece):
         r"""
