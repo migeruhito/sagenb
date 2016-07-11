@@ -19,6 +19,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import input
+from builtins import str
+from builtins import object
 from builtins import open
 
 from future.moves import pickle
@@ -262,7 +265,7 @@ class Notebook(object):
             if not n.startswith('doc_browser'):
                 S.save_worksheet(W)
         if hasattr(self, '_user_history'):
-            for username, H in self._user_history.iteritems():
+            for username, H in self._user_history.items():
                 S.save_user_history(username, H)
 
     def logout(self, username):
@@ -1166,7 +1169,7 @@ class Notebook(object):
 
         tbl = {'v': None, 'u': None, 't': None}
         for x in ulimit.split('-'):
-            for k in tbl.keys():
+            for k in tbl:
                 if x.startswith(k):
                     tbl[k] = int(x.split()[1].strip())
         if tbl['v'] is not None:
@@ -1281,7 +1284,7 @@ def migrate_old_notebook_v1(dir):
         "*" * 80,
         "",
         )))
-    ans = raw_input("Would like to continue? [YES or no] ").lower()
+    ans = input("Would like to continue? [YES or no] ").lower()
     if ans not in ['', 'y', 'yes']:
         raise RuntimeError("User aborted upgrade.")
 
@@ -1305,7 +1308,7 @@ def migrate_old_notebook_v1(dir):
     # Now update the user data from the old notebook to the new one:
     print("Migrating %s user accounts..." % len(old_nb.user_manager))
     users = new_nb.user_manager
-    for username, old_user in old_nb.user_manager.iteritems():
+    for username, old_user in old_nb.user_manager.items():
         new_user = User(old_user.username, '',
                         old_user.email, old_user.account_type)
         new_user.password = old_user.password
@@ -1330,7 +1333,7 @@ def migrate_old_notebook_v1(dir):
         # some ugly creation of new attributes from what used to be stored
         tags = {}
         try:
-            for user_, val in old_ws._Worksheet__user_view.iteritems():
+            for user_, val in old_ws._Worksheet__user_view.items():
                 if isinstance(user_, str):
                     # There was a bug in the old notebook where sometimes the
                     # user was the *module* "user", so we don't include that
@@ -1395,7 +1398,7 @@ def migrate_old_notebook_v1(dir):
     print("Migrating (at most) %s worksheets..." % num_worksheets)
     tm = walltime()
     i = 0
-    for ws_name, old_ws in old_nb._Notebook__worksheets.iteritems():
+    for ws_name, old_ws in old_nb._Notebook__worksheets.items():
         if old_ws.docbrowser:
             continue
         i += 1
@@ -1410,7 +1413,7 @@ def migrate_old_notebook_v1(dir):
 
     # Migrating history
     new_nb._user_history = {}
-    for username in old_nb.user_manager.keys():
+    for username in old_nb.user_manager:
         history_file = os.path.join(
             dir, 'worksheets', username, 'history.sobj')
         if os.path.exists(history_file):

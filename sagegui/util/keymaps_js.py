@@ -58,10 +58,10 @@ def get_keyboard(s):
     # The point of this is that it allows us to easily alias keys to
     # predefined keys, but doesn't overwrite anything.
     defaults = '\n'.join(
-        'var {} = {};'.format(key, val) for key, val in defaults.iteritems()
+        'var {} = {};'.format(key, val) for key, val in defaults.items()
         if key not in codes)
     codes = '\n'.join(
-        'var {} = "{}";'.format(key, val) for key, val in codes.iteritems())
+        'var {} = "{}";'.format(key, val) for key, val in codes.items())
     return '\n'.join((codes, defaults)).strip()
 
 

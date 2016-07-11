@@ -116,7 +116,7 @@ from __future__ import unicode_literals
 from builtins import str
 
 from sgmllib import SGMLParser
-from htmlentitydefs import entitydefs
+from html.entities import entitydefs
 
 from flask import Markup
 

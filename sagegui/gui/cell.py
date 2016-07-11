@@ -16,6 +16,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import object
 from builtins import open
 from builtins import str
 
@@ -103,7 +104,7 @@ class Cell(object):
         """
         return "Cell %s" % self.id
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
         Compares generic cells by ID.
 
@@ -134,7 +135,10 @@ class Cell(object):
             sage: [C1 == C2, C1 == C3, C2 == C3]
             [True, True, True]
         """
-        return cmp(self.id, right.id)
+        return self.id == right.id
+
+    def __ne__(self, right):
+        return self.id != right.id
 
     @property
     def id(self):

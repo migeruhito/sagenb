@@ -40,8 +40,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import str
+from builtins import object
 from builtins import open
-
 from future.moves import pickle
 
 import copy
@@ -76,7 +77,7 @@ def is_safe(a):
 
 # From sage.misc.temporary_file
 
-class atomic_write:
+class atomic_write(object):
     """
     Write to a given file using a temporary file and then rename it
     to the target file. This renaming should be atomic on modern
@@ -451,7 +452,7 @@ class FilesystemDatastore(Datastore):
 
     def _users_to_basic(self, users):
         new = list(sorted([[name, U.basic]
-                           for name, U in users.iteritems()]))
+                           for name, U in users.items()]))
         return new
 
     def _basic_to_server_conf(self, obj):
@@ -537,7 +538,7 @@ class FilesystemDatastore(Datastore):
             {'admin': admin, 'wstein': wstein}
         """
         for username, user in self._basic_to_users(
-                self._load('users.pickle')).iteritems():
+                self._load('users.pickle')).items():
             user_manager[username] = user
         return user_manager
 

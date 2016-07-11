@@ -4,6 +4,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 from builtins import open
 
 from future.moves.urllib.parse import quote
@@ -16,8 +19,8 @@ import os
 import re
 import shutil
 import zipfile
-from HTMLParser import HTMLParser
-from HTMLParser import HTMLParseError
+from html.parser import HTMLParser
+from html.parser import HTMLParseError
 
 from flask import current_app
 from flask import g

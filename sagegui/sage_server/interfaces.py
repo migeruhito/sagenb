@@ -23,6 +23,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import chr
+from builtins import object
 from builtins import str
 
 import os
@@ -540,7 +542,7 @@ class SageServerExpectRemote(SageServerExpect):
         return (local, remote)
 
 
-class OutputStatus:
+class OutputStatus(object):
     """
     Object that records current status of output from executing some
     code in a worksheet process.  An OutputStatus object has three
@@ -583,7 +585,7 @@ class OutputStatus:
                 self.output, self.filenames, self.done))
 
 
-class ProcessLimits:
+class ProcessLimits(object):
     """
     INPUT:
 

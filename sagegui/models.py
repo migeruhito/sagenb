@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import object
 
 
 import copy
@@ -331,7 +332,7 @@ class Configuration(object):
     def html_conf_form(self, action):
         D = self.defaults()
         C = self.confs
-        K = list(set(C.keys() + D.keys()))
+        K = list(set(list(C.keys()) + list(D.keys())))
         K.sort()
         options = ''
         for key in K:
@@ -352,7 +353,7 @@ class Configuration(object):
         D = self.defaults()
         DS = self.defaults_descriptions()
         C = self.confs
-        keys = list(set(C.keys() + D.keys()))
+        keys = list(set(list(C.keys()) + list(D.keys())))
 
         updated = {}
         for key in keys:
@@ -405,7 +406,7 @@ class Configuration(object):
         D = self.defaults()
         DS = self.defaults_descriptions()
         C = self.confs
-        K = set(C.keys() + D.keys())
+        K = set(list(C.keys()) + list(D.keys()))
 
         G = {}
         # Make groups
@@ -436,14 +437,7 @@ class Configuration(object):
 
             opts = G[group]
 
-            def sortf(x, y):
-                wx = DS[x].get(POS, POS_DEFAULT)
-                wy = DS[y].get(POS, POS_DEFAULT)
-                if wx == wy:
-                    return cmp(x, y)
-                else:
-                    return cmp(wx, wy)
-            opts.sort(sortf)
+            opts.sort(key=lambda x: (DS[x].get(POS, POS_DEFAULT), x))
             for o in opts:
                 s += ('    <tr>\n      <td>%s</td>\n      <td>\n' %
                       lazy_gettext(DS[o][DESC]))
@@ -496,7 +490,7 @@ class Configuration(object):
               '});\n</script>')
 
         lines = s.split('\n')
-        lines = map(lambda x: '  ' + x, lines)
+        lines = ['  ' + x for x in lines]
 
         return '\n'.join(lines)
 

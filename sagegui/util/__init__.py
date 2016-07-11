@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import range
 
 import os
 import resource
@@ -17,14 +18,14 @@ import time
 from importlib import import_module
 from itertools import chain
 from itertools import count
-from itertools import izip_longest
+from itertools import zip_longest
 
 
 def grouper(iterable, n, fillvalue=None):
     "Collect data into fixed-length chunks or blocks"
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
-    return izip_longest(fillvalue=fillvalue, *args)
+    return zip_longest(fillvalue=fillvalue, *args)
 
 
 def import_from(mod, obj, default=lambda: None):

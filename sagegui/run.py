@@ -14,6 +14,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import input
+from builtins import object
 from builtins import open
 from builtins import str
 from future.utils import native_str
@@ -625,7 +627,7 @@ class NotebookFrontend(object):
             raise RuntimeError('You must install openssl to use the secure'
                                'notebook server.')
 
-        dn = raw_input('Domain name [localhost]: ').strip()
+        dn = input('Domain name [localhost]: ').strip()
         if dn == '':
             print('Using default localhost')
             dn = 'localhost'

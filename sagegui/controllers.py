@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import object
 
 import crypt
 
@@ -249,7 +250,7 @@ class UserManager(dict):
         Check all auth methods that are enabled in the notebook's config.
         If a valid username is found, a new User object will be created.
         """
-        for a, method in self._auth_methods.iteritems():
+        for a, method in self._auth_methods.items():
             if method.enabled and method.check_user(username):
                 try:
                     email = method.get_attrib(username, 'email')

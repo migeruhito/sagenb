@@ -29,6 +29,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import str
+from builtins import next
+from builtins import range
+from builtins import object
 from builtins import open
 
 import bz2
@@ -220,7 +224,7 @@ class Worksheet(object):
         # property ro
         self.create_directories()  # some path attributes are created there
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         We compare two worksheets.
 
@@ -246,9 +250,15 @@ class Worksheet(object):
             -1
         """
         try:
-            return cmp(self.filename, other.filename)
+            return self.filename == other.filename
         except AttributeError:
-            return cmp(type(self), type(other))
+            return type(self) == type(other)
+
+    def __ne__(self, other):
+        try:
+            return self.filename != other.filename
+        except AttributeError:
+            return type(self) != type(other)
 
     def __repr__(self):
         r"""
@@ -621,7 +631,7 @@ class Worksheet(object):
             'published_id_number': self.published_id_number,
             'worksheet_that_was_published':
             self.worksheet_that_was_published,
-            'ratings': [(r, v[0], v[1]) for r, v in self.ratings.iteritems()],
+            'ratings': [(r, v[0], v[1]) for r, v in self.ratings.items()],
             }
         return d
 
@@ -987,7 +997,7 @@ class Worksheet(object):
             1.5
         """
         r = self.ratings
-        return sum(x[0] for x in r.itervalues()) // len(r) if r else -1
+        return sum(x[0] for x in r.values()) // len(r) if r else -1
 
     # Active, trash can and archive
 

@@ -2,6 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from builtins import hex
+from builtins import object
 from builtins import str
 from future.moves.urllib.parse import urlencode
 from future.moves.urllib.request import Request
@@ -35,7 +37,7 @@ def encrypt_password(password, salt=None):
         salt, hashlib.sha256(salt + password).hexdigest())
 
 
-class AuthMethod():
+class AuthMethod(object):
     """
     Abstract class for authmethods that are used by ExtAuthUserManager
     All auth methods must implement the following methods
@@ -736,7 +738,7 @@ class reCAPTCHAChallenge(AbstractChallenge):
             return ChallengeResponse(False, 'incorrect-captcha-sol')
 
         def encode_if_necessary(s):
-            if isinstance(s, unicode):
+            if isinstance(s, str):
                 return s.encode('utf-8')
             return s
 
