@@ -468,9 +468,10 @@ class FilesystemDatastore(Datastore):
         # Workaround for some exported worksheets with encoded worksheet names
         # UnicodeEncodeError -> py2
         # AttributeError for py3 compatibility
+        # KeyError -> doc worksheets has not name
         try:
             name = obj['name'].decode('utf-8')
-        except (UnicodeEncodeError, AttributeError):
+        except (UnicodeEncodeError, AttributeError, KeyError):
             pass
         else:
             obj['name'] = name
