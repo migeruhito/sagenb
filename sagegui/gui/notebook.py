@@ -1184,7 +1184,7 @@ class Notebook(object):
     # Computing control
 
     def quit(self):
-        for W in self.__worksheets.values():
+        for W in tuple(self.__worksheets.values()):
             W.quit()
 
     def update_worksheet_processes(self):
