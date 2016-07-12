@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from builtins import range
 
+import errno
 import os
 import resource
 import signal
@@ -395,8 +396,8 @@ def find_next_available_port(interface, start, max_tries=100, verbose=False):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.connect((interface, port))
-        except socket.error as msg:
-            if msg[1] == 'Connection refused':
+        except socket.error as err:
+            if err.errno == errno.ECONNREFUSED:
                 if verbose:
                     print("Using port = %s" % port)
                 return port
