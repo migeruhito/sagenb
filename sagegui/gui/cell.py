@@ -821,8 +821,6 @@ class ComputeCell(Cell):
                 # wrong output location during interact.
                 return ''
 
-        self.__output = self.__output
-
         is_interact = self.is_interactive_cell()
         if is_interact and ncols == 0:
             if 'Traceback (most recent call last)' in self.__output:
@@ -1076,7 +1074,7 @@ class ComputeCell(Cell):
             msg = TRACEBACK
             if self.__output.strip().startswith(msg):
                 out = re.sub(r'({})(\n +.*)*'.format(re.escape(msg)),
-                             r'\1\n...', self.output.strip())
+                             r'\1\n...', self.__output.strip())
             else:
                 out = self.output_text(ncols, raw=True, html=False)
         else:
