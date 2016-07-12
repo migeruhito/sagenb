@@ -409,7 +409,7 @@ class TextCell(Cell):
 
     @property
     def plain_text(self):
-        ur"""
+        r"""
         Returns a plain text version of this text cell.
 
         INPUT:
@@ -761,7 +761,7 @@ class ComputeCell(Cell):
     # Output
 
     def output_text(self, ncols=0, html=True, raw=False, allow_interact=True):
-        ur"""
+        r"""
         Returns this compute cell's output text.
 
         INPUT:
@@ -1100,7 +1100,7 @@ class ComputeCell(Cell):
 
     @property
     def edit_text(self):
-        ur"""
+        r"""
         Returns the text displayed for this compute cell in the Edit
         window.
 
@@ -1486,7 +1486,7 @@ class ComputeCell(Cell):
 
     @introspect_html.setter
     def introspect_html(self, html):
-        ur"""
+        r"""
         Sets this compute cell's introspection text.
 
         INPUT:

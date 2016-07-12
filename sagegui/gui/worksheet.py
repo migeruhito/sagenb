@@ -142,7 +142,7 @@ class Worksheet(object):
                  notebook_worksheet_directory=None,
                  **kwargs
                  ):
-        ur"""
+        r"""
         Create and initialize a new worksheet.
 
         INPUT:
@@ -325,7 +325,7 @@ class Worksheet(object):
 
     @property
     def name(self, username=None):
-        ur"""
+        r"""
         Return the name of this worksheet.
 
         OUTPUT: string
