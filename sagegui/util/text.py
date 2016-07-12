@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from builtins import range
 
 import re
-import string
 from flask_babel import gettext
 
 from ..config import TRACEBACK
@@ -120,7 +119,7 @@ def is_valid_password(password, username):
     if len(password) < 4 or ' ' in password:
         return False
     if username:
-        if string.lower(username) in string.lower(password):
+        if username.lower() in password.lower():
             return False
     return True
 

@@ -34,7 +34,7 @@ admin = Blueprint('admin', __name__)
 
 
 def random_password(length=8):
-    chara = string.letters + string.digits
+    chara = string.ascii_letters + string.digits
     return ''.join([choice(chara) for i in range(length)])
 
 
@@ -126,7 +126,7 @@ def add_user():
                                    username_input=username,
                                    **template_dict)
 
-        chara = string.letters + string.digits
+        chara = string.ascii_letters + string.digits
         password = ''.join([choice(chara) for i in range(8)])
         if username in g.notebook.user_manager:
             return render_template(os.path.join('html',

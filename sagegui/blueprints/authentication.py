@@ -329,7 +329,7 @@ def forgot_pass():
 
     # XXX: some of this could be factored out into a random passowrd
     # function.  There are a few places in admin.py that also use it.
-    chara = string.letters + string.digits
+    chara = string.ascii_letters + string.digits
     password = ''.join([choice(chara) for i in range(8)])
 
     # TODO: make this come from the server settings
