@@ -220,14 +220,15 @@ class DynamicJs(object):
                             KEY_CODES=keyhandler.all_tests(),
                             debug_mode=self.debug_mode)
         s = jsmin(s)
-        return (s, sha1(s).hexdigest())
+        return (s, sha1(s.encode('utf-8')).hexdigest())
 
     @property
     def localization(self):
         locale = repr(get_locale())
         if self.__localization.get(locale, None) is None:
             data = render_template('js/localization.js', N_=N_, nN_=nN_)
-            self.__localization[locale] = (data, sha1(repr(data)).hexdigest())
+            self.__localization[locale] = (
+                data, sha1(repr(data).encode('utf-8')).hexdigest())
 
         return self.__localization[locale]
 
@@ -235,12 +236,14 @@ class DynamicJs(object):
     def mathjax(self):
         data = render_template('js/mathjax_sage.js',
                                theme_mathjax_macros=mathjax_macros)
-        return (data, sha1(repr(data)).hexdigest())
+        return (
+            data, sha1(repr(data).encode('utf-8')).hexdigest())
 
     def keyboard(self, browser_os):
         if self.__keyboard.get(browser_os, None) is None:
             data = get_keyboard(browser_os)
-            self.__keyboard[browser_os] = (data, sha1(repr(data)).hexdigest())
+            self.__keyboard[browser_os] = (
+                data, sha1(repr(data).encode('utf-8')).hexdigest())
 
         return self.__keyboard[browser_os]
 
