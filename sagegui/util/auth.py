@@ -34,7 +34,7 @@ def encrypt_password(password, salt=None):
     if salt is None:
         salt = generate_salt()
     return 'sha256${}${}'.format(
-        salt, hashlib.sha256(salt + password).hexdigest())
+        salt, hashlib.sha256((salt + password).encode('utf8')).hexdigest())
 
 
 class AuthMethod(object):
