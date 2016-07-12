@@ -431,7 +431,7 @@ class FilesystemDatastore(Datastore):
             sage: len(D._load(fn))
             100000
         """
-        s = pickle.dumps(obj)
+        s = pickle.dumps(obj, protocol=0)
         if len(s) == 0:
             raise ValueError("Invalid Pickle")
         with atomic_write(self._abspath(filename)) as f:
