@@ -73,7 +73,7 @@ def worksheet_view(f):
                 _("You do not have permission to access this worksheet"),
                 username=g.username)
 
-        with worksheet_locks[worksheet]:
+        with worksheet_locks[worksheet.filename]:
             owner = worksheet.owner
 
             if owner != UN_SAGE and g.username != owner:
