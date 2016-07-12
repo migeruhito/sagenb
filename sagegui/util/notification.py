@@ -10,7 +10,7 @@ from getpass import getuser
 from socket import getfqdn
 from socket import gethostname
 
-from smtpsend import send_mail
+from .mail import send_mail
 
 logger = logging.getLogger('notification')
 

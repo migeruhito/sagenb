@@ -16,7 +16,6 @@ from flask import redirect
 from flask import g
 from flask import current_app
 from flask_babel import gettext
-from smtpsend import send_mail
 
 from ..config import SAGE_VERSION
 from ..config import UN_SYSTEM
@@ -24,6 +23,7 @@ from ..util.auth import challenge
 from ..util.auth import register_make_key
 from ..util.auth import register_build_msg
 from ..util.auth import register_build_password_msg
+from ..util.mail import send_mail
 from ..util.templates import message as message_template
 from ..util.templates import render_template
 from ..util.text import do_passwords_match
