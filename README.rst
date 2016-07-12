@@ -2,13 +2,39 @@
 
 This is a major refactor/rewrite of the Sage Notebook.
 
-Goals
+Status
+======
+
+* *The notebook is now independent from Sage*, so that it can be launched from an
+  independent python interpreter.
+  
+* *Porting to Python 3 completed*. Bug fixes in progress.
+
+* A new package `sagegui` created. It runs on a
+  indpendent python interpreter.
+
+* `smtpsend` is now a global module.
+
+* `sagenb` package contains only sage (incomplete) compatibility code.
+  Work in progress.
+
+* Notebook startup procedure has been changed. No need for intermediate startup
+  code files. Standalone command interface. Debug mode added. Work in progress.
+
+* Sage server interface totally isolated. No
+  need for intermediate code files. Code is passed directly to the
+  Sage server. Sage initialization left to the `sage_server` interface.
+  Work in progress.
+
+* New flask json session mechanism adopted.
+
+* A lot of reformatting, bug fixing and simplification of code done.
+  Work in progress.
+
+TODO
 =====
 
-* Make the notebook independent from Sage, so that it can be launched from an
-  independent python interpreter.
-
-* Break the notebook in several packages (WebApp, sage_server interface,
+* Break the notebook in more packages (WebApp, sage_server interface,
   model, controller, ...) useful to develop other independent software.
 
 * Objects must be processed by the client for displaying. No more html
@@ -24,43 +50,20 @@ Goals
 
 * Improve scalability.
 
-* Python 3 migration.
+* ...
 
-Status
-======
-
-* Notebook startup procedure has been changed. No need for intermediate startup
-  code files. Standalone command interface. Debug mode added. Work in progress.
-
-* Sage server interface totally isolated. No
-  need for intermediate code files. Code is passed directly to the
-  Sage server. Sage initialization left to the sage_server interface.
-  Work in progress.
-
-* New flask json session mechanism adopted.
-
-* A new package sagegui created. It runs on a indpendent python interpreter.
-  First goal reached. 
-
-* smtpsend is now a global module (second goal partially achieved).
-
-* The dependencies for sagegui are: twisted, flask,
-  flask-openid, flask-autoindex, flask-babel
-  flask-themes2, six, smtpsend, pexpect, docutils. All of them, but smtpsend
-  which is in the source tree, are installable from pipy in an virtual
-  python environment.
-
-* sagenb package contains only sage compatibility code, but not completed.
-  Work in progress.
-
-* A lot of reformatting, bug fixing and simplification of code done.
-  Work in progress.
-
-* A lot of work towards python 3 done.
-  Work in progress.
 
 Notes
 =====
+
+* The dependencies for `sagegui` are: `twisted`, `flask`,
+  `flask-openid`, `flask-autoindex`, `flask-babel`,
+  `flask-themes2`, `future`, `smtpsend`, `pexpect`, `docutils`.
+  All of them, but `smtpsend`
+  which is in the source tree, are installable from pipy in an virtual
+  python environment.
+
+* `send_mail` disabled under py3. Twisted.mail port needed.
 
 * Backward compatibility is not a goal, but at this moment this version
   can be used as a replacement of the current Sage Notebook.
