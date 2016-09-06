@@ -42,6 +42,8 @@ install_requires = [
     'pexpect',
     'docutils',
     'jsmin',
+    'pyopenssl',
+    'service_identity',
     'tornado',  # this is optional
     ]
 
