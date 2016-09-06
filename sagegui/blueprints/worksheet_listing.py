@@ -20,7 +20,6 @@ import re
 import shutil
 import zipfile
 from html.parser import HTMLParser
-from html.parser import HTMLParseError
 
 from flask import current_app
 from flask import g
@@ -379,8 +378,7 @@ def parse_link_rel(url, fn):
     {'title': from title field in link, 'url': absolute URL to .sws file}
 
     for the corresponding ``.sws`` files. Naturally if there are no
-    appropriate link tags found, the returned list is empty. If the HTML
-    parser raises an HTMLParseError, we simply return an empty list.
+    appropriate link tags found, the returned list is empty.
     """
     class GetLinkRelWorksheets(HTMLParser):
 
@@ -398,10 +396,7 @@ def parse_link_rel(url, fn):
 
     parser = GetLinkRelWorksheets()
     with open(fn) as f:
-        try:
-            parser.feed(f.read())
-        except HTMLParseError:
-            return []
+        parser.feed(f.read())
 
     ret = []
     for d in parser.worksheets:
