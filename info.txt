@@ -93,7 +93,9 @@ notebook/cell                         conf['pub_interact']                      
 
 
 
-Callers                                         Extensions
+Callers                                               Extensions
+
+sagenb.testing.HTMLTestRunner                         test_report
 
 util.auth.reCAPTCHAChallenge.html                     recaptcha.html
 util.templates.completions_html                       worksheet/completions
@@ -103,7 +105,6 @@ util.cell.TextCell.html                               notebook/text_cell
 None                                                  base
 blueprints.base.history                               base -> history
 blueprints.authentication.(login, register)           base -> login
-unused?                                               base -> yes_no
 blueprints.base.set_profiles                          base -> accounts/openid_profile
 blueprints.worksheet.html_ratings_info                base -> worksheet/ratings_info
                                                
