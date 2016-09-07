@@ -60,24 +60,24 @@ setup(
     dependency_links=[],
     test_suite='sagenb.testing.run_tests.all_tests',
     packages=[
-        'sagegui',
-        'sagegui.blueprints',
-        'sagegui.gui',
-        'sagegui.sage_server',
-        'sagegui.storage',
-        'sagegui.util',
-        'sagegui.compress',
+        'sagewui',
+        'sagewui.blueprints',
+        'sagewui.gui',
+        'sagewui.sage_server',
+        'sagewui.storage',
+        'sagewui.util',
+        'sagewui.compress',
         'sagenb',
         'sagenb.notebook',
         'sagenb.testing',
         'sagenb.testing.tests',
         'sagenb.testing.selenium',
         ],
-    scripts=['sagegui/static/sage3d/sage3d'],
+    scripts=['sagewui/static/sage3d/sage3d'],
     package_data={
-        'sagegui': (all_files('sagegui/static', 'sagegui/') +
-                    all_files('sagegui/translations', 'sagegui/') +
-                    all_files('sagegui/themes', 'sagegui/'))
+        'sagewui': (all_files('sagewui/static', 'sagewui/') +
+                    all_files('sagewui/translations', 'sagewui/') +
+                    all_files('sagewui/themes', 'sagewui/'))
         },
     zip_safe=False,
 )

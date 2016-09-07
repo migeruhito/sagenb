@@ -29,23 +29,23 @@ import logging
 import getpass
 import signal
 
-from sagegui.app import create_app
-from sagegui.config import min_password_length
-from sagegui.config import DOT_SAGENB
-from sagegui.config import SAGE_BROWSER
-from sagegui.config import UAT_USER
-from sagegui.config import UAT_GUEST
-from sagegui.config import UN_ADMIN
-from sagegui.config import UN_GUEST
-from sagegui.config import UN_PUB
-from sagegui.config import UN_SAGE
-from sagegui.util import find_next_available_port
-from sagegui.util import open_page
-from sagegui.util import print_open_msg
-from sagegui.util import system_command
-from sagegui.gui import notebook
-from sagegui.util import get_module
-from sagegui.util import which
+from sagewui.app import create_app
+from sagewui.config import min_password_length
+from sagewui.config import DOT_SAGENB
+from sagewui.config import SAGE_BROWSER
+from sagewui.config import UAT_USER
+from sagewui.config import UAT_GUEST
+from sagewui.config import UN_ADMIN
+from sagewui.config import UN_GUEST
+from sagewui.config import UN_PUB
+from sagewui.config import UN_SAGE
+from sagewui.util import find_next_available_port
+from sagewui.util import open_page
+from sagewui.util import print_open_msg
+from sagewui.util import system_command
+from sagewui.gui import notebook
+from sagewui.util import get_module
+from sagewui.util import which
 
 
 class NotebookFrontend(object):

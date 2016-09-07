@@ -1,6 +1,6 @@
 .. nodoctest
 
-This is a major refactor/rewrite of the Sage Notebook.
+SageWui is a major refactor/rewrite of the Sage Notebook.
 
 Status
 ======
@@ -10,7 +10,7 @@ Status
   
 * *Porting to Python 3 completed*. Bug fixes in progress.
 
-* A new package `sagegui` created. It runs on a
+* A new package `sagewui` created. It runs on a
   indpendent python interpreter.
 
 * `smtpsend` is now a global module.
@@ -56,9 +56,10 @@ TODO
 Notes
 =====
 
-* The dependencies for `sagegui` are: `twisted`, `flask`,
+* The dependencies for `sagewui` are: `twisted`, `flask`,
   `flask-openid`, `flask-autoindex`, `flask-babel`,
-  `flask-themes2`, `future`, `smtpsend`, `pexpect`, `docutils`.
+  `flask-themes2`, `future`, `smtpsend`, `pexpect`, `docutils`, `pyopenssl`,
+  `service_identity`.
   All of them, but `smtpsend`
   which is in the source tree, are installable from pipy in an virtual
   python environment.
