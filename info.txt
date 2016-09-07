@@ -1,0 +1,293 @@
+Notebook objects in templates
+template                               attribute                                   N
+
+notebook/guest_worksheet_page          notebook.came_from_wst(                     1
+notebook/guest_worksheet_page          notebook.user_manager[username].is_guest    3
+notebook/worksheet_share               notebook.user_manager[username].is_admin    1 
+notebook/download_or_delete_data_file  notebook.user_active_wsts(                  1 
+notebook/base                          notebook.conf['pub_interact']               2
+notebook/base                          notebook                                    1
+notebook/base                          notebook.readonly_user(                     1
+notebook/base                          notebook.systems                            1
+notebook/worksheet_page                notebook                                    0
+
+
+worksheet/ratings_info                 worksheet.name                              2
+worksheet/ratings_info                 worksheet.filename                          4
+worksheet/ratings_info                 worksheet.ratings.iteritems(                1
+worksheet_listing                      worksheets                                  3
+worksheet_listing                      worksheet                                   1
+worksheet_listing                      worksheet.rating(                           2
+worksheet_listing                      worksheet.name                              2
+worksheet_listing                      worksheet.compute_process_has_been_started( 1
+worksheet_listing                      worksheet.is_published                      1
+worksheet_listing                      worksheet.owner                             2
+worksheet_listing                      worksheet.worksheet_that_was_published[0]   1
+worksheet_listing                      worksheet.collaborators                     2
+worksheet_listing                      worksheet.published_id_number               1
+worksheet_listing                      worksheet.published_filename                1
+worksheet_listing                      worksheet.last_edited                       1
+worksheet_listing                      worksheet.time_since_last_edited            1
+worksheet_listing                      worksheet.last_to_edit                      1
+notebook/upload_data_window            worksheet.name                              1
+notebook/print_worksheet               worksheet.name                              1
+notebook/edit_window.htm               worksheet.body                              1
+notebook/edit_window.htm               worksheet.body.count                        1
+notebook/worksheet                     worksheet.is_published                      1
+notebook/worksheet                     worksheet.cells                             1
+notebook/plain_text_window             worksheet.plain_text                        1
+notebook/worksheet_page                worksheet.state_number                      1
+notebook/worksheet_page                worksheet.cell_id_list                      1
+notebook/worksheet_page                worksheet.queue_id_list                     1
+notebook/worksheet_page                worksheet.docbrowser                        1
+notebook/guest_worksheet_page          original_worksheet.collaborators            1
+notebook/guest_worksheet_page          original_worksheet.owner                    1
+notebook/guest_worksheet_page          original_worksheet.filename                 1
+notebook/guest_worksheet_page          worksheet.download_name                     1
+notebook/guest_worksheet_page          worksheet.rating(                           3
+notebook/guest_worksheet_page          worksheet.publisher                         2
+notebook/guest_worksheet_page          worksheet.ratings                           1
+notebook/guest_worksheet_page          worksheet.name                              1
+notebook/guest_worksheet_page          worksheet.last_to_edit                      1
+notebook/guest_worksheet_page          worksheet.time_since_last_edited            1
+notebook/guest_worksheet_page          worksheet.cell_id_list                      1
+notebook/guest_worksheet_page          worksheet.onload_id_list                    1
+notebook/worksheet_share               worksheet.owner                             1
+notebook/worksheet_share               worksheet.collaborators                     1
+notebook/download_or_delete_datafile   worksheet.filename                          3
+notebook/download_or_delete_datafile   worksheet.name                              1
+notebook/worksheet_revision_list       worksheet.snapshot_data(                    1
+notebook/afterpublish_window           worksheet.auto_publish                      1
+notebook/base                          worksheet.name                              3
+notebook/base                          worksheet.is_published                      5
+notebook/base                          worksheet.docbrowser                        5
+notebook/base                          worksheet.filename                          3
+notebook/base                          worksheet.is_published                      4
+notebook/base                          worksheet.last_edited                       1
+notebook/base                          worksheet.last_to_edit                      1
+notebook/base                          worksheet.warn_about_other_person_editing(  1
+notebook/base                          worksheet.attached_data_files               1
+notebook/base                          worksheet.system_index                      1
+notebook/base                          worksheet.system                            1
+notebook/base                          worksheet.pretty_print                      1
+
+notebook/text_cell                     cell.id                                    16
+notebook/text_cell                     cell.worksheet().docbrowser                 2
+notebook/text_cell                     cell.plain_text                             2
+notebook/text_cell                     cell.worksheet().is_published               1
+notebook/worksheet                     cell in worksheet.cells                     1
+notebook/worksheet                     cell.html(                                  1
+notebook/cell                          cell.id                                    23
+notebook/cell                          cell.evaluated                              1
+notebook/cell                          cell.percent_directives                     2
+notebook/cell                          cell.worksheet().docbrowser                 2
+notebook/cell                          cell.input                                  5
+notebook/cell                          cell.is_interactive_cell(                   1
+notebook/cell                          cell.computing                              1
+notebook/cell                          cell.output_text(                           3
+notebook/cell                          cell.output_html(                           1
+
+notebook/worksheet                    conf['word_wrap_cols']                       1
+notebook/guest_worksheet_page         conf['pub_interact']                         2
+notebook/cell                         conf['pub_interact']                         1
+
+
+
+Callers                                         Extensions
+
+util.auth.reCAPTCHAChallenge.html                     recaptcha.html
+util.templates.completions_html                       worksheet/completions
+util.cell.ComputeCell.html                            notebook/cell
+util.cell.TextCell.html                               notebook/text_cell
+
+None                                                  base
+blueprints.base.history                               base -> history
+blueprints.authentication.(login, register)           base -> login
+unused?                                               base -> yes_no
+blueprints.base.set_profiles                          base -> accounts/openid_profile
+blueprints.worksheet.html_ratings_info                base -> worksheet/ratings_info
+                                               
+None                                                  base -> accounts/base
+blueprints.authentication.forgot_pass                 base -> accounts/base -> accounts/account_recovery
+blueprints.authentication.register                    base -> accounts/base -> accounts/registration
+                                                      
+None                                                  base -> base_authenticated
+blueprints.doc.help                                   base -> base_authenticated -> docs
+util.templates.message                                base -> base_authenticated -> error_message
+app.autoindex                                         base -> base_authenticated -> source_code
+blueprints.worksheet.upload                           base -> base_authenticated -> upload
+blueprints.worksheet.render_ws_list_template          base -> base_authenticated -> worksheet_listing
+                                                      
+None                                                  base -> base_authenticated -> notebook/base
+blueprints.worksheet.render_ws_template               base -> base_authenticated -> notebook/base -> notebook/guest_worksheet_page
+blueprints.worksheet.render_ws_template               base -> base_authenticated -> notebook/base -> notebook/print_worksheet
+                                                      
+blueprints.worksheet.render_ws_template               base -> base_authenticated -> notebook/base -> notebook/worksheet_page
+blueprints.worksheet.render_ws_template               base -> base_authenticated -> notebook/base -> notebook/worksheet_page -> notebook/doc_page
+                                                      
+None                                                  base -> base_authenticated -> notebook/base -> notebook/base_aux
+blueprints.worksheet.html_afterpublish_window         base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/afterpublish_window
+blueprints.worksheet.html_beforepublish_window        base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/beforepublish_window
+blueprints.worksheet.html_download_or_delete_datafile base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/download_or_delete_datafile
+blueprints.worksheet.html_edit_window                 base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/edit_window
+blueprints.worksheet.html_plain_text_window           base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/plain_text_window
+blueprints.worksheet.html_specific_revision           base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/specific_revision
+blueprints.worksheet.html_upload_data_window          base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/upload_data_window
+blueprints.worksheet.html_worksheet_revision_list     base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/worksheet_revision_list
+blueprints.worksheet.html_share                       base -> base_authenticated -> notebook/base -> notebook/base_aux -> notebook/worksheet_share
+                                                      
+None                                                  base -> base_authenticated -> settings/base
+blueprints.settings.settings_page                     base -> base_authenticated -> settings/base -> settings/account_settings
+blueprints.admin.add_user                             base -> base_authenticated -> settings/base -> settings/admin_add_user
+blueprints.admin.notebook_settings                    base -> base_authenticated -> settings/base -> settings/notebook_settings
+blueprints.admin.users                                base -> base_authenticated -> settings/base -> settings/user_management
+
+
+
+
+Includes
+
+notebook/worksheet_page.html <- notebook/worksheet.html
+notebook/print_worksheet.html <- notebook/worksheet.html
+notebook/guest_worksheet_page.html <- notebook/worksheet.html
+notebook/specific_revision.html <- notebook/worksheet.html
+
+
+Imports
+
+worksheet_listing.html <= worksheet/time.html as time
+notebook/base.html <= worksheet/time.html as time
+notebook/guest_worksheet_page.html <= worksheet/time.html as time}
+templates/__autoindex__/autoindex.html  <= from "__autoindex__/macros.html" import entry, thead, breadcrumb
+
+
+Routes
+
+Flask extension routes
+
+__autoindex__.static                            /__autoindex__/[filename]                            OPTIONS,GET,HEAD
+_themes.static                                  /_themes/[themeid]/[filename]                        OPTIONS,GET,HEAD
+silkicon                                        /__icons__/[filename]                                OPTIONS,GET,HEAD
+
+Page routes
+
+
+Ajax routes
+
+
+autoindex                                       /src/                                                OPTIONS,GET,HEAD
+autoindex                                       /src/[path]                                          OPTIONS,GET,HEAD
+
+admin.add_user                                  /adduser                                             OPTIONS,GET,HEAD,POST
+admin.add_user_nui                              /add_user                                            OPTIONS,POST
+admin.del_user                                  /users/delete/[user]                                 OPTIONS,GET,HEAD
+admin.notebook_settings                         /notebooksettings                                    OPTIONS,GET,HEAD,POST
+admin.reset_user_password                       /reset_user_password                                 OPTIONS,POST
+admin.suspend_user                              /users/suspend/[user]                                OPTIONS,GET,HEAD
+admin.suspend_user_nui                          /suspend_user                                        OPTIONS,POST
+admin.toggle_admin                              /users/toggleadmin/[user]                            OPTIONS,GET,HEAD
+admin.users                                     /users                                               OPTIONS,GET,HEAD
+admin.users                                     /users/reset/[reset]                                 OPTIONS,GET,HEAD
+
+authentication.confirm                          /confirm                                             OPTIONS,GET,HEAD
+authentication.forgot_pass                      /forgotpass                                          OPTIONS,GET,HEAD
+authentication.login                            /login                                               OPTIONS,GET,HEAD,POST
+authentication.logout                           /logout/                                             OPTIONS,GET,HEAD
+authentication.register                         /register                                            OPTIONS,GET,HEAD,POST
+
+base.dynamic_js                                 /javascript/dynamic/notebook_dynamic.js              OPTIONS,GET,HEAD
+base.history                                    /history                                             OPTIONS,GET,HEAD
+base.index                                      /                                                    OPTIONS,GET,HEAD
+base.keyboard_js                                /javascript/dynamic/keyboard/[browser_os]            OPTIONS,GET,HEAD
+base.live_history                               /live_history                                        OPTIONS,GET,HEAD
+base.localization_js                            /javascript/dynamic/localization.js                  OPTIONS,GET,HEAD
+base.loginoid                                   /loginoid                                            OPTIONS,GET,HEAD,POST
+base.mathjax_js                                 /javascript/dynamic/mathjax_sage.js                  OPTIONS,GET,HEAD
+base.set_profiles                               /openid_profiles                                     OPTIONS,GET,HEAD,POST
+
+doc.help                                        /doc/help                                            OPTIONS,GET,HEAD
+doc.live                                        /doc/live/                                           OPTIONS,GET,HEAD
+doc.live                                        /doc/live/[filename]                                 OPTIONS,GET,HEAD
+doc.live                                        /doc/live/[manual]/[path_static]/_static/[filename]  OPTIONS,GET,HEAD
+doc.static                                      /doc/static/[filename]                               OPTIONS,GET,HEAD
+doc.static                                      /doc/static/[filename]                               OPTIONS,GET,HEAD
+
+settings.settings_page                          /settings                                            OPTIONS,GET,HEAD,POST
+
+static                                          /static/[filename]                                   OPTIONS,GET,HEAD
+static_paths.css                                /css/[filename]                                      OPTIONS,GET,HEAD
+static_paths.images                             /images/[filename]                                   OPTIONS,GET,HEAD
+static_paths.images                             /images/[filename]                                   OPTIONS,GET,HEAD
+static_paths.j2s                                /j2s/[filename]                                      OPTIONS,GET,HEAD
+static_paths.jmol                               /java/jmol/[filename]                                OPTIONS,GET,HEAD
+static_paths.jsmol                              /jsmol/[filename]                                    OPTIONS,GET,HEAD
+static_paths.static_file                        /java/[filename]                                     OPTIONS,GET,HEAD
+static_paths.static_file                        /java/[filename]                                     OPTIONS,GET,HEAD
+
+worksheet.new_worksheet                         /new_worksheet                                       OPTIONS,GET,HEAD
+worksheet.public_worksheet                      /home/pub/[id]/                                      OPTIONS,GET,HEAD
+worksheet.public_worksheet_cells                /home/pub/[id]/cells/[filename]                      OPTIONS,GET,HEAD
+worksheet.public_worksheet_download             /home/pub/[id]/download/[title]                      OPTIONS,GET,HEAD
+worksheet.worksheed_data_folder                 /home/[username]/[id]/data/[filename]                OPTIONS,GET,HEAD,POST
+worksheet.worksheet_alive                       /home/[username]/[id]/alive                          OPTIONS,GET,HEAD,POST
+worksheet.worksheet_cell_list                   /home/[username]/[id]/cell_list                      OPTIONS,GET,HEAD,POST
+worksheet.worksheet_cell_properties             /home/[username]/[id]/cell_properties                OPTIONS,GET,HEAD,POST
+worksheet.worksheet_cell_update                 /home/[username]/[id]/cell_update                    OPTIONS,GET,HEAD,POST
+worksheet.worksheet_cells                       /home/[username]/[id]/cells/[filename]               OPTIONS,GET,HEAD,POST
+worksheet.worksheet_conf                        /home/[username]/[id]/conf                           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_copy                        /home/[username]/[id]/copy                           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_data_legacy                 /home/[username]/[id]/[filename]                     OPTIONS,GET,HEAD,POST
+worksheet.worksheet_datafile                    /home/[username]/[id]/datafile                       OPTIONS,GET,HEAD,POST
+worksheet.worksheet_delete_all_output           /home/[username]/[id]/delete_all_output              OPTIONS,GET,HEAD,POST
+worksheet.worksheet_delete_cell                 /home/[username]/[id]/delete_cell                    OPTIONS,GET,HEAD,POST
+worksheet.worksheet_delete_cell_output          /home/[username]/[id]/delete_cell_output             OPTIONS,GET,HEAD,POST
+worksheet.worksheet_discard_and_quit            /home/[username]/[id]/discard_and_quit               OPTIONS,GET,HEAD,POST
+worksheet.worksheet_do_upload_data              /home/[username]/[id]/do_upload_data                 OPTIONS,GET,HEAD,POST
+worksheet.worksheet_download                    /home/[username]/[id]/download/[title]               OPTIONS,GET,HEAD,POST
+worksheet.worksheet_edit                        /home/[username]/[id]/edit                           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_edit_published_page         /home/[username]/[id]/edit_published_page            OPTIONS,GET,HEAD,POST
+worksheet.worksheet_eval                        /home/[username]/[id]/eval                           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_interrupt                   /home/[username]/[id]/interrupt                      OPTIONS,GET,HEAD,POST
+worksheet.worksheet_introspect                  /home/[username]/[id]/introspect                     OPTIONS,GET,HEAD,POST
+worksheet.worksheet_invite_collab               /home/[username]/[id]/invite_collab                  OPTIONS,GET,HEAD,POST
+worksheet.worksheet_jsmol_data                  /home/[username]/[id]/jsmol                          OPTIONS,GET,HEAD,POST
+worksheet.worksheet_link_datafile               /home/[username]/[id]/link_datafile                  OPTIONS,GET,HEAD,POST
+worksheet.worksheet_live_3D                     /home/[username]/[id]/live_3D/[enable]               OPTIONS,GET,HEAD,POST
+worksheet.worksheet_new_cell_after              /home/[username]/[id]/new_cell_after                 OPTIONS,GET,HEAD,POST
+worksheet.worksheet_new_cell_before             /home/[username]/[id]/new_cell_before                OPTIONS,GET,HEAD,POST
+worksheet.worksheet_new_text_cell_after         /home/[username]/[id]/new_text_cell_after            OPTIONS,GET,HEAD,POST
+worksheet.worksheet_new_text_cell_before        /home/[username]/[id]/new_text_cell_before           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_pretty_print                /home/[username]/[id]/pretty_print/[enable]          OPTIONS,GET,HEAD,POST
+worksheet.worksheet_print                       /home/[username]/[id]/print                          OPTIONS,GET,HEAD,POST
+worksheet.worksheet_properties                  /home/[username]/[id]/worksheet_properties           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_publish                     /home/[username]/[id]/publish                        OPTIONS,GET,HEAD,POST
+worksheet.worksheet_quit_sage                   /home/[username]/[id]/quit_sage                      OPTIONS,GET,HEAD,POST
+worksheet.worksheet_rate                        /home/[username]/[id]/rate                           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_rating_info                 /home/[username]/[id]/rating_info                    OPTIONS,GET,HEAD,POST
+worksheet.worksheet_rename                      /home/[username]/[id]/rename                         OPTIONS,GET,HEAD,POST
+worksheet.worksheet_restart_sage                /home/[username]/[id]/restart_sage                   OPTIONS,GET,HEAD,POST
+worksheet.worksheet_revert_to_last_saved_state  /home/[username]/[id]/revert_to_last_saved_state     OPTIONS,GET,HEAD,POST
+worksheet.worksheet_revisions                   /home/[username]/[id]/revisions                      OPTIONS,GET,HEAD,POST
+worksheet.worksheet_save                        /home/[username]/[id]/save                           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_save_and_close              /home/[username]/[id]/save_and_close                 OPTIONS,GET,HEAD,POST
+worksheet.worksheet_save_and_quit               /home/[username]/[id]/save_and_quit                  OPTIONS,GET,HEAD,POST
+worksheet.worksheet_save_snapshot               /home/[username]/[id]/save_snapshot                  OPTIONS,GET,HEAD,POST
+worksheet.worksheet_savedatafile                /home/[username]/[id]/savedatafile                   OPTIONS,GET,HEAD,POST
+worksheet.worksheet_share                       /home/[username]/[id]/share                          OPTIONS,GET,HEAD,POST
+worksheet.worksheet_system                      /home/[username]/[id]/system/[system]                OPTIONS,GET,HEAD,POST
+worksheet.worksheet_text                        /home/[username]/[id]/text                           OPTIONS,GET,HEAD,POST
+worksheet.worksheet_upload_data                 /home/[username]/[id]/upload_data                    OPTIONS,GET,HEAD,POST
+worksheet.worksheet_v                           /home/[username]/[id]/                               OPTIONS,GET,HEAD
+
+worksheet_listing.bare_home                     /home/                                               OPTIONS,GET,HEAD
+worksheet_listing.download_worksheets           /download_worksheets.zip                             OPTIONS,GET,HEAD
+worksheet_listing.empty_trash                   /emptytrash                                          OPTIONS,POST
+worksheet_listing.home                          /home/[username]/                                    OPTIONS,GET,HEAD
+worksheet_listing.pub                           /pub/                                                OPTIONS,GET,HEAD
+worksheet_listing.send_worksheet_to_active      /send_to_active                                      OPTIONS,POST
+worksheet_listing.send_worksheet_to_archive     /send_to_archive                                     OPTIONS,POST
+worksheet_listing.send_worksheet_to_stop        /send_to_stop                                        OPTIONS,POST
+worksheet_listing.send_worksheet_to_trash       /send_to_trash                                       OPTIONS,POST
+worksheet_listing.upload                        /upload                                              OPTIONS,GET,HEAD
+worksheet_listing.upload_worksheet              /upload_worksheet                                    OPTIONS,GET,HEAD,POST
+worksheet_listing.worksheet_list                /worksheet_list                                      OPTIONS,GET,HEAD
