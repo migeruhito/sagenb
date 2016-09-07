@@ -143,13 +143,13 @@ def create_app(notebook, startup_token=None, debug=False):
     def autoindex(path='.'):
         filename = os.path.join(SRC, path)
         if os.path.isfile(filename):
-            src = escape(open(filename).read().decode('utf-8', 'ignore'))
+            with open(filename, 'rb') as f:
+                src = f.read().decode('utf-8', 'ignore')
             if (os.path.splitext(filename)[1] in
                     ['.py', '.c', '.cc', '.h', '.hh', '.pyx', '.pxd']):
-                return render_template(os.path.join('html',
-                                                    'source_code.html'),
-                                       src_filename=path,
-                                       src=src, username=g.username)
+                return render_template(
+                    os.path.join('html', 'source_code.html'),
+                    src_filename=path, src=src, username=g.username)
             return src
         return idx.render_autoindex(path)
 
