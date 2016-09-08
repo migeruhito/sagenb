@@ -236,10 +236,13 @@ I   static_paths.jsmol                              /jsmol/[filename]           
 I   static_paths.static_file                        /java/[filename]                                     GET
 I   static_paths.static_file                        /java/[filename]                                     GET
     
-    worksheet.new_worksheet                         /new_worksheet                                       GET
-    worksheet.public_worksheet                      /home/pub/[id]/                                      GET
+LJF worksheet.new_worksheet                         /new_worksheet                                       GET
+
+P   worksheet.public_worksheet                      /home/pub/[id]/                                      GET
     worksheet.public_worksheet_cells                /home/pub/[id]/cells/[filename]                      GET
     worksheet.public_worksheet_download             /home/pub/[id]/download/[title]                      GET
+
+P   worksheet.worksheet_v                           /home/[username]/[id]/                               GET
     worksheet.worksheed_data_folder                 /home/[username]/[id]/data/[filename]                GET,POST
     worksheet.worksheet_alive                       /home/[username]/[id]/alive                          GET,POST
     worksheet.worksheet_cell_list                   /home/[username]/[id]/cell_list                      GET,POST
@@ -289,7 +292,6 @@ I   static_paths.static_file                        /java/[filename]            
     worksheet.worksheet_system                      /home/[username]/[id]/system/[system]                GET,POST
     worksheet.worksheet_text                        /home/[username]/[id]/text                           GET,POST
     worksheet.worksheet_upload_data                 /home/[username]/[id]/upload_data                    GET,POST
-    worksheet.worksheet_v                           /home/[username]/[id]/                               GET
     
 P   worksheet_listing.bare_home                     /home/                                               GET
 LJ  worksheet_listing.download_worksheets           /download_worksheets.zip                             GET
