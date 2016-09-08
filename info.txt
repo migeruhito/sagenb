@@ -177,7 +177,7 @@ Routes
 A ajax
 E flask extensions
 F command by form
-I included in <link>
+I included in <link>, <img>, etc
 J command by js (newui)?
 L command by link
 P web page
@@ -213,29 +213,28 @@ P   base.history                                    /history                    
 P   base.index                                      /                                                    GET
 I   base.keyboard_js                                /javascript/dynamic/keyboard/[browser_os]            GET
 L   base.live_history                               /live_history                                        GET
-    base.localization_js                            /javascript/dynamic/localization.js                  GET
-    base.loginoid                                   /loginoid                                            GET,POST
-    base.mathjax_js                                 /javascript/dynamic/mathjax_sage.js                  GET
+I   base.localization_js                            /javascript/dynamic/localization.js                  GET
+F   base.loginoid                                   /loginoid                                            GET,POST
+I   base.mathjax_js                                 /javascript/dynamic/mathjax_sage.js                  GET
     base.set_profiles                               /openid_profiles                                     GET,POST
     
-    doc.help                                        /doc/help                                            GET
-    doc.live                                        /doc/live/                                           GET
-    doc.live                                        /doc/live/[filename]                                 GET
-    doc.live                                        /doc/live/[manual]/[path_static]/_static/[filename]  GET
-    doc.static                                      /doc/static/[filename]                               GET
-    doc.static                                      /doc/static/[filename]                               GET
+P   doc.help                                        /doc/help                                            GET
+P   doc.live                                        /doc/live/                                           GET
+P   doc.live                                        /doc/live/[filename]                                 GET
+P   doc.live                                        /doc/live/[manual]/[path_static]/_static/[filename]  GET
+P   doc.static                                      /doc/static/[filename]                               GET
     
-    settings.settings_page                          /settings                                            GET,POST
+PF  settings.settings_page                          /settings                                            GET,POST
     
-    static                                          /static/[filename]                                   GET
-    static_paths.css                                /css/[filename]                                      GET
-    static_paths.images                             /images/[filename]                                   GET
-    static_paths.images                             /images/[filename]                                   GET
-    static_paths.j2s                                /j2s/[filename]                                      GET
-    static_paths.jmol                               /java/jmol/[filename]                                GET
-    static_paths.jsmol                              /jsmol/[filename]                                    GET
-    static_paths.static_file                        /java/[filename]                                     GET
-    static_paths.static_file                        /java/[filename]                                     GET
+I   static                                          /static/[filename]                                   GET
+I   static_paths.css                                /css/[filename]                                      GET
+I   static_paths.images                             /images/[filename]                                   GET
+I   static_paths.images                             /images/[filename]                                   GET
+I   static_paths.j2s                                /j2s/[filename]                                      GET
+I   static_paths.jmol                               /java/jmol/[filename]                                GET
+I   static_paths.jsmol                              /jsmol/[filename]                                    GET
+I   static_paths.static_file                        /java/[filename]                                     GET
+I   static_paths.static_file                        /java/[filename]                                     GET
     
     worksheet.new_worksheet                         /new_worksheet                                       GET
     worksheet.public_worksheet                      /home/pub/[id]/                                      GET
@@ -292,15 +291,15 @@ L   base.live_history                               /live_history               
     worksheet.worksheet_upload_data                 /home/[username]/[id]/upload_data                    GET,POST
     worksheet.worksheet_v                           /home/[username]/[id]/                               GET
     
-    worksheet_listing.bare_home                     /home/                                               GET
-    worksheet_listing.download_worksheets           /download_worksheets.zip                             GET
-    worksheet_listing.empty_trash                   /emptytrash                                          POST
-    worksheet_listing.home                          /home/[username]/                                    GET
-    worksheet_listing.pub                           /pub/                                                GET
-    worksheet_listing.send_worksheet_to_active      /send_to_active                                      POST
-    worksheet_listing.send_worksheet_to_archive     /send_to_archive                                     POST
-    worksheet_listing.send_worksheet_to_stop        /send_to_stop                                        POST
-    worksheet_listing.send_worksheet_to_trash       /send_to_trash                                       POST
-    worksheet_listing.upload                        /upload                                              GET
-    worksheet_listing.upload_worksheet              /upload_worksheet                                    GET,POST
-    worksheet_listing.worksheet_list                /worksheet_list                                      GET
+P   worksheet_listing.bare_home                     /home/                                               GET
+LJ  worksheet_listing.download_worksheets           /download_worksheets.zip                             GET
+LJ  worksheet_listing.empty_trash                   /emptytrash                                          POST
+P   worksheet_listing.home                          /home/[username]/                                    GET
+P   worksheet_listing.pub                           /pub/                                                GET
+J   worksheet_listing.send_worksheet_to_active      /send_to_active                                      POST
+J   worksheet_listing.send_worksheet_to_archive     /send_to_archive                                     POST
+J   worksheet_listing.send_worksheet_to_stop        /send_to_stop                                        POST
+J   worksheet_listing.send_worksheet_to_trash       /send_to_trash                                       POST
+LJ  worksheet_listing.upload                        /upload                                              GET
+F   worksheet_listing.upload_worksheet              /upload_worksheet                                    GET,POST
+A   worksheet_listing.worksheet_list                /worksheet_list                                      GET

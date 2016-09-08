@@ -22,5 +22,6 @@ def extended_wst_basic(wst, nb):
     if d['published']:
         d['published_time'] = strftime(
             "%B %d, %Y %I:%M %p",
-            nb.filename_wst(wst.published_id_number).date_edited)
+            nb.filename_wst(wst.published_filename).date_edited)
+    return d
 # New UI end
