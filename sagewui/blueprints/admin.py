@@ -61,8 +61,8 @@ def users(reset=None):
                               for username in users]
     template_dict['admin'] = g.notebook.user_manager[g.username].is_admin
     template_dict['username'] = g.username
-    return render_template(os.path.join(
-        'html', 'settings', 'user_management.html'), **template_dict)
+    return render_template(
+        'html/settings/user_management.html', **template_dict)
 
 
 @admin.route('/users/suspend/<user>')
@@ -110,6 +110,7 @@ def toggle_admin(user):
 @admin_required
 @with_lock
 def add_user():
+    template_url = 'html/settings/admin_add_user.html'
     template_dict = {
         'admin': g.notebook.user_manager[g.username].is_admin,
         'username': g.username,
@@ -119,22 +120,18 @@ def add_user():
             return redirect(url_for('admin.users'))
         username = request.values['username']
         if not is_valid_username(username):
-            return render_template(os.path.join('html',
-                                                'settings',
-                                                'admin_add_user.html'),
-                                   error='username_invalid',
-                                   username_input=username,
-                                   **template_dict)
+            return render_template(
+                template_url,
+                error='username_invalid', username_input=username,
+                **template_dict)
 
         chara = string.ascii_letters + string.digits
         password = ''.join([choice(chara) for i in range(8)])
         if username in g.notebook.user_manager:
-            return render_template(os.path.join('html',
-                                                'settings',
-                                                'admin_add_user.html'),
-                                   error='username_taken',
-                                   username_input=username,
-                                   **template_dict)
+            return render_template(
+                template_url,
+                error='username_taken', username_input=username,
+                **template_dict)
         g.notebook.user_manager.add_user(username, password, '')
 
         message = _('The temporary password for the new user '
@@ -142,10 +139,7 @@ def add_user():
                     username=username, password=password)
         return message_template(message, cont='/adduser', title=_('New User'))
     else:
-        return render_template(os.path.join('html',
-                                            'settings',
-                                            'admin_add_user.html'),
-                               **template_dict)
+        return render_template(template_url, **template_dict)
 
 
 # New UI
@@ -243,7 +237,5 @@ def notebook_settings():
     template_dict['admin'] = g.notebook.user_manager[g.username].is_admin
     template_dict['username'] = g.username
 
-    return render_template(os.path.join('html',
-                                        'settings',
-                                        'notebook_settings.html'),
-                           **template_dict)
+    return render_template( 
+        'html/settings/notebook_settings.html', **template_dict)

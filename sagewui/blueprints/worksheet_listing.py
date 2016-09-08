@@ -315,7 +315,7 @@ def upload():
             _("Account is in read-only mode"),
             cont=url_for('worksheet_listing.home', username=g.username),
             username=g.username)
-    return render_template(os.path.join('html', 'upload.html'),
+    return render_template('html/upload.html',
                            username=g.username, sage_version=SAGE_VERSION)
 
 

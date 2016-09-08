@@ -105,4 +105,4 @@ def settings_page():
     td['admin'] = nu.is_admin
 
     return render_template(
-        os.path.join('html', 'settings', 'account_settings.html'), **td)
+        'html/settings/account_settings.html', **td)

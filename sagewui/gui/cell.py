@@ -402,7 +402,7 @@ class TextCell(Cell):
             sage: C.input = "$2+3$"
         """
         return render_template(
-            os.path.join('html', 'notebook', 'text_cell.html'),
+            'html/notebook/text_cell.html',
             cell=self, wrap=wrap, div_wrap=div_wrap,
             do_print=do_print,
             editing=editing, publish=publish)
@@ -1629,7 +1629,7 @@ class ComputeCell(Cell):
         if wrap is None:
             wrap = self.word_wrap_cols
 
-        return render_template(os.path.join('html', 'notebook', 'cell.html'),
+        return render_template('html/notebook/cell.html',
                                cell=self, wrap=wrap, div_wrap=div_wrap,
                                do_print=do_print, publish=publish)
 

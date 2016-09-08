@@ -53,6 +53,8 @@ _ = gettext
 worksheet = Blueprint('worksheet', __name__)
 worksheet_locks = defaultdict(threading.Lock)
 
+base_url = 'html/notebook/{}.html'
+
 
 def worksheet_view(f):
     """
@@ -154,7 +156,7 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
 
     # New UI
     try:
-        return render_template(os.path.join('html', 'worksheet.html'))
+        return render_template('html/worksheet.html')
     except TemplateNotFound:
         pass
     # New UI end
@@ -163,16 +165,16 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
 
     if ws.docbrowser or ws.is_published:
         if ws.is_published or nb.user_manager[username].is_guest:
-            template_name = 'guest_worksheet_page.html'
+            template_name = 'guest_worksheet_page'
             publish = True
         else:
-            template_name = 'doc_page.html'
+            template_name = 'doc_page'
     elif do_print:
-        template_name = 'print_worksheet.html'
+        template_name = 'print_worksheet'
     else:
-        template_name = 'worksheet_page.html'
+        template_name = 'worksheet_page'
 
-    return render_template(os.path.join('html', 'notebook', template_name),
+    return render_template(base_url.format(template_name),
                            worksheet=ws,
                            notebook=nb, do_print=do_print, publish=publish,
                            username=username)
@@ -208,7 +210,7 @@ def html_worksheet_revision_list(username, worksheet):
     data = worksheet.snapshot_data()  # pairs ('how long ago', key)
 
     return render_template(
-        os.path.join("html", "notebook", "worksheet_revision_list.html"),
+        base_url.format('worksheet_revision_list'),
         data=data, worksheet=worksheet,
         notebook=g.notebook,
         username=username)
@@ -253,7 +255,7 @@ def html_specific_revision(username, ws, rev):
             break
 
     return render_template(
-        os.path.join("html", "notebook", "specific_revision.html"),
+        base_url.format('specific_revision'),
         worksheet=W,  # the revision, not the original!
         username=username, rev=rev, prev_rev=prev_rev,
         next_rev=next_rev, time_ago=time_ago,
@@ -285,7 +287,7 @@ def html_share(worksheet, username):
         '...currently shared...add or remove collaborators...'
     """
     return render_template(
-        os.path.join("html", "notebook", "worksheet_share.html"),
+        base_url.format('worksheet_share'),
         worksheet=worksheet,
         notebook=g.notebook,
         username=username)
@@ -329,8 +331,7 @@ def html_download_or_delete_datafile(ws, username, filename):
         text_file_content = open(os.path.join(
             ws.data_directory, filename)).read()
 
-    return render_template(os.path.join("html", "notebook",
-                                        "download_or_delete_datafile.html"),
+    return render_template(base_url.format('download_or_delete_datafile'),
                            worksheet=ws, notebook=g.notebook,
                            username=username,
                            filename_=filename,
@@ -365,7 +366,7 @@ def html_edit_window(worksheet, username):
     """
 
     return render_template(
-        os.path.join("html", "notebook", "edit_window.html"),
+        base_url.format('edit_window'),
         worksheet=worksheet,
         notebook=g.notebook,
         username=username)
@@ -397,7 +398,7 @@ def html_beforepublish_window(worksheet, username):
         '...want to publish this worksheet?...re-publish when changes...'
     """
     return render_template(
-        os.path.join("html", "notebook", "beforepublish_window.html"),
+        base_url.format('beforepublish_window'),
         worksheet=worksheet,
         notebook=g.notebook,
         username=username)
@@ -426,7 +427,7 @@ def html_afterpublish_window(worksheet, username, url, dtime):
     time_ = time.strftime("%B %d, %Y %I:%M %p", dtime)
 
     return render_template(
-        os.path.join("html", "notebook", "afterpublish_window.html"),
+        base_url.format('afterpublish_window'),
         worksheet=worksheet,
         notebook=g.notebook,
         username=username, url=url, time=time_)
@@ -457,7 +458,7 @@ def html_upload_data_window(ws, username):
         '...Upload or Create Data File...Browse...url...name of a new...'
     """
     return render_template(
-        os.path.join("html", "notebook", "upload_data_window.html"),
+        base_url.format('upload_data_window'),
         worksheet=ws, username=username)
 
 
@@ -485,7 +486,7 @@ def html_ratings_info(ws, username=None):
         '...hilbert...3...this is great...this lacks content...'
     """
     return render_template(
-        os.path.join('html', 'worksheet', 'ratings_info.html'),
+        'html/worksheet/ratings_info.html',
         worksheet=ws, username=username)
 
 
@@ -520,7 +521,7 @@ def html_plain_text_window(worksheet, username):
     plain_text = escape(plain_text).strip()
 
     return render_template(
-        os.path.join("html", "notebook", "plain_text_window.html"),
+        base_url.format('plain_text_window'),
         worksheet=worksheet,
         notebook=g.notebook,
         username=username, plain_text=plain_text)

@@ -148,7 +148,7 @@ def create_app(notebook, startup_token=None, debug=False):
             if (os.path.splitext(filename)[1] in
                     ['.py', '.c', '.cc', '.h', '.hh', '.pyx', '.pxd']):
                 return render_template(
-                    os.path.join('html', 'source_code.html'),
+                    'html/source_code.html',
                     src_filename=path, src=src, username=g.username)
             return src
         return idx.render_autoindex(path)

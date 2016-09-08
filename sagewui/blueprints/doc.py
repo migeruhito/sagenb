@@ -263,5 +263,5 @@ notebook_help = [
 @login_required
 def help():
     return render_template(
-        os.path.join('html', 'docs.html'), username=g.username,
+        'html/docs.html', username=g.username,
         notebook_help=notebook_help, sage_version=SAGE_VERSION)

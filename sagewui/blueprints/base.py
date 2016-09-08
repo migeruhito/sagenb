@@ -120,10 +120,9 @@ def render_js(data, datahash):
 @base.route('/history')
 @login_required
 def history():
-    return render_template(os.path.join('html', 'history.html'),
-                           username=g.username,
-                           text=g.notebook.user_history_text(g.username),
-                           actions=False)
+    return render_template(
+        'html/history.html', username=g.username,
+        text=g.notebook.user_history_text(g.username), actions=False)
 
 
 @base.route('/live_history')
@@ -148,8 +147,6 @@ def loginoid():
             return oid.try_login(
                 openid, ask_for=['email', 'fullname', 'nickname'])
     return redirect(url_for('authentication.login'))
-    # render_template(
-    #    'html/login.html', next=oid.get_next_url(), error=oid.fetch_error())
 
 
 @oid.after_login
@@ -194,10 +191,9 @@ def set_profiles():
             if show_challenge:
                 template_dict['challenge_html'] = chal.html()
 
-            return render_template('html/accounts/openid_profile.html',
-                                   resp=openid_resp,
-                                   challenge=show_challenge,
-                                   **template_dict)
+            return render_template(
+                'html/accounts/openid_profile.html', resp=openid_resp,
+                challenge=show_challenge, **template_dict)
         else:
             return redirect(url_for('base.index'))
 

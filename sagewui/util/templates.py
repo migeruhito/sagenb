@@ -172,8 +172,7 @@ def message(msg, cont='/', username=None, **kwds):
         'sage_version': SAGE_VERSION
         }
     template_dict.update(kwds)
-    return render_template(os.path.join('html', 'error_message.html'),
-                           **template_dict)
+    return render_template('html/error_message.html', **template_dict)
 
 
 # Dynamic javascript
@@ -382,7 +381,7 @@ def completions_html(cell_id, s, cols=3):
 
     completions = enumerate(grouper(s, (len(s) + cols - 1) // cols, ''))
     return render_template(
-        os.path.join("html", "worksheet", "completions.html"),
+        'html/worksheet/completions.html',
         cell_id=cell_id,
         # Transpose and enumerate completions to column-major
         completions_enumerated=completions)

@@ -102,8 +102,8 @@ def login(template_dict={}):
         else:
             template_dict['password_error'] = True
 
-    response = current_app.make_response(render_template(
-        os.path.join('html', 'login.html'), **template_dict))
+    response = current_app.make_response(
+        render_template('html/login.html', **template_dict))
     response.set_cookie('cookie_test_%s' % g.notebook.port, 'cookie_test')
     return response
 
@@ -230,18 +230,14 @@ def register():
     # VALIDATE OVERALL.
     if empty == required:
         # All required fields are empty.  Not really an error.
-        return render_template(os.path.join('html',
-                                            'accounts',
-                                            'registration.html'),
-                               **empty_form_dict)
+        return render_template(
+            'html/accounts/registration.html', **empty_form_dict)
     elif validated != required:
         # Error(s)!
         errors = len(required) - len(validated)
         template_dict['error'] = 'E ' if errors == 1 else 'Es '
-        return render_template(os.path.join('html',
-                                            'accounts',
-                                            'registration.html'),
-                               **template_dict)
+        return render_template(
+            'html/accounts/registration.html', **template_dict)
 
     # Create an account.  All required fields should be valid.
     g.notebook.user_manager.add_user(username, password, email_address)
@@ -275,7 +271,7 @@ def register():
                      'recovery': nb_conf['email'],
                      'sage_version': SAGE_VERSION}
 
-    return render_template(os.path.join('html', 'login.html'), **template_dict)
+    return render_template('html/login.html', **template_dict)
 
 
 @authentication.route('/confirm')
@@ -313,8 +309,7 @@ def forgot_pass():
 
     username = request.values.get('username', '').strip()
     if not username:
-        return render_template(
-            os.path.join('html', 'accounts', 'account_recovery.html'))
+        return render_template('html/accounts/account_recovery.html')
 
     def error(msg):
         return message_template(msg, url_for('forgot_pass'))
