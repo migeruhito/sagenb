@@ -93,14 +93,24 @@ notebook/cell                         conf['pub_interact']                      
 
 
 
+html Templates
+-> Extended by
+<- Included by
+<= imported by
+*  caller is not a view
+? to be removed 
+
 Callers                                               Extensions
 
-sagenb.testing.HTMLTestRunner                         test_report
+sagenb.testing.HTMLTestRunner ?                       test_report
 
-util.auth.reCAPTCHAChallenge.html                     recaptcha.html
-util.templates.completions_html                       worksheet/completions
-util.cell.ComputeCell.html                            notebook/cell
-util.cell.TextCell.html                               notebook/text_cell
+None                                                  notebook/worksheet <- notebook/{worksheet_page, print_worksheet, guest_worksheet_page, specific_revision}
+None                                                  worksheet/time <= worksheet_listing, notebook/{base, guest_worksheet_page}
+
+util.auth.reCAPTCHAChallenge.html *                   recaptcha.html
+util.templates.completions_html *                     worksheet/completions
+util.cell.ComputeCell.html *                          notebook/cell
+util.cell.TextCell.html *                             notebook/text_cell
 
 None                                                  base
 blueprints.base.history                               base -> history
@@ -114,7 +124,7 @@ blueprints.authentication.register                    base -> accounts/base -> a
                                                       
 None                                                  base -> base_authenticated
 blueprints.doc.help                                   base -> base_authenticated -> docs
-util.templates.message                                base -> base_authenticated -> error_message
+util.templates.message *                              base -> base_authenticated -> error_message
 app.autoindex                                         base -> base_authenticated -> source_code
 blueprints.worksheet.upload                           base -> base_authenticated -> upload
 blueprints.worksheet.render_ws_list_template          base -> base_authenticated -> worksheet_listing
@@ -148,142 +158,149 @@ blueprints.admin.users                                base -> base_authenticated
 
 Includes
 
-notebook/worksheet_page.html <- notebook/worksheet.html
-notebook/print_worksheet.html <- notebook/worksheet.html
-notebook/guest_worksheet_page.html <- notebook/worksheet.html
-notebook/specific_revision.html <- notebook/worksheet.html
+notebook/worksheet <- notebook/worksheet_page
+notebook/worksheet <- notebook/print_worksheet
+notebook/worksheet <- notebook/guest_worksheet_page
+notebook/worksheet <- notebook/specific_revision
 
 
 Imports
 
-worksheet_listing.html <= worksheet/time.html as time
-notebook/base.html <= worksheet/time.html as time
-notebook/guest_worksheet_page.html <= worksheet/time.html as time}
-templates/__autoindex__/autoindex.html  <= from "__autoindex__/macros.html" import entry, thead, breadcrumb
+worksheet/time as time <= worksheet_listing
+worksheet/time as time <= notebook/base
+worksheet/time as time <= notebook/guest_worksheet_page
+from __autoindex__/macros import entry, thead, breadcrumb <= templates/__autoindex__/autoindex
 
 
 Routes
 
-Flask extension routes
+A ajax
+E flask extensions
+F command by form
+I included in<link>
+J command by js (newui)?
+L command by link
+P web page
 
-__autoindex__.static                            /__autoindex__/[filename]                            GET
-_themes.static                                  /_themes/[themeid]/[filename]                        GET
-silkicon                                        /__icons__/[filename]                                GET
 
-
-autoindex                                       /src/                                                GET
-autoindex                                       /src/[path]                                          GET
-
-admin.add_user                                  /adduser                                             GET,POST
-admin.add_user_nui                              /add_user                                            POST
-admin.del_user                                  /users/delete/[user]                                 GET
-admin.notebook_settings                         /notebooksettings                                    GET,POST
-admin.reset_user_password                       /reset_user_password                                 POST
-admin.suspend_user                              /users/suspend/[user]                                GET
-admin.suspend_user_nui                          /suspend_user                                        POST
-admin.toggle_admin                              /users/toggleadmin/[user]                            GET
-admin.users                                     /users                                               GET
-admin.users                                     /users/reset/[reset]                                 GET
-
-authentication.confirm                          /confirm                                             GET
-authentication.forgot_pass                      /forgotpass                                          GET
-authentication.login                            /login                                               GET,POST
-authentication.logout                           /logout/                                             GET
-authentication.register                         /register                                            GET,POST
-
-base.dynamic_js                                 /javascript/dynamic/notebook_dynamic.js              GET
-base.history                                    /history                                             GET
-base.index                                      /                                                    GET
-base.keyboard_js                                /javascript/dynamic/keyboard/[browser_os]            GET
-base.live_history                               /live_history                                        GET
-base.localization_js                            /javascript/dynamic/localization.js                  GET
-base.loginoid                                   /loginoid                                            GET,POST
-base.mathjax_js                                 /javascript/dynamic/mathjax_sage.js                  GET
-base.set_profiles                               /openid_profiles                                     GET,POST
-
-doc.help                                        /doc/help                                            GET
-doc.live                                        /doc/live/                                           GET
-doc.live                                        /doc/live/[filename]                                 GET
-doc.live                                        /doc/live/[manual]/[path_static]/_static/[filename]  GET
-doc.static                                      /doc/static/[filename]                               GET
-doc.static                                      /doc/static/[filename]                               GET
-
-settings.settings_page                          /settings                                            GET,POST
-
-static                                          /static/[filename]                                   GET
-static_paths.css                                /css/[filename]                                      GET
-static_paths.images                             /images/[filename]                                   GET
-static_paths.images                             /images/[filename]                                   GET
-static_paths.j2s                                /j2s/[filename]                                      GET
-static_paths.jmol                               /java/jmol/[filename]                                GET
-static_paths.jsmol                              /jsmol/[filename]                                    GET
-static_paths.static_file                        /java/[filename]                                     GET
-static_paths.static_file                        /java/[filename]                                     GET
-
-worksheet.new_worksheet                         /new_worksheet                                       GET
-worksheet.public_worksheet                      /home/pub/[id]/                                      GET
-worksheet.public_worksheet_cells                /home/pub/[id]/cells/[filename]                      GET
-worksheet.public_worksheet_download             /home/pub/[id]/download/[title]                      GET
-worksheet.worksheed_data_folder                 /home/[username]/[id]/data/[filename]                GET,POST
-worksheet.worksheet_alive                       /home/[username]/[id]/alive                          GET,POST
-worksheet.worksheet_cell_list                   /home/[username]/[id]/cell_list                      GET,POST
-worksheet.worksheet_cell_properties             /home/[username]/[id]/cell_properties                GET,POST
-worksheet.worksheet_cell_update                 /home/[username]/[id]/cell_update                    GET,POST
-worksheet.worksheet_cells                       /home/[username]/[id]/cells/[filename]               GET,POST
-worksheet.worksheet_conf                        /home/[username]/[id]/conf                           GET,POST
-worksheet.worksheet_copy                        /home/[username]/[id]/copy                           GET,POST
-worksheet.worksheet_data_legacy                 /home/[username]/[id]/[filename]                     GET,POST
-worksheet.worksheet_datafile                    /home/[username]/[id]/datafile                       GET,POST
-worksheet.worksheet_delete_all_output           /home/[username]/[id]/delete_all_output              GET,POST
-worksheet.worksheet_delete_cell                 /home/[username]/[id]/delete_cell                    GET,POST
-worksheet.worksheet_delete_cell_output          /home/[username]/[id]/delete_cell_output             GET,POST
-worksheet.worksheet_discard_and_quit            /home/[username]/[id]/discard_and_quit               GET,POST
-worksheet.worksheet_do_upload_data              /home/[username]/[id]/do_upload_data                 GET,POST
-worksheet.worksheet_download                    /home/[username]/[id]/download/[title]               GET,POST
-worksheet.worksheet_edit                        /home/[username]/[id]/edit                           GET,POST
-worksheet.worksheet_edit_published_page         /home/[username]/[id]/edit_published_page            GET,POST
-worksheet.worksheet_eval                        /home/[username]/[id]/eval                           GET,POST
-worksheet.worksheet_interrupt                   /home/[username]/[id]/interrupt                      GET,POST
-worksheet.worksheet_introspect                  /home/[username]/[id]/introspect                     GET,POST
-worksheet.worksheet_invite_collab               /home/[username]/[id]/invite_collab                  GET,POST
-worksheet.worksheet_jsmol_data                  /home/[username]/[id]/jsmol                          GET,POST
-worksheet.worksheet_link_datafile               /home/[username]/[id]/link_datafile                  GET,POST
-worksheet.worksheet_live_3D                     /home/[username]/[id]/live_3D/[enable]               GET,POST
-worksheet.worksheet_new_cell_after              /home/[username]/[id]/new_cell_after                 GET,POST
-worksheet.worksheet_new_cell_before             /home/[username]/[id]/new_cell_before                GET,POST
-worksheet.worksheet_new_text_cell_after         /home/[username]/[id]/new_text_cell_after            GET,POST
-worksheet.worksheet_new_text_cell_before        /home/[username]/[id]/new_text_cell_before           GET,POST
-worksheet.worksheet_pretty_print                /home/[username]/[id]/pretty_print/[enable]          GET,POST
-worksheet.worksheet_print                       /home/[username]/[id]/print                          GET,POST
-worksheet.worksheet_properties                  /home/[username]/[id]/worksheet_properties           GET,POST
-worksheet.worksheet_publish                     /home/[username]/[id]/publish                        GET,POST
-worksheet.worksheet_quit_sage                   /home/[username]/[id]/quit_sage                      GET,POST
-worksheet.worksheet_rate                        /home/[username]/[id]/rate                           GET,POST
-worksheet.worksheet_rating_info                 /home/[username]/[id]/rating_info                    GET,POST
-worksheet.worksheet_rename                      /home/[username]/[id]/rename                         GET,POST
-worksheet.worksheet_restart_sage                /home/[username]/[id]/restart_sage                   GET,POST
-worksheet.worksheet_revert_to_last_saved_state  /home/[username]/[id]/revert_to_last_saved_state     GET,POST
-worksheet.worksheet_revisions                   /home/[username]/[id]/revisions                      GET,POST
-worksheet.worksheet_save                        /home/[username]/[id]/save                           GET,POST
-worksheet.worksheet_save_and_close              /home/[username]/[id]/save_and_close                 GET,POST
-worksheet.worksheet_save_and_quit               /home/[username]/[id]/save_and_quit                  GET,POST
-worksheet.worksheet_save_snapshot               /home/[username]/[id]/save_snapshot                  GET,POST
-worksheet.worksheet_savedatafile                /home/[username]/[id]/savedatafile                   GET,POST
-worksheet.worksheet_share                       /home/[username]/[id]/share                          GET,POST
-worksheet.worksheet_system                      /home/[username]/[id]/system/[system]                GET,POST
-worksheet.worksheet_text                        /home/[username]/[id]/text                           GET,POST
-worksheet.worksheet_upload_data                 /home/[username]/[id]/upload_data                    GET,POST
-worksheet.worksheet_v                           /home/[username]/[id]/                               GET
-
-worksheet_listing.bare_home                     /home/                                               GET
-worksheet_listing.download_worksheets           /download_worksheets.zip                             GET
-worksheet_listing.empty_trash                   /emptytrash                                          POST
-worksheet_listing.home                          /home/[username]/                                    GET
-worksheet_listing.pub                           /pub/                                                GET
-worksheet_listing.send_worksheet_to_active      /send_to_active                                      POST
-worksheet_listing.send_worksheet_to_archive     /send_to_archive                                     POST
-worksheet_listing.send_worksheet_to_stop        /send_to_stop                                        POST
-worksheet_listing.send_worksheet_to_trash       /send_to_trash                                       POST
-worksheet_listing.upload                        /upload                                              GET
-worksheet_listing.upload_worksheet              /upload_worksheet                                    GET,POST
-worksheet_listing.worksheet_list                /worksheet_list                                      GET
+E   __autoindex__.static                            /__autoindex__/[filename]                            GET
+E   _themes.static                                  /_themes/[themeid]/[filename]                        GET
+E   silkicon                                        /__icons__/[filename]                                GET
+    
+    
+P   autoindex                                       /src/                                                GET
+P   autoindex                                       /src/[path]                                          GET
+    
+PF  admin.add_user                                  /adduser                                             GET,POST
+J   admin.add_user_nui                              /add_user                                            POST
+L   admin.del_user                                  /users/delete/[user]                                 GET
+PF  admin.notebook_settings                         /notebooksettings                                    GET,POST
+J   admin.reset_user_password                       /reset_user_password                                 POST
+L   admin.suspend_user                              /users/suspend/[user]                                GET
+J   admin.suspend_user_nui                          /suspend_user                                        POST
+L   admin.toggle_admin                              /users/toggleadmin/[user]                            GET
+P   admin.users                                     /users                                               GET
+L   admin.users                                     /users/reset/[reset]                                 GET
+    
+    authentication.confirm                          /confirm                                             GET
+    authentication.forgot_pass                      /forgotpass                                          GET
+    authentication.login                            /login                                               GET,POST
+    authentication.logout                           /logout/                                             GET
+    authentication.register                         /register                                            GET,POST
+    
+    base.dynamic_js                                 /javascript/dynamic/notebook_dynamic.js              GET
+    base.history                                    /history                                             GET
+    base.index                                      /                                                    GET
+    base.keyboard_js                                /javascript/dynamic/keyboard/[browser_os]            GET
+    base.live_history                               /live_history                                        GET
+    base.localization_js                            /javascript/dynamic/localization.js                  GET
+    base.loginoid                                   /loginoid                                            GET,POST
+    base.mathjax_js                                 /javascript/dynamic/mathjax_sage.js                  GET
+    base.set_profiles                               /openid_profiles                                     GET,POST
+    
+    doc.help                                        /doc/help                                            GET
+    doc.live                                        /doc/live/                                           GET
+    doc.live                                        /doc/live/[filename]                                 GET
+    doc.live                                        /doc/live/[manual]/[path_static]/_static/[filename]  GET
+    doc.static                                      /doc/static/[filename]                               GET
+    doc.static                                      /doc/static/[filename]                               GET
+    
+    settings.settings_page                          /settings                                            GET,POST
+    
+    static                                          /static/[filename]                                   GET
+    static_paths.css                                /css/[filename]                                      GET
+    static_paths.images                             /images/[filename]                                   GET
+    static_paths.images                             /images/[filename]                                   GET
+    static_paths.j2s                                /j2s/[filename]                                      GET
+    static_paths.jmol                               /java/jmol/[filename]                                GET
+    static_paths.jsmol                              /jsmol/[filename]                                    GET
+    static_paths.static_file                        /java/[filename]                                     GET
+    static_paths.static_file                        /java/[filename]                                     GET
+    
+    worksheet.new_worksheet                         /new_worksheet                                       GET
+    worksheet.public_worksheet                      /home/pub/[id]/                                      GET
+    worksheet.public_worksheet_cells                /home/pub/[id]/cells/[filename]                      GET
+    worksheet.public_worksheet_download             /home/pub/[id]/download/[title]                      GET
+    worksheet.worksheed_data_folder                 /home/[username]/[id]/data/[filename]                GET,POST
+    worksheet.worksheet_alive                       /home/[username]/[id]/alive                          GET,POST
+    worksheet.worksheet_cell_list                   /home/[username]/[id]/cell_list                      GET,POST
+    worksheet.worksheet_cell_properties             /home/[username]/[id]/cell_properties                GET,POST
+    worksheet.worksheet_cell_update                 /home/[username]/[id]/cell_update                    GET,POST
+    worksheet.worksheet_cells                       /home/[username]/[id]/cells/[filename]               GET,POST
+    worksheet.worksheet_conf                        /home/[username]/[id]/conf                           GET,POST
+    worksheet.worksheet_copy                        /home/[username]/[id]/copy                           GET,POST
+    worksheet.worksheet_data_legacy                 /home/[username]/[id]/[filename]                     GET,POST
+    worksheet.worksheet_datafile                    /home/[username]/[id]/datafile                       GET,POST
+    worksheet.worksheet_delete_all_output           /home/[username]/[id]/delete_all_output              GET,POST
+    worksheet.worksheet_delete_cell                 /home/[username]/[id]/delete_cell                    GET,POST
+    worksheet.worksheet_delete_cell_output          /home/[username]/[id]/delete_cell_output             GET,POST
+    worksheet.worksheet_discard_and_quit            /home/[username]/[id]/discard_and_quit               GET,POST
+    worksheet.worksheet_do_upload_data              /home/[username]/[id]/do_upload_data                 GET,POST
+    worksheet.worksheet_download                    /home/[username]/[id]/download/[title]               GET,POST
+    worksheet.worksheet_edit                        /home/[username]/[id]/edit                           GET,POST
+    worksheet.worksheet_edit_published_page         /home/[username]/[id]/edit_published_page            GET,POST
+    worksheet.worksheet_eval                        /home/[username]/[id]/eval                           GET,POST
+    worksheet.worksheet_interrupt                   /home/[username]/[id]/interrupt                      GET,POST
+    worksheet.worksheet_introspect                  /home/[username]/[id]/introspect                     GET,POST
+    worksheet.worksheet_invite_collab               /home/[username]/[id]/invite_collab                  GET,POST
+    worksheet.worksheet_jsmol_data                  /home/[username]/[id]/jsmol                          GET,POST
+    worksheet.worksheet_link_datafile               /home/[username]/[id]/link_datafile                  GET,POST
+    worksheet.worksheet_live_3D                     /home/[username]/[id]/live_3D/[enable]               GET,POST
+    worksheet.worksheet_new_cell_after              /home/[username]/[id]/new_cell_after                 GET,POST
+    worksheet.worksheet_new_cell_before             /home/[username]/[id]/new_cell_before                GET,POST
+    worksheet.worksheet_new_text_cell_after         /home/[username]/[id]/new_text_cell_after            GET,POST
+    worksheet.worksheet_new_text_cell_before        /home/[username]/[id]/new_text_cell_before           GET,POST
+    worksheet.worksheet_pretty_print                /home/[username]/[id]/pretty_print/[enable]          GET,POST
+    worksheet.worksheet_print                       /home/[username]/[id]/print                          GET,POST
+    worksheet.worksheet_properties                  /home/[username]/[id]/worksheet_properties           GET,POST
+    worksheet.worksheet_publish                     /home/[username]/[id]/publish                        GET,POST
+    worksheet.worksheet_quit_sage                   /home/[username]/[id]/quit_sage                      GET,POST
+    worksheet.worksheet_rate                        /home/[username]/[id]/rate                           GET,POST
+    worksheet.worksheet_rating_info                 /home/[username]/[id]/rating_info                    GET,POST
+    worksheet.worksheet_rename                      /home/[username]/[id]/rename                         GET,POST
+    worksheet.worksheet_restart_sage                /home/[username]/[id]/restart_sage                   GET,POST
+    worksheet.worksheet_revert_to_last_saved_state  /home/[username]/[id]/revert_to_last_saved_state     GET,POST
+    worksheet.worksheet_revisions                   /home/[username]/[id]/revisions                      GET,POST
+    worksheet.worksheet_save                        /home/[username]/[id]/save                           GET,POST
+    worksheet.worksheet_save_and_close              /home/[username]/[id]/save_and_close                 GET,POST
+    worksheet.worksheet_save_and_quit               /home/[username]/[id]/save_and_quit                  GET,POST
+    worksheet.worksheet_save_snapshot               /home/[username]/[id]/save_snapshot                  GET,POST
+    worksheet.worksheet_savedatafile                /home/[username]/[id]/savedatafile                   GET,POST
+    worksheet.worksheet_share                       /home/[username]/[id]/share                          GET,POST
+    worksheet.worksheet_system                      /home/[username]/[id]/system/[system]                GET,POST
+    worksheet.worksheet_text                        /home/[username]/[id]/text                           GET,POST
+    worksheet.worksheet_upload_data                 /home/[username]/[id]/upload_data                    GET,POST
+    worksheet.worksheet_v                           /home/[username]/[id]/                               GET
+    
+    worksheet_listing.bare_home                     /home/                                               GET
+    worksheet_listing.download_worksheets           /download_worksheets.zip                             GET
+    worksheet_listing.empty_trash                   /emptytrash                                          POST
+    worksheet_listing.home                          /home/[username]/                                    GET
+    worksheet_listing.pub                           /pub/                                                GET
+    worksheet_listing.send_worksheet_to_active      /send_to_active                                      POST
+    worksheet_listing.send_worksheet_to_archive     /send_to_archive                                     POST
+    worksheet_listing.send_worksheet_to_stop        /send_to_stop                                        POST
+    worksheet_listing.send_worksheet_to_trash       /send_to_trash                                       POST
+    worksheet_listing.upload                        /upload                                              GET
+    worksheet_listing.upload_worksheet              /upload_worksheet                                    GET,POST
+    worksheet_listing.worksheet_list                /worksheet_list                                      GET

@@ -87,7 +87,7 @@ def del_user(user):
             del g.notebook.user_manager[user]
         except KeyError:
             pass
-    return redirect(url_for("admin.sers"))
+    return redirect(url_for("admin.users"))
 
 
 @admin.route('/users/toggleadmin/<user>')
