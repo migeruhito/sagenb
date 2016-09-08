@@ -129,7 +129,7 @@ def history():
 @base.route('/live_history')
 @login_required
 def live_history():
-    W = g.notebook.create_new_worksheet_from_history(
+    W = g.notebook.create_wst_from_history(
         gettext('Log'), g.username, 100)
     return redirect(url_for_worksheet(W))
 

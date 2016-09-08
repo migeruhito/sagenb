@@ -177,7 +177,7 @@ Routes
 A ajax
 E flask extensions
 F command by form
-I included in<link>
+I included in <link>
 J command by js (newui)?
 L command by link
 P web page
@@ -202,17 +202,17 @@ L   admin.toggle_admin                              /users/toggleadmin/[user]   
 P   admin.users                                     /users                                               GET
 L   admin.users                                     /users/reset/[reset]                                 GET
     
-    authentication.confirm                          /confirm                                             GET
-    authentication.forgot_pass                      /forgotpass                                          GET
-    authentication.login                            /login                                               GET,POST
-    authentication.logout                           /logout/                                             GET
-    authentication.register                         /register                                            GET,POST
+PL  authentication.confirm                          /confirm                                             GET
+PLF authentication.forgot_pass                      /forgotpass                                          GET
+PF  authentication.login                            /login                                               GET,POST
+L   authentication.logout                           /logout/                                             GET
+PL  authentication.register                         /register                                            GET,POST
     
-    base.dynamic_js                                 /javascript/dynamic/notebook_dynamic.js              GET
-    base.history                                    /history                                             GET
-    base.index                                      /                                                    GET
-    base.keyboard_js                                /javascript/dynamic/keyboard/[browser_os]            GET
-    base.live_history                               /live_history                                        GET
+I   base.dynamic_js                                 /javascript/dynamic/notebook_dynamic.js              GET
+P   base.history                                    /history                                             GET
+P   base.index                                      /                                                    GET
+I   base.keyboard_js                                /javascript/dynamic/keyboard/[browser_os]            GET
+L   base.live_history                               /live_history                                        GET
     base.localization_js                            /javascript/dynamic/localization.js                  GET
     base.loginoid                                   /loginoid                                            GET,POST
     base.mathjax_js                                 /javascript/dynamic/mathjax_sage.js                  GET

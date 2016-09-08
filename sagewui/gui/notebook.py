@@ -582,6 +582,12 @@ class Notebook(object):
 
         return W
 
+    def create_wst_from_history(self, name, username, maxlen=None):
+        W = self.create_wst(name, username)
+        W.edit_save(
+            'Log Worksheet\n' + self.user_history_text(username, maxlen=None))
+        return W
+
     def copy_wst(self, ws, owner):
         W = self.create_wst('default', owner)
         self.initialize_wst(ws, W)
