@@ -324,7 +324,7 @@ class FilesystemDatastore(Datastore):
         return path
 
     def _deep_user_path(self, username):
-        h = md5(username).hexdigest()
+        h = md5(username.encode('utf-8')).hexdigest()
         base = ['__store__', h[:1], h[:2], h[:3], h[:4]]
         path = os.path.join(*base)
         self._makepath(self._abspath(os.path.join(self._home_path, path)))
