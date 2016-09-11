@@ -9,11 +9,12 @@ import string
 from random import choice
 
 from flask import Blueprint
-from flask import url_for
+from flask import current_app
+from flask import flash
+from flask import g
 from flask import request
 from flask import redirect
-from flask import g
-from flask import current_app
+from flask import url_for
 from flask_babel import gettext
 
 from . import base
@@ -39,20 +40,11 @@ def random_password(length=8):
 
 
 @admin.route('/users')
-@admin.route('/users/reset/<reset>')
 @admin_required
 @with_lock
-def users(reset=None):
+def users():
     template_dict = {}
     template_dict['sage_version'] = SAGE_VERSION
-    if reset:
-        password = random_password()
-        try:
-            g.notebook.user_manager[reset].password = password
-        except KeyError:
-            pass
-        else:
-            template_dict['reset'] = [reset, password]
 
     users = sorted(g.notebook.user_manager.login_allowed_usernames)
     template_dict['number_of_users'] = len(users) if len(users) > 1 else None
@@ -63,6 +55,22 @@ def users(reset=None):
     template_dict['username'] = g.username
     return render_template(
         'html/settings/user_management.html', **template_dict)
+
+
+@admin.route('/users/reset/<user>')
+@admin_required
+@with_lock
+def reset_user(user):
+    try:
+        U = g.notebook.user_manager[user]
+    except KeyError:
+        pass
+    else:
+        password = random_password()
+        U.password = password
+        flash(gettext('The password for the user %(u)s has been reset to '
+                      '<strong>%(p)s</strong>', u=user, p=password))
+    return redirect(url_for("admin.users"))
 
 
 @admin.route('/users/suspend/<user>')

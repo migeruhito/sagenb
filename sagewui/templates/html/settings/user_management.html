@@ -6,9 +6,13 @@
 {% block settings_main %}
     <h1>{{ gettext('User Management') }}</h1>
     <a href="/adduser" class="boldusercontrol">{{ gettext('Add User') }}</a>
-    {% if reset %}
-    <p>{{ gettext('The password for the user %(u)s has been reset to <strong>%(p)s</strong>', u=reset[0], p=reset[1]) }}</p>
-    {% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <p>{{ message | safe }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     <table>
       <tr>
         <th>{{ gettext('User') }}</th>
@@ -23,7 +27,7 @@
          <td><a href="/home/{{ u }}/">{{ u }}</a></td>
          <td>
             {% if u.external_auth is none %}
-            <a href="{{ url_for('admin.users', reset=u.username) }}">{{ gettext('Reset') }}</a>
+            <a href="{{ url_for('admin.reset_user', user=u.username) }}">{{ gettext('Reset') }}</a>
             {% endif %}
          </td>
          <td><a href="{{ url_for('admin.suspend_user', user=u.username) }}">{% if u.is_suspended %}{{ gettext('Unsuspend') }}{% else %}{{ gettext('Suspend') }}{% endif %}</a></td>
