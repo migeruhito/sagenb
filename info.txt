@@ -200,7 +200,7 @@ SPF settings.settings_page                          /settings                   
 
 SPF      admin.notebook_settings                    /notebooksettings                                    GET,POST
 
-DP       admin.users                                 /users                                               GET
+SP       admin.users                                 /users                                               GET
 
 OL          admin.reset_user                        /users/reset/[user]                                  GET
 NJ          admin.reset_user_password               /reset_user_password                                 POST
