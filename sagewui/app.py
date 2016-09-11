@@ -7,8 +7,6 @@ from builtins import str
 
 import os
 
-from cgi import escape
-
 from flask import Flask
 from flask import g
 from flask import url_for
@@ -40,7 +38,6 @@ from .blueprints.admin import admin
 from .blueprints.authentication import authentication
 from .blueprints.base import base
 from .blueprints.doc import doc
-from .blueprints.settings import settings
 from .blueprints.static_paths import static_paths
 from .blueprints.worksheet_listing import worksheet_listing
 from .blueprints.worksheet import worksheet
@@ -98,7 +95,6 @@ def create_app(notebook, startup_token=None, debug=False):
     app.register_blueprint(authentication)
     app.register_blueprint(base)
     app.register_blueprint(doc, url_prefix='/doc')
-    app.register_blueprint(settings)
     app.register_blueprint(static_paths)
     app.register_blueprint(worksheet)
     app.register_blueprint(worksheet_listing)

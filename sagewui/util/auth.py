@@ -4,15 +4,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from builtins import hex
 from builtins import object
+from builtins import range
 from builtins import str
 from future.moves.urllib.parse import urlencode
 from future.moves.urllib.request import Request
 from future.moves.urllib.request import urlopen
 
 import hashlib
-import os
 import random
 import re
+import string
 
 from flask_babel import gettext
 from flask_babel import lazy_gettext
@@ -21,6 +22,11 @@ from . import get_module
 from .templates import render_template
 
 _ = lazy_gettext
+
+
+def random_password(length=8):
+    chara = string.ascii_letters + string.digits
+    return ''.join(random.choice(chara) for i in range(length))
 
 
 def generate_salt():

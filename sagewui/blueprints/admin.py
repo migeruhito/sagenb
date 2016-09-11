@@ -2,11 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from builtins import range
-
-import os
-import string
-from random import choice
 
 from flask import Blueprint
 from flask import current_app
@@ -16,18 +11,21 @@ from flask import request
 from flask import redirect
 from flask import url_for
 from flask_babel import gettext
-from jinja2.exceptions import TemplateNotFound
 
 from . import base
 
 from ..config import SAGE_VERSION
 from ..config import UN_ADMIN
 
+from ..util.auth import random_password
 from ..util.decorators import admin_required
+from ..util.decorators import login_required
 from ..util.decorators import with_lock
 from ..util.templates import message as message_template
 from ..util.templates import render_template
 from ..util.templates import encode_response
+from ..util.text import is_valid_email
+from ..util.text import is_valid_password
 from ..util.text import is_valid_username
 
 _ = gettext
@@ -35,9 +33,86 @@ _ = gettext
 admin = Blueprint('admin', __name__)
 
 
-def random_password(length=8):
-    chara = string.ascii_letters + string.digits
-    return ''.join([choice(chara) for i in range(length)])
+@admin.route('/settings', methods=['GET', 'POST'])
+@login_required
+@with_lock
+def settings_page():
+    error = None
+    redirect_to_home = None
+    redirect_to_logout = None
+    nu = g.notebook.user_manager[g.username]
+
+    autosave = int(request.values.get('autosave', 0)) * 60
+    if autosave:
+        nu['autosave_interval'] = autosave
+        redirect_to_home = True
+
+    old = request.values.get('old-pass', None)
+    new = request.values.get('new-pass', None)
+    two = request.values.get('retype-pass', None)
+
+    if new or two:
+        if not old:
+            error = _('Old password not given')
+        elif not g.notebook.user_manager.check_password(g.username, old):
+            error = _('Incorrect password given')
+        elif not new:
+            error = _('New password not given')
+        elif not is_valid_password(new, g.username):
+            error = _(
+                'Password not acceptable. Must be 4 to 32 characters and not '
+                'contain spaces or username.')
+        elif not two:
+            error = _('Please type in new password again.')
+        elif new != two:
+            error = _('The passwords you entered do not match.')
+
+        if not error:
+            # The browser may auto-fill in "old password," even
+            # though the user may not want to change her password.
+            g.notebook.user_manager[g.username].password = new
+            redirect_to_logout = True
+
+    if g.notebook.conf['email']:
+        newemail = request.values.get('new-email', None)
+        if newemail:
+            if is_valid_email(newemail):
+                nu.email = newemail
+                # nu.email_confirmed = False
+                redirect_to_home = True
+            else:
+                error = _('Invalid e-mail address.')
+
+    if error:
+        return message_template(error, url_for('admin.settings_page'),
+                                username=g.username)
+
+    if redirect_to_logout:
+        return redirect(url_for('authentication.logout'))
+
+    if redirect_to_home:
+        return redirect(url_for('worksheet_listing.home', username=g.username))
+
+    td = {}
+    td['sage_version'] = SAGE_VERSION
+    td['username'] = g.username
+
+    td['autosave_intervals'] = (
+        (i, ' selected') if nu['autosave_interval'] // 60 == i else (i, '')
+        for i in range(1, 10, 2))
+
+    td['email'] = g.notebook.conf['email']
+    if td['email']:
+        td['email_address'] = nu.email or 'None'
+        if nu.email_confirmed:
+            td['email_confirmed'] = _('Confirmed')
+        else:
+            td['email_confirmed'] = _('Not confirmed')
+
+    td['admin'] = nu.is_admin
+
+    return render_template(
+        'html/settings/account_settings.html', **td)
 
 
 @admin.route('/users')
@@ -134,8 +209,7 @@ def add_user():
                 error='username_invalid', username_input=username,
                 **template_dict)
 
-        chara = string.ascii_letters + string.digits
-        password = ''.join([choice(chara) for i in range(8)])
+        password = random_password()
         if username in g.notebook.user_manager:
             return render_template(
                 template_url,
@@ -246,5 +320,5 @@ def notebook_settings():
     template_dict['admin'] = g.notebook.user_manager[g.username].is_admin
     template_dict['username'] = g.username
 
-    return render_template( 
+    return render_template(
         'html/settings/notebook_settings.html', **template_dict)
