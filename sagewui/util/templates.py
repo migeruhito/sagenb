@@ -7,7 +7,6 @@ from builtins import object
 
 import datetime
 import time
-import os
 import re
 
 from collections import defaultdict

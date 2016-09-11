@@ -99,7 +99,7 @@ Process the output of docutils ``rst2html`` command::
     <BLANKLINE>
 
 WARNING:
-    
+
     Input strings must be unicode.
 """
 #############################################################################

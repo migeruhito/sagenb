@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from future import standard_library
-standard_library.install_aliases()
 from builtins import str
 from builtins import open
 
@@ -46,6 +45,8 @@ from ..util.templates import encode_response
 from ..util.templates import message as message_template
 from ..util.templates import render_template
 from .worksheet import url_for_worksheet
+
+standard_library.install_aliases()
 
 # Globals
 _ = gettext

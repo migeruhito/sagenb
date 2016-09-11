@@ -64,7 +64,7 @@ SAGE_BROWSER = '{} {}'.format(
     os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-native-execute'),
     sage_browser(SAGE_ROOT))
 
-#Interact markers
+# Interact markers
 INTERACT_UPDATE_PREFIX = INTERACT_CONF['UPDATE_PREFIX']
 INTERACT_RESTART = INTERACT_CONF['RESTART']
 INTERACT_START = INTERACT_CONF['START']
