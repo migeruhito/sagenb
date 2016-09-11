@@ -16,6 +16,7 @@ from flask import request
 from flask import redirect
 from flask import url_for
 from flask_babel import gettext
+from jinja2.exceptions import TemplateNotFound
 
 from . import base
 
@@ -53,6 +54,13 @@ def users():
                               for username in users]
     template_dict['admin'] = g.notebook.user_manager[g.username].is_admin
     template_dict['username'] = g.username
+    # New UI
+    try:
+        return render_template(
+            'html/settings/manage_users.html',  **template_dict)
+    except TemplateNotFound:
+        pass
+    # New UI end
     return render_template(
         'html/settings/user_management.html', **template_dict)
 
