@@ -200,20 +200,20 @@ SPF settings.settings_page                          /settings                   
 
 SPF      admin.notebook_settings                    /notebooksettings                                    GET,POST
 
-SP       admin.users                                 /users                                               GET
+DP       admin.users                                 /users                                               GET
 
-L           admin.users                             /users/reset/[reset]                                 GET
+OL          admin.reset_user                        /users/reset/[user]                                  GET
 NJ          admin.reset_user_password               /reset_user_password                                 POST
 
-L           admin.suspend_user                      /users/suspend/[user]                                GET
+OL          admin.suspend_user                      /users/suspend/[user]                                GET
 NJ          admin.suspend_user_nui                  /suspend_user                                        POST
 
 OPF         admin.add_user                          /adduser                                             GET,POST
 NJ          admin.add_user_nui                      /add_user                                            POST
 
-L           admin.del_user                          /users/delete/[user]                                 GET
+OL           admin.del_user                          /users/delete/[user]                                 GET
 
-L           admin.toggle_admin                      /users/toggleadmin/[user]                            GET
+OL           admin.toggle_admin                      /users/toggleadmin/[user]                            GET
 
     
 PL  authentication.confirm                          /confirm                                             GET
