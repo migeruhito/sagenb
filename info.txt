@@ -211,9 +211,9 @@ NJ          admin.suspend_user_nui                  /suspend_user               
 OPF         admin.add_user                          /adduser                                             GET,POST
 NJ          admin.add_user_nui                      /add_user                                            POST
 
-OL           admin.del_user                          /users/delete/[user]                                 GET
+OL          admin.del_user                          /users/delete/[user]                                 GET
 
-OL           admin.toggle_admin                      /users/toggleadmin/[user]                            GET
+OL          admin.toggle_admin                      /users/toggleadmin/[user]                            GET
 
     
 PL  authentication.confirm                          /confirm                                             GET
