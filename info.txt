@@ -200,7 +200,7 @@ SPF settings.settings_page                          /settings                   
 
 SPF      admin.notebook_settings                    /notebooksettings                                    GET,POST
 
-SP       admin.users                                 /users                                               GET
+SP       admin.users                                /users                                               GET
 
 SLJ         admin.reset_user                        /users/reset/[user]                                  GET
 

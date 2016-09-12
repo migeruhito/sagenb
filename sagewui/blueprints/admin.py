@@ -228,29 +228,6 @@ def add_user():
 
 
 # New UI
-@admin.route('/reset_user_password', methods=['POST'])
-@admin_required
-@with_lock
-def reset_user_password():
-    user = request.values['username']
-    try:
-        U = g.notebook.user_manager[user]
-    except KeyError:
-        resp = {
-            'error': gettext(
-                'The user <strong>%(username)s</strong> does not exist',
-                username=user)}
-    else:
-        password = random_password()
-        U.password = password
-        resp = {
-            'message': _(
-                'The temporary password for the new user <strong>%(username)s'
-                '</strong> is <strong>%(password)s</strong>',
-                username=user, password=password)}
-    return encode_response(resp)
-
-
 @admin.route('/suspend_user', methods=['POST'])
 @admin_required
 @with_lock
