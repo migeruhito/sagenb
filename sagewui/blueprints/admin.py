@@ -140,12 +140,14 @@ def reset_user(user):
     try:
         U = g.notebook.user_manager[user]
     except KeyError:
-        pass
+        flash(gettext(
+                'The user <strong>%(username)s</strong> does not exist',
+                username=user), 'error')
     else:
         password = random_password()
         U.password = password
         flash(gettext('The password for the user %(u)s has been reset to '
-                      '<strong>%(p)s</strong>', u=user, p=password))
+                      '<strong>%(p)s</strong>', u=user, p=password), 'success')
     return redirect(url_for("admin.users"))
 
 
@@ -231,19 +233,22 @@ def add_user():
 @with_lock
 def reset_user_password():
     user = request.values['username']
-    password = random_password()
     try:
-        # U = g.notebook.user_manager[user]
-        g.notebook.user_manager[user].password = password
+        U = g.notebook.user_manager[user]
     except KeyError:
-        pass
-
-    return encode_response({
-        'message': _(
-            'The temporary password for the new user <strong>%(username)s'
-            '</strong> is <strong>%(password)s</strong>',
-            username=user, password=password)
-    })
+        resp = {
+            'error': gettext(
+                'The user <strong>%(username)s</strong> does not exist',
+                username=user)}
+    else:
+        password = random_password()
+        U.password = password
+        resp = {
+            'message': _(
+                'The temporary password for the new user <strong>%(username)s'
+                '</strong> is <strong>%(password)s</strong>',
+                username=user, password=password)}
+    return encode_response(resp)
 
 
 @admin.route('/suspend_user', methods=['POST'])

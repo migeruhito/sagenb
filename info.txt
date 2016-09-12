@@ -202,8 +202,7 @@ SPF      admin.notebook_settings                    /notebooksettings           
 
 SP       admin.users                                 /users                                               GET
 
-OL          admin.reset_user                        /users/reset/[user]                                  GET
-NJ          admin.reset_user_password               /reset_user_password                                 POST
+SLJ         admin.reset_user                        /users/reset/[user]                                  GET
 
 OL          admin.suspend_user                      /users/suspend/[user]                                GET
 NJ          admin.suspend_user_nui                  /suspend_user                                        POST

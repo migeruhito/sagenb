@@ -4,7 +4,18 @@
 
 {% block navbar %}{% endblock navbar %}
 
-{% block alerts %}{% endblock alerts %}
+{% block alerts %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert-{{ category }}">
+          <button class="close" data-dismiss="alert">×</button>
+          {{ message | safe}}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+{% endblock alerts %}
 
 {% block page %}
 	<h1 class="title">{{ gettext('Manage Users') }}</h1>
@@ -21,7 +32,7 @@
 			{% for user in users %}
       		<tr data-username="{{ user }}">
       			<td class="user_col"><a href="/home/{{ user }}">{{ user }}</a></td>
-      			<td><a href="#" class="reset_user_password_button btn btn-mini">{{ gettext('Reset') }}</a></td>
+      			<td><a href="#" class="reset_user_password_button btn btn-mini" data-redirect="{{ url_for('admin.reset_user', user=user.username) }}">{{ gettext('Reset') }}</a></td>
       			<td><a href="#" class="suspend_user_button btn btn-mini">
       				{% if user.is_suspended %}
       					{{ gettext('Unsuspend') }}

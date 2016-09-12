@@ -28,12 +28,12 @@ sagenb.settings.setup_manage_users_page = function() {
 	});
 	$(".reset_user_password_button").click(function(e) {
 		// TODO gettext
-		if(!confirm("Are you sure you want to reset " + 
-			$(this).parent().parent().data("username") + 
-			"'s password?")) return;
-		sagenb.async_request("/reset_user_password", cb, {
-			username: $(this).parent().parent().data("username")
-		});
+    var username = $(this).parent().parent().data('username');
+		if(!confirm("Are you sure you want to reset " + username + "'s password?"))
+      {
+        return;
+      }
+		window.open($(this).data('redirect'), '_self');
 	});
 	$(".suspend_user_button").click(function(e) {
 		// TODO gettext
