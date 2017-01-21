@@ -1,1 +1,1 @@
-../../sagegui/sage_server/sage_code/interact.py
+../../sagewui/sage_server/sage_code/interact.py
