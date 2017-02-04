@@ -515,8 +515,9 @@ class Notebook(object):
         u = self.user_manager[username]
         id_number = u['next_worksheet_id_number']
         if id_number == -1:  # need to initialize
-            id_number = max([-1].extend(
-                w.id_number for w in self.user_wsts(username)))
+            id_numbers = [w.id_number for w in self.user_wsts(username)]
+            id_numbers.append(-1)
+            id_number = max(id_numbers)
         u['next_worksheet_id_number'] = id_number + 1
         return id_number
 
