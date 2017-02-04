@@ -10,14 +10,16 @@ from pkg_resources import Requirement
 from pkg_resources import resource_filename
 from pkg_resources import working_set
 
-from pexpect.exceptions import ExceptionPexpect
+from appdirs import user_data_dir
 from flask_babel import lazy_gettext
+from pexpect.exceptions import ExceptionPexpect
 
 from .sage_server.workers import sage
 from .util import sage_browser
 
 # Global variables across the application
 # TODO: remove this. Previously in notebook.misc
+APP_NAME = 'sagewui'
 notebook = None
 
 try:
@@ -56,7 +58,6 @@ SAGE_ROOT = SAGE_ENV['SAGE_ROOT']
 SAGE_DOC = SAGE_ENV['SAGE_DOC']
 SAGE_SHARE = SAGE_ENV['SAGE_SHARE']
 SAGE_SRC = SAGE_ENV['SAGE_SRC']
-DOT_SAGE = SAGE_ENV['DOT_SAGE']
 SAGE_VERSION = SAGE_ENV['SAGE_VERSION']
 
 SAGE_URL = 'http://sagemath.org'  # SAGE_URL is broken in sage.env (ver <= 7.2)
@@ -73,11 +74,11 @@ INTERACT_HTML = INTERACT_CONF['HTML']
 INTERACT_END = INTERACT_CONF['END']
 
 
-# sagenb paths
+# sagewui paths
 # TODO: This must be in sync with flask app base path. Should be removed from
 # here
-SAGENB_ROOT = resource_filename(__name__, '')
-DOT_SAGENB = os.environ.get('DOT_SAGENB', DOT_SAGE)
+APP_DIR = resource_filename(__name__, '')
+DATA_DIR = user_data_dir(APP_NAME)
 try:
     SAGENB_VERSION = working_set.find(Requirement.parse('sagenb')).version
 except AttributeError:
@@ -181,16 +182,14 @@ WARN_THRESHOLD = 100   # The number of seconds, so if there was no
 # same worksheet.
 
 # themes
-system_themes_path = os.path.join(SAGENB_ROOT, 'themes')
-user_themes_path = os.path.join(DOT_SAGENB, 'themes')
-THEME_PATHS = [p for p in [system_themes_path, user_themes_path]
-               if os.path.isdir(p)]
+THEME_PATHS = [
+    tp for tp in (os.path.join(d, 'themes') for d in [APP_DIR, DATA_DIR])
+    if os.path.isdir(tp)]
 # TODO: Only needed by sagenb.notebook.server_conf
 THEMES = []
-for path in (tp for tp in THEME_PATHS if os.path.isdir(tp)):
+for path in THEME_PATHS:
     THEMES.extend([
-        theme
-        for theme in os.listdir(path)
+        theme for theme in os.listdir(path)
         if os.path.isdir(os.path.join(path, theme))])
 THEMES.sort()
 DEFAULT_THEME = 'Default'
@@ -200,7 +199,7 @@ DEFAULT_THEME = 'Default'
 # be refactored.
 
 # translations
-TRANSLATIONS_PATH = os.path.join(SAGENB_ROOT, 'translations')
+TRANSLATIONS_PATH = os.path.join(APP_DIR, 'translations')
 # TODO: Only needed by sagenb.notebook.server_conf, sagenb.notebook.user_conf
 TRANSLATIONS = []
 for name in (l for l in os.listdir(TRANSLATIONS_PATH) if l != 'en_US'):

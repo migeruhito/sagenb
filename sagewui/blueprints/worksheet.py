@@ -144,7 +144,7 @@ def render_ws_template(ws=None, username=UN_GUEST, admin=False, do_print=False,
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: render_ws_template(W, UN_ADMIN)
@@ -198,7 +198,7 @@ def html_worksheet_revision_list(username, worksheet):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: W.body
@@ -280,7 +280,7 @@ def html_share(worksheet, username):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_share(W, UN_ADMIN)
@@ -313,7 +313,7 @@ def html_download_or_delete_datafile(ws, username, filename):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_download_or_delete_datafile(W, UN_ADMIN, 'bar')
@@ -358,7 +358,7 @@ def html_edit_window(worksheet, username):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_edit_window(W, UN_ADMIN)
@@ -391,7 +391,7 @@ def html_beforepublish_window(worksheet, username):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_beforepublish_window(W, UN_ADMIN)
@@ -451,7 +451,7 @@ def html_upload_data_window(ws, username):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_upload_data_window(W, UN_ADMIN)
@@ -477,7 +477,7 @@ def html_ratings_info(ws, username=None):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Publish Test', UN_ADMIN)
         sage: W.rate(0, 'this lacks content', 'riemann')
@@ -511,7 +511,7 @@ def html_plain_text_window(worksheet, username):
 
         sage: from sagenb.config import UN_ADMIN
         sage: nb = sagenb.notebook.notebook.Notebook(
-            tmp_dir(ext='.sagenb'))
+            tmp_dir()
         sage: nb.user_manager.create_default_users('password')
         sage: W = nb.create_wst('Test', UN_ADMIN)
         sage: nb.html_plain_text_window(W, UN_ADMIN)

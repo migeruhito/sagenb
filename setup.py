@@ -8,11 +8,11 @@ import os
 from setuptools import setup
 
 
-
 def lremove(string, prefix):
     while string.startswith(prefix):
         string = string[len(prefix):]
     return string
+
 
 def all_files(dir, prefix):
     """
@@ -44,6 +44,7 @@ install_requires = [
     'jsmin',
     'pyopenssl',
     'service_identity',
+    'appdirs',
     'tornado',  # this is optional
     ]
 

@@ -289,7 +289,7 @@ class AbstractChallenge(object):
         TESTS::
 
             sage: from sagenb.notebook.challenge import AbstractChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = AbstractChallenge(nb.conf)
@@ -315,7 +315,7 @@ class AbstractChallenge(object):
         TESTS::
 
             sage: from sagenb.notebook.challenge import AbstractChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = AbstractChallenge(nb.conf)
@@ -341,7 +341,7 @@ class AbstractChallenge(object):
         TESTS::
 
             sage: from sagenb.notebook.challenge import AbstractChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = AbstractChallenge(nb.conf)
@@ -378,7 +378,7 @@ class NotConfiguredChallenge(AbstractChallenge):
         TESTS::
 
             sage: from sagenb.notebook.challenge import NotConfiguredChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = NotConfiguredChallenge(nb.conf)
@@ -404,7 +404,7 @@ class NotConfiguredChallenge(AbstractChallenge):
        TESTS::
 
             sage: from sagenb.notebook.challenge import NotConfiguredChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = NotConfiguredChallenge(nb.conf)
@@ -431,6 +431,7 @@ old_tr = _
 
 def _(s):
     return s
+
 
 # A set of sample questions for :class:`SimpleChallenge`.
 QUESTIONS = {
@@ -508,7 +509,7 @@ class SimpleChallenge(AbstractChallenge):
         TESTS::
 
             sage: from sagenb.notebook.challenge import SimpleChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = SimpleChallenge(nb.conf)
@@ -539,7 +540,7 @@ class SimpleChallenge(AbstractChallenge):
         TESTS::
 
             sage: from sagenb.notebook.challenge import SimpleChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = SimpleChallenge(nb.conf)
@@ -635,7 +636,7 @@ class reCAPTCHAChallenge(AbstractChallenge):
         TESTS::
 
             sage: from sagenb.notebook.challenge import reCAPTCHAChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = reCAPTCHAChallenge(nb.conf, remote_ip = 'localhost')
@@ -672,7 +673,7 @@ class reCAPTCHAChallenge(AbstractChallenge):
         TESTS::
 
             sage: from sagenb.notebook.challenge import reCAPTCHAChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = reCAPTCHAChallenge(nb.conf, remote_ip = 'localhost')
@@ -714,7 +715,7 @@ class reCAPTCHAChallenge(AbstractChallenge):
         TESTS::
 
             sage: from sagenb.notebook.challenge import reCAPTCHAChallenge
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: chal = reCAPTCHAChallenge(nb.conf, remote_ip = 'localhost')
@@ -802,7 +803,7 @@ class ChallengeDispatcher(object):
         TESTS::
 
             sage: from sagenb.notebook.challenge import ChallengeDispatcher
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: disp = ChallengeDispatcher(nb.conf)
@@ -836,7 +837,7 @@ class ChallengeDispatcher(object):
         TESTS::
 
             sage: from sagenb.notebook.challenge import ChallengeDispatcher
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: import sagenb.gui.notebook as n
             sage: nb = n.Notebook(tmp)
             sage: nb.conf['challenge_type'] = 'simple'
@@ -871,7 +872,7 @@ def challenge(conf, **kwargs):
     TESTS::
 
         sage: from sagenb.notebook.challenge import challenge
-        sage: tmp = tmp_dir(ext='.sagenb')
+        sage: tmp = tmp_dir()
         sage: import sagenb.gui.notebook as n
         sage: nb = n.Notebook(tmp)
         sage: nb.conf['challenge_type'] = 'simple'

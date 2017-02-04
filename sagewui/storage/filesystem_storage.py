@@ -11,7 +11,7 @@ easy to read ASCII.
 The filesystem layout is as follows.  It mirrors the URL's used by the
 Sage notebook server::
 
-    sage_notebook.sagenb
+    sagewui/db/default
          conf.pickle
          users.pickle
          openid.pickle (optional)

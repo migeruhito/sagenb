@@ -137,11 +137,7 @@ class Notebook(object):
         # TODO: This come from notebook.misc. Must be a conf parameter
         self.DIR = None
 
-        if dir.endswith('/'):
-            dir = dir[:-1]
-
-        if not dir.endswith('.sagenb'):
-            raise ValueError("dir (={}) must end with '.sagenb'".format(dir))
+        dir = dir.rstrip(os.sep)
 
         self.dir = dir
 
@@ -236,7 +232,7 @@ class Notebook(object):
 
         EXAMPLES::
 
-            sage: tmp = tmp_dir(ext='.sagenb')
+            sage: tmp = tmp_dir()
             sage: nb = sagenb.notebook.notebook.Notebook(tmp)
             sage: sorted(os.listdir(tmp))
             ['home']
@@ -479,7 +475,7 @@ class Notebook(object):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb.create_wst('Publish Test', 'admin')
             sage: nb.came_from_wst(P) is W
@@ -628,7 +624,7 @@ class Notebook(object):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Sage', owner='sage')
@@ -686,7 +682,7 @@ class Notebook(object):
         ::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\n2+3\n}}}')
@@ -760,7 +756,7 @@ class Notebook(object):
         using this function.::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('foo\n{{{\na = 10\n}}}')
@@ -796,7 +792,7 @@ class Notebook(object):
         file first.::
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.txt'
             sage: open(name,'w').write('{{{id=0\n2+3\n}}}')
@@ -848,7 +844,7 @@ class Notebook(object):
         using this function.::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.create_default_users('password')
             sage: name = tmp_filename() + '.html'
             sage: fd = open(name,'w')
@@ -956,7 +952,7 @@ class Notebook(object):
             sage: fd.write(rst)
             sage: fd.close()
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_wst_rst(name, 'admin')
             sage: W.name
@@ -1041,7 +1037,7 @@ class Notebook(object):
             sage: fd.write(html)
             sage: fd.close()
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.create_default_users('password')
             sage: W = nb._import_wst_docutils_html(name, 'admin')
             sage: W.name
@@ -1098,7 +1094,7 @@ class Notebook(object):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user('Mark','password','',force=True)
             sage: W = nb.create_wst('First steps', owner='Mark')
             sage: nb.user_manager.create_default_users('password')
@@ -1235,18 +1231,6 @@ def load_notebook(dir, interface=None, port=None, secure=None,
 
     - a Notebook instance
     """
-    if not dir.endswith('.sagenb'):
-        if not os.path.exists(dir + '.sagenb') and os.path.exists(
-                os.path.join(dir, 'nb.sobj')):
-            try:
-                nb = migrate_old_notebook_v1(dir)
-            except KeyboardInterrupt:
-                raise KeyboardInterrupt(
-                    "Interrupted notebook migration.  Delete the directory "
-                    "'%s' and try again." % (os.path.abspath(dir + '.sagenb')))
-            return nb
-        dir += '.sagenb'
-
     dir = make_path_relative(dir)
     nb = Notebook(dir)
     nb.interface = interface

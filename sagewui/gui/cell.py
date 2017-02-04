@@ -190,7 +190,7 @@ class Cell(object):
             sage: C.worksheet()
             'worksheet object'
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -216,7 +216,7 @@ class Cell(object):
 
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -392,7 +392,7 @@ class TextCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -560,7 +560,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -784,7 +784,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -932,7 +932,7 @@ class ComputeCell(Cell):
         well::
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -976,7 +976,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1019,7 +1019,7 @@ class ComputeCell(Cell):
             sage: C.word_wrap_cols
             70
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1138,7 +1138,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1166,7 +1166,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1190,7 +1190,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1303,7 +1303,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1337,7 +1337,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1463,7 +1463,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1499,7 +1499,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1542,7 +1542,7 @@ class ComputeCell(Cell):
         in order to compute `3^5`::
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1618,7 +1618,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.load_notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1644,7 +1644,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1670,7 +1670,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1692,7 +1692,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1719,7 +1719,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1744,7 +1744,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1775,7 +1775,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
@@ -1819,7 +1819,7 @@ class ComputeCell(Cell):
         EXAMPLES::
 
             sage: nb = sagenb.notebook.notebook.Notebook(
-                tmp_dir(ext='.sagenb'))
+                tmp_dir()
             sage: nb.user_manager.add_user(
                 'sage','sage','sage@sagemath.org',force=True)
             sage: W = nb.create_wst('Test', 'sage')
