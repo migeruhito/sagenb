@@ -49,4 +49,4 @@ def sage(server_pool=None, max_vmem=None, max_walltime=None, max_cputime=None,
         return SageServerExpectRemote(
             user_at_host=user_at_host,
             process_limits=process_limits,
-            remote_python=python, init_code=init_code, sage_code=sage_code)
+            python=python, init_code=init_code, sage_code=sage_code)

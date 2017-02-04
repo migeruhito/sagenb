@@ -496,14 +496,9 @@ class SageServerExpectRemote(SageServerExpect):
 
     def __init__(self,
                  user_at_host,
-                 remote_python,
                  local_directory=None,
                  remote_directory=None,
-                 process_limits=None,
-                 timeout=0.05,
                  **kwargs):
-        SageServerExpect.__init__(
-            self, process_limits, timeout=timeout, **kwargs)
         self._user_at_host = user_at_host
 
         if local_directory is None:
@@ -518,11 +513,11 @@ class SageServerExpectRemote(SageServerExpect):
             remote_directory = local_directory
         self._remote_directory = remote_directory
 
-        self._remote_python = remote_python
+        SageServerExpect.__init__(self, **kwargs)
 
     def command(self):
-        c = self._remote_python
-        return 'sage-native-execute ssh -t %s "%s"' % (self._user_at_host, c)
+        return 'ssh -t {} "{}"'.format(
+            self._user_at_host, SageServerExpect.command(self))
 
     def get_tmpdir(self):
         """
