@@ -199,23 +199,6 @@ class NotebookFrontend(object):
     def __call__(self, args=None):
         self.run(args)
 
-    def non_supported(self):
-        if self.conf['subnets'] is not None:
-            raise ValueError(
-                'The subnets parameter is no longer supported. Please use a '
-                'firewall to block subnets, or even better, volunteer to '
-                'wite the code to implement subnets again.')
-        if (self.conf['require_login'] is not None or
-                self.conf['open_viewer'] is not None):
-            raise ValueError(
-                'The require_login and open_viewer parameters are no longer '
-                'supported. Please use automatic_login=True to automatically'
-                'log in as admin, or use automatic_login=False to not '
-                'automatically log in.')
-        if self.conf['address'] is not None:
-            raise ValueError('Use "interface" instead of "address" when '
-                             'calling notebook(...).')
-
     def parse(self, args=None):
         self.conf.update(vars(self.parser.parse_args(args)))
 
@@ -252,25 +235,14 @@ class NotebookFrontend(object):
 
         self.conf['pidfile'] = os.path.join(directory, 'sagewui.pid')
 
-        if not self.conf['secure'] and self.conf['interface'] != 'localhost':
-            print(
-                '*' * 70,
-                'WARNING: Running the notebook insecurely not on localhost is '
-                'dangerous',
-                'because its possible for people to sniff passwords and gain '
-                'access to',
-                'your account. Make sure you know what you are doing.',
-                '*' * 70,
-                sep='\n')
-
         if self.conf['interface'] != 'localhost' and not self.conf['secure']:
             print(
                 '*' * 70,
                 'WARNING: Insecure notebook server listening on external '
                 'interface.',
                 'Unless you are running this via ssh port forwarding, you are',
-                '**crazy**! You should run the notebook with the option '
-                'secure=True.',
+                '**crazy**! You should run sagewui with the option '
+                '--secure.',
                 '*' * 70,
                 sep='\n')
 
