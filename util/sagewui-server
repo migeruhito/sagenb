@@ -1,0 +1,53 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          sageserver
+# Required-Start:    $local_fs $remote_fs $network $syslog $named
+# Required-Stop:     $local_fs $remote_fs $network $syslog $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# X-Interactive:     true
+# Short-Description: Start/stop sage notebook server
+### END INIT INFO
+
+set -e
+user=sageserver
+nbname="default"
+pythondir="/opt/python/venv/sagewui"
+interface="localhost"
+port=9080
+pool="sage0@localhost sage1@localhost sage2@localhost sage3@localhost\
+      sage4@localhost sage5@localhost sage6@localhost sage7@localhost\
+      sage8@localhost sage9@localhost"
+timeout=3600
+ulim="-u 100 -t 36000 -v 500000"
+
+homedir="$(eval echo ~$user)"
+sagewuidir="$homedir/.local/share/sagewui"
+log="$sagewuidir/sagewui-$nbname.log"
+pidfile="$sagewuidir/run/sagewui-$nbname.pid"
+
+command=". \"$pythonpath/bin/activate\";\
+         nohup sagewui  --nbname \"$nbname\"\
+                        --port \"$port\" --interface \"$interface\"\
+                        --server_pool $pool\
+                        --timeout \"$timeout\" --ulimit=\"$ulim\"\
+                        --secure --no_automatic_login \
+                        > \"$log\"&"
+case $1 in
+    start)
+        su -c "$command" $user
+    ;;
+    stop)
+        kill -TERM `cat $pidfile`
+    ;;
+    restart|force-reload)
+        $0 stop
+        $0 start
+    ;;
+
+    *)
+        echo "Usage: /etc/init.d/sagewui-server {start|stop|restart|force-reload}"
+        exit 1             
+    ;;
+esac
+
