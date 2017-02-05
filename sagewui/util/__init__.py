@@ -133,31 +133,20 @@ def sage_browser(sage_root):
         Extracted from sage.misc.viewer.default_viewer
     """
     if os.uname()[0] == 'Darwin':
-        browser = os.path.join(sage_root, 'local', 'bin', 'sage-open')
-    elif os.uname()[0][:6] == 'CYGWIN':
-        # Bobby Moreti provided the following.
-        if 'BROWSER' not in os.environ:
-            browser = (
-                '/cygdrive/{}/system32/rundll32.exe '
-                'url.dll,FileProtocolHandler'.format(
-                    os.environ['SYSTEMROOT'].replace(':', '/').replace('\\',
-                                                                       '')))
-        else:
-            browser = os.environ['BROWSER']
-    else:
-        browser = which('xdg-open')
+        return os.path.join(sage_root, 'local', 'bin', 'sage-open')
 
-    if browser is None:
-        # If all fails try to get something from the environment.
-        try:
-            browser = os.environ['BROWSER']
-        except KeyError:
-            browser = 'less'  # silly default
-            for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
-                brows = which(cmd)
-                if brows is not None:
-                    browser = brows
-                    break
+    if os.uname()[0][:6] == 'CYGWIN':
+        brs = (
+            os.environ.get('BROWSER', ''),
+            '/cygdrive/{}/system32/rundll32.exe '
+            'url.dll,FileProtocolHandler'.format(
+                os.environ['SYSTEMROOT'].replace(':', '/').replace('\\', '')))
+        return next(filter(None, brs))
+
+    brs = ('xdg-open', os.environ.get('BROWSER', ''), 'firefox',
+           'google-chrome', 'mozilla', 'mozilla-firefox', 'konqueror')
+    # : Does nothing in shell
+    browser = next(filter(None, map(which, brs)), ':')
     return browser
 
 

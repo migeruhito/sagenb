@@ -54,9 +54,7 @@ SAGE_ENV, mathjax_macros, INTERACT_CONF = sage_conf
 # sage paths
 SAGE_VERSION = SAGE_ENV['SAGE_VERSION']
 
-SAGE_BROWSER = '{} {}'.format(
-    os.path.join(SAGE_ENV['SAGE_ROOT'], 'local', 'bin', 'sage-native-execute'),
-    sage_browser(SAGE_ENV['SAGE_ROOT']))
+SAGE_BROWSER = sage_browser(SAGE_ENV['SAGE_ROOT'])
 
 # Interact markers
 INTERACT_UPDATE_PREFIX = INTERACT_CONF['UPDATE_PREFIX']
