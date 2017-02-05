@@ -19,12 +19,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from builtins import input
 from builtins import str
 from builtins import object
 from builtins import open
 
-from future.moves import pickle
 import logging
 import os
 import re
@@ -55,7 +53,6 @@ from ..util.text import extract_title
 from ..util.text import extract_text
 
 from ..models import ServerConfiguration
-from ..controllers import User
 from ..controllers import UserManager
 from .worksheet import update_worksheets
 
@@ -187,16 +184,16 @@ class Notebook(object):
 
         # Store / Refresh public worksheets
         for id_number in os.listdir(self._storage._abspath(
-                S._user_path("pub"))):
+                S._user_path(UN_PUB))):
             if id_number.isdigit():
                 a = "pub/" + str(id_number)
                 if a not in W:
                     try:
                         W[a] = self._storage.load_worksheet(
-                            "pub", int(id_number))
+                            UN_PUB, int(id_number))
                     except Exception:
                         print("Warning: problem loading %s/%s: %s" % (
-                            "pub", int(id_number), traceback.format_exc()))
+                            UN_PUB, int(id_number), traceback.format_exc()))
 
         # Set the openid-user dict
         try:
@@ -367,7 +364,7 @@ class Notebook(object):
 
     @property
     def _pub_wsts(self):
-        path = self._storage._abspath(self._storage._user_path("pub"))
+        path = self._storage._abspath(self._storage._user_path(UN_PUB))
         v = []
         a = ""
         for id_number in (idn for idn in os.listdir(path) if idn.isdigit()):
@@ -404,7 +401,7 @@ class Notebook(object):
         r"""
         Returns all worksheets owned by `username`
         """
-        if username == "pub":
+        if username == UN_PUB:
             return self._pub_wsts
 
         worksheets = self._storage.worksheets(username)

@@ -191,7 +191,7 @@ class User(object):
 
     def check_password(self, password):
         # the empty password is always false
-        if self.username == "pub" or password == '':
+        if self.username == UN_PUB or password == '':
             return False
         if self.__data_model.external_auth is not None:
             return None
@@ -310,7 +310,7 @@ class UserManager(dict):
         self.add_user(UN_GUEST, '', '', account_type=UAT_GUEST)
         self.add_user(UN_ADMIN, passwd, '', account_type=UAT_ADMIN)
 
-    def add_user(self, username, password, email, account_type="user",
+    def add_user(self, username, password, email, account_type=UAT_USER,
                  external_auth=None):
         """
         Adds a new user to the user dictionary.

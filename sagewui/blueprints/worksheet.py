@@ -594,7 +594,7 @@ def public_worksheet(id):
 
 @worksheet.route('/home/pub/<id>/download/<path:title>')
 def public_worksheet_download(id, title):
-    worksheet_filename = "pub" + "/" + id
+    worksheet_filename = UN_PUB + '/' + id
     try:
         worksheet = g.notebook.filename_wst(worksheet_filename)
     except KeyError:
@@ -606,7 +606,7 @@ def public_worksheet_download(id, title):
 
 @worksheet.route('/home/pub/<id>/cells/<path:filename>')
 def public_worksheet_cells(id, filename):
-    worksheet_filename = "pub" + "/" + id
+    worksheet_filename = UN_PUB + '/' + id
     try:
         worksheet = g.notebook.filename_wst(worksheet_filename)
     except KeyError:
@@ -1555,7 +1555,7 @@ def worksheet_rating_info(worksheet):
 
 @worksheet_command('rate')
 def worksheet_rate(worksheet):
-    # if user_type(self.username) == "guest":
+    # if user_type(self.username) == UN_GUEST:
     # return HTMLResponse(stream = message(
     # 'You must <a href="/">login first</a> in order to rate this worksheet.',
     # ret))
