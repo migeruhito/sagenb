@@ -1,6 +1,6 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          sageserver
+# Provides:          sagewui
 # Required-Start:    $local_fs $remote_fs $network $syslog $named
 # Required-Stop:     $local_fs $remote_fs $network $syslog $named
 # Default-Start:     2 3 4 5
@@ -26,7 +26,7 @@ sagewuidir="$homedir/.local/share/sagewui"
 log="$sagewuidir/sagewui-$nbname.log"
 pidfile="$sagewuidir/run/sagewui-$nbname.pid"
 
-command=". \"$pythonpath/bin/activate\";\
+command=". \"$pythondir/bin/activate\";\
          nohup sagewui  --nbname \"$nbname\"\
                         --port \"$port\" --interface \"$interface\"\
                         --server_pool $pool\
