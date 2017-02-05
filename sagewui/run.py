@@ -228,6 +228,7 @@ class NotebookFrontend(object):
 
         directory = os.path.join(DATA_DIR, 'db')
         makedirs(directory)
+        os.chdir(DATA_DIR)  # If not, twisted might fail in server mode
         directory = os.path.join(directory, 'default')
         if self.conf['directory'] is not None:
             directory = self.conf['directory'].rstrip(os.sep)
