@@ -390,12 +390,6 @@ class NotebookFrontend(object):
         nb.set_server_pool(self.conf['server_pool'])
         nb.set_ulimit(self.conf['ulimit'])
 
-        if os.path.exists('{}/nb-older-backup.sobj'.format(
-                self.conf['directory'])):
-            nb._migrate_worksheets()
-            os.unlink('{}/nb-older-backup.sobj'.format(self.conf['directory']))
-            print('Updating to new format complete.')
-
         nb.upgrade_model()
         nb.save()
 
