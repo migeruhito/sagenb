@@ -194,32 +194,6 @@ class NotebookFrontend(object):
             action='store_true',
             )
 
-        # Not supported options
-        parser.add_argument(
-            '--subnets',
-            dest='subnets',
-            default=None,
-            action='store',
-            )
-        parser.add_argument(
-            '--require_login',
-            dest='require_login',
-            default=None,
-            action='store',
-            )
-        parser.add_argument(
-            '--open_viewer',
-            dest='open_viewer',
-            default=None,
-            action='store',
-            )
-        parser.add_argument(
-            '--address',
-            dest='address',
-            default=None,
-            action='store',
-            )
-
         return parser
 
     def __call__(self, args=None):
@@ -268,8 +242,6 @@ class NotebookFrontend(object):
                 raise ValueError(
                     'Unable to find the file {} to upload'.format(upload))
             self.conf['upload'] = upload
-
-        self.non_supported()
 
         directory = os.path.join(DATA_DIR, 'db')
         makedirs(directory)
