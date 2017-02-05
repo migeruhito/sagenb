@@ -28,7 +28,6 @@ from .keymaps_js import get_keyboard
 
 from ..config import mathjax_macros
 from ..config import KEYS
-from ..config import SAGE_URL
 from ..config import SAGE_VERSION
 from flask import json
 
@@ -214,7 +213,6 @@ class DynamicJs(object):
             keyhandler.add(*k)
 
         s = render_template('js/notebook_dynamic.js',
-                            SAGE_URL=SAGE_URL,
                             KEY_CODES=keyhandler.all_tests(),
                             debug_mode=self.debug_mode)
         s = jsmin(s)

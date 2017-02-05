@@ -6,9 +6,7 @@ from __future__ import unicode_literals
 import os
 from babel import Locale
 from babel.core import UnknownLocaleError
-from pkg_resources import Requirement
 from pkg_resources import resource_filename
-from pkg_resources import working_set
 
 from appdirs import user_data_dir
 from flask_babel import lazy_gettext
@@ -54,16 +52,11 @@ SAGE_ENV, mathjax_macros, INTERACT_CONF = sage_conf
 
 
 # sage paths
-SAGE_ROOT = SAGE_ENV['SAGE_ROOT']
-SAGE_DOC = SAGE_ENV['SAGE_DOC']
-SAGE_SHARE = SAGE_ENV['SAGE_SHARE']
-SAGE_SRC = SAGE_ENV['SAGE_SRC']
 SAGE_VERSION = SAGE_ENV['SAGE_VERSION']
 
-SAGE_URL = 'http://sagemath.org'  # SAGE_URL is broken in sage.env (ver <= 7.2)
 SAGE_BROWSER = '{} {}'.format(
-    os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-native-execute'),
-    sage_browser(SAGE_ROOT))
+    os.path.join(SAGE_ENV['SAGE_ROOT'], 'local', 'bin', 'sage-native-execute'),
+    sage_browser(SAGE_ENV['SAGE_ROOT']))
 
 # Interact markers
 INTERACT_UPDATE_PREFIX = INTERACT_CONF['UPDATE_PREFIX']
@@ -73,21 +66,17 @@ INTERACT_TEXT = INTERACT_CONF['TEXT']
 INTERACT_HTML = INTERACT_CONF['HTML']
 INTERACT_END = INTERACT_CONF['END']
 
-
 # sagewui paths
 # TODO: This must be in sync with flask app base path. Should be removed from
 # here
 APP_PATH = resource_filename(__name__, '')
 BASE_PATH = user_data_dir(APP_NAME)
-try:
-    SAGENB_VERSION = working_set.find(Requirement.parse('sagenb')).version
-except AttributeError:
-    SAGENB_VERSION = ''
 
 # paths for static urls
-SRC = os.path.join(SAGE_SRC, 'sage')
-JMOL = os.path.join(SAGE_SHARE, 'jmol')
-JSMOL = os.path.join(SAGE_SHARE, 'jsmol')
+DOC_PATH = os.path.join(SAGE_ENV['SAGE_DOC'], 'output', 'html', 'en')
+SRC = os.path.join(SAGE_ENV['SAGE_SRC'], 'sage')
+JMOL = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jmol')
+JSMOL = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jsmol')
 J2S = os.path.join(JSMOL, 'j2s')
 
 # Gui config

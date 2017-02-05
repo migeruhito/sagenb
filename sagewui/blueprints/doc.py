@@ -17,7 +17,7 @@ from flask import g
 from flask_babel import gettext
 from flask.helpers import send_from_directory
 
-from ..config import SAGE_DOC
+from ..config import DOC_PATH
 from ..config import SAGE_VERSION
 from ..util.decorators import login_required
 from ..util.templates import message as message_template
@@ -28,13 +28,11 @@ _ = gettext
 
 doc = Blueprint('doc', __name__)
 
-DOC = os.path.join(SAGE_DOC, 'output', 'html', 'en')
-
 
 @doc.route('/static/', defaults={'filename': 'index.html'})
 @doc.route('/static/<path:filename>')
 def static(filename):
-    return send_from_directory(DOC, filename)
+    return send_from_directory(DOC_PATH, filename)
 
 
 @doc.route('/live/')
@@ -59,14 +57,14 @@ def live(filename=None, manual=None, path_static=None):
     if filename is None:
         return message_template(_('nothing to see.'), username=g.username)
     if path_static is not None:
-        path_static = os.path.join(DOC, manual, '_static')
+        path_static = os.path.join(DOC_PATH, manual, '_static')
         return send_from_directory(path_static, filename)
 
     if filename.endswith('.html'):
-        filename = os.path.join(DOC, filename)
+        filename = os.path.join(DOC_PATH, filename)
         return worksheet_file(filename)
     else:
-        return send_from_directory(DOC, filename)
+        return send_from_directory(DOC_PATH, filename)
 
 
 # Help
