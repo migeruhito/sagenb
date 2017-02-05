@@ -32,7 +32,7 @@ import signal
 
 from sagewui.app import create_app
 from sagewui.config import min_password_length
-from sagewui.config import DATA_DIR
+from sagewui.config import BASE_PATH
 from sagewui.config import SAGE_BROWSER
 from sagewui.config import UAT_USER
 from sagewui.config import UAT_GUEST
@@ -63,7 +63,7 @@ class NotebookFrontend(object):
             # Not parsed configuration parameters
             'cwd': os.getcwd(),
             'startup_token': None,
-            'ssl_dir': os.path.join(DATA_DIR, 'ssl'),
+            'ssl_dir': os.path.join(BASE_PATH, 'ssl'),
             }
 
         self.notebook = None
@@ -226,9 +226,9 @@ class NotebookFrontend(object):
                     'Unable to find the file {} to upload'.format(upload))
             self.conf['upload'] = upload
 
-        directory = os.path.join(DATA_DIR, 'db')
+        directory = os.path.join(BASE_PATH, 'db')
         makedirs(directory)
-        os.chdir(DATA_DIR)  # If not, twisted might fail in server mode
+        os.chdir(BASE_PATH)  # If not, twisted might fail in server mode
         directory = os.path.join(directory, 'default')
         if self.conf['directory'] is not None:
             directory = self.conf['directory'].rstrip(os.sep)

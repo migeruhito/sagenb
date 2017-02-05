@@ -77,8 +77,8 @@ INTERACT_END = INTERACT_CONF['END']
 # sagewui paths
 # TODO: This must be in sync with flask app base path. Should be removed from
 # here
-APP_DIR = resource_filename(__name__, '')
-DATA_DIR = user_data_dir(APP_NAME)
+APP_PATH = resource_filename(__name__, '')
+BASE_PATH = user_data_dir(APP_NAME)
 try:
     SAGENB_VERSION = working_set.find(Requirement.parse('sagenb')).version
 except AttributeError:
@@ -183,7 +183,7 @@ WARN_THRESHOLD = 100   # The number of seconds, so if there was no
 
 # themes
 THEME_PATHS = [
-    tp for tp in (os.path.join(d, 'themes') for d in [APP_DIR, DATA_DIR])
+    tp for tp in (os.path.join(d, 'themes') for d in [APP_PATH, BASE_PATH])
     if os.path.isdir(tp)]
 # TODO: Only needed by sagenb.notebook.server_conf
 THEMES = []
@@ -199,7 +199,7 @@ DEFAULT_THEME = 'Default'
 # be refactored.
 
 # translations
-TRANSLATIONS_PATH = os.path.join(APP_DIR, 'translations')
+TRANSLATIONS_PATH = os.path.join(APP_PATH, 'translations')
 # TODO: Only needed by sagenb.notebook.server_conf, sagenb.notebook.user_conf
 TRANSLATIONS = []
 for name in (l for l in os.listdir(TRANSLATIONS_PATH) if l != 'en_US'):
