@@ -19,6 +19,7 @@ import time
 from importlib import import_module
 from itertools import chain
 from itertools import count
+from itertools import filterfalse
 from itertools import zip_longest
 
 
@@ -519,6 +520,18 @@ def set_default(val, default):
     return default if val is None else val
 
 
-def makedirs(path):
-    if not os.path.exists(path):
+def abspath(*paths):
+    return os.path.abspath(os.path.join(*paths))
+
+
+def testpaths(*paths):
+    return all(map(os.path.exists, paths))
+
+
+def makedirs(*paths):
+    for path in filterfalse(os.path.exists, paths):
         os.makedirs(path)
+
+
+def securepath(path):
+    return path.replace(os.path.sep, '_')

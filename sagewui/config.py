@@ -59,6 +59,11 @@ BROWSER_PATH = sage_browser(SAGE_ENV['SAGE_ROOT'])
 # here
 APP_PATH = resource_filename(__name__, '')
 BASE_PATH = user_data_dir(APP_NAME)
+DB_PATH = os.path.join(BASE_PATH, 'db')
+SSL_PATH = os.path.join(BASE_PATH, 'ssl')
+PID_PATH = os.path.join(BASE_PATH, 'run')
+HOME_PATH = BASE_PATH
+PID_FILE_TEMPLATE = 'sagewui-{}.pid'
 
 # paths for static urls
 DOC_PATH = os.path.join(SAGE_ENV['SAGE_DOC'], 'output', 'html', 'en')
@@ -66,6 +71,9 @@ SRC_PATH = os.path.join(SAGE_ENV['SAGE_SRC'], 'sage')
 JMOL_PATH = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jmol')
 JSMOL_PATH = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jsmol')
 J2S_PATH = os.path.join(JSMOL_PATH, 'j2s')
+
+# DB
+DEFAULT_NB_NAME = 'default'
 
 # Interact markers
 INTERACT_UPDATE_PREFIX = INTERACT_CONF['UPDATE_PREFIX']

@@ -29,11 +29,17 @@ import argparse
 import logging
 import getpass
 import signal
+from os.path import join as joinpath
 
 from sagewui.app import create_app
 from sagewui.config import min_password_length
-from sagewui.config import BASE_PATH
 from sagewui.config import BROWSER_PATH
+from sagewui.config import DB_PATH
+from sagewui.config import DEFAULT_NB_NAME
+from sagewui.config import HOME_PATH
+from sagewui.config import PID_FILE_TEMPLATE
+from sagewui.config import PID_PATH
+from sagewui.config import SSL_PATH
 from sagewui.config import UAT_USER
 from sagewui.config import UAT_GUEST
 from sagewui.config import UN_ADMIN
@@ -41,12 +47,16 @@ from sagewui.config import UN_GUEST
 from sagewui.config import UN_PUB
 from sagewui.config import UN_SAGE
 from sagewui.gui import notebook
+from sagewui.util import abspath
+from sagewui.util import cached_property
 from sagewui.util import find_next_available_port
 from sagewui.util import get_module
 from sagewui.util import makedirs
 from sagewui.util import open_page
 from sagewui.util import print_open_msg
+from sagewui.util import securepath
 from sagewui.util import system_command
+from sagewui.util import testpaths
 from sagewui.util import which
 
 
@@ -63,21 +73,90 @@ class NotebookFrontend(object):
             # Not parsed configuration parameters
             'cwd': os.getcwd(),
             'startup_token': None,
-            'ssl_dir': os.path.join(BASE_PATH, 'ssl'),
             }
 
         self.notebook = None
+
+    @cached_property()
+    def msg(self):
+        return {
+            'upload':
+                'Unable to find the file {} to upload',
+            'ssl':
+                'HTTPS cannot be used without pyOpenSSL installed. '
+                'See the Sage README for more information.',
+            'insecure': '\n'.join((
+                '*' * 70,
+                'WARNING: Insecure notebook server listening on external '
+                'interface.',
+                'Unless you are running this via ssh port forwarding, you are',
+                '**crazy**! You should run sagewui with the option --secure.',
+                '*' * 70,
+                )),
+            'alogin':
+                'If your web browser does not open, you have to '
+                'manually open it to the above URL.',
+            'ssl_setup':
+                'I must setup ssl stuff in order to use an SECURE encrypted '
+                'notebook',
+            'passchange': 'Password changed for user {!r}.',
+            'admincreated': '\n'.join((
+                'User admin created with the password you specified.',
+                '',
+                '',
+                '*' * 70,
+                '',
+                )),
+            'adminlogin':
+                'Login to the Sage notebook as admin with the password you '
+                'specified above.',
+            'passreset': '\n'.join((
+                'There is an admin account. If you do not remember the '
+                'password,',
+                'quit the notebook and type `sagenb --reset`.',
+            )),
+            'server': 'Executing Sage Notebook with {} server',
+            'ssl_wzeug':
+                'HTTPS cannot be used without pyOpenSSL installed. See the '
+                'Sage README for more information.'
+
+        }
 
     @property
     def parser(self):
         parser = argparse.ArgumentParser(description='Starts sage notebook')
 
         parser.add_argument(
-            '--directory',
-            dest='directory',
-            default=None,
+            '--dbdir',
+            dest='dbdir',
+            default=DB_PATH,
             action='store',
             )
+        parser.add_argument(
+            '--piddir',
+            dest='piddir',
+            default=PID_PATH,
+            action='store',
+            )
+        parser.add_argument(
+            '--ssldir',
+            dest='ssldir',
+            default=SSL_PATH,
+            action='store',
+            )
+        parser.add_argument(
+            '--homedir',
+            dest='homedir',
+            default=HOME_PATH,
+            action='store',
+            )
+        parser.add_argument(
+            '--nbname',
+            dest='nbname',
+            default=DEFAULT_NB_NAME,
+            action='store',
+            )
+
         parser.add_argument(
             '--port',
             dest='port',
@@ -160,17 +239,6 @@ class NotebookFrontend(object):
             )
 
         parser.add_argument(
-            '--start_path',
-            dest='start_path',
-            default='',
-            action='store',
-            )
-        parser.add_argument(
-            '--fork',
-            dest='fork',
-            action='store_true',
-            )
-        parser.add_argument(
             '--quiet',
             dest='quiet',
             action='store_true',
@@ -188,11 +256,6 @@ class NotebookFrontend(object):
             dest='debug',
             action='store_true',
             )
-        parser.add_argument(
-            '--profile',
-            dest='profile',
-            action='store_true',
-            )
 
         return parser
 
@@ -203,96 +266,78 @@ class NotebookFrontend(object):
         self.conf.update(vars(self.parser.parse_args(args)))
 
     def update_conf(self):
-        if self.conf['debug']:
-            self.conf['server'] = 'werkzeug'
+        C = self.conf
+        M = self.msg
 
-        self.conf['private_pem'] = os.path.join(
-            self.conf['ssl_dir'], 'private.pem')
-        self.conf['public_pem'] = os.path.join(
-            self.conf['ssl_dir'], 'public.pem')
+        makedirs(DB_PATH, SSL_PATH, PID_PATH)
+        C['nbname'] = securepath(C['nbname'])
 
-        # Check whether pyOpenSSL is installed or not (see Sage trac #13385)
-        if self.conf['secure'] and get_module('OpenSSL') is None:
-            raise RuntimeError(
-                'HTTPS cannot be used without pyOpenSSL installed. '
-                'See the Sage README for more information.')
+        for path in ('dbdir', 'piddir', 'ssldir', 'homedir'):
+            C[path] = abspath(C[path])
+
+        C['directory'] = abspath(C['dbdir'], C['nbname'])
+
+        C['pidfile'] = joinpath(
+            C['piddir'], PID_FILE_TEMPLATE.format(C['nbname']))
+
+        if not testpaths(C['homedir']):
+            C['homedir'] = HOME_PATH
+
+        C['priv_pem'] = joinpath(C['ssldir'], 'private.pem')
+        C['pub_pem'] = joinpath(C['ssldir'], 'public.pem')
 
         # Turn it into a full path for later conversion to a file URL
-        upload = self.conf['upload']
-        if upload:
-            upload = os.path.abspath(os.path.expanduser(upload))
-            if not os.path.exists(upload):
-                raise ValueError(
-                    'Unable to find the file {} to upload'.format(upload))
-            self.conf['upload'] = upload
+        if C['upload']:
+            C['upload'] = abspath(C['upload'])
+            if not testpaths(C['upload']):
+                raise ValueError(M['upload'].format(C['upload']))
 
-        directory = os.path.join(BASE_PATH, 'db')
-        makedirs(directory)
-        os.chdir(BASE_PATH)  # If not, twisted might fail in server mode
-        directory = os.path.join(directory, 'default')
-        if self.conf['directory'] is not None:
-            directory = self.conf['directory'].rstrip(os.sep)
-        self.conf['directory'] = os.path.abspath(directory)
+        os.chdir(C['homedir'])  # If not readable, twisted fails in server mode
 
-        self.conf['pidfile'] = os.path.join(directory, 'sagewui.pid')
+        if C['debug']:
+            C['server'] = 'werkzeug'
 
-        if self.conf['interface'] != 'localhost' and not self.conf['secure']:
-            print(
-                '*' * 70,
-                'WARNING: Insecure notebook server listening on external '
-                'interface.',
-                'Unless you are running this via ssh port forwarding, you are',
-                '**crazy**! You should run sagewui with the option '
-                '--secure.',
-                '*' * 70,
-                sep='\n')
+        if C['interface'] != 'localhost' and not C['secure']:
+            print(M['insecure'])
 
-        self.conf['port'] = find_next_available_port(
-            self.conf['interface'], self.conf['port'], self.conf['port_tries'])
-        if self.conf['automatic_login']:
-            print("Automatic login isn't fully implemented. You have to "
-                  'manually open your web browser to the above URL.')
-            self.conf['startup_token'] = '{0:x}'.format(
-                random.randint(0, 2**128))
-        if self.conf['secure']:
-            if (not os.path.exists(self.conf['private_pem']) or
-                    not os.path.exists(self.conf['public_pem'])):
-                print(
-                    'In order to use an SECURE encrypted notebook, you must '
-                    'first run notebook.setup().',
-                    'Now running notebook.setup()',
-                    sep='\n')
-                self.ssl_setup()
-            if (not os.path.exists(self.conf['private_pem']) or
-                    not os.path.exists(self.conf['public_pem'])):
-                print('Failed to setup notebook.  Please try notebook.setup() '
-                      'again manually.')
+        C['port'] = find_next_available_port(
+            C['interface'], C['port'], C['port_tries'])
+
+        if C['automatic_login']:
+            print(M['alogin'])
+            C['startup_token'] = '{0:x}'.format(random.randint(0, 2**128))
+
+        # Check whether pyOpenSSL is installed or not (see Sage trac #13385)
+        if C['secure'] and get_module('OpenSSL') is None:
+            raise RuntimeError(M['ssl'])
+        if C['secure'] and not testpaths(C['priv_pem'], C['pub_pem']):
+            print(M['ssl_setup'])
+            self.ssl_setup()
+
         #################################################################
-
-        # first use provided values, if none, use loaded values,
-        # if none use defaults
+        # Update notebook
 
         self.notebook = notebook.load_notebook(
-            self.conf['directory'],
-            interface=self.conf['interface'],
-            port=self.conf['port'],
-            secure=self.conf['secure'])
+            C['directory'],
+            interface=C['interface'],
+            port=C['port'],
+            secure=C['secure'])
         nb = self.notebook
 
-        self.conf['directory'] = nb.dir
+        C['directory'] = nb.dir
 
-        if not self.conf['quiet']:
+        if not C['quiet']:
             print('The notebook files are stored in:', nb.dir)
 
-        if self.conf['timeout'] is not None:
-            nb.conf['idle_timeout'] = self.conf['timeout']
-        if self.conf['doc_timeout'] is not None:
-            nb.conf['doc_timeout'] = self.conf['doc_timeout']
+        if C['timeout'] is not None:
+            nb.conf['idle_timeout'] = C['timeout']
+        if C['doc_timeout'] is not None:
+            nb.conf['doc_timeout'] = C['doc_timeout']
 
-        nb.conf['openid'] = self.conf['openid']
+        nb.conf['openid'] = C['openid']
 
-        if self.conf['accounts'] is not None:
-            nb.conf['accounts'] = (self.conf['accounts'])
+        if C['accounts'] is not None:
+            nb.conf['accounts'] = (C['accounts'])
 
         if ('root' in nb.user_manager and
                 UN_ADMIN not in nb.user_manager):
@@ -302,25 +347,18 @@ class NotebookFrontend(object):
             # It would be a security risk to leave an escalated account around.
 
         if UN_ADMIN not in nb.user_manager:
-            self.conf['reset'] = True
+            C['reset'] = True
 
-        if self.conf['reset']:
+        if C['reset']:
             passwd = self.get_admin_passwd()
             if UN_ADMIN in nb.user_manager:
                 nb.user_manager[UN_ADMIN].password = passwd
-                print("Password changed for user {!r}.".format(UN_ADMIN))
+                print(M['passchange'].format(UN_ADMIN))
             else:
                 nb.user_manager.create_default_users(passwd)
-                print(
-                    'User admin created with the password you specified.',
-                    '',
-                    '',
-                    '*' * 70,
-                    '',
-                    sep='\n')
-                if self.conf['secure']:
-                    print('Login to the Sage notebook as admin with the '
-                          'password you specified above.')
+                print(M['admincreated'])
+                if C['secure']:
+                    print(M['adminlogin'])
             # nb.del_user('root')
 
         # For old notebooks, make sure that default users are always created.
@@ -332,8 +370,8 @@ class NotebookFrontend(object):
         if UN_GUEST not in um:
             um.add_user(UN_GUEST, '', '', account_type=UAT_GUEST)
 
-        nb.set_server_pool(self.conf['server_pool'])
-        nb.set_ulimit(self.conf['ulimit'])
+        nb.set_server_pool(C['server_pool'])
+        nb.set_ulimit(C['ulimit'])
 
         nb.upgrade_model()
         nb.save()
@@ -345,13 +383,8 @@ class NotebookFrontend(object):
             print_open_msg(self.conf['interface'], self.conf['port'],
                            secure=self.conf['secure'])
         if self.conf['secure'] and not self.conf['quiet']:
-            print(
-                'There is an admin account. If you do not remember the '
-                'password,',
-                'quit the notebook and type `sagenb --reset`.',
-                sep='\n')
-        print('Executing Sage Notebook with {} server'.format(
-            self.conf['server']))
+            print(self.msg['passreset'])
+        print(self.msg['server'].format(self.conf['server']))
 
         # TODO: This must be a conf parameter of the notebook
         self.notebook.DIR = self.conf['cwd']
@@ -374,12 +407,10 @@ class NotebookFrontend(object):
             try:
                 from OpenSSL import SSL
                 ssl_context = SSL.Context(SSL.SSLv23_METHOD)
-                ssl_context.use_privatekey_file(self.conf['private_pem'])
-                ssl_context.use_certificate_file(self.conf['public_pem'])
+                ssl_context.use_privatekey_file(self.conf['priv_pem'])
+                ssl_context.use_certificate_file(self.conf['pub_pem'])
             except ImportError:
-                raise RuntimeError('HTTPS cannot be used without pyOpenSSL '
-                                   'installed. See the Sage README for more '
-                                   'information.')
+                raise RuntimeError(self.msg['ssl_wzeug'])
         else:
             ssl_context = None
 
@@ -409,8 +440,8 @@ class NotebookFrontend(object):
         if self.conf['secure']:
             self.conf['strport'] = 'ssl:{port}:'\
                                    'interface={interface}:'\
-                                   'privateKey={private_pem}:'\
-                                   'certKey={public_pem}'.format(**self.conf)
+                                   'privateKey={priv_pem}:'\
+                                   'certKey={pub_pem}'.format(**self.conf)
         else:
             self.conf['strport'] = 'tcp:{port}:'\
                                    'interface={interface}'.format(**self.conf)
@@ -479,8 +510,8 @@ class NotebookFrontend(object):
         self.write_pid()
 
         ssl_options = {
-            'certfile': self.conf['public_pem'],
-            'keyfile': self.conf['private_pem']
+            'certfile': self.conf['pub_pem'],
+            'keyfile': self.conf['priv_pem']
             } if self.conf['secure'] else None
 
         self.open_page()
@@ -550,7 +581,7 @@ class NotebookFrontend(object):
         return passwd
 
     def ssl_setup(self):
-        makedirs(self.conf['ssl_dir'])
+        makedirs(self.conf['ssldir'])
 
         if which('openssl') is None:
             raise RuntimeError('You must install openssl to use the secure'
@@ -577,16 +608,16 @@ class NotebookFrontend(object):
         # We use openssl since it is open
         # *vastly* faster on Linux, for some weird reason.
         system_command(
-            'openssl genrsa -out {} {}'.format(self.conf['private_pem'], bits),
+            'openssl genrsa -out {} {}'.format(self.conf['priv_pem'], bits),
             'Using openssl to generate key')
         system_command(
             'openssl req  -key {} -out {} -newkey rsa:{} -x509 '
             '-days {} -subj {}'.format(
-                self.conf['private_pem'], self.conf['public_pem'], bits,
+                self.conf['priv_pem'], self.conf['pub_pem'], bits,
                 days, distinguished_name))
 
         # Set permissions on private cert
-        os.chmod(self.conf['private_pem'], 0o600)
+        os.chmod(self.conf['priv_pem'], 0o600)
 
         print('Successfully configured ssl.')
 
