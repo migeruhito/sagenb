@@ -20,7 +20,7 @@ from .config import DEFAULT_THEME
 from .config import JEDITABLE_TINYMCE
 from .config import MATHJAX
 from .config import SAGE_VERSION
-from .config import SRC
+from .config import SRC_PATH
 from .config import THEME_PATHS
 from .config import UAT_GUEST
 from .util.decorators import guest_or_login_required
@@ -131,13 +131,13 @@ def create_app(notebook, startup_token=None, debug=False):
     # autoindex v0.3 doesnt seem to work with modules
     # routing with app directly does the trick
     # TODO: Check to see if autoindex 0.4 works with modules
-    idx = AutoIndex(app, browse_root=SRC, add_url_rules=False)
+    idx = AutoIndex(app, browse_root=SRC_PATH, add_url_rules=False)
 
     @app.route('/src/')
     @app.route('/src/<path:path>')
     @guest_or_login_required
     def autoindex(path='.'):
-        filename = os.path.join(SRC, path)
+        filename = os.path.join(SRC_PATH, path)
         if os.path.isfile(filename):
             with open(filename, 'rb') as f:
                 src = f.read().decode('utf-8', 'ignore')

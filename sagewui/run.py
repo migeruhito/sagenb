@@ -33,7 +33,7 @@ import signal
 from sagewui.app import create_app
 from sagewui.config import min_password_length
 from sagewui.config import BASE_PATH
-from sagewui.config import SAGE_BROWSER
+from sagewui.config import BROWSER_PATH
 from sagewui.config import UAT_USER
 from sagewui.config import UAT_GUEST
 from sagewui.config import UN_ADMIN
@@ -498,12 +498,12 @@ class NotebookFrontend(object):
         # If we have to login and upload a file, then we do them
         # in that order and hope that the login is fast enough.
         if self.conf['automatic_login']:
-            open_page(SAGE_BROWSER, self.conf['interface'], self.conf['port'],
+            open_page(BROWSER_PATH, self.conf['interface'], self.conf['port'],
                       self.conf['secure'],
                       '/?startup_token={}'.format(self.conf['startup_token']))
         if self.conf['upload']:
             open_page(
-                SAGE_BROWSER, self.conf['interface'], self.conf['port'],
+                BROWSER_PATH, self.conf['interface'], self.conf['port'],
                 self.conf['secure'],
                 '/upload_worksheet?url=file://{}'.format(
                     quote(self.conf['upload'])))

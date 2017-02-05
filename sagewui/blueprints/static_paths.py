@@ -13,9 +13,9 @@ from flask import Blueprint
 from flask import current_app as app
 from flask.helpers import send_from_directory
 
-from ..config import JMOL
-from ..config import JSMOL
-from ..config import J2S
+from ..config import JMOL_PATH
+from ..config import JSMOL_PATH
+from ..config import J2S_PATH
 
 
 static_paths = Blueprint('static_paths', __name__)
@@ -42,14 +42,14 @@ def static_file(filename):
 
 @static_paths.route('/java/jmol/<path:filename>')
 def jmol(filename):
-    return send_from_directory(JMOL, filename)
+    return send_from_directory(JMOL_PATH, filename)
 
 
 @static_paths.route('/jsmol/<path:filename>')
 def jsmol(filename):
-    return send_from_directory(JSMOL, filename)
+    return send_from_directory(JSMOL_PATH, filename)
 
 
 @static_paths.route('/j2s/<path:filename>')
 def j2s(filename):
-    return send_from_directory(J2S, filename)
+    return send_from_directory(J2S_PATH, filename)

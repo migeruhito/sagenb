@@ -49,20 +49,10 @@ sage_conf.quit()
 
 exec('sage_conf = ' + sconf.output.strip())
 SAGE_ENV, mathjax_macros, INTERACT_CONF = sage_conf
-
-
-# sage paths
 SAGE_VERSION = SAGE_ENV['SAGE_VERSION']
 
-SAGE_BROWSER = sage_browser(SAGE_ENV['SAGE_ROOT'])
-
-# Interact markers
-INTERACT_UPDATE_PREFIX = INTERACT_CONF['UPDATE_PREFIX']
-INTERACT_RESTART = INTERACT_CONF['RESTART']
-INTERACT_START = INTERACT_CONF['START']
-INTERACT_TEXT = INTERACT_CONF['TEXT']
-INTERACT_HTML = INTERACT_CONF['HTML']
-INTERACT_END = INTERACT_CONF['END']
+# sage paths
+BROWSER_PATH = sage_browser(SAGE_ENV['SAGE_ROOT'])
 
 # sagewui paths
 # TODO: This must be in sync with flask app base path. Should be removed from
@@ -72,10 +62,18 @@ BASE_PATH = user_data_dir(APP_NAME)
 
 # paths for static urls
 DOC_PATH = os.path.join(SAGE_ENV['SAGE_DOC'], 'output', 'html', 'en')
-SRC = os.path.join(SAGE_ENV['SAGE_SRC'], 'sage')
-JMOL = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jmol')
-JSMOL = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jsmol')
-J2S = os.path.join(JSMOL, 'j2s')
+SRC_PATH = os.path.join(SAGE_ENV['SAGE_SRC'], 'sage')
+JMOL_PATH = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jmol')
+JSMOL_PATH = os.path.join(SAGE_ENV['SAGE_SHARE'], 'jsmol')
+J2S_PATH = os.path.join(JSMOL_PATH, 'j2s')
+
+# Interact markers
+INTERACT_UPDATE_PREFIX = INTERACT_CONF['UPDATE_PREFIX']
+INTERACT_RESTART = INTERACT_CONF['RESTART']
+INTERACT_START = INTERACT_CONF['START']
+INTERACT_TEXT = INTERACT_CONF['TEXT']
+INTERACT_HTML = INTERACT_CONF['HTML']
+INTERACT_END = INTERACT_CONF['END']
 
 # Gui config
 CHOICES = 'choices'
