@@ -277,11 +277,6 @@ class NotebookFrontend(object):
         C['priv_pem'] = joinpath(C['ssldir'], 'private.pem')
         C['pub_pem'] = joinpath(C['ssldir'], 'public.pem')
 
-        if C['upload']:
-            C['upload'] = abspath(C['upload'])
-            if not testpaths(C['upload']):
-                raise ValueError(M['upload'].format(C['upload']))
-
         os.chdir(C['homedir'])  # If not readable, twisted fails in server mode
 
         if C['debug']:
