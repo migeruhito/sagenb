@@ -75,11 +75,25 @@ class NotebookFrontend(object):
             'startup_token': None,
             }
 
+        self.default_paths = {
+            'dbdir': abspath(DB_PATH),
+            'piddir': abspath(PID_PATH),
+            'ssldir': abspath(SSL_PATH),
+            'homedir': abspath(HOME_PATH),
+            'upload': None,
+            }
+        self.app_path_names = ('dbdir', 'piddir', 'ssldir')
+
         self.notebook = None
 
     @cached_property()
     def msg(self):
         return {
+            'path': '\n'.join((
+                'Warning:',
+                '    --{} {}  does not exists.',
+                '    Taking the default {} instead',
+                )),
             'upload':
                 'Unable to find the file {} to upload',
             'ssl':
@@ -125,31 +139,14 @@ class NotebookFrontend(object):
     @property
     def parser(self):
         parser = argparse.ArgumentParser(description='Starts sage notebook')
+        for path, default in self.default_paths.items():
+            parser.add_argument(
+                '--{}'.format(path),
+                dest=path,
+                default=default,
+                action='store',
+                )
 
-        parser.add_argument(
-            '--dbdir',
-            dest='dbdir',
-            default=DB_PATH,
-            action='store',
-            )
-        parser.add_argument(
-            '--piddir',
-            dest='piddir',
-            default=PID_PATH,
-            action='store',
-            )
-        parser.add_argument(
-            '--ssldir',
-            dest='ssldir',
-            default=SSL_PATH,
-            action='store',
-            )
-        parser.add_argument(
-            '--homedir',
-            dest='homedir',
-            default=HOME_PATH,
-            action='store',
-            )
         parser.add_argument(
             '--nbname',
             dest='nbname',
@@ -227,12 +224,6 @@ class NotebookFrontend(object):
             )
 
         parser.add_argument(
-            '--upload',
-            dest='upload',
-            default=None,
-            action='store',
-            )
-        parser.add_argument(
             '--no_automatic_login',
             dest='automatic_login',
             action='store_false',
@@ -269,24 +260,23 @@ class NotebookFrontend(object):
         C = self.conf
         M = self.msg
 
-        makedirs(DB_PATH, SSL_PATH, PID_PATH)
+        makedirs(*(self.default_paths[p] for p in self.app_path_names))
         C['nbname'] = securepath(C['nbname'])
 
-        for path in ('dbdir', 'piddir', 'ssldir', 'homedir'):
+        for path, default in self.default_paths.items():
             C[path] = abspath(C[path])
+            if not testpaths(C[path]):
+                print(M['path'].format(path, C[path], default))
+                C[path] = default
 
         C['directory'] = abspath(C['dbdir'], C['nbname'])
 
         C['pidfile'] = joinpath(
             C['piddir'], PID_FILE_TEMPLATE.format(C['nbname']))
 
-        if not testpaths(C['homedir']):
-            C['homedir'] = HOME_PATH
-
         C['priv_pem'] = joinpath(C['ssldir'], 'private.pem')
         C['pub_pem'] = joinpath(C['ssldir'], 'public.pem')
 
-        # Turn it into a full path for later conversion to a file URL
         if C['upload']:
             C['upload'] = abspath(C['upload'])
             if not testpaths(C['upload']):
