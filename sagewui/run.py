@@ -91,7 +91,7 @@ class NotebookFrontend(object):
         return {
             'path': '\n'.join((
                 'Warning:',
-                '    --{} {}  does not exists.',
+                '    --{} {} does not exists.',
                 '    Taking the default {} instead',
                 )),
             'upload':
