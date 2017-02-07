@@ -53,7 +53,7 @@ from sagewui.util import find_next_available_port
 from sagewui.util import get_module
 from sagewui.util import makedirs
 from sagewui.util import open_page
-from sagewui.util import print_open_msg
+from sagewui.util import open_msg
 from sagewui.util import securepath
 from sagewui.util import system_command
 from sagewui.util import testpaths
@@ -373,8 +373,8 @@ class NotebookFrontend(object):
         self.init_misc()
         self.init_notebook()
         if not self.conf['quiet']:
-            print_open_msg(self.conf['interface'], self.conf['port'],
-                           secure=self.conf['secure'])
+            print(open_msg(self.conf['interface'], self.conf['port'],
+                           secure=self.conf['secure']))
         if self.conf['secure'] and not self.conf['quiet']:
             print(self.msg['passreset'])
         print(self.msg['server'].format(self.conf['server']))

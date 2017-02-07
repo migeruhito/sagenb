@@ -282,7 +282,7 @@ def nN_(message_singular, message_plural):
     return [message_singular, message_plural]
 
 
-def print_open_msg(address, port, secure=False, path=""):
+def open_msg(address, port, secure=False, path=""):
     """
     Print a message on the screen suggesting that the user open their
     web browser to a certain URL.
@@ -300,51 +300,44 @@ def print_open_msg(address, port, secure=False, path=""):
 
     EXAMPLES::
 
-        sage: from sagenb.misc.misc import print_open_msg
-        sage: print_open_msg('localhost', 8080, True)
+        sage: from sagenb.misc.misc import open_msg
+        sage: print(open_msg('localhost', 8080, True))
         ┌──────────────────────────────────────────────────┐
         │                                                  │
         │ Open your web browser to https://localhost:8080  │
         │                                                  │
         └──────────────────────────────────────────────────┘
-        sage: print_open_msg('sagemath.org', 8080, False)
+        sage: print(open_msg('sagemath.org', 8080, False))
         ┌────────────────────────────────────────────────────┐
         │                                                    │
         │ Open your web browser to http://sagemath.org:8080  │
         │                                                    │
         └────────────────────────────────────────────────────┘
-        sage: print_open_msg('sagemath.org', 90, False)
+        sage: print(open_msg('sagemath.org', 90, False))
         ┌──────────────────────────────────────────────────┐
         │                                                  │
         │ Open your web browser to http://sagemath.org:90  │
         │                                                  │
         └──────────────────────────────────────────────────┘
-        sage: print_open_msg('sagemath.org', 80, False)
+        sage: print(open_msg('sagemath.org', 80, False))
         ┌────────────────────────────────────────────────┐
         │                                                │
         │  Open your web browser to http://sagemath.org  │
         │                                                │
         └────────────────────────────────────────────────┘
     """
-    if port == 80:
-        port = ''
-    else:
-        port = ':%s' % port
+    port = '' if port == 80 else ':{}'.format(port)
     s = "Open your web browser to http%s://%s%s%s" % (
         's' if secure else '', address, port, path)
-    t = len(s)
-    if t % 2:
-        t += 1
-        s += ' '
-    n = max(t + 4, 50)
-    k = n - t - 1
-    j = k // 2
-    msg = '┌' + '─' * (n - 2) + '┐\n'
-    msg += '│' + ' ' * (n - 2) + '│\n'
-    msg += '│' + ' ' * j + s + ' ' * j + '│\n'
-    msg += '│' + ' ' * (n - 2) + '│\n'
-    msg += '└' + '─' * (n - 2) + '┘'
-    print(msg)
+    template = '{0}{4:{1}^{3}}{2}'
+    n = len(s) + 2
+    return '\n'.join((
+        template.format('┌', '─', '┐', n, ''),
+        template.format('│', ' ', '│', n, ''),
+        template.format('│', ' ', '│', n, s),
+        template.format('│', ' ', '│', n, ''),
+        template.format('└', '─', '┘', n, ''),
+        ))
 
 
 def find_next_available_port(interface, start, max_tries=100, verbose=False):
