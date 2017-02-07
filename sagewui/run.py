@@ -256,7 +256,7 @@ class NotebookFrontend(object):
     def parse(self, args=None):
         self.conf.update(vars(self.parser.parse_args(args)))
 
-    def update_conf(self):
+    def init_paths(self):
         C = self.conf
         M = self.msg
 
@@ -264,10 +264,11 @@ class NotebookFrontend(object):
         C['nbname'] = securepath(C['nbname'])
 
         for path, default in self.default_paths.items():
-            C[path] = abspath(C[path])
             if not testpaths(C[path]):
                 print(M['path'].format(path, C[path], default))
                 C[path] = default
+            else:
+                C[path] = abspath(C[path])
 
         C['directory'] = abspath(C['dbdir'], C['nbname'])
 
@@ -278,6 +279,10 @@ class NotebookFrontend(object):
         C['pub_pem'] = joinpath(C['ssldir'], 'public.pem')
 
         os.chdir(C['homedir'])  # If not readable, twisted fails in server mode
+
+    def init_misc(self):
+        C = self.conf
+        M = self.msg
 
         if C['debug']:
             C['server'] = 'werkzeug'
@@ -299,8 +304,9 @@ class NotebookFrontend(object):
             print(M['ssl_setup'])
             self.ssl_setup()
 
-        #################################################################
-        # Update notebook
+    def init_notebook(self):
+        C = self.conf
+        M = self.msg
 
         self.notebook = notebook.load_notebook(
             C['directory'],
@@ -363,7 +369,9 @@ class NotebookFrontend(object):
 
     def run(self, args=None):
         self.parse(args)
-        self.update_conf()
+        self.init_paths()
+        self.init_misc()
+        self.init_notebook()
         if not self.conf['quiet']:
             print_open_msg(self.conf['interface'], self.conf['port'],
                            secure=self.conf['secure'])

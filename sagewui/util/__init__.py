@@ -521,17 +521,29 @@ def set_default(val, default):
 
 
 def abspath(*paths):
-    return os.path.abspath(os.path.join(*paths))
+    """
+    None is a path with abspath None and not filesystem counterpart
+    """
+    return None if paths == (None,) else os.path.abspath(os.path.join(*paths))
 
 
 def testpaths(*paths):
-    return all(map(os.path.exists, paths))
+    """
+    None is a path with abspath None and not filesystem counterpart
+    """
+    return all(map(lambda p: p is None or os.path.exists(p), paths))
 
 
 def makedirs(*paths):
-    for path in filterfalse(os.path.exists, paths):
+    """
+    None is a path with abspath None and not filesystem counterpart
+    """
+    for path in filterfalse(testpaths, paths):
         os.makedirs(path)
 
 
 def securepath(path):
-    return path.replace(os.path.sep, '_')
+    """
+    None is a path with abspath None and not filesystem counterpart
+    """
+    return None if path is None else path.replace(os.path.sep, '_')
