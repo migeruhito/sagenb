@@ -1,4 +1,9 @@
-.. nodoctest
+=======
+SageWui
+=======
+
+Development moved to https://github.com/damahou/sagewui
+Information here is obsolete.
 
 SageWui is a major refactor/rewrite of the Sage Notebook.
 
